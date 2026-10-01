@@ -1,14 +1,187 @@
+:root {
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --bg-color: #f8fafc;
+    --text-color: #1e293b;
+    --white: #ffffff;
+    --rosso: #ef4444;
+    --arancione: #f97316;
+    --verde: #22c55e;
+    --grigio: #94a3b8;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f6f8;
-    color: #333;
-    text-align: center;
-    padding: 50px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 header {
-    background-color: #ffffff;
-    padding: 20px;
+    background: linear-gradient(135deg, var(--primary), #6366f1);
+    color: var(--white);
+    text-align: center;
+    padding: 1.5rem;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+nav.tabs {
+    display: flex;
+    justify-content: center;
+    background: var(--white);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 1rem 1.2rem;
+    font-size: 1rem;
+    cursor: pointer;
+    color: var(--text-color);
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.tab-btn.active, .tab-btn:hover {
+    color: var(--primary);
+    border-bottom: 3px solid var(--primary);
+}
+
+main {
+    flex: 1;
+    max-width: 900px;
+    width: 90%;
+    margin: 2rem auto;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.card-form {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
+}
+
+.card-form input, .card-form textarea, .card-form select {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #cbd5e1;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.btn {
+    background-color: var(--primary);
+    color: var(--white);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+    transition: background 0.2s;
+}
+
+.btn:hover {
+    background-color: var(--primary-hover);
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+
+/* Stili specifici bollette con codici colore richiesti */
+.bolletta-card {
+    background: var(--white);
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border-left: 6px solid var(--grigio);
+}
+
+.bolletta-card.rossa { border-left-color: var(--rosso); }
+.bolletta-card.arancione { border-left-color: var(--arancione); }
+.bolletta-card.verde { border-left-color: var(--verde); }
+.bolletta-card.grigia { border-left-color: var(--grigio); opacity: 0.7; }
+
+/* Chat Box */
+.chat-container {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    height: 400px;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.message {
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    max-width: 75%;
+}
+
+.message.gemini {
+    background: #e2e8f0;
+    align-self: flex-start;
+}
+
+.message.user {
+    background: var(--primary);
+    color: var(--white);
+    align-self: flex-end;
+}
+
+.chat-input-area {
+    display: flex;
+    padding: 0.75rem;
+    border-top: 1px solid #e2e8f0;
+    gap: 0.5rem;
+}
+
+.chat-input-area input {
+    margin: 0;
+}
+
+.chat-input-area button {
+    width: 60px;
+}
+
+footer {
+    text-align: center;
+    padding: 1rem;
+    background: #1e293b;
+    color: var(--white);
+    font-size: 0.9rem;
+    font-weight: 500;
 }
