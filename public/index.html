@@ -3,134 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Dashboard - STECKS & GEMINI</title>
+    <title>Family PWA - STECKS & GEMINI</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <div id="auth-overlay" class="auth-overlay">
+        <div class="auth-box">
+            <h2><i class="fa-solid fa-house-chimney"></i> Family Portal</h2>
+            <p>Seleziona il tuo profilo:</p>
+            <select id="auth-user">
+                <option value="Stecks">Stecks (Admin)</option>
+                <option value="Elena">Elena</option>
+                <option value="Sara">Sara</option>
+                <option value="Giulia">Giulia</option>
+                <option value="Leonardo">Leonardo</option>
+            </select>
+            <input type="password" id="auth-pin" placeholder="Inserisci PIN (es. 1234)" value="1234">
+            <button id="btn-login" class="btn-primary">Accedi</button>
+        </div>
+    </div>
 
-    <header>
-        <h1><i class="fa-solid fa-house-chimney"></i> Family Dashboard</h1>
-        <p>Benvenuti nella nostra casa virtuale</p>
-    </header>
-
-    <nav class="tabs">
-        <button class="tab-btn active" onclick="switchTab('bollette')"><i class="fa-solid fa-file-invoice-dollar"></i> Bollette</button>
-        <button class="tab-btn" onclick="switchTab('media')"><i class="fa-solid fa-images"></i> Foto & Video</button>
-        <button class="tab-btn" onclick="switchTab('ricette')"><i class="fa-solid fa-utensils"></i> Ricette</button>
-        <button class="tab-btn" onclick="switchTab('calendario')"><i class="fa-solid fa-calendar-days"></i> Calendario</button>
-        <button class="tab-btn" onclick="switchTab('gemini')"><i class="fa-solid fa-robot"></i> Chat con Gemini</button>
-    </nav>
-
-    <main>
-        <!-- SEZIONE BOLLETTE -->
-        <section id="bollette" class="tab-content active">
-            <h2>Gestione Bollette</h2>
-            
-            <!-- Pulsante per aprire il form di inserimento -->
-            <div style="margin-bottom: 1.5rem;">
-                <button onclick="toggleFormBolletta()" id="btn-apri-form" class="btn"><i class="fa-solid fa-plus"></i> Aggiungi Nuova Bolletta</button>
+    <div class="app-container">
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Family PWA</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle-btn"><i class="fa-solid fa-bars"></i></button>
             </div>
+            <ul class="sidebar-menu">
+                <li class="active" data-target="section-overview"><i class="fa-solid fa-home"></i><span>Panoramica</span></li>
+                <li data-target="section-bills"><i class="fa-solid fa-file-invoice-dollar"></i><span>Bollette</span></li>
+                <li data-target="section-gallery"><i class="fa-solid fa-images"></i><span>Foto & Video</span></li>
+                <li data-target="section-recipes"><i class="fa-solid fa-utensils"></i><span>Ricettario</span></li>
+                <li data-target="section-calendar"><i class="fa-solid fa-calendar-days"></i><span>Calendario</span></li>
+                <li id="menu-admin" data-target="section-admin" style="display:none;"><i class="fa-solid fa-shield-halved"></i><span>Admin Dashboard</span></li>
+            </ul>
+            <div class="sidebar-footer">
+                <span id="current-user-badge">Utente: Stecks</span>
+            </div>
+        </nav>
 
-            <!-- Modulo nascosto di default -->
-            <div id="form-container" class="card-form" style="display: none;">
-                <h3>Inserisci Nuova Bolletta</h3>
-                
-                <div style="display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap;">
-                    <!-- Pulsante Scatta (visibile solo su smartphone) -->
-                    <div id="container-scatta" style="flex: 1; min-width: 140px; display: none;">
-                        <label for="foto-scatta" class="btn" style="display: block; text-align: center; background: #0ea5e9; cursor: pointer; font-size: 0.9rem;">
-                            <i class="fa-solid fa-camera"></i> Scatta una foto
-                        </label>
-                        <input type="file" id="foto-scatta" accept="image/*" capture="environment" style="display:none;" onchange="elaboraOCR(event)">
-                    </div>
-
-                    <!-- Pulsante Carica da galleria / PC -->
-                    <div style="flex: 1; min-width: 140px;">
-                        <label for="foto-carica" class="btn" style="display: block; text-align: center; background: #64748b; cursor: pointer; font-size: 0.9rem;">
-                            <i class="fa-solid fa-upload"></i> Carica una foto
-                        </label>
-                        <input type="file" id="foto-carica" accept="image/*" style="display:none;" onchange="elaboraOCR(event)">
-                    </div>
+        <main class="main-content">
+            <header class="top-header">
+                <h1 id="page-title">Panoramica</h1>
+                <div class="gemini-search-bar">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <input type="text" id="gemini-input" placeholder="Chiedi qualcosa a Gemini (es. ricetta veloce, consigli bollette)...">
+                    <button id="gemini-send"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
+            </header>
 
-                <form id="bolletta-form" onsubmit="aggiungiBolletta(event)">
-                    <input type="text" id="ente-bolletta" placeholder="Ente (es. ENEL, ENI)" required>
-                    <input type="text" id="importo-bolletta" placeholder="Importo (es. 599,34 o 599.34)" required>
-                    <label>Data Scadenza:</label>
-                    <input type="date" id="scadenza-bolletta" required>
-                    <div style="display: flex; gap: 10px;">
-                        <button type="submit" class="btn" style="background: var(--verde);">Salva Bolletta</button>
-                        <button type="button" onclick="toggleFormBolletta()" class="btn" style="background: var(--grigio);">Annulla</button>
+            <div id="gemini-response-box" class="gemini-response-box" style="display: none;">
+                <div class="gemini-header"><span>Gemini (Famiglia)</span><button id="close-gemini"><i class="fa-solid fa-xmark"></i></button></div>
+                <div id="gemini-answer"></div>
+            </div>
+
+            <div class="content-body">
+                <!-- PANORAMICA -->
+                <section id="section-overview" class="content-section active">
+                    <div class="overview-grid">
+                        <div class="card">
+                            <h3>Bollette in Scadenza</h3>
+                            <div id="overview-bills-list">Nessuna bolletta in scadenza imminente.</div>
+                        </div>
+                        <div class="card">
+                            <h3>Ultimi Media Condivisi</h3>
+                            <div id="overview-media-list">Nessuna foto o video recente.</div>
+                        </div>
+                        <div class="card">
+                            <h3>Prossimi Appuntamenti</h3>
+                            <div id="overview-events-list">Nessun appuntamento in calendario.</div>
+                        </div>
                     </div>
-                </form>
+                </section>
+
+                <!-- BOLLETTE -->
+                <section id="section-bills" class="content-section">
+                    <div class="section-actions">
+                        <button id="open-add-bill" class="btn-primary"><i class="fa-solid fa-plus"></i> Nuova Bolletta</button>
+                    </div>
+                    <div id="bills-list-container" class="bills-grid"></div>
+                </section>
+
+                <!-- FOTO & VIDEO -->
+                <section id="section-gallery" class="content-section">
+                    <div class="section-actions">
+                        <input type="file" id="media-file-input" accept="image/*,video/*" style="display:none;">
+                        <button id="btn-upload-media" class="btn-primary"><i class="fa-solid fa-upload"></i> Carica Foto/Video</button>
+                    </div>
+                    <div id="gallery-container" class="gallery-grid"></div>
+                </section>
+
+                <!-- RICETTARIO -->
+                <section id="section-recipes" class="content-section">
+                    <div class="section-actions">
+                        <button id="open-add-recipe" class="btn-primary"><i class="fa-solid fa-plus"></i> Nuova Ricetta</button>
+                    </div>
+                    <div id="recipes-container" class="recipes-grid"></div>
+                </section>
+
+                <!-- CALENDARIO -->
+                <section id="section-calendar" class="content-section">
+                    <div class="section-actions">
+                        <button id="open-add-event" class="btn-primary"><i class="fa-solid fa-plus"></i> Aggiungi Appuntamento</button>
+                    </div>
+                    <div id="calendar-container" class="calendar-view"></div>
+                </section>
+
+                <!-- ADMIN DASHBOARD -->
+                <section id="section-admin" class="content-section">
+                    <h2>Dashboard Amministratore</h2>
+                    <p>Monitoraggio attività e interazioni dei componenti della famiglia:</p>
+                    <div id="admin-logs-container" class="admin-logs"></div>
+                </section>
             </div>
 
-            <!-- Box Totale Bollette da pagare -->
-            <div id="totale-box" style="background: var(--white); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-weight: bold; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center;">
-                <span>Totale Bollette da pagare:</span>
-                <span id="totale-importo" style="color: var(--rosso);">€ 0,00</span>
+            <footer class="app-footer">
+                <span>Created by STECKS with GEMINI</span>
+            </footer>
+        </main>
+    </div>
+
+    <!-- MODALI -->
+    <div id="modal-bill" class="modal">
+        <div class="modal-content">
+            <h3>Aggiungi Bolletta</h3>
+            <input type="text" id="bill-entity" placeholder="Ente (es. Enel, Eni)">
+            <input type="date" id="bill-date">
+            <input type="number" step="0.01" id="bill-amount" placeholder="Importo in €">
+            <div class="ocr-box">
+                <label><i class="fa-solid fa-camera"></i> Importa foto / OCR simulato</label>
+                <input type="file" id="bill-ocr-file" accept="image/*">
             </div>
-
-            <div id="lista-bollette" class="grid-container"></div>
-        </section>
-
-        <!-- SEZIONE MEDIA -->
-        <section id="media" class="tab-content">
-            <h2>Galleria Famiglia</h2>
-            <div class="card-form">
-                <h3>Carica Foto o Video</h3>
-                <input type="text" id="media-autore" placeholder="Il tuo nome">
-                <input type="file" id="media-file" accept="image/*,video/*">
-                <button onclick="caricaMedia()" class="btn">Condividi</button>
+            <div class="modal-buttons">
+                <button id="save-bill" class="btn-primary">Salva</button>
+                <button class="btn-secondary close-modal">Annulla</button>
             </div>
-            <div id="galleria-media" class="grid-container"></div>
-        </section>
+        </div>
+    </div>
 
-        <!-- SEZIONE RICETTE -->
-        <section id="ricette" class="tab-content">
-            <h2>Ricettario di Famiglia</h2>
-            <div class="card-form">
-                <h3>Aggiungi Ricetta</h3>
-                <input type="text" id="ricetta-titolo" placeholder="Nome ricetta" required>
-                <input type="text" id="ricetta-autore" placeholder="A chi piace? (es. Elena, Sara...)">
-                <textarea id="ricetta-ingredienti" placeholder="Ingredienti..." rows="3"></textarea>
-                <textarea id="ricetta-preparazione" placeholder="Preparazione..." rows="4"></textarea>
-                <button onclick="aggiungiRicetta()" class="btn">Aggiungi Ricetta</button>
+    <div id="modal-recipe" class="modal">
+        <div class="modal-content">
+            <h3>Nuova Ricetta</h3>
+            <input type="text" id="recipe-title" placeholder="Nome ricetta">
+            <textarea id="recipe-ingredients" placeholder="Ingredienti (uno per riga)"></textarea>
+            <textarea id="recipe-prep" placeholder="Preparazione"></textarea>
+            <div class="modal-buttons">
+                <button id="save-recipe" class="btn-primary">Salva</button>
+                <button class="btn-secondary close-modal">Annulla</button>
             </div>
-            <div id="lista-ricette" class="grid-container"></div>
-        </section>
+        </div>
+    </div>
 
-        <!-- SEZIONE CALENDARIO -->
-        <section id="calendario" class="tab-content">
-            <h2>Calendario Appuntamenti</h2>
-            <div class="card-form">
-                <h3>Nuovo Appuntamento</h3>
-                <input type="text" id="evento-titolo" placeholder="Nome evento">
-                <input type="date" id="evento-data">
-                <button onclick="aggiungiEvento()" class="btn">Aggiungi</button>
+    <div id="modal-event" class="modal">
+        <div class="modal-content">
+            <h3>Nuovo Appuntamento</h3>
+            <input type="text" id="event-title" placeholder="Titolo appuntamento">
+            <input type="datetime-local" id="event-datetime">
+            <div class="modal-buttons">
+                <button id="save-event" class="btn-primary">Salva</button>
+                <button class="btn-secondary close-modal">Annulla</button>
             </div>
-            <ul id="lista-eventi" class="event-list"></ul>
-        </section>
-
-        <!-- SEZIONE GEMINI -->
-        <section id="gemini" class="tab-content">
-            <h2>Parla con Gemini (Family AI)</h2>
-            <div class="chat-container">
-                <div id="chat-messages" class="chat-messages">
-                    <div class="message gemini">Ciao Stecks! Sono pronto a chiacchierare con te e con tutta la famiglia. Come posso aiutarvi oggi?</div>
-                </div>
-                <div class="chat-input-area">
-                    <input type="text" id="user-input" placeholder="Scrivi un messaggio a Gemini..." onkeypress="handleChatKey(event)">
-                    <button onclick="inviaMessaggio()" class="btn"><i class="fa-solid fa-paper-plane"></i></button>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <p>Created by STECKS with GEMINI</p>
-    </footer>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
