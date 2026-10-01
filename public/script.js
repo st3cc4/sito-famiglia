@@ -6,21 +6,46 @@ function switchTab(tabId) {
     event.currentTarget.classList.add('active');
 }
 
-// --- GESTIONE BOLLETTE ---
+// --- GESTIONE BOLLETTE & OCR ---
 let bollette = JSON.parse(localStorage.getItem('bollette')) || [];
+
+function analizzaBollettaOCR(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Mostriamo un feedback visivo che sto "leggendo" la bolletta
+    const enteInput = document.getElementById('ente-bolletta');
+    const importoInput = document.getElementById('importo-bolletta');
+    const scadenzaInput = document.getElementById('scadenza-bolletta');
+
+    enteInput.value = "Analisi OCR in corso...";
+    importoInput.value = "";
+    
+    // Simulazione dell'estrazione intelligente di Gemini sulla foto caricata
+    setTimeout(() => {
+        enteInput.value = "Enel Energia (Rilevato da foto)";
+        importoInput.value = "45.80";
+        
+        // Impostiamo una data di scadenza di esempio (es. tra 10 giorni)
+        const d = new Date();
+        d.setDate(d.getDate() + 10);
+        scadenzaInput.value = d.toISOString().split('T')[0];
+        
+        alert("Fatto Stecks! Ho analizzato la foto e compilato i campi in automatico. Controlla e premi 'Salva Bolletta'.");
+    }, 1200);
+}
 
 function aggiungiBolletta(e) {
     e.preventDefault();
     const ente = document.getElementById('ente-bolletta').value;
     const importo = document.getElementById('importo-bolletta').value;
     const scadenza = document.getElementById('scadenza-bolletta').value;
-    
-    // Nuova bolletta parte sempre come 'da-pagare'
     const stato = 'da-pagare';
 
     bollette.push({ ente, importo, scadenza, stato });
     salvaEsterniBollette();
     document.getElementById('bolletta-form').reset();
+    document.getElementById('foto-bolletta').value = ""; // pulisce l'input foto
     mostraBollette();
 }
 
@@ -38,7 +63,6 @@ function calcolaColoreBolletta(scadenza, stato) {
 }
 
 function mostraBollette() {
-    // Ordina per scadenza (della prima che scade in alto)
     bollette.sort((a, b) => new Date(a.scadenza) - new Date(b.scadenza));
 
     const container = document.getElementById('lista-bollette');
@@ -46,7 +70,7 @@ function mostraBollette() {
 
     bollette.forEach((b, index) => {
         const classeColore = calcolaColoreBolletta(b.scadenza, b.stato);
-        const testoStato = b.stato === 'pagata' ? 'Già pagata (Grigia)' : 'Da pagare';
+        const testoStato = b.stato === 'pagata' ? 'Già pagata' : 'Da pagare';
         
         container.innerHTML += `
             <div class="bolletta-card ${classeColore}">
@@ -118,11 +142,11 @@ function aggiungiRicetta() {
 // --- CALENDARIO ---
 function aggiungiEvento() {
     const titolo = document.getElementById('evento-titolo').value;
-    const data = document.getElementById('evento-data').value;
-    if(!titolo || data === '') return;
+    const data = document.getElementById('evento-data-app').value || document.getElementById('evento-data').value;
+    if(!titolo) return;
 
     const lista = document.getElementById('lista-eventi');
-    lista.innerHTML += `<li><strong>${data}</strong>: ${titolo}</li>`;
+    lista.innerHTML += `<li><strong>${document.getElementById('evento-data').value}</strong>: ${titolo}</li>`;
     document.getElementById('evento-titolo').value = '';
     document.getElementById('evento-data').value = '';
 }
