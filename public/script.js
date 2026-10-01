@@ -9,6 +9,25 @@ function switchTab(tabId) {
 // --- GESTIONE BOLLETTE & OCR ---
 let bollette = JSON.parse(localStorage.getItem('bollette')) || [];
 
+function toggleFormBolletta() {
+    const formContainer = document.getElementById('form-container');
+    const btnApri = document.getElementById('btn-apri-form');
+    
+    if (formContainer.style.display === 'none') {
+        formContainer.style.display = 'block';
+        btnApri.style.display = 'none';
+        
+        // Controlla se il dispositivo è uno smartphone per mostrare il tasto "Scatta una foto"
+        const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+            document.getElementById('container-scatta').style.display = 'block';
+        }
+    } else {
+        formContainer.style.display = 'none';
+        btnApri.style.display = 'block';
+    }
+}
+
 function elaboraOCR(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -20,7 +39,6 @@ function elaboraOCR(event) {
     enteInput.value = "Lettura OCR in corso...";
     importoInput.value = "";
 
-    // Simulazione OCR avanzata con i dati esatti richiesti
     setTimeout(() => {
         enteInput.value = "ENEL";
         importoInput.value = "599,34";
@@ -32,11 +50,9 @@ function elaboraOCR(event) {
 
 function aggiungiBolletta(e) {
     e.preventDefault();
-    // Converte l'ente in maiuscolo come richiesto
     const ente = document.getElementById('ente-bolletta').value.toUpperCase();
     
     let importoStr = document.getElementById('importo-bolletta').value.trim();
-    // Pulisce l'importo rimuovendo il simbolo € se l'utente lo ha inserito a mano
     importoStr = importoStr.replace('€', '').trim();
     
     const importo = parseFloat(importoStr.replace(',', '.')) || 0;
@@ -46,8 +62,9 @@ function aggiungiBolletta(e) {
     bollette.push({ ente, importo, scadenza, stato });
     salvaEsterniBollette();
     document.getElementById('bolletta-form').reset();
-    document.getElementById('foto-scatta').value = "";
-    document.getElementById('foto-carica').value = "";
+    
+    // Chiude il form dopo il salvataggio e torna alla visualizzazione elenco
+    toggleFormBolletta();
     mostraBollette();
 }
 
@@ -72,32 +89,34 @@ function mostraBollette() {
 
     let totaleDaPagare = 0;
 
-    bollette.forEach((b, index) => {
-        const classeColore = calcolaColoreBolletta(b.scadenza, b.stato);
-        const testoStato = b.stato === 'pagata' ? 'Già pagata' : 'Da pagare';
-        
-        // Se non è pagata, sommiamo l'importo al totale
-        if (b.stato !== 'pagata') {
-            totaleDaPagare += Number(b.importo);
-        }
+    if (bollette.length === 0) {
+        container.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--grigio); font-style: italic; padding: 2rem;">Non c'è niente da pagare</p>`;
+    } else {
+        bollette.forEach((b, index) => {
+            const classeColore = calcolaColoreBolletta(b.scadenza, b.stato);
+            const testoStato = b.stato === 'pagata' ? 'Già pagata' : 'Da pagare';
+            
+            if (b.stato !== 'pagata') {
+                totaleDaPagare += Number(b.importo);
+            }
 
-        const importoFormattato = Number(b.importo).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const importoFormattato = Number(b.importo).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-        container.innerHTML += `
-            <div class="bolletta-card ${classeColore}">
-                <h4>⚡ ${b.ente}</h4>
-                <p><strong>Importo:</strong> € ${importoFormattato}</p>
-                <p><strong>Scadenza:</strong> ${b.scadenza}</p>
-                <p><strong>Stato:</strong> ${testoStato}</p>
-                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-                    ${b.stato !== 'pagata' ? `<button onclick="segnaPagata(${index})" class="btn" style="background:var(--verde); padding: 0.4rem; font-size:0.75rem;">Paga</button>` : ''}
-                    <button onclick="rimuoviBolletta(${index})" class="btn" style="background:var(--rosso); padding: 0.4rem; font-size:0.75rem;">Elimina</button>
+            container.innerHTML += `
+                <div class="bolletta-card ${classeColore}">
+                    <h4>⚡ ${b.ente}</h4>
+                    <p><strong>Importo:</strong> € ${importoFormattato}</p>
+                    <p><strong>Scadenza:</strong> ${b.scadenza}</p>
+                    <p><strong>Stato:</strong> ${testoStato}</p>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                        ${b.stato !== 'pagata' ? `<button onclick="segnaPagata(${index})" class="btn" style="background:var(--verde); padding: 0.4rem; font-size:0.75rem;">Paga</button>` : ''}
+                        <button onclick="rimuoviBolletta(${index})" class="btn" style="background:var(--rosso); padding: 0.4rem; font-size:0.75rem;">Elimina</button>
+                    </div>
                 </div>
-            </div>
-        `;
-    });
+            `;
+        });
+    }
 
-    // Aggiorna il box del totale in fondo alla pagina
     const totaleFormattato = totaleDaPagare.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     document.getElementById('totale-importo').innerText = `€ ${totaleFormattato}`;
 }
