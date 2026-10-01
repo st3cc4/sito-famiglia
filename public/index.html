@@ -27,7 +27,16 @@
         <section id="bollette" class="tab-content active">
             <h2>Gestione Bollette</h2>
             <div class="card-form">
-                <h3>Aggiungi Nuova Bolletta</h3>
+                <h3>Aggiungi Nuova Bolletta (o scatta una foto)</h3>
+                
+                <!-- Pulsante per foto / OCR -->
+                <div style="margin-bottom: 1rem; background: #f1f5f9; padding: 10px; border-radius: 8px; border: 2px dashed #cbd5e1;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #475569;">
+                        <i class="fa-solid fa-camera"></i> Scatta o carica foto bolletta (Analisi OCR):
+                    </label>
+                    <input type="file" id="foto-bolletta" accept="image/*" capture="environment" onchange="analizzaBollettaOCR(event)">
+                </div>
+
                 <form id="bolletta-form" onsubmit="aggiungiBolletta(event)">
                     <input type="text" id="ente-bolletta" placeholder="Ente (es. Enel, Eni, Servizio Elettrico)" required>
                     <input type="number" step="0.01" id="importo-bolletta" placeholder="Importo (€)" required>
