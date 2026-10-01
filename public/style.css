@@ -112,7 +112,6 @@ main {
     gap: 1rem;
 }
 
-/* Stili specifici bollette con codici colore richiesti */
 .bolletta-card {
     background: var(--white);
     padding: 1rem;
