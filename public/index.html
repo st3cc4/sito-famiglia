@@ -19,8 +19,8 @@
                 <option value="Giulia">Giulia</option>
                 <option value="Leonardo">Leonardo</option>
             </select>
-            <input type="password" id="auth-pin" placeholder="Inserisci PIN (es. 1234)" value="1234">
-            <button id="btn-login" class="btn-primary">Accedi</button>
+            <input type="password" id="auth-pin" placeholder="PIN (es. 1234)" value="1234">
+            <button id="btn-login" class="btn-primary" style="width:100%; margin-top:10px;">Accedi</button>
         </div>
     </div>
 
@@ -48,7 +48,7 @@
                 <h1 id="page-title">Panoramica</h1>
                 <div class="gemini-search-bar">
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    <input type="text" id="gemini-input" placeholder="Chiedi qualcosa a Gemini (es. ricetta veloce, consigli bollette)...">
+                    <input type="text" id="gemini-input" placeholder="Chiedi qualcosa a Gemini (es. ricetta veloce, consigli)...">
                     <button id="gemini-send"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </header>
@@ -113,7 +113,7 @@
                 <!-- ADMIN DASHBOARD -->
                 <section id="section-admin" class="content-section">
                     <h2>Dashboard Amministratore</h2>
-                    <p>Monitoraggio attività e interazioni dei componenti della famiglia:</p>
+                    <p style="margin-bottom: 15px;">Monitoraggio attività e interazioni dei componenti della famiglia:</p>
                     <div id="admin-logs-container" class="admin-logs"></div>
                 </section>
             </div>
@@ -131,9 +131,8 @@
             <input type="text" id="bill-entity" placeholder="Ente (es. Enel, Eni)">
             <input type="date" id="bill-date">
             <input type="number" step="0.01" id="bill-amount" placeholder="Importo in €">
-            <div class="ocr-box">
-                <label><i class="fa-solid fa-camera"></i> Importa foto / OCR simulato</label>
-                <input type="file" id="bill-ocr-file" accept="image/*">
+            <div class="ocr-box" style="border: 1px dashed var(--border); padding: 10px; border-radius: 6px; text-align: center;">
+                <label style="cursor: pointer; color: var(--primary);"><i class="fa-solid fa-camera"></i> Importa foto / OCR simulato<input type="file" id="bill-ocr-file" accept="image/*" style="display:none;"></label>
             </div>
             <div class="modal-buttons">
                 <button id="save-bill" class="btn-primary">Salva</button>
@@ -146,8 +145,8 @@
         <div class="modal-content">
             <h3>Nuova Ricetta</h3>
             <input type="text" id="recipe-title" placeholder="Nome ricetta">
-            <textarea id="recipe-ingredients" placeholder="Ingredienti (uno per riga)"></textarea>
-            <textarea id="recipe-prep" placeholder="Preparazione"></textarea>
+            <textarea id="recipe-ingredients" placeholder="Ingredienti (uno per riga)" rows="3"></textarea>
+            <textarea id="recipe-prep" placeholder="Preparazione" rows="3"></textarea>
             <div class="modal-buttons">
                 <button id="save-recipe" class="btn-primary">Salva</button>
                 <button class="btn-secondary close-modal">Annulla</button>
