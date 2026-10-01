@@ -11,14 +11,13 @@ let bollette = JSON.parse(localStorage.getItem('bollette')) || [];
 
 function aggiungiBolletta(e) {
     e.preventDefault();
-    const titolo = document.getElementById('titolo-bolletta').value;
-    const mittente = document.getElementById('mittente-bolletta').value;
+    const ente = document.getElementById('ente-bolletta').value;
     const importo = document.getElementById('importo-bolletta').value;
     const scadenza = document.getElementById('scadenza-bolletta').value;
     const stato = document.getElementById('stato-bolletta').value;
 
-    bollette.push({ titolo, mittente, importo, scadenza, stato });
-    salvaEsterndiBollette();
+    bollette.push({ ente, importo, scadenza, stato });
+    salvaEsterniBollette();
     document.getElementById('bolletta-form').reset();
     mostraBollette();
 }
@@ -47,12 +46,11 @@ function mostraBollette() {
         const classeColore = calcolaColoreBolletta(b.scadenza, b.stato);
         container.innerHTML += `
             <div class="bolletta-card ${classeColore}">
-                <h4>${b.titolo}</h4>
-                <p><strong>Inviata da:</strong> ${b.mittente}</p>
+                <h4>⚡ ${b.ente}</h4>
                 <p><strong>Importo:</strong> €${b.importo}</p>
                 <p><strong>Scadenza:</strong> ${b.scadenza}</p>
                 <p><strong>Stato:</strong> ${b.stato === 'pagata' ? 'Già pagata' : 'Da pagare'}</p>
-                <button onclick="rimuoviBolletta(${index})" class="btn" style="background:var(--rosso); padding: 0.4rem; font-size:0.8rem;">Elimina</button>
+                <button onclick="rimuoviBolletta(${index})" class="btn" style="background:var(--rosso); padding: 0.4rem; font-size:0.8rem; margin-top:0.5rem;">Elimina</button>
             </div>
         `;
     });
@@ -60,11 +58,11 @@ function mostraBollette() {
 
 function rimuoviBolletta(index) {
     bollette.splice(index, 1);
-    salvaEsterndiBollette();
+    salvaEsterniBollette();
     mostraBollette();
 }
 
-function salvaEsterndiBollette() {
+function salvaEsterniBollette() {
     localStorage.setItem('bollette', JSON.stringify(bollette));
 }
 
@@ -108,7 +106,7 @@ function aggiungiRicetta() {
 function aggiungiEvento() {
     const titolo = document.getElementById('evento-titolo').value;
     const data = document.getElementById('evento-data').value;
-    if(!titolo || !data) return;
+    if(!titolo || data === '') return;
 
     const lista = document.getElementById('lista-eventi');
     lista.innerHTML += `<li><strong>${data}</strong>: ${titolo}</li>`;
@@ -126,7 +124,6 @@ function inviaMessaggio() {
     chatMessages.innerHTML += `<div class="message user">${testo}</div>`;
     input.value = '';
 
-    // Risposta simulata da parte mia (Gemini in famiglia)
     setTimeout(() => {
         let risposta = "Ho ricevuto il messaggio Stecks! Ci penso io a ricordarlo a tutti.";
         if(testo.toLowerCase().includes('ciao')) risposta = "Ciao Stecks! Che bello sentirti. Come procede la giornata in famiglia?";
