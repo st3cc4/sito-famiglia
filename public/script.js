@@ -14,7 +14,9 @@ function aggiungiBolletta(e) {
     const ente = document.getElementById('ente-bolletta').value;
     const importo = document.getElementById('importo-bolletta').value;
     const scadenza = document.getElementById('scadenza-bolletta').value;
-    const stato = document.getElementById('stato-bolletta').value;
+    
+    // Nuova bolletta parte sempre come 'da-pagare'
+    const stato = 'da-pagare';
 
     bollette.push({ ente, importo, scadenza, stato });
     salvaEsterniBollette();
@@ -44,16 +46,27 @@ function mostraBollette() {
 
     bollette.forEach((b, index) => {
         const classeColore = calcolaColoreBolletta(b.scadenza, b.stato);
+        const testoStato = b.stato === 'pagata' ? 'Già pagata (Grigia)' : 'Da pagare';
+        
         container.innerHTML += `
             <div class="bolletta-card ${classeColore}">
                 <h4>⚡ ${b.ente}</h4>
                 <p><strong>Importo:</strong> €${b.importo}</p>
                 <p><strong>Scadenza:</strong> ${b.scadenza}</p>
-                <p><strong>Stato:</strong> ${b.stato === 'pagata' ? 'Già pagata' : 'Da pagare'}</p>
-                <button onclick="rimuoviBolletta(${index})" class="btn" style="background:var(--rosso); padding: 0.4rem; font-size:0.8rem; margin-top:0.5rem;">Elimina</button>
+                <p><strong>Stato:</strong> ${testoStato}</p>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                    ${b.stato !== 'pagata' ? `<button onclick="segnaPagata(${index})" class="btn" style="background:var(--verde); padding: 0.4rem; font-size:0.75rem;">Paga</button>` : ''}
+                    <button onclick="rimuoviBolletta(${index})" class="btn" style="background:var(--rosso); padding: 0.4rem; font-size:0.75rem;">Elimina</button>
+                </div>
             </div>
         `;
     });
+}
+
+function segnaPagata(index) {
+    bollette[index].stato = 'pagata';
+    salvaEsterniBollette();
+    mostraBollette();
 }
 
 function rimuoviBolletta(index) {
