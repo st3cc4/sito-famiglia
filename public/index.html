@@ -26,13 +26,19 @@
         <!-- SEZIONE BOLLETTE -->
         <section id="bollette" class="tab-content active">
             <h2>Gestione Bollette</h2>
-            <div class="card-form">
-                <h3>Aggiungi Nuova Bolletta</h3>
+            
+            <!-- Pulsante per aprire il form di inserimento -->
+            <div style="margin-bottom: 1.5rem;">
+                <button onclick="toggleFormBolletta()" id="btn-apri-form" class="btn"><i class="fa-solid fa-plus"></i> Aggiungi Nuova Bolletta</button>
+            </div>
+
+            <!-- Modulo nascosto di default -->
+            <div id="form-container" class="card-form" style="display: none;">
+                <h3>Inserisci Nuova Bolletta</h3>
                 
-                <!-- Due pulsanti separati per scattare o caricare -->
                 <div style="display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap;">
-                    <!-- Pulsante Scatta (visibile solo se supportato / smartphone) -->
-                    <div style="flex: 1; min-width: 140px;">
+                    <!-- Pulsante Scatta (visibile solo su smartphone) -->
+                    <div id="container-scatta" style="flex: 1; min-width: 140px; display: none;">
                         <label for="foto-scatta" class="btn" style="display: block; text-align: center; background: #0ea5e9; cursor: pointer; font-size: 0.9rem;">
                             <i class="fa-solid fa-camera"></i> Scatta una foto
                         </label>
@@ -53,7 +59,10 @@
                     <input type="text" id="importo-bolletta" placeholder="Importo (es. 599,34 o 599.34)" required>
                     <label>Data Scadenza:</label>
                     <input type="date" id="scadenza-bolletta" required>
-                    <button type="submit" class="btn">Salva Bolletta</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn" style="background: var(--verde);">Salva Bolletta</button>
+                        <button type="button" onclick="toggleFormBolletta()" class="btn" style="background: var(--grigio);">Annulla</button>
+                    </div>
                 </form>
             </div>
 
