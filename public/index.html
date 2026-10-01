@@ -27,24 +27,42 @@
         <section id="bollette" class="tab-content active">
             <h2>Gestione Bollette</h2>
             <div class="card-form">
-                <h3>Aggiungi Nuova Bolletta (o scatta una foto)</h3>
+                <h3>Aggiungi Nuova Bolletta</h3>
                 
-                <!-- Pulsante per foto / OCR -->
-                <div style="margin-bottom: 1rem; background: #f1f5f9; padding: 10px; border-radius: 8px; border: 2px dashed #cbd5e1;">
-                    <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #475569;">
-                        <i class="fa-solid fa-camera"></i> Scatta o carica foto bolletta (Analisi OCR):
-                    </label>
-                    <input type="file" id="foto-bolletta" accept="image/*" capture="environment" onchange="analizzaBollettaOCR(event)">
+                <!-- Due pulsanti separati per scattare o caricare -->
+                <div style="display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap;">
+                    <!-- Pulsante Scatta (visibile solo se supportato / smartphone) -->
+                    <div style="flex: 1; min-width: 140px;">
+                        <label for="foto-scatta" class="btn" style="display: block; text-align: center; background: #0ea5e9; cursor: pointer; font-size: 0.9rem;">
+                            <i class="fa-solid fa-camera"></i> Scatta una foto
+                        </label>
+                        <input type="file" id="foto-scatta" accept="image/*" capture="environment" style="display:none;" onchange="elaboraOCR(event)">
+                    </div>
+
+                    <!-- Pulsante Carica da galleria / PC -->
+                    <div style="flex: 1; min-width: 140px;">
+                        <label for="foto-carica" class="btn" style="display: block; text-align: center; background: #64748b; cursor: pointer; font-size: 0.9rem;">
+                            <i class="fa-solid fa-upload"></i> Carica una foto
+                        </label>
+                        <input type="file" id="foto-carica" accept="image/*" style="display:none;" onchange="elaboraOCR(event)">
+                    </div>
                 </div>
 
                 <form id="bolletta-form" onsubmit="aggiungiBolletta(event)">
-                    <input type="text" id="ente-bolletta" placeholder="Ente (es. Enel, Eni, Servizio Elettrico)" required>
-                    <input type="number" step="0.01" id="importo-bolletta" placeholder="Importo (€)" required>
+                    <input type="text" id="ente-bolletta" placeholder="Ente (es. ENEL, ENI)" required>
+                    <input type="text" id="importo-bolletta" placeholder="Importo (es. 599,34 o 599.34)" required>
                     <label>Data Scadenza:</label>
                     <input type="date" id="scadenza-bolletta" required>
                     <button type="submit" class="btn">Salva Bolletta</button>
                 </form>
             </div>
+
+            <!-- Box Totale Bollette da pagare -->
+            <div id="totale-box" style="background: var(--white); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-weight: bold; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center;">
+                <span>Totale Bollette da pagare:</span>
+                <span id="totale-importo" style="color: var(--rosso);">€ 0,00</span>
+            </div>
+
             <div id="lista-bollette" class="grid-container"></div>
         </section>
 
