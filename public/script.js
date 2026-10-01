@@ -6,7 +6,7 @@ let db = {
     ],
     media: [],
     recipes: [
-        { id: 1, title: "Biscotti Frollini", ingredients: "Farina, Burro, Zucchero, Uova", prep: "Impastare e cuocere a 160°C", likes: { Stecks: true, Elena: false } }
+        { id: 1, title: "Biscotti Frollini", ingredients: "Farina\nBurro\nZucchero\nUova", prep: "Impastare e cuocere a 160°C", likes: { Stecks: true, Elena: false } }
     ],
     events: [
         { id: 1, title: "Visita controllo tartarughe", datetime: "2026-10-10T10:00" }
@@ -36,7 +36,7 @@ document.getElementById('sidebar-toggle').addEventListener('click', () => {
 
 // Navigazione sezioni
 document.querySelectorAll('.sidebar-menu li').forEach(item => {
-    item.addEventListener('click', (e) => {
+    item.addEventListener('click', () => {
         document.querySelectorAll('.sidebar-menu li').forEach(i => i.classList.remove('active'));
         document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
         
@@ -60,7 +60,7 @@ function askGemini() {
     answerBox.innerHTML = "Sto elaborando la risposta per te...";
 
     setTimeout(() => {
-        answerBox.innerHTML = `Ciao ${currentUser}! Ho analizzato la tua richiesta ("${query}"). Come assistente di famiglia, ti suggerisco di controllare le scadenze nella sezione bollette o di goderti le nuove ricette caricate!`;
+        answerBox.innerHTML = `Ciao ${currentUser}! Ho esaminato la tua richiesta ("${query}"). Come assistente di famiglia, sono a tua completa disposizione per aiutarti con la gestione delle bollette, ricette o appuntamenti!`;
         logAction(`Ha chiesto a Gemini: "${query}"`);
     }, 800);
 }
@@ -71,7 +71,6 @@ function renderBills() {
     const overviewContainer = document.getElementById('overview-bills-list');
     container.innerHTML = '';
     
-    // Ordina per data scadenza
     db.bills.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     let overviewHtml = "";
@@ -86,7 +85,7 @@ function renderBills() {
         else if (diffDays < 21) colorClass = "green";
 
         if(bill.status === "da pagare") {
-            overviewHtml += `<div><b>${bill.entity}</b> - Scadenza: ${bill.date} (${bill.amount}€)</div>`;
+            overviewHtml += `<div style="margin-bottom:6px;"><b>${bill.entity}</b> - Scadenza: ${bill.date} (${bill.amount.toFixed(2)}€)</div>`;
         }
 
         const div = document.createElement('div');
@@ -135,7 +134,7 @@ document.getElementById('bill-ocr-file').addEventListener('change', (e) => {
             document.getElementById('bill-entity').value = "Enel Energia (OCR)";
             document.getElementById('bill-amount').value = "65.40";
             alert("Dati estratti automaticamente tramite OCR!");
-        }, 1000);
+        }, 800);
     }
 });
 
@@ -146,6 +145,7 @@ function renderRecipes() {
     db.recipes.forEach(recipe => {
         if(!recipe.likes) recipe.likes = {};
         const isLiked = recipe.likes[currentUser] || false;
+        const totalLikes = Object.keys(recipe.likes).filter(k => recipe.likes[k]).length;
         
         const div = document.createElement('div');
         div.className = 'recipe-card';
@@ -157,7 +157,7 @@ function renderRecipes() {
                 <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(${recipe.id})">
                     <i class="fa-solid fa-heart"></i>
                 </button>
-                <span>A ${Object.keys(recipe.likes).filter(k => recipe.likes[k]).length} persone piace</span>
+                <span>A ${totalLikes} persone piace</span>
             </div>
         `;
         container.appendChild(div);
@@ -207,11 +207,11 @@ function renderGallery() {
     
     db.media.forEach((item, index) => {
         if(index < 3) {
-            overviewHtml += `<div>Caricato da <b>${item.user}</b></div>`;
+            overviewHtml += `<div style="margin-bottom:4px;">Caricato da <b>${item.user}</b></div>`;
         }
         const div = document.createElement('div');
         div.className = 'gallery-item';
-        div.innerHTML = item.type === 'image' ? `<img src="${item.url}" style="width:100%; border-radius:6px;">` : `<video src="${item.url}" controls style="width:100%; border-radius:6px;"></video>`;
+        div.innerHTML = item.type === 'image' ? `<img src="${item.url}" style="width:100%; border-radius:6px; height:180px; object-fit:cover;">` : `<video src="${item.url}" controls style="width:100%; border-radius:6px; height:180px; object-fit:cover;"></video>`;
         container.appendChild(div);
     });
     overviewMedia.innerHTML = overviewHtml || "Nessuna foto o video recente.";
@@ -238,7 +238,7 @@ function renderCalendar() {
 
     db.events.forEach((ev, index) => {
         if(index < 3) {
-            overviewHtml += `<div><b>${ev.title}</b> - ${ev.datetime.replace('T', ' ')}</div>`;
+            overviewHtml += `<div style="margin-bottom:6px;"><b>${ev.title}</b> - ${ev.datetime.replace('T', ' ')}</div>`;
         }
         const div = document.createElement('div');
         div.className = 'card';
@@ -255,8 +255,7 @@ function renderAdmin() {
     container.innerHTML = '';
     db.logs.forEach(log => {
         const div = document.createElement('div');
-        div.style.padding = '8px 0';
-        div.style.borderBottom = '1px solid var(--border)';
+        div.className = 'admin-log-item';
         div.innerHTML = `[${log.time}] <b>${log.user}</b>: ${log.action}`;
         container.appendChild(div);
     });
