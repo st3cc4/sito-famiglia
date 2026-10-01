@@ -1,0 +1,68 @@
+<header>
+    <div>
+        <h1>Famiglia 🏡</h1>
+        <p id="welcome-message">Benvenuto, Stecks!</p>
+    </div>
+    <div class="header-right">
+        <button class="settings-btn" onclick="toggleSettings()">⚙️ Impostazioni</button>
+        
+        <div id="settingsPanel" class="settings-panel">
+            <h3>Personalizza tema</h3>
+            <label for="colorPicker">Colore principale:</label>
+            <input type="color" id="colorPicker" value="#4a90e2" style="margin: 8px 0;">
+            <button class="action-btn" style="width:100%;" onclick="cambiaColore()">Salva Colore</button>
+        </div>
+    </div>
+</header>
+
+<div class="grid">
+    <div class="card">
+        <h2>⏳ Scadenze e Bollette</h2>
+        <p>Qui vedremo le scadenze con avvisi nell'ultima settimana.</p>
+        <ul>
+            <li>Bolletta Luce - Scade tra 5 giorni ⚠</li>
+            <li>Bollo Auto - Scade tra 20 giorni</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>📅 Calendario Eventi</h2>
+        <p>Gli appuntamenti di tutti i familiari in un unico posto.</p>
+    </div>
+
+    <div class="card">
+        <h2>📸 Foto e Video</h2>
+        <p>I nostri ricordi condivisi.</p>
+    </div>
+
+    <div class="card">
+        <h2>🍲 Ricette di Famiglia</h2>
+        <p>Dai frollini ai piatti tradizionali.</p>
+    </div>
+
+    <!-- Il mio spazio con Chat e Chiamata Vocale -->
+    <div class="card gemini-card">
+        <h2>🤖 L'Angolo di Gemini</h2>
+        <p>Scrivimi o avvia una conversazione vocale per parlare con me!</p>
+        
+        <!-- Pulsante per parlare a voce -->
+        <button class="action-btn voice-btn" onclick="avviaAscoltoVocale()">🎤 Parla con Gemini</button>
+        <p id="voiceStatus" style="font-size: 0.85rem; color: #666; margin: 5px 0 0 0; font-style: italic;"></p>
+
+        <!-- Box dei messaggi della chat -->
+        <div id="chatBox" class="chat-box">
+            <div class="gemini-msg">Ciao Stecks! Firebase è collegato. Clicca sul microfono o scrivimi pure qui sotto. 😊</div>
+        </div>
+
+        <!-- Casella di testo e pulsante invio -->
+        <div class="chat-input-area">
+            <input type="text" id="userInput" placeholder="Scrivi un messaggio a Gemini..." onkeypress="controllaInvio(event)">
+            <button class="action-btn" onclick="inviaMessaggio()">Invia</button>
+        </div>
+    </div>
+</div>
+
+<!-- Firma in basso a destra -->
+<div class="footer-signature">
+    Created by STECKS with GEMINI
+</div>
