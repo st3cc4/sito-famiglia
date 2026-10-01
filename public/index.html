@@ -3,25 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sito Famiglia</title>
-    <!-- Questo collega la grafica (style.css) -->
+    <title>Family Dashboard - STECKS & GEMINI</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
     <header>
-        <h1>Benvenuti nel Sito della Nostra Famiglia</h1>
-        <p>Uno spazio condiviso per tutti noi.</p>
+        <h1><i class="fa-solid fa-house-chimney"></i> Family Dashboard</h1>
+        <p>Benvenuti nella nostra casa virtuale</p>
     </header>
 
+    <nav class="tabs">
+        <button class="tab-btn active" onclick="switchTab('bollette')"><i class="fa-solid fa-file-invoice-dollar"></i> Bollette</button>
+        <button class="tab-btn" onclick="switchTab('media')"><i class="fa-solid fa-images"></i> Foto & Video</button>
+        <button class="tab-btn" onclick="switchTab('ricette')"><i class="fa-solid fa-utensils"></i> Ricette</button>
+        <button class="tab-btn" onclick="switchTab('calendario')"><i class="fa-solid fa-calendar-days"></i> Calendario</button>
+        <button class="tab-btn" onclick="switchTab('gemini')"><i class="fa-solid fa-robot"></i> Chat con Gemini</button>
+    </nav>
+
     <main>
-        <section>
-            <h2>Le nostre sezioni</h2>
-            <p>Da qui potremo gestire scadenze, foto, ricette e molto altro.</p>
+        <!-- SEZIONE BOLLETTE -->
+        <section id="bollette" class="tab-content active">
+            <h2>Gestione Bollette</h2>
+            <div class="card-form">
+                <h3>Aggiungi Nuova Bolletta</h3>
+                <form id="bolletta-form" onsubmit="aggiungiBolletta(event)">
+                    <input type="text" id="titolo-bolletta" placeholder="Titolo (es. Luce, Gas)" required>
+                    <input type="text" id="mittente-bolletta" placeholder="Inviata da (chi l'ha mandata)" required>
+                    <input type="number" step="0.01" id="importo-bolletta" placeholder="Importo (€)" required>
+                    <label>Data Scadenza:</label>
+                    <input type="date" id="scadenza-bolletta" required>
+                    <select id="stato-bolletta">
+                        <option value="da-pagare">Da pagare</option>
+                        <option value="pagata">Già pagata</option>
+                    </select>
+                    <button type="submit" class="btn">Salva Bolletta</button>
+                </form>
+            </div>
+            <div id="lista-bollette" class="grid-container"></div>
+        </section>
+
+        <!-- SEZIONE MEDIA -->
+        <section id="media" class="tab-content">
+            <h2>Galleria Famiglia</h2>
+            <div class="card-form">
+                <h3>Carica Foto o Video</h3>
+                <input type="text" id="media-autore" placeholder="Il tuo nome">
+                <input type="file" id="media-file" accept="image/*,video/*">
+                <button onclick="caricaMedia()" class="btn">Condividi</button>
+            </div>
+            <div id="galleria-media" class="grid-container"></div>
+        </section>
+
+        <!-- SEZIONE RICETTE -->
+        <section id="ricette" class="tab-content">
+            <h2>Ricettario di Famiglia</h2>
+            <div class="card-form">
+                <h3>Aggiungi Ricetta</h3>
+                <input type="text" id="ricetta-titolo" placeholder="Nome ricetta" required>
+                <input type="text" id="ricetta-autore" placeholder="A chi piace? (es. Elena, Sara...)">
+                <textarea id="ricetta-ingredienti" placeholder="Ingredienti..." rows="3"></textarea>
+                <textarea id="ricetta-preparazione" placeholder="Preparazione..." rows="4"></textarea>
+                <button onclick="aggiungiRicetta()" class="btn">Aggiungi Ricetta</button>
+            </div>
+            <div id="lista-ricette" class="grid-container"></div>
+        </section>
+
+        <!-- SEZIONE CALENDARIO -->
+        <section id="calendario" class="tab-content">
+            <h2>Calendario Appuntamenti</h2>
+            <div class="card-form">
+                <h3>Nuovo Appuntamento</h3>
+                <input type="text" id="evento-titolo" placeholder="Nome evento">
+                <input type="date" id="evento-data">
+                <button onclick="aggiungiEvento()" class="btn">Aggiungi</button>
+            </div>
+            <ul id="lista-eventi" class="event-list"></ul>
+        </section>
+
+        <!-- SEZIONE GEMINI -->
+        <section id="gemini" class="tab-content">
+            <h2>Parla con Gemini (Family AI)</h2>
+            <div class="chat-container">
+                <div id="chat-messages" class="chat-messages">
+                    <div class="message gemini">Ciao Stecks! Sono pronto a chiacchierare con te e con tutta la famiglia. Come posso aiutarvi oggi?</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="user-input" placeholder="Scrivi un messaggio a Gemini..." onkeypress="handleChatKey(event)">
+                    <button onclick="inviaMessaggio()" class="btn"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
         </section>
     </main>
 
-    <!-- Questo collega i comandi interattivi (script.js) -->
+    <footer>
+        <p>Created by STECKS with GEMINI</p>
+    </footer>
+
     <script src="script.js"></script>
 </body>
 </html>
