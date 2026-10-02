@@ -313,6 +313,235 @@ window.deleteBill = async function(id) {
     }
 }
 
+// ================= CALENDARIO (CON MODIFICA E MI PIACE) =================
+document.getElementById('btn-add-event').addEventListener('click', async () => {
+    const editId = document.getElementById('event-edit-id').value;
+    const title = document.getElementById('event-title').value.trim();
+    const date = document.getElementById('event-date').value;
+    const time = document.getElementById('event-time').value;
+    const desc = document.getElementById('event-desc').value.trim();
+
+    if (!title || !date) {
+        alert("Inserisci almeno il titolo e la data dell'appuntamento.");
+        return;
+    }
+
+    try {
+        const { db, firebaseFns } = window;
+        const { doc, setDoc, addDoc, collection, getDoc } = firebaseFns;
+
+        if (editId) {
+            // Aggiorna evento esistente preservando i "mi piace"
+            const eventRef = doc(db, "events", editId);
+            const snap = await getDoc(eventRef);
+            let likes = snap.exists() && snap.data().likes ? snap.data().likes : [];
+            await setDoc(eventRef, { title, date, time, desc, likes });
+            cancelEditEvent();
+        } else {
+            // Nuovo evento
+            await addDoc(collection(db, "events"), { title, date, time, desc, likes: [] });
+            document.getElementById('event-title').value = '';
+            document.getElementById('event-date').value = '';
+            document.getElementById('event-time').value = '';
+            document.getElementById('event-desc').value = '';
+        }
+        loadEvents();
+    } catch (err) {
+        console.error(err);
+        alert("Errore nel salvataggio dell'appuntamento.");
+    }
+});
+
+async function loadEvents() {
+    const overviewContainer = document.getElementById('overview-events-list');
+    const pageContainer = document.getElementById('calendar-list-container');
+
+    if (!window.db) return;
+
+    try {
+        const { db, firebaseFns } = window;
+        const { collection, getDocs } = firebaseFns;
+
+        const querySnapshot = await getDocs(collection(db, "events"));
+        let events = [];
+
+        querySnapshot.forEach((docSnap) => {
+            events.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        events.sort((a, b) => new Date(a.date + (a.time ? ' ' + a.time : '')) - new Date(b.date + (b.time ? ' ' + b.time : '')));
+
+        const today = new Date();
+        today.setHours(0,0,0,0);
+
+        let overviewHTML = '';
+        let pageHTML = '';
+
+        let upcomingEvents = events.filter(e => new Date(e.date) >= today);
+
+        if (upcomingEvents.length === 0) {
+            overviewContainer.innerHTML = 'Nessun appuntamento in programma.';
+        } else {
+            upcomingEvents.slice(0, 3).forEach(e => {
+                overviewHTML += `
+                    <div class="event-row" style="padding: 8px 0;">
+                        <span><b>${e.title}</b><br><small style="color:var(--text-muted);">${e.date} ${e.time ? '• ' + e.time : ''}</small></span>
+                    </div>
+                `;
+            });
+            overviewContainer.innerHTML = overviewHTML;
+        }
+
+        events.forEach(e => {
+            const likes = e.likes || [];
+            const userLiked = likes.includes(loggedUser);
+            pageHTML += `
+                <div class="event-row">
+                    <span><b>${e.title}</b> — <span style="color:var(--primary); font-weight:600;">${e.date} ${e.time ? 'alle ' + e.time : ''}</span><br><small style="color:var(--text-muted);">${e.desc || 'Nessuna nota'}</small></span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button class="like-btn ${userLiked ? 'liked' : ''}" onclick="toggleLike('events', '${e.id}')" title="Mi piace"><i class="fa-solid fa-heart"></i></button>
+                        <button class="btn-warning" style="padding: 6px 8px;" onclick="editEvent('${e.id}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-danger" style="padding: 6px 8px;" onclick="deleteEvent('${e.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+        });
+
+        pageContainer.innerHTML = pageHTML || 'Nessun appuntamento inserito.';
+
+    } catch (err) {
+        console.error("Errore caricamento eventi:", err);
+        overviewContainer.innerHTML = 'Errore nel caricamento appuntamenti.';
+    }
+}
+
+window.editEvent = async function(id) {
+    try {
+        const { db, firebaseFns } = window;
+        const { doc, getDoc } = firebaseFns;
+        const snap = await getDoc(doc(db, "events", id));
+        if (snap.exists()) {
+            const data = snap.data();
+            document.getElementById('event-edit-id').value = id;
+            document.getElementById('event-title').value = data.title || '';
+            document.getElementById('event-date').value = data.date || '';
+            document.getElementById('event-time').value = data.time || '';
+            document.getElementById('event-desc').value = data.desc || '';
+            document.getElementById('event-form-title').innerText = 'Modifica Appuntamento';
+            document.getElementById('btn-add-event').innerText = 'Aggiorna Appuntamento';
+            document.getElementById('btn-cancel-event').style.display = 'inline-block';
+            document.querySelector('.content-body').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    } catch(err) { console.error(err); }
+}
+
+window.cancelEditEvent = function() {
+    document.getElementById('event-edit-id').value = '';
+    document.getElementById('event-title').value = '';
+    document.getElementById('event-date').value = '';
+    document.getElementById('event-time').value = '';
+    document.getElementById('event-desc').value = '';
+    document.getElementById('event-form-title').innerText = 'Nuovo Appuntamento';
+    document.getElementById('btn-add-event').innerText = 'Aggiungi al Calendario';
+    document.getElementById('btn-cancel-event').style.display = 'none';
+}
+
+window.deleteEvent = async function(id) {
+    if (confirm("Vuoi eliminare questo appuntamento?")) {
+        try {
+            const { db, firebaseFns } = window;
+            const { doc, deleteDoc } = firebaseFns;
+            await deleteDoc(doc(db, "events", id));
+            loadEvents();
+        } catch (err) { console.error(err); }
+    }
+}
+
+// ================= RICETTARIO (CON MODIFICA E MI PIACE) =================
+document.getElementById('btn-add-recipe').addEventListener('click', async () => {
+    const editId = document.getElementById('recipe-edit-id').value;
+    const title = document.getElementById('recipe-title').value.trim();
+    const category = document.getElementById('recipe-category').value;
+    const ingredients = document.getElementById('recipe-ingredients').value.trim();
+    const steps = document.getElementById('recipe-steps').value.trim();
+
+    if (!title || !ingredients || !steps) {
+        alert("Compila tutti i campi per salvare la ricetta.");
+        return;
+    }
+
+    try {
+        const { db, firebaseFns } = window;
+        const { doc, setDoc, addDoc, collection, getDoc } = firebaseFns;
+
+        if (editId) {
+            const recipeRef = doc(db, "recipes", editId);
+            const snap = await getDoc(recipeRef);
+            let likes = snap.exists() && snap.data().likes ? snap.data().likes : [];
+            await setDoc(recipeRef, { title, category, ingredients, steps, likes });
+            cancelEditRecipe();
+        } else {
+            await addDoc(collection(db, "recipes"), { title, category, ingredients, steps, likes: [] });
+            document.getElementById('recipe-title').value = '';
+            document.getElementById('recipe-ingredients').value = '';
+            document.getElementById('recipe-steps').value = '';
+        }color:var(--text-muted);">Scadenza: ${b.date}</small></span>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="bill-badge ${badgeClass}">${badgeText}</span>
+                        ${!b.paid ? `<button class="btn-success" onclick="toggleBillPaid('${b.id}', true)">Paga</button>` : `<button class="btn-danger" onclick="toggleBillPaid('${b.id}', false)">Annulla</button>`}
+                        <button class="btn-danger" style="padding: 6px 8px;" onclick="deleteBill('${b.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `;
+        });
+
+        pageContainer.innerHTML = pageHTML || 'Nessuna bolletta inserita.';
+        pageTotalAmount.innerText = `${totalUnpaid.toFixed(2)} €`;
+
+        if (totalUnpaid > 0) {
+            overviewTotalBox.style.display = 'flex';
+            overviewTotalAmount.innerText = `${totalUnpaid.toFixed(2)} €`;
+        } else {
+            overviewTotalBox.style.display = 'none';
+        }
+
+    } catch (err) {
+        console.error("Errore caricamento bollette:", err);
+        overviewContainer.innerHTML = 'Errore nel caricamento bollette.';
+    }
+}
+
+window.toggleBillPaid = async function(id, paidStatus) {
+    try {
+        const { db, firebaseFns } = window;
+        const { doc, getDoc, setDoc } = firebaseFns;
+        const billRef = doc(db, "bills", id);
+        const billSnap = await getDoc(billRef);
+        if (billSnap.exists()) {
+            const data = billSnap.data();
+            await setDoc(billRef, { ...data, paid: paidStatus });
+            loadBills();
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Errore nell'aggiornamento della bolletta.");
+    }
+}
+
+window.deleteBill = async function(id) {
+    if (confirm("Vuoi eliminare questa bolletta?")) {
+        try {
+            const { db, firebaseFns } = window;
+            const { doc, deleteDoc } = firebaseFns;
+            await deleteDoc(doc(db, "bills", id));
+            loadBills();
+        } catch (err) {
+            console.error(err);
+            alert("Errore durante l'eliminazione.");
+        }
+    }
+}
+
 // ================= CALENDARIO =================
 document.getElementById('btn-add-event').addEventListener('click', async () => {
     const title = document.getElementById('event-title').value.trim();
