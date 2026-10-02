@@ -1,10 +1,10 @@
 {
-  "name": "Nome della tua App",
-  "short_name": "App",
+  "name": "Portale Famiglia",
+  "short_name": "Portale",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#f4f4f9",
+  "theme_color": "#ffffff",
   "icons": [
     {
       "src": "icon-192.png",
