@@ -254,7 +254,7 @@
             const { db, firebaseFns } = window;
             const { doc, getDoc, setDoc } = firebaseFns;
 
-            // Inizializza l'utente Admin Paolo se non esiste nel database Firestore
+            // Inizializza l'utente Admin principale se non esiste
             const adminRef = doc(db, "users", "stpa79@gmail.com");
             const adminSnap = await getDoc(adminRef);
             if (!adminSnap.exists()) {
@@ -351,10 +351,10 @@
             }
         });
 
-        // Carica elenco membri nella dashboard Admin
+        // Carica elenco membri nella dashboard Admin (versione sicura e ottimizzata)
         async function loadMembersList() {
             const container = document.getElementById('members-list-container');
-            container.innerHTML = 'Caricamento...';
+            container.innerHTML = 'Caricamento membri in corso...';
             try {
                 const { db, firebaseFns } = window;
                 const { collection, getDocs } = firebaseFns;
@@ -367,20 +367,22 @@
                     return;
                 }
 
-                querySnapshot.forEach((document) => {
-                    const data = document.data();
-                    const email = document.id;
+                querySnapshot.forEach((documentSnap) => {
+                    const data = documentSnap.data();
+                    const email = documentSnap.id;
+                    const name = data.name || 'Senza nome';
+                    const role = data.role || 'Member';
 
                     const row = document.createElement('div');
                     row.className = 'member-row';
                     row.innerHTML = `
-                        <span><b>${data.name}</b><br><span style="color:var(--text-muted); font-size:12px;">${email} (${data.role})</span></span>
+                        <span><b>${name}</b><br><span style="color:var(--text-muted); font-size:12px;">${email} (${role})</span></span>
                         ${email !== 'stpa79@gmail.com' ? `<button class="btn-danger" onclick="deleteMember('${email}')">Elimina</button>` : '<span style="font-size:12px; color:var(--primary); font-weight:650;">Principale</span>'}
                     `;
                     container.appendChild(row);
                 });
             } catch (err) {
-                console.error(err);
+                console.error("Errore dettagliato caricamento membri:", err);
                 container.innerHTML = 'Errore nel caricamento membri.';
             }
         }
