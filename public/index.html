@@ -140,9 +140,9 @@
 
         .bills-total-box { margin-top: 15px; padding-top: 12px; border-top: 2px dashed var(--border); display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; }
         
-        /* Checkbox allineati a sinistra */
+        /* Checkbox allineati correttamente */
         .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; font-size: 14px; align-items: flex-start; }
-        .checkbox-group label { display: flex; align-items: center; gap: 8px; color: var(--text-main); cursor: pointer; }
+        .checkbox-group label { display: inline-flex; align-items: center; gap: 8px; color: var(--text-main); cursor: pointer; white-space: nowrap; }
 
         .app-footer { background: #fff; padding: 10px 30px; text-align: right; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); flex-shrink: 0; }
     </style>
@@ -170,7 +170,7 @@
 
     <!-- STRUTTURA PRINCIPALE DELL'APP -->
     <div id="app-container" class="app-container">
-        <!-- MENU LATERALE (COLLAPSED DI DEFAULT) -->
+        <!-- MENU LATERALE -->
         <nav id="sidebar" class="sidebar collapsed">
             <div class="sidebar-header">
                 <h3>Famiglia</h3>
@@ -179,7 +179,7 @@
             <ul class="sidebar-menu">
                 <li class="active" data-target="section-overview"><i class="fa-solid fa-home"></i><span>Panoramica</span></li>
                 <li id="menu-bills" data-target="section-bills"><i class="fa-solid fa-file-invoice-dollar"></i><span>Bollette</span></li>
-                <li id="menu-gallery" data-target="section-gallery"><i class="fa-solid fa-images"></i><span>Foto & Video</span></li>
+                <li id="menu-gallery" data-target="section-gallery"><i class="fa-solid fa-images"></i><span>Foto e video</span></li>
                 <li id="menu-recipes" data-target="section-recipes"><i class="fa-solid fa-utensils"></i><span>Ricettario</span></li>
                 <li id="menu-calendar" data-target="section-calendar"><i class="fa-solid fa-calendar-days"></i><span>Calendario</span></li>
                 <li id="menu-admin" data-target="section-admin" style="display:none;"><i class="fa-solid fa-shield-halved"></i><span>Admin</span></li>
@@ -289,7 +289,7 @@
 
                 <section id="section-gallery" class="content-section">
                     <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button></div>
-                    <h2>Sezione Foto & Video in lavorazione...</h2>
+                    <h2>Sezione Foto e video in lavorazione...</h2>
                 </section>
                 
                 <section id="section-recipes" class="content-section">
@@ -337,7 +337,7 @@
                                 <label>Sezioni Visibili:</label>
                                 <div class="checkbox-group">
                                     <label><input type="checkbox" class="perm-chk" value="section-bills" checked> Bollette</label>
-                                    <label><input type="checkbox" class="perm-chk" value="section-gallery" checked> Foto & Video</label>
+                                    <label><input type="checkbox" class="perm-chk" value="section-gallery" checked> Foto e video</label>
                                     <label><input type="checkbox" class="perm-chk" value="section-recipes" checked> Ricettario</label>
                                     <label><input type="checkbox" class="perm-chk" value="section-calendar" checked> Calendario</label>
                                 </div>
@@ -360,18 +360,17 @@
         </main>
     </div>
 
-    <!-- Script JavaScript dell'applicazione e PWA Service Worker -->
+    <!-- Script JavaScript -->
     <script>
         let loggedUser = null;
         let isUserAdmin = false;
         let activePermissions = [];
 
-        // Registrazione Service Worker per PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
-                    .then((reg) => { console.log('Service Worker registrato con successo!', reg.scope); })
-                    .catch((err) => { console.log('Registrazione Service Worker fallita: ', err); });
+                    .then((reg) => { console.log('Service Worker registrato', reg.scope); })
+                    .catch((err) => { console.log('Service Worker fallito: ', err); });
             });
         }
 
@@ -489,7 +488,7 @@
             const titles = {
                 'section-overview': 'Panoramica',
                 'section-bills': 'Bollette',
-                'section-gallery': 'Foto & Video',
+                'section-gallery': 'Foto e video',
                 'section-recipes': 'Ricettario',
                 'section-calendar': 'Calendario',
                 'section-admin': 'Admin'
