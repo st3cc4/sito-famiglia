@@ -103,8 +103,12 @@
         .welcome-banner p { font-size: 14px; opacity: 0.9; }
 
         .overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .card { background: var(--card-bg); padding: 20px; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 20px; }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 20px; display: flex; flex-direction: column; justify-content: space-between; }
         .card h3 { margin-bottom: 12px; font-size: 16px; color: var(--text-main); }
+
+        .card-shortcut { margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border); text-align: right; }
+        .card-shortcut a { font-size: 13px; color: var(--primary); text-decoration: none; font-weight: 600; cursor: pointer; }
+        .card-shortcut a:hover { text-decoration: underline; }
 
         .btn-primary { background: var(--primary); color: #fff; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px; transition: background 0.2s; }
         .btn-primary:hover { background: var(--primary-hover); }
@@ -195,21 +199,41 @@
                     </div>
 
                     <div class="overview-grid">
+                        <!-- CARD BOLLETTE -->
                         <div class="card">
-                            <h3><i class="fa-solid fa-file-invoice-dollar" style="color:var(--primary)"></i> Bollette in Scadenza</h3>
-                            <div id="overview-bills-list" style="font-size:14px; color:var(--text-muted);">Caricamento bollette...</div>
-                            <div id="overview-bills-total" class="bills-total-box" style="display:none;">
-                                <span>Da pagare:</span>
-                                <span id="overview-total-amount" style="color:var(--danger);">0.00 €</span>
+                            <div>
+                                <h3><i class="fa-solid fa-file-invoice-dollar" style="color:var(--primary)"></i> Bollette in Scadenza</h3>
+                                <div id="overview-bills-list" style="font-size:14px; color:var(--text-muted);">Caricamento bollette...</div>
+                                <div id="overview-bills-total" class="bills-total-box" style="display:none;">
+                                    <span>Da pagare:</span>
+                                    <span id="overview-total-amount" style="color:var(--danger);">0.00 €</span>
+                                </div>
+                            </div>
+                            <div class="card-shortcut">
+                                <a onclick="switchSection('section-bills')">Gestisci bollette &rarr;</a>
                             </div>
                         </div>
+
+                        <!-- CARD MEDIA -->
                         <div class="card">
-                            <h3><i class="fa-solid fa-images" style="color:var(--primary)"></i> Ultimi Media Condivisi</h3>
-                            <div id="overview-media-list" style="font-size:14px; color:var(--text-muted);">Nessuna foto o video recente.</div>
+                            <div>
+                                <h3><i class="fa-solid fa-images" style="color:var(--primary)"></i> Ultimi Media Condivisi</h3>
+                                <div id="overview-media-list" style="font-size:14px; color:var(--text-muted);">Nessuna foto o video recente.</div>
+                            </div>
+                            <div class="card-shortcut">
+                                <a onclick="switchSection('section-gallery')">Apri galleria &rarr;</a>
+                            </div>
                         </div>
+
+                        <!-- CARD APPUNTAMENTI -->
                         <div class="card">
-                            <h3><i class="fa-solid fa-calendar-days" style="color:var(--primary)"></i> Prossimi Appuntamenti</h3>
-                            <div id="overview-events-list" style="font-size:14px; color:var(--text-muted);">Nessun appuntamento in calendario.</div>
+                            <div>
+                                <h3><i class="fa-solid fa-calendar-days" style="color:var(--primary)"></i> Prossimi Appuntamenti</h3>
+                                <div id="overview-events-list" style="font-size:14px; color:var(--text-muted);">Nessun appuntamento in calendario.</div>
+                            </div>
+                            <div class="card-shortcut">
+                                <a onclick="switchSection('section-calendar')">Vai al calendario &rarr;</a>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -251,7 +275,7 @@
                 
                 <!-- SCHERMATA ADMIN GESTIONE MEMBRI -->
                 <section id="section-admin" class="content-section">
-                    <div class="card" style="max-width: 600px;">
+                    <div class="card" style="max-width: 600px; margin-bottom: 20px;">
                         <h3>Gestione Membri della Famiglia</h3>
                         <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Aggiungi o rimuovi i familiari che possono accedere al portale.</p>
                         
@@ -371,6 +395,26 @@
             }
         }
 
+        // --- FUNZIONE GLOBALE CAMBIO SEZIONE ---
+        window.switchSection = function(targetId) {
+            document.querySelectorAll('.sidebar-menu li').forEach(i => {
+                if (i.getAttribute('data-target') === targetId) i.classList.add('active');
+                else i.classList.remove('active');
+            });
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(targetId).classList.add('active');
+            
+            const titles = {
+                'section-overview': 'Panoramica',
+                'section-bills': 'Bollette',
+                'section-gallery': 'Foto & Video',
+                'section-recipes': 'Ricettario',
+                'section-calendar': 'Calendario',
+                'section-admin': 'Admin'
+            };
+            document.getElementById('page-title').innerText = titles[targetId] || 'Portale';
+        }
+
         // --- GESTIONE BOLLETTE ---
         document.getElementById('btn-add-bill').addEventListener('click', async () => {
             const title = document.getElementById('bill-title').value.trim();
@@ -424,7 +468,6 @@
                     bills.push({ id: docSnap.id, ...docSnap.data() });
                 });
 
-                // Ordina per data di scadenza
                 bills.sort((a, b) => new Date(a.date) - new Date(b.date));
 
                 const today = new Date();
@@ -442,21 +485,15 @@
                     return;
                 }
 
-                // Filtraggio con logica a semaforo per la Panoramica:
-                // 1. Cerca bollette non pagate che scadono entro 7 giorni o già scadute
+                // Logica a semaforo per la Panoramica
                 let filteredOverview = bills.filter(b => !b.paid && (new Date(b.date) - today) / (1000 * 60 * 60 * 24) <= 7);
-                
-                // 2. Se non ce ne sono, cerca entro 14 giorni
                 if (filteredOverview.length === 0) {
                     filteredOverview = bills.filter(b => !b.paid && (new Date(b.date) - today) / (1000 * 60 * 60 * 24) <= 14);
                 }
-
-                // 3. Se non ce ne sono, cerca entro 21 giorni
                 if (filteredOverview.length === 0) {
                     filteredOverview = bills.filter(b => !b.paid && (new Date(b.date) - today) / (1000 * 60 * 60 * 24) <= 21);
                 }
 
-                // Costruisci vista Panoramica
                 if (filteredOverview.length === 0) {
                     overviewContainer.innerHTML = 'Nessuna bolletta in scadenza imminente (entro 21 giorni).';
                 } else {
@@ -487,7 +524,6 @@
                     overviewContainer.innerHTML = overviewHTML;
                 }
 
-                // Costruisci vista pagina Bollette e calcola totale totale non pagato
                 pageHTML = '';
                 bills.forEach(b => {
                     if (!b.paid) {
@@ -543,8 +579,7 @@
         window.toggleBillPaid = async function(id, paidStatus) {
             try {
                 const { db, firebaseFns } = window;
-                const { doc, setDoc } = firebaseFns;
-                // Aggiorna lo stato unendo i campi esistenti (oppure ricarica)
+                const { doc, getDoc, setDoc } = firebaseFns;
                 const billRef = doc(db, "bills", id);
                 const billSnap = await getDoc(billRef);
                 if (billSnap.exists()) {
@@ -654,16 +689,11 @@
             document.getElementById('sidebar').classList.toggle('collapsed');
         });
 
-        // Navigazione Menu
+        // Navigazione Menu Laterale
         document.querySelectorAll('.sidebar-menu li').forEach(item => {
             item.addEventListener('click', () => {
-                document.querySelectorAll('.sidebar-menu li').forEach(i => i.classList.remove('active'));
-                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-                
-                item.classList.add('active');
                 const target = item.getAttribute('data-target');
-                document.getElementById(target).classList.add('active');
-                document.getElementById('page-title').innerText = item.querySelector('span').innerText;
+                window.switchSection(target);
             });
         });
 
