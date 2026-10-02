@@ -9,7 +9,7 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, getDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
@@ -25,7 +25,7 @@
         const db = getFirestore(app);
 
         window.db = db;
-        window.firebaseFns = { collection, getDocs, setDoc, doc, deleteDoc, getDoc };
+        window.firebaseFns = { collection, getDocs, setDoc, doc, deleteDoc, getDoc, addDoc };
         
         window.dispatchEvent(new Event('firebase-ready'));
     </script>
@@ -43,6 +43,8 @@
             --border: #e2e8f0;
             --gray: #94a3b8;
             --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -108,12 +110,20 @@
         .btn-primary:hover { background: var(--primary-hover); }
 
         .btn-danger { background: var(--danger); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
-        
+        .btn-success { background: var(--success); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 14px; margin-bottom: 5px; color: var(--text-muted); }
         .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
 
-        .member-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+        .member-row, .bill-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        .bill-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #fff; }
+        .badge-red { background: var(--danger); }
+        .badge-orange { background: var(--warning); }
+        .badge-green { background: var(--success); }
+        .badge-gray { background: var(--gray); }
+
+        .bills-total-box { margin-top: 15px; padding-top: 12px; border-top: 2px dashed var(--border); display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; }
 
         .app-footer { background: #fff; padding: 10px 30px; text-align: right; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); flex-shrink: 0; }
     </style>
@@ -186,21 +196,55 @@
 
                     <div class="overview-grid">
                         <div class="card">
-                            <h3>Bollette in Scadenza</h3>
-                            <div id="overview-bills-list" style="font-size:14px; color:var(--text-muted);">Nessuna bolletta in scadenza imminente.</div>
+                            <h3><i class="fa-solid fa-file-invoice-dollar" style="color:var(--primary)"></i> Bollette in Scadenza</h3>
+                            <div id="overview-bills-list" style="font-size:14px; color:var(--text-muted);">Caricamento bollette...</div>
+                            <div id="overview-bills-total" class="bills-total-box" style="display:none;">
+                                <span>Da pagare:</span>
+                                <span id="overview-total-amount" style="color:var(--danger);">0.00 €</span>
+                            </div>
                         </div>
                         <div class="card">
-                            <h3>Ultimi Media Condivisi</h3>
+                            <h3><i class="fa-solid fa-images" style="color:var(--primary)"></i> Ultimi Media Condivisi</h3>
                             <div id="overview-media-list" style="font-size:14px; color:var(--text-muted);">Nessuna foto o video recente.</div>
                         </div>
                         <div class="card">
-                            <h3>Prossimi Appuntamenti</h3>
+                            <h3><i class="fa-solid fa-calendar-days" style="color:var(--primary)"></i> Prossimi Appuntamenti</h3>
                             <div id="overview-events-list" style="font-size:14px; color:var(--text-muted);">Nessun appuntamento in calendario.</div>
                         </div>
                     </div>
                 </section>
 
-                <section id="section-bills" class="content-section"><h2>Sezione Bollette in lavorazione...</h2></section>
+                <!-- SEZIONE BOLLETTE COMPLETA -->
+                <section id="section-bills" class="content-section">
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+                        <div class="card">
+                            <h3>Aggiungi Nuova Bolletta</h3>
+                            <div class="form-group">
+                                <label>Titolo (es. Luce, Gas, Internet)</label>
+                                <input type="text" id="bill-title" placeholder="Es. Enel Luce">
+                            </div>
+                            <div class="form-group">
+                                <label>Importo (€)</label>
+                                <input type="number" step="0.01" id="bill-amount" placeholder="Es. 45.50">
+                            </div>
+                            <div class="form-group">
+                                <label>Data di Scadenza</label>
+                                <input type="date" id="bill-date">
+                            </div>
+                            <button id="btn-add-bill" class="btn-primary">Salva Bolletta</button>
+                        </div>
+
+                        <div class="card">
+                            <h3>Elenco Bollette</h3>
+                            <div id="bills-list-container">Caricamento bollette...</div>
+                            <div class="bills-total-box">
+                                <span>Totale non pagato:</span>
+                                <span id="bills-page-total" style="color:var(--danger);">0.00 €</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <section id="section-gallery" class="content-section"><h2>Sezione Foto & Video in lavorazione...</h2></section>
                 <section id="section-recipes" class="content-section"><h2>Sezione Ricettario in lavorazione...</h2></section>
                 <section id="section-calendar" class="content-section"><h2>Sezione Calendario in lavorazione...</h2></section>
@@ -269,6 +313,9 @@
                 document.getElementById('auth-password').value = savedPass;
                 document.getElementById('remember-me').checked = true;
             }
+
+            // Carica dati iniziali bollette
+            loadBills();
         });
 
         document.getElementById('btn-login').addEventListener('click', handleLogin);
@@ -314,6 +361,7 @@
                         document.getElementById('menu-admin').style.display = 'flex';
                         loadMembersList();
                     }
+                    loadBills();
                 } else {
                     errorBox.style.display = 'block';
                 }
@@ -323,7 +371,208 @@
             }
         }
 
-        // Aggiunta membro da parte dell'Admin
+        // --- GESTIONE BOLLETTE ---
+        document.getElementById('btn-add-bill').addEventListener('click', async () => {
+            const title = document.getElementById('bill-title').value.trim();
+            const amount = parseFloat(document.getElementById('bill-amount').value);
+            const date = document.getElementById('bill-date').value;
+
+            if (!title || isNaN(amount) || !date) {
+                alert("Compila tutti i campi correttamente per aggiungere la bolletta.");
+                return;
+            }
+
+            try {
+                const { db, firebaseFns } = window;
+                const { collection, addDoc } = firebaseFns;
+
+                await addDoc(collection(db, "bills"), {
+                    title,
+                    amount,
+                    date,
+                    paid: false
+                });
+
+                document.getElementById('bill-title').value = '';
+                document.getElementById('bill-amount').value = '';
+                document.getElementById('bill-date').value = '';
+                loadBills();
+            } catch (err) {
+                console.error(err);
+                alert("Errore nel salvataggio della bolletta.");
+            }
+        });
+
+        async function loadBills() {
+            const overviewContainer = document.getElementById('overview-bills-list');
+            const overviewTotalBox = document.getElementById('overview-bills-total');
+            const overviewTotalAmount = document.getElementById('overview-total-amount');
+            
+            const pageContainer = document.getElementById('bills-list-container');
+            const pageTotalAmount = document.getElementById('bills-page-total');
+
+            if (!window.db) return;
+
+            try {
+                const { db, firebaseFns } = window;
+                const { collection, getDocs } = firebaseFns;
+
+                const querySnapshot = await getDocs(collection(db, "bills"));
+                let bills = [];
+
+                querySnapshot.forEach((docSnap) => {
+                    bills.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                // Ordina per data di scadenza
+                bills.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                const today = new Date();
+                today.setHours(0,0,0,0);
+
+                let totalUnpaid = 0;
+                let overviewHTML = '';
+                let pageHTML = '';
+
+                if (bills.length === 0) {
+                    overviewContainer.innerHTML = 'Nessuna bolletta registrata.';
+                    overviewTotalBox.style.display = 'none';
+                    pageContainer.innerHTML = 'Nessuna bolletta presente.';
+                    pageTotalAmount.innerText = '0.00 €';
+                    return;
+                }
+
+                // Filtraggio con logica a semaforo per la Panoramica:
+                // 1. Cerca bollette non pagate che scadono entro 7 giorni o già scadute
+                let filteredOverview = bills.filter(b => !b.paid && (new Date(b.date) - today) / (1000 * 60 * 60 * 24) <= 7);
+                
+                // 2. Se non ce ne sono, cerca entro 14 giorni
+                if (filteredOverview.length === 0) {
+                    filteredOverview = bills.filter(b => !b.paid && (new Date(b.date) - today) / (1000 * 60 * 60 * 24) <= 14);
+                }
+
+                // 3. Se non ce ne sono, cerca entro 21 giorni
+                if (filteredOverview.length === 0) {
+                    filteredOverview = bills.filter(b => !b.paid && (new Date(b.date) - today) / (1000 * 60 * 60 * 24) <= 21);
+                }
+
+                // Costruisci vista Panoramica
+                if (filteredOverview.length === 0) {
+                    overviewContainer.innerHTML = 'Nessuna bolletta in scadenza imminente (entro 21 giorni).';
+                } else {
+                    overviewHTML = '';
+                    filteredOverview.forEach(b => {
+                        const diffDays = Math.ceil((new Date(b.date) - today) / (1000 * 60 * 60 * 24));
+                        let badgeClass = 'badge-green';
+                        let badgeText = `Scade tra ${diffDays} giorni`;
+
+                        if (diffDays < 0) {
+                            badgeClass = 'badge-red';
+                            badgeText = `Scaduta da ${Math.abs(diffDays)} giorni!`;
+                        } else if (diffDays <= 7) {
+                            badgeClass = 'badge-red';
+                            badgeText = `Scade tra ${diffDays} giorni`;
+                        } else if (diffDays <= 14) {
+                            badgeClass = 'badge-orange';
+                            badgeText = `Scade tra ${diffDays} giorni`;
+                        }
+
+                        overviewHTML += `
+                            <div class="bill-row" style="padding: 8px 0;">
+                                <span><b>${b.title}</b><br><small style="color:var(--text-muted);">${b.amount.toFixed(2)} €</small></span>
+                                <span class="bill-badge ${badgeClass}">${badgeText}</span>
+                            </div>
+                        `;
+                    });
+                    overviewContainer.innerHTML = overviewHTML;
+                }
+
+                // Costruisci vista pagina Bollette e calcola totale totale non pagato
+                pageHTML = '';
+                bills.forEach(b => {
+                    if (!b.paid) {
+                        totalUnpaid += b.amount;
+                    }
+
+                    const diffDays = Math.ceil((new Date(b.date) - today) / (1000 * 60 * 60 * 24));
+                    let badgeClass = 'badge-green';
+                    let badgeText = `Scade tra ${diffDays} gg`;
+
+                    if (b.paid) {
+                        badgeClass = 'badge-gray';
+                        badgeText = 'Pagata';
+                    } else if (diffDays < 0) {
+                        badgeClass = 'badge-red';
+                        badgeText = `Scaduta (${Math.abs(diffDays)}g)`;
+                    } else if (diffDays <= 7) {
+                        badgeClass = 'badge-red';
+                        badgeText = `Scade tra ${diffDays} gg`;
+                    } else if (diffDays <= 14) {
+                        badgeClass = 'badge-orange';
+                        badgeText = `Scade tra ${diffDays} gg`;
+                    }
+
+                    pageHTML += `
+                        <div class="bill-row">
+                            <span><b>${b.title}</b> — <span style="font-weight:600; color:var(--primary);">${b.amount.toFixed(2)} €</span><br><small style="color:var(--text-muted);">Scadenza: ${b.date}</small></span>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="bill-badge ${badgeClass}">${badgeText}</span>
+                                ${!b.paid ? `<button class="btn-success" onclick="toggleBillPaid('${b.id}', true)">Paga</button>` : `<button class="btn-danger" onclick="toggleBillPaid('${b.id}', false)">Annulla</button>`}
+                                <button class="btn-danger" style="padding: 6px 8px;" onclick="deleteBill('${b.id}')"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                pageContainer.innerHTML = pageHTML || 'Nessuna bolletta inserita.';
+                pageTotalAmount.innerText = `${totalUnpaid.toFixed(2)} €`;
+
+                if (totalUnpaid > 0) {
+                    overviewTotalBox.style.display = 'flex';
+                    overviewTotalAmount.innerText = `${totalUnpaid.toFixed(2)} €`;
+                } else {
+                    overviewTotalBox.style.display = 'none';
+                }
+
+            } catch (err) {
+                console.error("Errore caricamento bollette:", err);
+                overviewContainer.innerHTML = 'Errore nel caricamento bollette.';
+            }
+        }
+
+        window.toggleBillPaid = async function(id, paidStatus) {
+            try {
+                const { db, firebaseFns } = window;
+                const { doc, setDoc } = firebaseFns;
+                // Aggiorna lo stato unendo i campi esistenti (oppure ricarica)
+                const billRef = doc(db, "bills", id);
+                const billSnap = await getDoc(billRef);
+                if (billSnap.exists()) {
+                    const data = billSnap.data();
+                    await setDoc(billRef, { ...data, paid: paidStatus });
+                    loadBills();
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Errore nell'aggiornamento della bolletta.");
+            }
+        }
+
+        window.deleteBill = async function(id) {
+            if (confirm("Vuoi eliminare questa bolletta?")) {
+                try {
+                    const { db, firebaseFns } = window;
+                    const { doc, deleteDoc } = firebaseFns;
+                    await deleteDoc(doc(db, "bills", id));
+                    loadBills();
+                } catch (err) {
+                    console.error(err);
+                    alert("Errore durante l'eliminazione.");
+                }
+            }
+        }
+
+        // --- GESTIONE MEMBRI ADMIN ---
         document.getElementById('btn-add-member').addEventListener('click', async () => {
             const name = document.getElementById('new-member-name').value.trim();
             const email = document.getElementById('new-member-email').value.trim().toLowerCase();
@@ -351,7 +600,6 @@
             }
         });
 
-        // Carica elenco membri nella dashboard Admin (versione sicura e ottimizzata)
         async function loadMembersList() {
             const container = document.getElementById('members-list-container');
             container.innerHTML = 'Caricamento membri in corso...';
