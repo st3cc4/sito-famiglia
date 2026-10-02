@@ -39,6 +39,7 @@ window.addEventListener('firebase-ready', async () => {
     }
 
     loadBills();
+    loadEvents();
 });
 
 document.getElementById('btn-login').addEventListener('click', handleLogin);
@@ -88,6 +89,7 @@ async function handleLogin() {
                 loadMembersList();
             }
             loadBills();
+            loadEvents();
         } else {
             errorBox.style.display = 'block';
         }
@@ -124,7 +126,11 @@ window.switchSection = function(targetId) {
         else i.classList.remove('active');
     });
     document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-    document.getElementById(targetId).classList.add('active');
+    
+    const targetSection = document.getElementById(targetId);
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
     
     const titles = {
         'section-overview': 'Panoramica',
@@ -137,6 +143,7 @@ window.switchSection = function(targetId) {
     document.getElementById('page-title').innerText = titles[targetId] || 'Portale';
 }
 
+// ================= BOLLETTE =================
 document.getElementById('btn-add-bill').addEventListener('click', async () => {
     const title = document.getElementById('bill-title').value.trim();
     const amount = parseFloat(document.getElementById('bill-amount').value);
@@ -304,6 +311,108 @@ window.deleteBill = async function(id) {
     }
 }
 
+// ================= CALENDARIO =================
+document.getElementById('btn-add-event').addEventListener('click', async () => {
+    const title = document.getElementById('event-title').value.trim();
+    const date = document.getElementById('event-date').value;
+    const time = document.getElementById('event-time').value;
+    const desc = document.getElementById('event-desc').value.trim();
+
+    if (!title || !date) {
+        alert("Inserisci almeno il titolo e la data dell'appuntamento.");
+        return;
+    }
+
+    try {
+        const { db, firebaseFns } = window;
+        const { collection, addDoc } = firebaseFns;
+
+        await addDoc(collection(db, "events"), { title, date, time, desc });
+
+        document.getElementById('event-title').value = '';
+        document.getElementById('event-date').value = '';
+        document.getElementById('event-time').value = '';
+        document.getElementById('event-desc').value = '';
+        loadEvents();
+    } catch (err) {
+        console.error(err);
+        alert("Errore nel salvataggio dell'appuntamento.");
+    }
+});
+
+async function loadEvents() {
+    const overviewContainer = document.getElementById('overview-events-list');
+    const pageContainer = document.getElementById('calendar-list-container');
+
+    if (!window.db) return;
+
+    try {
+        const { db, firebaseFns } = window;
+        const { collection, getDocs } = firebaseFns;
+
+        const querySnapshot = await getDocs(collection(db, "events"));
+        let events = [];
+
+        querySnapshot.forEach((docSnap) => {
+            events.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        events.sort((a, b) => new Date(a.date + (a.time ? ' ' + a.time : '')) - new Date(b.date + (b.time ? ' ' + b.time : '')));
+
+        const today = new Date();
+        today.setHours(0,0,0,0);
+
+        let overviewHTML = '';
+        let pageHTML = '';
+
+        // Filtra eventi futuri o di oggi per la panoramica
+        let upcomingEvents = events.filter(e => new Date(e.date) >= today);
+
+        if (upcomingEvents.length === 0) {
+            overviewContainer.innerHTML = 'Nessun appuntamento in programma.';
+        } else {
+            upcomingEvents.slice(0, 3).forEach(e => {
+                overviewHTML += `
+                    <div class="event-row" style="padding: 8px 0;">
+                        <span><b>${e.title}</b><br><small style="color:var(--text-muted);">${e.date} ${e.time ? '• ' + e.time : ''}</small></span>
+                    </div>
+                `;
+            });
+            overviewContainer.innerHTML = overviewHTML;
+        }
+
+        events.forEach(e => {
+            pageHTML += `
+                <div class="event-row">
+                    <span><b>${e.title}</b> — <span style="color:var(--primary); font-weight:600;">${e.date} ${e.time ? 'alle ' + e.time : ''}</span><br><small style="color:var(--text-muted);">${e.desc || 'Nessuna nota'}</small></span>
+                    <button class="btn-danger" style="padding: 6px 8px;" onclick="deleteEvent('${e.id}')"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `;
+        });
+
+        pageContainer.innerHTML = pageHTML || 'Nessun appuntamento inserito.';
+
+    } catch (err) {
+        console.error("Errore caricamento eventi:", err);
+        overviewContainer.innerHTML = 'Errore nel caricamento appuntamenti.';
+    }
+}
+
+window.deleteEvent = async function(id) {
+    if (confirm("Vuoi eliminare questo appuntamento?")) {
+        try {
+            const { db, firebaseFns } = window;
+            const { doc, deleteDoc } = firebaseFns;
+            await deleteDoc(doc(db, "events", id));
+            loadEvents();
+        } catch (err) {
+            console.error(err);
+            alert("Errore durante l'eliminazione.");
+        }
+    }
+}
+
+// ================= ADMIN & UTENTI =================
 document.getElementById('btn-add-member').addEventListener('click', async () => {
     const name = document.getElementById('new-member-name').value.trim();
     const email = document.getElementById('new-member-email').value.trim().toLowerCase();
@@ -434,6 +543,7 @@ window.deleteMember = async function(email) {
     }
 }
 
+// ================= GEMINI CHAT =================
 document.getElementById('gemini-send').addEventListener('click', askGemini);
 document.getElementById('gemini-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') askGemini(); });
 document.getElementById('close-gemini').addEventListener('click', () => { document.getElementById('gemini-response-box').style.display = 'none'; });
