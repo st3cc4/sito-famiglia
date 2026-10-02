@@ -43,10 +43,10 @@
             <h2><i class="fa-solid fa-house-chimney"></i> Portale della Famiglia</h2>
             <p>Inserisci le tue credenziali per entrare</p>
             
-            <div id="error-message" class="error-msg">Email o password non validi.</div>
+            <div id="error-message" class="error-msg">Email o password errati.</div>
 
-            <input type="email" id="auth-email" placeholder="La tua email (es. stecks@famiglia.it)">
-            <input type="password" id="auth-pin" placeholder="Password o PIN">
+            <input type="email" id="auth-email" placeholder="La tua email">
+            <input type="password" id="auth-password" placeholder="Password">
             
             <label class="remember-container">
                 <input type="checkbox" id="remember-me"> Ricordami su questo dispositivo
@@ -57,14 +57,16 @@
     </div>
 
     <script>
-        // Simulazione utenti autorizzati della famiglia (puoi associare le mail ai nomi)
+        // Database utenti della famiglia con le relative password
         const familyUsers = {
-            "stecks@famiglia.it": { name: "Stecks", role: "Admin" },
-            "elena@famiglia.it": { name: "Elena", role: "Member" },
-            "sara@famiglia.it": { name: "Sara", role: "Member" },
-            "giulia@famiglia.it": { name: "Giulia", role: "Member" },
-            "leonardo@famiglia.it": { name: "Leonardo", role: "Member" }
+            "stpa79@gmail.com": { name: "Paolo", role: "Admin", pass: "sv058753" },
+            "elena@famiglia.it": { name: "Elena", role: "Member", pass: "1234" },
+            "sara@famiglia.it": { name: "Sara", role: "Member", pass: "1234" },
+            "giulia@famiglia.it": { name: "Giulia", role: "Member", pass: "1234" },
+            "leonardo@famiglia.it": { name: "Leonardo", role: "Member", pass: "1234" }
         };
+
+        let currentUser = null;
 
         // Controllo se l'utente aveva scelto "Ricordami" in precedenza
         window.addEventListener('DOMContentLoaded', () => {
@@ -76,19 +78,21 @@
         });
 
         document.getElementById('btn-login').addEventListener('click', handleLogin);
-        document.getElementById('auth-pin').addEventListener('keypress', (e) => {
+        document.getElementById('auth-password').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleLogin();
         });
 
         function handleLogin() {
             const email = document.getElementById('auth-email').value.trim().toLowerCase();
-            const pin = document.getElementById('auth-pin').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
             const remember = document.getElementById('remember-me').checked;
             const errorBox = document.getElementById('error-message');
 
-            // Verifica semplice (puoi personalizzare la logica delle password come preferisci)
-            if (familyUsers[email]) {
-                currentUser = familyUsers[email].name;
+            const userRecord = familyUsers[email];
+
+            // Verifica email e password
+            if (userRecord && userRecord.pass === password) {
+                currentUser = userRecord.name;
                 
                 if (remember) {
                     localStorage.setItem('family_user_email', email);
@@ -98,7 +102,7 @@
 
                 // Nasconde la schermata di login
                 document.getElementById('auth-overlay').style.display = 'none';
-                alert(`Benvenuto/a nel Portale della Famiglia, ${currentUser}!`);
+                alert(`Benvenuto nel Portale della Famiglia, ${currentUser}!`);
             } else {
                 errorBox.style.display = 'block';
             }
