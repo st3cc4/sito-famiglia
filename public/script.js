@@ -40,6 +40,7 @@ window.addEventListener('firebase-ready', async () => {
 
     loadBills();
     loadEvents();
+    loadRecipes();
 });
 
 document.getElementById('btn-login').addEventListener('click', handleLogin);
@@ -90,6 +91,7 @@ async function handleLogin() {
             }
             loadBills();
             loadEvents();
+            loadRecipes();
         } else {
             errorBox.style.display = 'block';
         }
@@ -365,7 +367,6 @@ async function loadEvents() {
         let overviewHTML = '';
         let pageHTML = '';
 
-        // Filtra eventi futuri o di oggi per la panoramica
         let upcomingEvents = events.filter(e => new Date(e.date) >= today);
 
         if (upcomingEvents.length === 0) {
@@ -405,6 +406,98 @@ window.deleteEvent = async function(id) {
             const { doc, deleteDoc } = firebaseFns;
             await deleteDoc(doc(db, "events", id));
             loadEvents();
+        } catch (err) {
+            console.error(err);
+            alert("Errore durante l'eliminazione.");
+        }
+    }
+}
+
+// ================= RICETTARIO =================
+document.getElementById('btn-add-recipe').addEventListener('click', async () => {
+    const title = document.getElementById('recipe-title').value.trim();
+    const category = document.getElementById('recipe-category').value;
+    const ingredients = document.getElementById('recipe-ingredients').value.trim();
+    const steps = document.getElementById('recipe-steps').value.trim();
+
+    if (!title || !ingredients || !steps) {
+        alert("Compila tutti i campi per salvare la ricetta.");
+        return;
+    }
+
+    try {
+        const { db, firebaseFns } = window;
+        const { collection, addDoc } = firebaseFns;
+
+        await addDoc(collection(db, "recipes"), { title, category, ingredients, steps });
+
+        document.getElementById('recipe-title').value = '';
+        document.getElementById('recipe-ingredients').value = '';
+        document.getElementById('recipe-steps').value = '';
+        loadRecipes();
+    } catch (err) {
+        console.error(err);
+        alert("Errore nel salvataggio della ricetta.");
+    }
+});
+
+async function loadRecipes() {
+    const container = document.getElementById('recipes-list-container');
+    if (!window.db) return;
+
+    try {
+        const { db, firebaseFns } = window;
+        const { collection, getDocs } = firebaseFns;
+
+        const querySnapshot = await getDocs(collection(db, "recipes"));
+        let recipes = [];
+
+        querySnapshot.forEach((docSnap) => {
+            recipes.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        recipes.sort((a, b) => a.title.localeCompare(b.title));
+
+        let html = '';
+        recipes.forEach(r => {
+            html += `
+                <div style="border-bottom: 1px solid var(--border); padding: 12px 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span><b>${r.title}</b> <span style="font-size:12px; color:var(--primary); background:#e0e7ff; padding:2px 8px; border-radius:10px; margin-left:8px;">${r.category}</span></span>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-secondary" style="padding: 4px 8px;" onclick="toggleRecipeDetails('${r.id}')"><i class="fa-solid fa-eye"></i> Leggi</button>
+                            <button class="btn-danger" style="padding: 4px 8px;" onclick="deleteRecipe('${r.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div id="recipe-details-${r.id}" class="recipe-details">
+                        <p><b>Ingredienti:</b><br>${r.ingredients.replace(/\n/g, '<br>')}</p>
+                        <p style="margin-top: 8px;"><b>Procedimento:</b><br>${r.steps.replace(/\n/g, '<br>')}</p>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html || 'Nessuna ricetta inserita nel ricettario.';
+    } catch (err) {
+        console.error("Errore caricamento ricette:", err);
+        container.innerHTML = 'Errore nel caricamento ricette.';
+    }
+}
+
+window.toggleRecipeDetails = function(id) {
+    const detailsBox = document.getElementById(`recipe-details-${id}`);
+    if (detailsBox) {
+        detailsBox.style.display = detailsBox.style.display === 'block' ? 'none' : 'block';
+    }
+}
+
+window.deleteRecipe = async function(id) {
+    if (confirm("Vuoi eliminare questa ricetta?")) {
+        try {
+            const { db, firebaseFns } = window;
+            const { doc, deleteDoc } = firebaseFns;
+            await deleteDoc(doc(db, "recipes", id));
+            loadRecipes();
         } catch (err) {
             console.error(err);
             alert("Errore durante l'eliminazione.");
