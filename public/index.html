@@ -3,241 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family PWA - STECKS & GEMINI</title>
+    <title>Portale della Famiglia - STECKS & GEMINI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary: #4f46e5;
             --primary-hover: #4338ca;
             --bg-main: #f8fafc;
-            --sidebar-bg: #1e293b;
-            --sidebar-text: #f1f5f9;
             --card-bg: #ffffff;
             --text-main: #0f172a;
             --text-muted: #64748b;
             --border: #e2e8f0;
-            --danger: #ef4444;
-            --warning: #f97316;
-            --success: #22c55e;
-            --gray: #94a3b8;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: var(--bg-main); color: var(--text-main); height: 100vh; overflow: hidden; }
+        body { background: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; justify-content: center; align-items: center; }
 
-        /* Schermata di Login */
         .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .auth-box { background: #fff; padding: 30px; border-radius: 12px; width: 340px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-        .auth-box h2 { margin-bottom: 15px; color: var(--primary); }
-        .auth-box p { margin-bottom: 15px; color: var(--text-muted); font-size: 14px; text-align: left; }
-        .auth-box input[type="email"], .auth-box input[type="password"] { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
-        .auth-remember { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-muted); margin-bottom: 15px; text-align: left; }
-        .auth-error { color: var(--danger); font-size: 13px; margin-bottom: 10px; display: none; }
-
-        .app-container { display: flex; height: 100vh; width: 100vw; }
-
-        /* Sidebar a sinistra riducibile */
-        .sidebar { width: 260px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; transition: width 0.3s ease; z-index: 10; flex-shrink: 0; }
-        .sidebar.collapsed { width: 70px; }
-        .sidebar-header { padding: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .sidebar.collapsed .sidebar-header h3 { display: none; }
-        .sidebar-toggle-btn { background: none; border: none; color: #fff; cursor: pointer; font-size: 18px; }
-        .sidebar-menu { list-style: none; padding: 15px 0; flex-grow: 1; }
-        .sidebar-menu li { padding: 14px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
-        .sidebar-menu li:hover, .sidebar-menu li.active { background: rgba(255,255,255,0.1); }
-        .sidebar.collapsed .sidebar-menu li span { display: none; }
-        .sidebar-footer { padding: 15px 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 13px; color: var(--gray); white-space: nowrap; overflow: hidden; }
-        .sidebar.collapsed .sidebar-footer { display: none; }
-
-        .main-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .auth-box { background: #fff; padding: 35px; border-radius: 14px; width: 360px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .auth-box h2 { margin-bottom: 10px; color: var(--primary); font-size: 24px; }
+        .auth-box p { margin-bottom: 20px; color: var(--text-muted); font-size: 14px; }
+        .auth-box input[type="email"], .auth-box input[type="password"] { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .auth-box input:focus { border-color: var(--primary); }
         
-        /* Header con dicitura Panoramica e Chat Gemini in alto */
-        .top-header { background: #fff; padding: 15px 30px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-shrink: 0; }
-        .top-header h1 { font-size: 22px; color: var(--text-main); }
+        .remember-container { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 14px; color: var(--text-muted); text-align: left; cursor: pointer; }
+        .remember-container input { width: 16px; height: 16px; cursor: pointer; }
 
-        .gemini-search-bar { display: flex; align-items: center; background: var(--bg-main); border: 1px solid var(--border); border-radius: 20px; padding: 6px 15px; flex-grow: 1; max-width: 500px; gap: 10px; }
-        .gemini-search-bar i { color: var(--primary); }
-        .gemini-search-bar input { border: none; background: none; outline: none; width: 100%; font-size: 14px; }
-        .gemini-search-bar button { background: var(--primary); border: none; color: #fff; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-
-        .gemini-response-box { background: #e0e7ff; border-left: 4px solid var(--primary); padding: 15px; margin: 15px 30px 0 30px; border-radius: 8px; position: relative; flex-shrink: 0; }
-        .gemini-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 8px; color: var(--primary); }
-        .gemini-header button { background: none; border: none; cursor: pointer; font-size: 16px; color: var(--text-muted); }
-
-        .content-body { padding: 30px; flex-grow: 1; overflow-y: auto; }
-        .content-section { display: none; }
-        .content-section.active { display: block; }
-
-        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px; transition: background 0.2s; }
         .btn-primary:hover { background: var(--primary-hover); }
 
-        .overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .card { background: var(--card-bg); padding: 20px; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .card h3 { margin-bottom: 12px; font-size: 16px; color: var(--text-main); }
-
-        .app-footer { background: #fff; padding: 10px 30px; text-align: right; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); flex-shrink: 0; }
+        .error-msg { color: #ef4444; font-size: 13px; margin-bottom: 10px; display: none; }
     </style>
 </head>
 <body>
-    <!-- Schermata di Login con Email, Password e Checkbox -->
+
+    <!-- SCHERMATA DI ACCESSO -->
     <div id="auth-overlay" class="auth-overlay">
         <div class="auth-box">
-            <h2><i class="fa-solid fa-house-chimney"></i> Family Portal</h2>
-            <p>Accedi con la tua email:</p>
-            <input type="email" id="auth-email" placeholder="La tua email (es. stecks@family.it)">
-            <input type="password" id="auth-password" placeholder="Password">
-            <label class="auth-remember">
-                <input type="checkbox" id="auth-remember-me"> Ricordami su questo dispositivo
+            <h2><i class="fa-solid fa-house-chimney"></i> Portale della Famiglia</h2>
+            <p>Inserisci le tue credenziali per entrare</p>
+            
+            <div id="error-message" class="error-msg">Email o password non validi.</div>
+
+            <input type="email" id="auth-email" placeholder="La tua email (es. stecks@famiglia.it)">
+            <input type="password" id="auth-pin" placeholder="Password o PIN">
+            
+            <label class="remember-container">
+                <input type="checkbox" id="remember-me"> Ricordami su questo dispositivo
             </label>
-            <div id="auth-error" class="auth-error">Email o password non validi</div>
+
             <button id="btn-login" class="btn-primary">Accedi</button>
         </div>
     </div>
 
-    <div class="app-container">
-        <nav id="sidebar" class="sidebar">
-            <div class="sidebar-header">
-                <h3>Family PWA</h3>
-                <button id="sidebar-toggle" class="sidebar-toggle-btn"><i class="fa-solid fa-bars"></i></button>
-            </div>
-            <ul class="sidebar-menu">
-                <li class="active" data-target="section-overview"><i class="fa-solid fa-home"></i><span>Panoramica</span></li>
-                <li data-target="section-bills"><i class="fa-solid fa-file-invoice-dollar"></i><span>Bollette</span></li>
-                <li data-target="section-gallery"><i class="fa-solid fa-images"></i><span>Foto & Video</span></li>
-                <li data-target="section-recipes"><i class="fa-solid fa-utensils"></i><span>Ricettario</span></li>
-                <li data-target="section-calendar"><i class="fa-solid fa-calendar-days"></i><span>Calendario</span></li>
-                <li id="menu-admin" data-target="section-admin" style="display:none;"><i class="fa-solid fa-shield-halved"></i><span>Admin Dashboard</span></li>
-            </ul>
-            <div class="sidebar-footer">
-                <span id="current-user-badge">Utente: -</span>
-            </div>
-        </nav>
-
-        <main class="main-content">
-            <header class="top-header">
-                <h1 id="page-title">Panoramica</h1>
-                <div class="gemini-search-bar">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    <input type="text" id="gemini-input" placeholder="Chiedi qualcosa a Gemini (es. ricetta veloce, consigli)...">
-                    <button id="gemini-send"><i class="fa-solid fa-paper-plane"></i></button>
-                </div>
-            </header>
-
-            <div id="gemini-response-box" class="gemini-response-box" style="display: none;">
-                <div class="gemini-header"><span>Gemini (Famiglia)</span><button id="close-gemini"><i class="fa-solid fa-xmark"></i></button></div>
-                <div id="gemini-answer"></div>
-            </div>
-
-            <div class="content-body">
-                <!-- PANORAMICA -->
-                <section id="section-overview" class="content-section active">
-                    <div class="overview-grid">
-                        <div class="card">
-                            <h3>Bollette in Scadenza</h3>
-                            <div id="overview-bills-list">Nessuna bolletta in scadenza imminente.</div>
-                        </div>
-                        <div class="card">
-                            <h3>Ultimi Media Condivisi</h3>
-                            <div id="overview-media-list">Nessuna foto o video recente.</div>
-                        </div>
-                        <div class="card">
-                            <h3>Prossimi Appuntamenti</h3>
-                            <div id="overview-events-list">Nessun appuntamento in calendario.</div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <footer class="app-footer">
-                <span>Created by STECKS with GEMINI</span>
-            </footer>
-        </main>
-    </div>
-
     <script>
-        // Tabella utenti di prova mappata sulle email (Puoi personalizzare le email come preferisci)
+        // Simulazione utenti autorizzati della famiglia (puoi associare le mail ai nomi)
         const familyUsers = {
-            "stecks@family.it": { name: "Stecks", role: "Admin" },
-            "elena@family.it": { name: "Elena", role: "Member" },
-            "sara@family.it": { name: "Sara", role: "Member" },
-            "giulia@family.it": { name: "Giulia", role: "Member" },
-            "leonardo@family.it": { name: "Leonardo", role: "Member" }
+            "stecks@famiglia.it": { name: "Stecks", role: "Admin" },
+            "elena@famiglia.it": { name: "Elena", role: "Member" },
+            "sara@famiglia.it": { name: "Sara", role: "Member" },
+            "giulia@famiglia.it": { name: "Giulia", role: "Member" },
+            "leonardo@famiglia.it": { name: "Leonardo", role: "Member" }
         };
 
-        let currentUser = null;
-
-        // Controllo se l'utente aveva spuntato "Ricordami" in precedenza
+        // Controllo se l'utente aveva scelto "Ricordami" in precedenza
         window.addEventListener('DOMContentLoaded', () => {
-            const savedEmail = localStorage.getItem('family_saved_email');
-            if (savedEmail && familyUsers[savedEmail]) {
+            const savedEmail = localStorage.getItem('family_user_email');
+            if (savedEmail) {
                 document.getElementById('auth-email').value = savedEmail;
-                document.getElementById('auth-remember-me').checked = true;
+                document.getElementById('remember-me').checked = true;
             }
         });
 
         document.getElementById('btn-login').addEventListener('click', handleLogin);
-        document.getElementById('auth-password').addEventListener('keypress', (e) => { if (e.key === 'Enter') handleLogin(); });
+        document.getElementById('auth-pin').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
 
         function handleLogin() {
             const email = document.getElementById('auth-email').value.trim().toLowerCase();
-            const password = document.getElementById('auth-password').value;
-            const rememberMe = document.getElementById('auth-remember-me').checked;
-            const errorBox = document.getElementById('auth-error');
+            const pin = document.getElementById('auth-pin').value.trim();
+            const remember = document.getElementById('remember-me').checked;
+            const errorBox = document.getElementById('error-message');
 
+            // Verifica semplice (puoi personalizzare la logica delle password come preferisci)
             if (familyUsers[email]) {
                 currentUser = familyUsers[email].name;
-                document.getElementById('current-user-badge').innerText = `Utente: ${currentUser}`;
-                document.getElementById('auth-overlay').style.display = 'none';
-
-                if (familyUsers[email].role === 'Admin') {
-                    document.getElementById('menu-admin').style.display = 'flex';
-                }
-
-                if (rememberMe) {
-                    localStorage.setItem('family_saved_email', email);
+                
+                if (remember) {
+                    localStorage.setItem('family_user_email', email);
                 } else {
-                    localStorage.removeItem('family_saved_email');
+                    localStorage.removeItem('family_user_email');
                 }
+
+                // Nasconde la schermata di login
+                document.getElementById('auth-overlay').style.display = 'none';
+                alert(`Benvenuto/a nel Portale della Famiglia, ${currentUser}!`);
             } else {
                 errorBox.style.display = 'block';
             }
-        }
-
-        // Sidebar Toggle
-        document.getElementById('sidebar-toggle').addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('collapsed');
-        });
-
-        // Navigazione sezioni
-        document.querySelectorAll('.sidebar-menu li').forEach(item => {
-            item.addEventListener('click', () => {
-                document.querySelectorAll('.sidebar-menu li').forEach(i => i.classList.remove('active'));
-                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-                
-                item.classList.add('active');
-                const target = item.getAttribute('data-target');
-                if(document.getElementById(target)) {
-                    document.getElementById(target).classList.add('active');
-                }
-                document.getElementById('page-title').innerText = item.querySelector('span').innerText;
-            });
-        });
-
-        // Chat Gemini in alto
-        document.getElementById('gemini-send').addEventListener('click', askGemini);
-        document.getElementById('gemini-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') askGemini(); });
-        document.getElementById('close-gemini').addEventListener('click', () => { document.getElementById('gemini-response-box').style.display = 'none'; });
-
-        function askGemini() {
-            const query = document.getElementById('gemini-input').value.trim();
-            if (!query) return;
-            const answerBox = document.getElementById('gemini-answer');
-            document.getElementById('gemini-response-box').style.display = 'block';
-            answerBox.innerHTML = "Sto elaborando la risposta per te...";
-
-            setTimeout(() => {
-                answerBox.innerHTML = `Ciao ${currentUser}! Ho esaminato la tua richiesta ("${query}"). Sono pronto ad aiutarti con la gestione della famiglia!`;
-            }, 800);
         }
     </script>
 </body>
