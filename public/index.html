@@ -284,9 +284,10 @@
                 
                 <!-- SCHERMATA ADMIN GESTIONE MEMBRI E PERMESSI -->
                 <section id="section-admin" class="content-section">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+                    <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+                        <!-- CARD GESTIONE MEMBRI E PERMESSI -->
                         <div class="card">
-                            <h3>Gestione Membri & Permessi</h3>
+                            <h3>Gestione membri e permessi</h3>
                             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Aggiungi familiari e scegli quali sezioni possono vedere.</p>
                             
                             <div class="form-group">
@@ -320,8 +321,9 @@
                             <button id="btn-add-member" class="btn-primary">Salva Membro</button>
                         </div>
 
+                        <!-- CARD ELENCO MEMBRI -->
                         <div class="card">
-                            <h3>Elenco Membri Registrati</h3>
+                            <h3>Elenco membri</h3>
                             <div id="members-list-container">Caricamento membri...</div>
                         </div>
                     </div>
