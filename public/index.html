@@ -124,6 +124,7 @@
         .btn-secondary { background: #e2e8f0; color: var(--text-main); border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
         .btn-secondary:hover { background: #cbd5e1; }
 
+        .btn-warning { background: var(--warning); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
         .btn-danger { background: var(--danger); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
         .btn-success { background: var(--success); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
 
@@ -311,8 +312,8 @@
 
                         <!-- CARD GESTIONE MEMBRI E PERMESSI -->
                         <div class="card">
-                            <h3>Gestione membri e permessi</h3>
-                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Aggiungi familiari e scegli quali sezioni possono vedere.</p>
+                            <h3 id="admin-form-title">Gestione membri e permessi</h3>
+                            <p id="admin-form-subtitle" style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Aggiungi familiari e scegli quali sezioni possono vedere.</p>
                             
                             <div class="form-group">
                                 <label>Nome</label>
@@ -342,7 +343,10 @@
                                     <label><input type="checkbox" class="perm-chk" value="section-calendar" checked> Calendario</label>
                                 </div>
                             </div>
-                            <button id="btn-add-member" class="btn-primary">Salva Membro</button>
+                            <div style="display: flex; gap: 10px;">
+                                <button id="btn-add-member" class="btn-primary">Salva Membro</button>
+                                <button id="btn-cancel-edit" class="btn-secondary" style="display:none;" onclick="cancelEditMember()">Annulla</button>
+                            </div>
                         </div>
 
                         <!-- CARD ELENCO MEMBRI -->
@@ -382,7 +386,7 @@
             const adminSnap = await getDoc(adminRef);
             if (!adminSnap.exists()) {
                 await setDoc(adminRef, { 
-                    name: "Stecks", 
+                    name: "Stecca", 
                     role: "Admin", 
                     pass: "sv058753",
                     permissions: ["section-bills", "section-gallery", "section-recipes", "section-calendar"]
@@ -683,7 +687,7 @@
             });
 
             if (!name || !email || !pass) {
-                alert("Compila tutti i campi obbligatori per aggiungere un membro.");
+                alert("Compila tutti i campi obbligatori per aggiungere/modificare il membro.");
                 return;
             }
 
@@ -694,15 +698,60 @@
                 await setDoc(doc(db, "users", email), { name, pass, role, permissions });
                 alert(`Membro ${name} salvato con successo!`);
                 
-                document.getElementById('new-member-name').value = '';
-                document.getElementById('new-member-email').value = '';
-                document.getElementById('new-member-pass').value = '';
+                cancelEditMember();
                 loadMembersList();
             } catch (err) {
                 console.error(err);
                 alert("Errore durante il salvataggio.");
             }
         });
+
+        window.editMember = async function(email) {
+            try {
+                const { db, firebaseFns } = window;
+                const { doc, getDoc } = firebaseFns;
+                const userSnap = await getDoc(doc(db, "users", email));
+
+                if (userSnap.exists()) {
+                    const data = userSnap.data();
+                    document.getElementById('new-member-name').value = data.name || '';
+                    document.getElementById('new-member-email').value = email;
+                    document.getElementById('new-member-email').disabled = true; // L'email è la chiave e non si cambia
+                    document.getElementById('new-member-pass').value = data.pass || '';
+                    document.getElementById('new-member-role').value = data.role || 'Member';
+
+                    const perms = data.permissions || [];
+                    document.querySelectorAll('.perm-chk').forEach(chk => {
+                        chk.checked = perms.includes(chk.value);
+                    });
+
+                    document.getElementById('admin-form-title').innerText = `Modifica permessi: ${data.name}`;
+                    document.getElementById('admin-form-subtitle').innerText = `Aggiorna i dati o i permessi per ${email}.`;
+                    document.getElementById('btn-add-member').innerText = 'Aggiorna Membro';
+                    document.getElementById('btn-cancel-edit').style.display = 'inline-block';
+
+                    // Scorri in alto per comodità
+                    document.querySelector('.content-body').scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Errore nel recupero dei dati del membro.");
+            }
+        }
+
+        window.cancelEditMember = function() {
+            document.getElementById('new-member-name').value = '';
+            document.getElementById('new-member-email').value = '';
+            document.getElementById('new-member-email').disabled = false;
+            document.getElementById('new-member-pass').value = '';
+            document.getElementById('new-member-role').value = 'Member';
+            document.querySelectorAll('.perm-chk').forEach(chk => { chk.checked = true; });
+
+            document.getElementById('admin-form-title').innerText = 'Gestione membri e permessi';
+            document.getElementById('admin-form-subtitle').innerText = 'Aggiungi familiari e scegli quali sezioni possono vedere.';
+            document.getElementById('btn-add-member').innerText = 'Salva Membro';
+            document.getElementById('btn-cancel-edit').style.display = 'none';
+        }
 
         async function loadMembersList() {
             const container = document.getElementById('members-list-container');
@@ -730,7 +779,10 @@
                     row.className = 'member-row';
                     row.innerHTML = `
                         <span><b>${name}</b><br><span style="color:var(--text-muted); font-size:12px;">${email} (${role} • ${perms} sezioni)</span></span>
-                        ${email !== 'stpa79@gmail.com' ? `<button class="btn-danger" onclick="deleteMember('${email}')">Elimina</button>` : '<span style="font-size:12px; color:var(--primary); font-weight:650;">Principale</span>'}
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-warning" onclick="editMember('${email}')"><i class="fa-solid fa-pen"></i> Modifica</button>
+                            ${email !== 'stpa79@gmail.com' ? `<button class="btn-danger" onclick="deleteMember('${email}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        </div>
                     `;
                     container.appendChild(row);
                 });
