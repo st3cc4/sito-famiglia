@@ -6,6 +6,12 @@
     <title>Portale della Famiglia</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- PWA Manifest inline / meta tag -->
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Famiglia">
+
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -65,7 +71,7 @@
         /* APP LAYOUT */
         .app-container { display: flex; height: 100vh; width: 100vw; display: none; }
 
-        /* SIDEBAR */
+        /* SIDEBAR (PARTENZA CHIUSA) */
         .sidebar { width: 260px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; transition: width 0.3s ease; z-index: 10; flex-shrink: 0; }
         .sidebar.collapsed { width: 70px; }
         .sidebar-header { padding: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); }
@@ -128,6 +134,8 @@
         .badge-gray { background: var(--gray); }
 
         .bills-total-box { margin-top: 15px; padding-top: 12px; border-top: 2px dashed var(--border); display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; }
+        .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; font-size: 14px; }
+        .checkbox-group label { display: flex; align-items: center; gap: 8px; color: var(--text-main); cursor: pointer; }
 
         .app-footer { background: #fff; padding: 10px 30px; text-align: right; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); flex-shrink: 0; }
     </style>
@@ -155,18 +163,18 @@
 
     <!-- STRUTTURA PRINCIPALE DELL'APP -->
     <div id="app-container" class="app-container">
-        <!-- MENU LATERALE -->
-        <nav id="sidebar" class="sidebar">
+        <!-- MENU LATERALE (IMPOSTATO A COLLAPSED DI DEFAULT) -->
+        <nav id="sidebar" class="sidebar collapsed">
             <div class="sidebar-header">
                 <h3>Famiglia</h3>
                 <button id="sidebar-toggle" class="sidebar-toggle-btn"><i class="fa-solid fa-bars"></i></button>
             </div>
             <ul class="sidebar-menu">
                 <li class="active" data-target="section-overview"><i class="fa-solid fa-home"></i><span>Panoramica</span></li>
-                <li data-target="section-bills"><i class="fa-solid fa-file-invoice-dollar"></i><span>Bollette</span></li>
-                <li data-target="section-gallery"><i class="fa-solid fa-images"></i><span>Foto & Video</span></li>
-                <li data-target="section-recipes"><i class="fa-solid fa-utensils"></i><span>Ricettario</span></li>
-                <li data-target="section-calendar"><i class="fa-solid fa-calendar-days"></i><span>Calendario</span></li>
+                <li id="menu-bills" data-target="section-bills"><i class="fa-solid fa-file-invoice-dollar"></i><span>Bollette</span></li>
+                <li id="menu-gallery" data-target="section-gallery"><i class="fa-solid fa-images"></i><span>Foto & Video</span></li>
+                <li id="menu-recipes" data-target="section-recipes"><i class="fa-solid fa-utensils"></i><span>Ricettario</span></li>
+                <li id="menu-calendar" data-target="section-calendar"><i class="fa-solid fa-calendar-days"></i><span>Calendario</span></li>
                 <li id="menu-admin" data-target="section-admin" style="display:none;"><i class="fa-solid fa-shield-halved"></i><span>Admin</span></li>
             </ul>
             <div class="sidebar-footer">
@@ -200,7 +208,7 @@
 
                     <div class="overview-grid">
                         <!-- CARD BOLLETTE -->
-                        <div class="card">
+                        <div id="card-bills" class="card">
                             <div>
                                 <h3><i class="fa-solid fa-file-invoice-dollar" style="color:var(--primary)"></i> Bollette in Scadenza</h3>
                                 <div id="overview-bills-list" style="font-size:14px; color:var(--text-muted);">Caricamento bollette...</div>
@@ -215,7 +223,7 @@
                         </div>
 
                         <!-- CARD MEDIA -->
-                        <div class="card">
+                        <div id="card-gallery" class="card">
                             <div>
                                 <h3><i class="fa-solid fa-images" style="color:var(--primary)"></i> Ultimi Media Condivisi</h3>
                                 <div id="overview-media-list" style="font-size:14px; color:var(--text-muted);">Nessuna foto o video recente.</div>
@@ -226,7 +234,7 @@
                         </div>
 
                         <!-- CARD APPUNTAMENTI -->
-                        <div class="card">
+                        <div id="card-calendar" class="card">
                             <div>
                                 <h3><i class="fa-solid fa-calendar-days" style="color:var(--primary)"></i> Prossimi Appuntamenti</h3>
                                 <div id="overview-events-list" style="font-size:14px; color:var(--text-muted);">Nessun appuntamento in calendario.</div>
@@ -273,37 +281,48 @@
                 <section id="section-recipes" class="content-section"><h2>Sezione Ricettario in lavorazione...</h2></section>
                 <section id="section-calendar" class="content-section"><h2>Sezione Calendario in lavorazione...</h2></section>
                 
-                <!-- SCHERMATA ADMIN GESTIONE MEMBRI -->
+                <!-- SCHERMATA ADMIN GESTIONE MEMBRI E PERMESSI -->
                 <section id="section-admin" class="content-section">
-                    <div class="card" style="max-width: 600px; margin-bottom: 20px;">
-                        <h3>Gestione Membri della Famiglia</h3>
-                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Aggiungi o rimuovi i familiari che possono accedere al portale.</p>
-                        
-                        <div class="form-group">
-                            <label>Nome</label>
-                            <input type="text" id="new-member-name" placeholder="Es. Elena">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+                        <div class="card">
+                            <h3>Gestione Membri & Permessi</h3>
+                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Aggiungi familiari e scegli quali sezioni possono vedere.</p>
+                            
+                            <div class="form-group">
+                                <label>Nome</label>
+                                <input type="text" id="new-member-name" placeholder="Es. Sara">
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="new-member-email" placeholder="Es. sara@famiglia.it">
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" id="new-member-pass" placeholder="Password di accesso">
+                            </div>
+                            <div class="form-group">
+                                <label>Ruolo</label>
+                                <select id="new-member-role">
+                                    <option value="Member">Membro</option>
+                                    <option value="Admin">Amministratore</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Sezioni Visibili:</label>
+                                <div class="checkbox-group">
+                                    <label><input type="checkbox" class="perm-chk" value="section-bills" checked> Bollette</label>
+                                    <label><input type="checkbox" class="perm-chk" value="section-gallery" checked> Foto & Video</label>
+                                    <label><input type="checkbox" class="perm-chk" value="section-recipes" checked> Ricettario</label>
+                                    <label><input type="checkbox" class="perm-chk" value="section-calendar" checked> Calendario</label>
+                                </div>
+                            </div>
+                            <button id="btn-add-member" class="btn-primary">Salva Membro</button>
                         </div>
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" id="new-member-email" placeholder="Es. elena@famiglia.it">
-                        </div>
-                        <div class="form-group">
-                            <label>Password</label>
-                            <input type="password" id="new-member-pass" placeholder="Password di accesso">
-                        </div>
-                        <div class="form-group">
-                            <label>Ruolo</label>
-                            <select id="new-member-role">
-                                <option value="Member">Membro</option>
-                                <option value="Admin">Amministratore</option>
-                            </select>
-                        </div>
-                        <button id="btn-add-member" class="btn-primary">Salva Nuovo Membro</button>
-                    </div>
 
-                    <div class="card" style="max-width: 600px;">
-                        <h3>Elenco Membri Registrati</h3>
-                        <div id="members-list-container">Caricamento membri...</div>
+                        <div class="card">
+                            <h3>Elenco Membri Registrati</h3>
+                            <div id="members-list-container">Caricamento membri...</div>
+                        </div>
                     </div>
                 </section>
             </div>
@@ -317,16 +336,22 @@
     <script>
         let currentUser = null;
         let isAdmin = false;
+        let currentPermissions = [];
 
         window.addEventListener('firebase-ready', async () => {
             const { db, firebaseFns } = window;
             const { doc, getDoc, setDoc } = firebaseFns;
 
-            // Inizializza l'utente Admin principale se non esiste
+            // Inizializza l'utente Admin principale se non esiste (con tutte le sezioni abilitate)
             const adminRef = doc(db, "users", "stpa79@gmail.com");
             const adminSnap = await getDoc(adminRef);
             if (!adminSnap.exists()) {
-                await setDoc(adminRef, { name: "Paolo", role: "Admin", pass: "sv058753" });
+                await setDoc(adminRef, { 
+                    name: "Stecks", 
+                    role: "Admin", 
+                    pass: "sv058753",
+                    permissions: ["section-bills", "section-gallery", "section-recipes", "section-calendar"]
+                });
             }
 
             // Controllo salvataggio "Ricordami"
@@ -338,7 +363,6 @@
                 document.getElementById('remember-me').checked = true;
             }
 
-            // Carica dati iniziali bollette
             loadBills();
         });
 
@@ -367,6 +391,7 @@
                     const userData = userSnap.data();
                     currentUser = userData.name;
                     isAdmin = userData.role === 'Admin';
+                    currentPermissions = userData.permissions || ["section-bills", "section-gallery", "section-recipes", "section-calendar"];
                     
                     if (remember) {
                         localStorage.setItem('family_user_email', email);
@@ -381,6 +406,9 @@
                     document.getElementById('current-user-badge').innerText = `Utente: ${currentUser}`;
                     document.getElementById('welcome-title').innerText = `Ciao, ${currentUser}! 👋`;
 
+                    // Applica i permessi nel menu e nella panoramica
+                    applyUserPermissions();
+
                     if (isAdmin) {
                         document.getElementById('menu-admin').style.display = 'flex';
                         loadMembersList();
@@ -393,6 +421,27 @@
                 console.error(err);
                 alert("Errore di connessione a Firebase.");
             }
+        }
+
+        function applyUserPermissions() {
+            const sectionsMap = {
+                'section-bills': { menu: 'menu-bills', card: 'card-bills' },
+                'section-gallery': { menu: 'menu-gallery', card: 'card-gallery' },
+                'section-recipes': { menu: 'menu-recipes', card: null },
+                'section-calendar': { menu: 'menu-calendar', card: 'card-calendar' }
+            };
+
+            Object.keys(sectionsMap).forEach(secKey => {
+                const conf = sectionsMap[secKey];
+                const hasAccess = isAdmin || currentPermissions.includes(secKey);
+
+                if (document.getElementById(conf.menu)) {
+                    document.getElementById(conf.menu).style.display = hasAccess ? 'flex' : 'none';
+                }
+                if (conf.card && document.getElementById(conf.card)) {
+                    document.getElementById(conf.card).style.display = hasAccess ? 'flex' : 'none';
+                }
+            });
         }
 
         // --- FUNZIONE GLOBALE CAMBIO SEZIONE ---
@@ -430,12 +479,7 @@
                 const { db, firebaseFns } = window;
                 const { collection, addDoc } = firebaseFns;
 
-                await addDoc(collection(db, "bills"), {
-                    title,
-                    amount,
-                    date,
-                    paid: false
-                });
+                await addDoc(collection(db, "bills"), { title, amount, date, paid: false });
 
                 document.getElementById('bill-title').value = '';
                 document.getElementById('bill-amount').value = '';
@@ -485,17 +529,10 @@
                     return;
                 }
 
-                // Logica a semaforo per la Panoramica
-                let filteredOverview = bills.filter(b => !b.paid && (new Date(b.date) - today) / (1000 * 60 * 60 * 24) <= 7);
-                if (filteredOverview.length === 0) {
-                    filteredOverview = bills.filter(b => !b.paid && (new Date(b.date) - today) / (1000 * 60 * 60 * 24) <= 14);
-                }
-                if (filteredOverview.length === 0) {
-                    filteredOverview = bills.filter(b => !b.paid && (new Date(b.date) - today) / (1000 * 60 * 60 * 24) <= 21);
-                }
+                let filteredOverview = bills.filter(b => !b.paid && (new Date(b.date) - today) / (1000 * 60 * 60 * 24) <= 21);
 
                 if (filteredOverview.length === 0) {
-                    overviewContainer.innerHTML = 'Nessuna bolletta in scadenza imminente (entro 21 giorni).';
+                    overviewContainer.innerHTML = 'Nessuna bolletta in scadenza imminente.';
                 } else {
                     overviewHTML = '';
                     filteredOverview.forEach(b => {
@@ -526,9 +563,7 @@
 
                 pageHTML = '';
                 bills.forEach(b => {
-                    if (!b.paid) {
-                        totalUnpaid += b.amount;
-                    }
+                    if (!b.paid) totalUnpaid += b.amount;
 
                     const diffDays = Math.ceil((new Date(b.date) - today) / (1000 * 60 * 60 * 24));
                     let badgeClass = 'badge-green';
@@ -607,15 +642,20 @@
             }
         }
 
-        // --- GESTIONE MEMBRI ADMIN ---
+        // --- GESTIONE MEMBRI & PERMESSI ADMIN ---
         document.getElementById('btn-add-member').addEventListener('click', async () => {
             const name = document.getElementById('new-member-name').value.trim();
             const email = document.getElementById('new-member-email').value.trim().toLowerCase();
             const pass = document.getElementById('new-member-pass').value.trim();
             const role = document.getElementById('new-member-role').value;
+            
+            const permissions = [];
+            document.querySelectorAll('.perm-chk:checked').forEach(chk => {
+                permissions.push(chk.value);
+            });
 
             if (!name || !email || !pass) {
-                alert("Compila tutti i campi per aggiungere un membro.");
+                alert("Compila tutti i campi obbligatori per aggiungere un membro.");
                 return;
             }
 
@@ -623,8 +663,9 @@
                 const { db, firebaseFns } = window;
                 const { doc, setDoc } = firebaseFns;
 
-                await setDoc(doc(db, "users", email), { name, pass, role });
-                alert(`Membro ${name} aggiunto con successo!`);
+                await setDoc(doc(db, "users", email), { name, pass, role, permissions });
+                alert(`Membro ${name} salvato con successo!`);
+                
                 document.getElementById('new-member-name').value = '';
                 document.getElementById('new-member-email').value = '';
                 document.getElementById('new-member-pass').value = '';
@@ -655,17 +696,18 @@
                     const email = documentSnap.id;
                     const name = data.name || 'Senza nome';
                     const role = data.role || 'Member';
+                    const perms = data.permissions ? data.permissions.length : 4;
 
                     const row = document.createElement('div');
                     row.className = 'member-row';
                     row.innerHTML = `
-                        <span><b>${name}</b><br><span style="color:var(--text-muted); font-size:12px;">${email} (${role})</span></span>
+                        <span><b>${name}</b><br><span style="color:var(--text-muted); font-size:12px;">${email} (${role} • ${perms} sezioni)</span></span>
                         ${email !== 'stpa79@gmail.com' ? `<button class="btn-danger" onclick="deleteMember('${email}')">Elimina</button>` : '<span style="font-size:12px; color:var(--primary); font-weight:650;">Principale</span>'}
                     `;
                     container.appendChild(row);
                 });
             } catch (err) {
-                console.error("Errore dettagliato caricamento membri:", err);
+                console.error("Errore caricamento membri:", err);
                 container.innerHTML = 'Errore nel caricamento membri.';
             }
         }
