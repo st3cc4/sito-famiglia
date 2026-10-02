@@ -138,7 +138,7 @@
                         <div id="card-calendar" class="card">
                             <div>
                                 <h3><i class="fa-solid fa-calendar-days" style="color:var(--primary)"></i> Prossimi Appuntamenti</h3>
-                                <div id="overview-events-list" style="font-size:14px; color:var(--text-muted);">Nessun appuntamento in calendario.</div>
+                                <div id="overview-events-list" style="font-size:14px; color:var(--text-muted);">Caricamento appuntamenti...</div>
                             </div>
                             <div class="card-shortcut">
                                 <a onclick="switchSection('section-calendar')">Vai al calendario &rarr;</a>
@@ -191,9 +191,38 @@
                     <h2>Sezione Ricettario in lavorazione...</h2>
                 </section>
                 
+                <!-- SEZIONE CALENDARIO COMPLETA -->
                 <section id="section-calendar" class="content-section">
-                    <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button></div>
-                    <h2>Sezione Calendario in lavorazione...</h2>
+                    <div style="margin-bottom: 20px;">
+                        <button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+                        <div class="card">
+                            <h3>Nuovo Appuntamento</h3>
+                            <div class="form-group">
+                                <label>Titolo Evento</label>
+                                <input type="text" id="event-title" placeholder="Es. Visita medica">
+                            </div>
+                            <div class="form-group">
+                                <label>Data</label>
+                                <input type="date" id="event-date">
+                            </div>
+                            <div class="form-group">
+                                <label>Ora (Opzionale)</label>
+                                <input type="time" id="event-time">
+                            </div>
+                            <div class="form-group">
+                                <label>Descrizione / Note</label>
+                                <input type="text" id="event-desc" placeholder="Es. Portare documenti">
+                            </div>
+                            <button id="btn-add-event" class="btn-primary">Aggiungi al Calendario</button>
+                        </div>
+
+                        <div class="card">
+                            <h3>Tutti gli Appuntamenti</h3>
+                            <div id="calendar-list-container">Caricamento appuntamenti...</div>
+                        </div>
+                    </div>
                 </section>
                 
                 <!-- SCHERMATA ADMIN GESTIONE MEMBRI E PERMESSI -->
