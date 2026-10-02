@@ -9,6 +9,7 @@
     <!-- PWA Manifest & Meta tag -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#4f46e5">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Famiglia">
@@ -361,9 +362,9 @@
 
     <!-- Script JavaScript dell'applicazione e PWA Service Worker -->
     <script>
-        let currentUser = null;
-        let isAdmin = false;
-        let currentPermissions = [];
+        let loggedUser = null;
+        let isUserAdmin = false;
+        let activePermissions = [];
 
         // Registrazione Service Worker per PWA
         if ('serviceWorker' in navigator) {
@@ -423,9 +424,9 @@
 
                 if (userSnap.exists() && userSnap.data().pass === password) {
                     const userData = userSnap.data();
-                    currentUser = userData.name;
-                    isAdmin = userData.role === 'Admin';
-                    currentPermissions = userData.permissions || ["section-bills", "section-gallery", "section-recipes", "section-calendar"];
+                    loggedUser = userData.name;
+                    isUserAdmin = userData.role === 'Admin';
+                    activePermissions = userData.permissions || ["section-bills", "section-gallery", "section-recipes", "section-calendar"];
                     
                     if (remember) {
                         localStorage.setItem('family_user_email', email);
@@ -437,12 +438,12 @@
 
                     document.getElementById('auth-overlay').style.display = 'none';
                     document.getElementById('app-container').style.display = 'flex';
-                    document.getElementById('current-user-badge').innerText = `Utente: ${currentUser}`;
-                    document.getElementById('welcome-title').innerText = `Ciao, ${currentUser}! 👋`;
+                    document.getElementById('current-user-badge').innerText = `Utente: ${loggedUser}`;
+                    document.getElementById('welcome-title').innerText = `Ciao, ${loggedUser}! 👋`;
 
                     applyUserPermissions();
 
-                    if (isAdmin) {
+                    if (isUserAdmin) {
                         document.getElementById('menu-admin').style.display = 'flex';
                         loadMembersList();
                     }
@@ -466,7 +467,7 @@
 
             Object.keys(sectionsMap).forEach(secKey => {
                 const conf = sectionsMap[secKey];
-                const hasAccess = isAdmin || currentPermissions.includes(secKey);
+                const hasAccess = isUserAdmin || activePermissions.includes(secKey);
 
                 if (document.getElementById(conf.menu)) {
                     document.getElementById(conf.menu).style.display = hasAccess ? 'flex' : 'none';
@@ -565,7 +566,6 @@
                 if (filteredOverview.length === 0) {
                     overviewContainer.innerHTML = 'Nessuna bolletta in scadenza imminente.';
                 } else {
-                    overviewHTML = '';
                     filteredOverview.forEach(b => {
                         const diffDays = Math.ceil((new Date(b.date) - today) / (1000 * 60 * 60 * 24));
                         let badgeClass = 'badge-green';
@@ -592,7 +592,6 @@
                     overviewContainer.innerHTML = overviewHTML;
                 }
 
-                pageHTML = '';
                 bills.forEach(b => {
                     if (!b.paid) totalUnpaid += b.amount;
 
@@ -780,7 +779,7 @@
             answerBox.innerHTML = "Sto elaborando la risposta...";
 
             setTimeout(() => {
-                answerBox.innerHTML = `Ciao ${currentUser}! Ho ricevuto la tua richiesta: "${query}". Sono qui per aiutarti a gestire tutto nel portale della famiglia!`;
+                answerBox.innerHTML = `Ciao ${loggedUser}! Ho ricevuto la tua richiesta: "${query}". Sono qui per aiutarti a gestire tutto nel portale della famiglia!`;
             }, 600);
         }
     </script>
