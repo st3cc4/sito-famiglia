@@ -5,6 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portale della Famiglia</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
+            authDomain: "sito-famiglia.firebaseapp.com",
+            projectId: "sito-famiglia",
+            storageBucket: "sito-famiglia.firebasestorage.app",
+            messagingSenderId: "93216467751",
+            appId: "1:93216467751:web:9930052845521ca5ef895a",
+            measurementId: "G-NYRQJDTWM3"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.db = db;
+        window.firebaseFns = { collection, getDocs, setDoc, doc, deleteDoc, getDoc };
+        
+        // Segnale che Firebase è pronto
+        window.dispatchEvent(new Event('firebase-ready'));
+    </script>
+
     <style>
         :root {
             --primary: #4f46e5;
@@ -17,6 +43,7 @@
             --text-muted: #64748b;
             --border: #e2e8f0;
             --gray: #94a3b8;
+            --danger: #ef4444;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -71,11 +98,19 @@
         .content-section.active { display: block; }
 
         .overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .card { background: var(--card-bg); padding: 20px; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 20px; }
         .card h3 { margin-bottom: 12px; font-size: 16px; color: var(--text-main); }
 
         .btn-primary { background: var(--primary); color: #fff; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px; transition: background 0.2s; }
         .btn-primary:hover { background: var(--primary-hover); }
+
+        .btn-danger { background: var(--danger); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 14px; margin-bottom: 5px; color: var(--text-muted); }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
+
+        .member-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border); font-size: 14px; }
 
         .app-footer { background: #fff; padding: 10px 30px; text-align: right; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); flex-shrink: 0; }
     </style>
@@ -157,12 +192,44 @@
                     </div>
                 </section>
 
-                <!-- SEZIONI FUTURE -->
                 <section id="section-bills" class="content-section"><h2>Sezione Bollette in lavorazione...</h2></section>
                 <section id="section-gallery" class="content-section"><h2>Sezione Foto & Video in lavorazione...</h2></section>
                 <section id="section-recipes" class="content-section"><h2>Sezione Ricettario in lavorazione...</h2></section>
                 <section id="section-calendar" class="content-section"><h2>Sezione Calendario in lavorazione...</h2></section>
-                <section id="section-admin" class="content-section"><h2>Dashboard Amministratore</h2></section>
+                
+                <!-- SCHERMATA ADMIN GESTIONE MEMBRI -->
+                <section id="section-admin" class="content-section">
+                    <div class="card" style="max-width: 600px;">
+                        <h3>Gestione Membri della Famiglia</h3>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Aggiungi o rimuovi i familiari che possono accedere al portale.</p>
+                        
+                        <div class="form-group">
+                            <label>Nome</label>
+                            <input type="text" id="new-member-name" placeholder="Es. Elena">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="new-member-email" placeholder="Es. elena@famiglia.it">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="new-member-pass" placeholder="Password di accesso">
+                        </div>
+                        <div class="form-group">
+                            <label>Ruolo</label>
+                            <select id="new-member-role">
+                                <option value="Member">Membro</option>
+                                <option value="Admin">Amministratore</option>
+                            </select>
+                        </div>
+                        <button id="btn-add-member" class="btn-primary">Salva Nuovo Membro</button>
+                    </div>
+
+                    <div class="card" style="max-width: 600px;">
+                        <h3>Elenco Membri Registrati</h3>
+                        <div id="members-list-container">Caricamento membri...</div>
+                    </div>
+                </section>
             </div>
 
             <footer class="app-footer">
@@ -172,18 +239,21 @@
     </div>
 
     <script>
-        const familyUsers = {
-            "stpa79@gmail.com": { name: "Paolo", role: "Admin", pass: "sv058753" },
-            "elena@famiglia.it": { name: "Elena", role: "Member", pass: "1234" },
-            "sara@famiglia.it": { name: "Sara", role: "Member", pass: "1234" },
-            "giulia@famiglia.it": { name: "Giulia", role: "Member", pass: "1234" },
-            "leonardo@famiglia.it": { name: "Leonardo", role: "Member", pass: "1234" }
-        };
-
         let currentUser = null;
+        let isAdmin = false;
 
-        // Recupera email e password salvate se "Ricordami" era attivo
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('firebase-ready', async () => {
+            const { db, firebaseFns } = window;
+            const { doc, getDoc, setDoc } = firebaseFns;
+
+            // Inizializza l'utente Admin Paolo se non esiste nel database Firestore
+            const adminRef = doc(db, "users", "stpa79@gmail.com");
+            const adminSnap = await getDoc(adminRef);
+            if (!adminSnap.exists()) {
+                await setDoc(adminRef, { name: "Paolo", role: "Admin", pass: "sv058753" });
+            }
+
+            // Controllo salvataggio "Ricordami"
             const savedEmail = localStorage.getItem('family_user_email');
             const savedPass = localStorage.getItem('family_user_pass');
             if (savedEmail && savedPass) {
@@ -196,34 +266,121 @@
         document.getElementById('btn-login').addEventListener('click', handleLogin);
         document.getElementById('auth-password').addEventListener('keypress', (e) => { if (e.key === 'Enter') handleLogin(); });
 
-        function handleLogin() {
+        async function handleLogin() {
             const email = document.getElementById('auth-email').value.trim().toLowerCase();
             const password = document.getElementById('auth-password').value.trim();
             const remember = document.getElementById('remember-me').checked;
             const errorBox = document.getElementById('error-message');
 
-            const userRecord = familyUsers[email];
+            if (!window.db) {
+                alert("Connessione a Firebase in corso, attendi un secondo...");
+                return;
+            }
 
-            if (userRecord && userRecord.pass === password) {
-                currentUser = userRecord.name;
-                
-                if (remember) {
-                    localStorage.setItem('family_user_email', email);
-                    localStorage.setItem('family_user_pass', password);
+            try {
+                const { db, firebaseFns } = window;
+                const { doc, getDoc } = firebaseFns;
+
+                const userRef = doc(db, "users", email);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists() && userSnap.data().pass === password) {
+                    const userData = userSnap.data();
+                    currentUser = userData.name;
+                    isAdmin = userData.role === 'Admin';
+                    
+                    if (remember) {
+                        localStorage.setItem('family_user_email', email);
+                        localStorage.setItem('family_user_pass', password);
+                    } else {
+                        localStorage.removeItem('family_user_email');
+                        localStorage.removeItem('family_user_pass');
+                    }
+
+                    document.getElementById('auth-overlay').style.display = 'none';
+                    document.getElementById('app-container').style.display = 'flex';
+                    document.getElementById('current-user-badge').innerText = `Utente: ${currentUser}`;
+
+                    if (isAdmin) {
+                        document.getElementById('menu-admin').style.display = 'flex';
+                        loadMembersList();
+                    }
                 } else {
-                    localStorage.removeItem('family_user_email');
-                    localStorage.removeItem('family_user_pass');
+                    errorBox.style.display = 'block';
                 }
+            } catch (err) {
+                console.error(err);
+                alert("Errore di connessione a Firebase.");
+            }
+        }
 
-                document.getElementById('auth-overlay').style.display = 'none';
-                document.getElementById('app-container').style.display = 'flex';
-                document.getElementById('current-user-badge').innerText = `Utente: ${currentUser}`;
+        // Aggiunta membro da parte dell'Admin
+        document.getElementById('btn-add-member').addEventListener('click', async () => {
+            const name = document.getElementById('new-member-name').value.trim();
+            const email = document.getElementById('new-member-email').value.trim().toLowerCase();
+            const pass = document.getElementById('new-member-pass').value.trim();
+            const role = document.getElementById('new-member-role').value;
 
-                if (userRecord.role === 'Admin') {
-                    document.getElementById('menu-admin').style.display = 'flex';
+            if (!name || !email || !pass) {
+                alert("Compila tutti i campi per aggiungere un membro.");
+                return;
+            }
+
+            try {
+                const { db, firebaseFns } = window;
+                const { doc, setDoc } = firebaseFns;
+
+                await setDoc(doc(db, "users", email), { name, pass, role });
+                alert(`Membro ${name} aggiunto con successo!`);
+                document.getElementById('new-member-name').value = '';
+                document.getElementById('new-member-email').value = '';
+                document.getElementById('new-member-pass').value = '';
+                loadMembersList();
+            } catch (err) {
+                console.error(err);
+                alert("Errore durante il salvataggio.");
+            }
+        });
+
+        // Carica elenco membri nella dashboard Admin
+        async function loadMembersList() {
+            const container = document.getElementById('members-list-container');
+            container.innerHTML = 'Caricamento...';
+            try {
+                const { db, firebaseFns } = window;
+                const { collection, getDocs } = firebaseFns;
+
+                const querySnapshot = await getDocs(collection(db, "users"));
+                container.innerHTML = '';
+                querySnapshot.forEach((document) => {
+                    const data = document.data();
+                    const email = document.id;
+
+                    const row = document.createElement('div');
+                    row.className = 'member-row';
+                    row.innerHTML = `
+                        <span><b>${data.name}</b> (${email}) - <i>${data.role}</i></span>
+                        ${email !== 'stpa79@gmail.com' ? `<button class="btn-danger" onclick="deleteMember('${email}')">Elimina</button>` : ''}
+                    `;
+                    container.appendChild(row);
+                });
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = 'Errore nel caricamento membri.';
+            }
+        }
+
+        window.deleteMember = async function(email) {
+            if(confirm(`Vuoi davvero eliminare l'accesso per ${email}?`)) {
+                try {
+                    const { db, firebaseFns } = window;
+                    const { doc, deleteDoc } = firebaseFns;
+                    await deleteDoc(doc(db, "users", email));
+                    loadMembersList();
+                } catch(err) {
+                    console.error(err);
+                    alert("Errore durante l'eliminazione.");
                 }
-            } else {
-                errorBox.style.display = 'block';
             }
         }
 
