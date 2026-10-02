@@ -20,7 +20,794 @@
 
         const firebaseConfig = {
             apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
+            authDomain: "sito-famiglia.firebaseapp.<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portale della Famiglia</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PWA Manifest & Meta tag -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Famiglia">
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, getDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
             authDomain: "sito-famiglia.firebaseapp.com",
+            projectId: "sito-famiglia",
+            storageBucket: "sito-famiglia.firebasestorage.app",
+            messagingSenderId: "93216467751",
+            appId: "1:93216467751:web:9930052845521ca5ef895a",
+            measurementId: "G-NYRQJDTWM3"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.db = db;
+        window.firebaseFns = { collection, getDocs, setDoc, doc, deleteDoc, getDoc, addDoc };
+        
+        window.dispatchEvent(new Event('firebase-ready'));
+    </script>
+
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-main: #f8fafc;
+            --sidebar-bg: #1e293b;
+            --sidebar-text: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --gray: #94a3b8;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: var(--bg-main); color: var(--text-main); height: 100vh; overflow: hidden; }
+
+        /* LOGIN OVERLAY */
+        .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .auth-box { background: #fff; padding: 35px; border-radius: 14px; width: 360px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .auth-box h2 { margin-bottom: 10px; color: var(--primary); font-size: 24px; }
+        .auth-box p { margin-bottom: 20px; color: var(--text-muted); font-size: 14px; }
+        .auth-box input[type="email"], .auth-box input[type="password"] { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .auth-box input:focus { border-color: var(--primary); }
+        
+        .remember-container { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 14px; color: var(--text-muted); text-align: left; cursor: pointer; }
+        .remember-container input { width: 16px; height: 16px; cursor: pointer; }
+        .error-msg { color: #ef4444; font-size: 13px; margin-bottom: 10px; display: none; }
+
+        /* APP LAYOUT */
+        .app-container { display: flex; height: 100vh; width: 100vw; display: none; }
+
+        /* SIDEBAR (PARTENZA CHIUSA) */
+        .sidebar { width: 260px; background: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; transition: width 0.3s ease; z-index: 10; flex-shrink: 0; }
+        .sidebar.collapsed { width: 70px; }
+        .sidebar-header { padding: 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar.collapsed .sidebar-header h3 { display: none; }
+        .sidebar-toggle-btn { background: none; border: none; color: #fff; cursor: pointer; font-size: 18px; }
+        .sidebar-menu { list-style: none; padding: 15px 0; flex-grow: 1; }
+        .sidebar-menu li { padding: 14px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+        .sidebar-menu li:hover, .sidebar-menu li.active { background: rgba(255,255,255,0.1); }
+        .sidebar.collapsed .sidebar-menu li span { display: none; }
+        .sidebar-footer { padding: 15px 20px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 13px; color: var(--gray); white-space: nowrap; overflow: hidden; }
+        .sidebar.collapsed .sidebar-footer { display: none; }
+
+        /* MAIN CONTENT */
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .top-header { background: #fff; padding: 15px 30px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-shrink: 0; }
+        .top-header h1 { font-size: 22px; color: var(--text-main); }
+
+        /* GEMINI BAR */
+        .gemini-search-bar { display: flex; align-items: center; background: var(--bg-main); border: 1px solid var(--border); border-radius: 20px; padding: 6px 15px; flex-grow: 1; max-width: 500px; gap: 10px; }
+        .gemini-search-bar i { color: var(--primary); }
+        .gemini-search-bar input { border: none; background: none; outline: none; width: 100%; font-size: 14px; }
+        .gemini-search-bar button { background: var(--primary); border: none; color: #fff; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+        .gemini-response-box { background: #e0e7ff; border-left: 4px solid var(--primary); padding: 15px; margin: 15px 30px 0 30px; border-radius: 8px; flex-shrink: 0; }
+        .gemini-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 8px; color: var(--primary); }
+        .gemini-header button { background: none; border: none; cursor: pointer; font-size: 16px; color: var(--text-muted); }
+
+        /* CONTENT BODY & SECTIONS */
+        .content-body { padding: 30px; flex-grow: 1; overflow-y: auto; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+
+        .welcome-banner { background: linear-gradient(135deg, var(--primary), #6366f1); color: white; padding: 20px 25px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.15); }
+        .welcome-banner h2 { font-size: 22px; margin-bottom: 5px; }
+        .welcome-banner p { font-size: 14px; opacity: 0.9; }
+
+        .overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+        .card h3 { margin-bottom: 12px; font-size: 16px; color: var(--text-main); }
+
+        .card-shortcut { margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border); text-align: right; }
+        .card-shortcut a { font-size: 13px; color: var(--primary); text-decoration: none; font-weight: 600; cursor: pointer; }
+        .card-shortcut a:hover { text-decoration: underline; }
+
+        .btn-primary { background: var(--primary); color: #fff; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 15px; transition: background 0.2s; }
+        .btn-primary:hover { background: var(--primary-hover); }
+
+        .btn-secondary { background: #e2e8f0; color: var(--text-main); border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+        .btn-secondary:hover { background: #cbd5e1; }
+
+        .btn-danger { background: var(--danger); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .btn-success { background: var(--success); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 14px; margin-bottom: 5px; color: var(--text-muted); }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
+
+        .member-row, .bill-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        .bill-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #fff; }
+        .badge-red { background: var(--danger); }
+        .badge-orange { background: var(--warning); }
+        .badge-green { background: var(--success); }
+        .badge-gray { background: var(--gray); }
+
+        .bills-total-box { margin-top: 15px; padding-top: 12px; border-top: 2px dashed var(--border); display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; }
+        
+        /* Checkbox allineati a sinistra */
+        .checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; font-size: 14px; align-items: flex-start; }
+        .checkbox-group label { display: flex; align-items: center; gap: 8px; color: var(--text-main); cursor: pointer; }
+
+        .app-footer { background: #fff; padding: 10px 30px; text-align: right; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); flex-shrink: 0; }
+    </style>
+</head>
+<body>
+
+    <!-- SCHERMATA DI ACCESSO -->
+    <div id="auth-overlay" class="auth-overlay">
+        <div class="auth-box">
+            <h2><i class="fa-solid fa-house-chimney"></i> Portale della Famiglia</h2>
+            <p>Inserisci le tue credenziali per entrare</p>
+            
+            <div id="error-message" class="error-msg">Email o password errati.</div>
+
+            <input type="email" id="auth-email" placeholder="La tua email">
+            <input type="password" id="auth-password" placeholder="Password">
+            
+            <label class="remember-container">
+                <input type="checkbox" id="remember-me"> Ricordami su questo dispositivo
+            </label>
+
+            <button id="btn-login" class="btn-primary">Accedi</button>
+        </div>
+    </div>
+
+    <!-- STRUTTURA PRINCIPALE DELL'APP -->
+    <div id="app-container" class="app-container">
+        <!-- MENU LATERALE (COLLAPSED DI DEFAULT) -->
+        <nav id="sidebar" class="sidebar collapsed">
+            <div class="sidebar-header">
+                <h3>Famiglia</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle-btn"><i class="fa-solid fa-bars"></i></button>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="active" data-target="section-overview"><i class="fa-solid fa-home"></i><span>Panoramica</span></li>
+                <li id="menu-bills" data-target="section-bills"><i class="fa-solid fa-file-invoice-dollar"></i><span>Bollette</span></li>
+                <li id="menu-gallery" data-target="section-gallery"><i class="fa-solid fa-images"></i><span>Foto & Video</span></li>
+                <li id="menu-recipes" data-target="section-recipes"><i class="fa-solid fa-utensils"></i><span>Ricettario</span></li>
+                <li id="menu-calendar" data-target="section-calendar"><i class="fa-solid fa-calendar-days"></i><span>Calendario</span></li>
+                <li id="menu-admin" data-target="section-admin" style="display:none;"><i class="fa-solid fa-shield-halved"></i><span>Admin</span></li>
+            </ul>
+            <div class="sidebar-footer">
+                <span id="current-user-badge">Utente: -</span>
+            </div>
+        </nav>
+
+        <!-- CONTENUTO PRINCIPALE -->
+        <main class="main-content">
+            <header class="top-header">
+                <h1 id="page-title">Panoramica</h1>
+                <div class="gemini-search-bar">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <input type="text" id="gemini-input" placeholder="Chiedi qualcosa a Gemini...">
+                    <button id="gemini-send"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </header>
+
+            <div id="gemini-response-box" class="gemini-response-box" style="display: none;">
+                <div class="gemini-header"><span>Gemini (Assistente)</span><button id="close-gemini"><i class="fa-solid fa-xmark"></i></button></div>
+                <div id="gemini-answer"></div>
+            </div>
+
+            <div class="content-body">
+                <!-- SCHERMATA PANORAMICA -->
+                <section id="section-overview" class="content-section active">
+                    <div class="welcome-banner">
+                        <h2 id="welcome-title">Ciao!</h2>
+                        <p>Benvenuto nel portale della famiglia. Qui puoi gestire scadenze, foto, ricette e molto altro.</p>
+                    </div>
+
+                    <div class="overview-grid">
+                        <!-- CARD BOLLETTE -->
+                        <div id="card-bills" class="card">
+                            <div>
+                                <h3><i class="fa-solid fa-file-invoice-dollar" style="color:var(--primary)"></i> Bollette in Scadenza</h3>
+                                <div id="overview-bills-list" style="font-size:14px; color:var(--text-muted);">Caricamento bollette...</div>
+                                <div id="overview-bills-total" class="bills-total-box" style="display:none;">
+                                    <span>Da pagare:</span>
+                                    <span id="overview-total-amount" style="color:var(--danger);">0.00 €</span>
+                                </div>
+                            </div>
+                            <div class="card-shortcut">
+                                <a onclick="switchSection('section-bills')">Gestisci bollette &rarr;</a>
+                            </div>
+                        </div>
+
+                        <!-- CARD MEDIA -->
+                        <div id="card-gallery" class="card">
+                            <div>
+                                <h3><i class="fa-solid fa-images" style="color:var(--primary)"></i> Ultimi Media Condivisi</h3>
+                                <div id="overview-media-list" style="font-size:14px; color:var(--text-muted);">Nessuna foto o video recente.</div>
+                            </div>
+                            <div class="card-shortcut">
+                                <a onclick="switchSection('section-gallery')">Apri galleria &rarr;</a>
+                            </div>
+                        </div>
+
+                        <!-- CARD APPUNTAMENTI -->
+                        <div id="card-calendar" class="card">
+                            <div>
+                                <h3><i class="fa-solid fa-calendar-days" style="color:var(--primary)"></i> Prossimi Appuntamenti</h3>
+                                <div id="overview-events-list" style="font-size:14px; color:var(--text-muted);">Nessun appuntamento in calendario.</div>
+                            </div>
+                            <div class="card-shortcut">
+                                <a onclick="switchSection('section-calendar')">Vai al calendario &rarr;</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SEZIONE BOLLETTE COMPLETA -->
+                <section id="section-bills" class="content-section">
+                    <div style="margin-bottom: 20px;">
+                        <button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+                        <div class="card">
+                            <h3>Aggiungi Nuova Bolletta</h3>
+                            <div class="form-group">
+                                <label>Titolo (es. Luce, Gas, Internet)</label>
+                                <input type="text" id="bill-title" placeholder="Es. Enel Luce">
+                            </div>
+                            <div class="form-group">
+                                <label>Importo (€)</label>
+                                <input type="number" step="0.01" id="bill-amount" placeholder="Es. 45.50">
+                            </div>
+                            <div class="form-group">
+                                <label>Data di Scadenza</label>
+                                <input type="date" id="bill-date">
+                            </div>
+                            <button id="btn-add-bill" class="btn-primary">Salva Bolletta</button>
+                        </div>
+
+                        <div class="card">
+                            <h3>Elenco Bollette</h3>
+                            <div id="bills-list-container">Caricamento bollette...</div>
+                            <div class="bills-total-box">
+                                <span>Totale non pagato:</span>
+                                <span id="bills-page-total" style="color:var(--danger);">0.00 €</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="section-gallery" class="content-section">
+                    <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button></div>
+                    <h2>Sezione Foto & Video in lavorazione...</h2>
+                </section>
+                
+                <section id="section-recipes" class="content-section">
+                    <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button></div>
+                    <h2>Sezione Ricettario in lavorazione...</h2>
+                </section>
+                
+                <section id="section-calendar" class="content-section">
+                    <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button></div>
+                    <h2>Sezione Calendario in lavorazione...</h2>
+                </section>
+                
+                <!-- SCHERMATA ADMIN GESTIONE MEMBRI E PERMESSI -->
+                <section id="section-admin" class="content-section">
+                    <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+                        <div style="margin-bottom: 0;">
+                            <button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button>
+                        </div>
+
+                        <!-- CARD GESTIONE MEMBRI E PERMESSI -->
+                        <div class="card">
+                            <h3>Gestione membri e permessi</h3>
+                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Aggiungi familiari e scegli quali sezioni possono vedere.</p>
+                            
+                            <div class="form-group">
+                                <label>Nome</label>
+                                <input type="text" id="new-member-name" placeholder="Es. Sara">
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="new-member-email" placeholder="Es. sara@famiglia.it">
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" id="new-member-pass" placeholder="Password di accesso">
+                            </div>
+                            <div class="form-group">
+                                <label>Ruolo</label>
+                                <select id="new-member-role">
+                                    <option value="Member">Membro</option>
+                                    <option value="Admin">Amministratore</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Sezioni Visibili:</label>
+                                <div class="checkbox-group">
+                                    <label><input type="checkbox" class="perm-chk" value="section-bills" checked> Bollette</label>
+                                    <label><input type="checkbox" class="perm-chk" value="section-gallery" checked> Foto & Video</label>
+                                    <label><input type="checkbox" class="perm-chk" value="section-recipes" checked> Ricettario</label>
+                                    <label><input type="checkbox" class="perm-chk" value="section-calendar" checked> Calendario</label>
+                                </div>
+                            </div>
+                            <button id="btn-add-member" class="btn-primary">Salva Membro</button>
+                        </div>
+
+                        <!-- CARD ELENCO MEMBRI -->
+                        <div class="card">
+                            <h3>Elenco membri</h3>
+                            <div id="members-list-container">Caricamento membri...</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <footer class="app-footer">
+                <span>Portale della Famiglia creato con Gemini</span>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Script JavaScript dell'applicazione e PWA Service Worker -->
+    <script>
+        let currentUser = null;
+        let isAdmin = false;
+        let currentPermissions = [];
+
+        // Registrazione Service Worker per PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((reg) => { console.log('Service Worker registrato con successo!', reg.scope); })
+                    .catch((err) => { console.log('Registrazione Service Worker fallita: ', err); });
+            });
+        }
+
+        window.addEventListener('firebase-ready', async () => {
+            const { db, firebaseFns } = window;
+            const { doc, getDoc, setDoc } = firebaseFns;
+
+            const adminRef = doc(db, "users", "stpa79@gmail.com");
+            const adminSnap = await getDoc(adminRef);
+            if (!adminSnap.exists()) {
+                await setDoc(adminRef, { 
+                    name: "Stecks", 
+                    role: "Admin", 
+                    pass: "sv058753",
+                    permissions: ["section-bills", "section-gallery", "section-recipes", "section-calendar"]
+                });
+            }
+
+            const savedEmail = localStorage.getItem('family_user_email');
+            const savedPass = localStorage.getItem('family_user_pass');
+            if (savedEmail && savedPass) {
+                document.getElementById('auth-email').value = savedEmail;
+                document.getElementById('auth-password').value = savedPass;
+                document.getElementById('remember-me').checked = true;
+            }
+
+            loadBills();
+        });
+
+        document.getElementById('btn-login').addEventListener('click', handleLogin);
+        document.getElementById('auth-password').addEventListener('keypress', (e) => { if (e.key === 'Enter') handleLogin(); });
+
+        async function handleLogin() {
+            const email = document.getElementById('auth-email').value.trim().toLowerCase();
+            const password = document.getElementById('auth-password').value.trim();
+            const remember = document.getElementById('remember-me').checked;
+            const errorBox = document.getElementById('error-message');
+
+            if (!window.db) {
+                alert("Connessione a Firebase in corso, attendi un secondo...");
+                return;
+            }
+
+            try {
+                const { db, firebaseFns } = window;
+                const { doc, getDoc } = firebaseFns;
+
+                const userRef = doc(db, "users", email);
+                const userSnap = await getDoc(userRef);
+
+                if (userSnap.exists() && userSnap.data().pass === password) {
+                    const userData = userSnap.data();
+                    currentUser = userData.name;
+                    isAdmin = userData.role === 'Admin';
+                    currentPermissions = userData.permissions || ["section-bills", "section-gallery", "section-recipes", "section-calendar"];
+                    
+                    if (remember) {
+                        localStorage.setItem('family_user_email', email);
+                        localStorage.setItem('family_user_pass', password);
+                    } else {
+                        localStorage.removeItem('family_user_email');
+                        localStorage.removeItem('family_user_pass');
+                    }
+
+                    document.getElementById('auth-overlay').style.display = 'none';
+                    document.getElementById('app-container').style.display = 'flex';
+                    document.getElementById('current-user-badge').innerText = `Utente: ${currentUser}`;
+                    document.getElementById('welcome-title').innerText = `Ciao, ${currentUser}! 👋`;
+
+                    applyUserPermissions();
+
+                    if (isAdmin) {
+                        document.getElementById('menu-admin').style.display = 'flex';
+                        loadMembersList();
+                    }
+                    loadBills();
+                } else {
+                    errorBox.style.display = 'block';
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Errore di connessione a Firebase.");
+            }
+        }
+
+        function applyUserPermissions() {
+            const sectionsMap = {
+                'section-bills': { menu: 'menu-bills', card: 'card-bills' },
+                'section-gallery': { menu: 'menu-gallery', card: 'card-gallery' },
+                'section-recipes': { menu: 'menu-recipes', card: null },
+                'section-calendar': { menu: 'menu-calendar', card: 'card-calendar' }
+            };
+
+            Object.keys(sectionsMap).forEach(secKey => {
+                const conf = sectionsMap[secKey];
+                const hasAccess = isAdmin || currentPermissions.includes(secKey);
+
+                if (document.getElementById(conf.menu)) {
+                    document.getElementById(conf.menu).style.display = hasAccess ? 'flex' : 'none';
+                }
+                if (conf.card && document.getElementById(conf.card)) {
+                    document.getElementById(conf.card).style.display = hasAccess ? 'flex' : 'none';
+                }
+            });
+        }
+
+        window.switchSection = function(targetId) {
+            document.querySelectorAll('.sidebar-menu li').forEach(i => {
+                if (i.getAttribute('data-target') === targetId) i.classList.add('active');
+                else i.classList.remove('active');
+            });
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(targetId).classList.add('active');
+            
+            const titles = {
+                'section-overview': 'Panoramica',
+                'section-bills': 'Bollette',
+                'section-gallery': 'Foto & Video',
+                'section-recipes': 'Ricettario',
+                'section-calendar': 'Calendario',
+                'section-admin': 'Admin'
+            };
+            document.getElementById('page-title').innerText = titles[targetId] || 'Portale';
+        }
+
+        document.getElementById('btn-add-bill').addEventListener('click', async () => {
+            const title = document.getElementById('bill-title').value.trim();
+            const amount = parseFloat(document.getElementById('bill-amount').value);
+            const date = document.getElementById('bill-date').value;
+
+            if (!title || isNaN(amount) || !date) {
+                alert("Compila tutti i campi correttamente per aggiungere la bolletta.");
+                return;
+            }
+
+            try {
+                const { db, firebaseFns } = window;
+                const { collection, addDoc } = firebaseFns;
+
+                await addDoc(collection(db, "bills"), { title, amount, date, paid: false });
+
+                document.getElementById('bill-title').value = '';
+                document.getElementById('bill-amount').value = '';
+                document.getElementById('bill-date').value = '';
+                loadBills();
+            } catch (err) {
+                console.error(err);
+                alert("Errore nel salvataggio della bolletta.");
+            }
+        });
+
+        async function loadBills() {
+            const overviewContainer = document.getElementById('overview-bills-list');
+            const overviewTotalBox = document.getElementById('overview-bills-total');
+            const overviewTotalAmount = document.getElementById('overview-total-amount');
+            
+            const pageContainer = document.getElementById('bills-list-container');
+            const pageTotalAmount = document.getElementById('bills-page-total');
+
+            if (!window.db) return;
+
+            try {
+                const { db, firebaseFns } = window;
+                const { collection, getDocs } = firebaseFns;
+
+                const querySnapshot = await getDocs(collection(db, "bills"));
+                let bills = [];
+
+                querySnapshot.forEach((docSnap) => {
+                    bills.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                bills.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                const today = new Date();
+                today.setHours(0,0,0,0);
+
+                let totalUnpaid = 0;
+                let overviewHTML = '';
+                let pageHTML = '';
+
+                if (bills.length === 0) {
+                    overviewContainer.innerHTML = 'Nessuna bolletta registrata.';
+                    overviewTotalBox.style.display = 'none';
+                    pageContainer.innerHTML = 'Nessuna bolletta presente.';
+                    pageTotalAmount.innerText = '0.00 €';
+                    return;
+                }
+
+                let filteredOverview = bills.filter(b => !b.paid && (new Date(b.date) - today) / (1000 * 60 * 60 * 24) <= 21);
+
+                if (filteredOverview.length === 0) {
+                    overviewContainer.innerHTML = 'Nessuna bolletta in scadenza imminente.';
+                } else {
+                    overviewHTML = '';
+                    filteredOverview.forEach(b => {
+                        const diffDays = Math.ceil((new Date(b.date) - today) / (1000 * 60 * 60 * 24));
+                        let badgeClass = 'badge-green';
+                        let badgeText = `Scade tra ${diffDays} giorni`;
+
+                        if (diffDays < 0) {
+                            badgeClass = 'badge-red';
+                            badgeText = `Scaduta da ${Math.abs(diffDays)} giorni!`;
+                        } else if (diffDays <= 7) {
+                            badgeClass = 'badge-red';
+                            badgeText = `Scade tra ${diffDays} giorni`;
+                        } else if (diffDays <= 14) {
+                            badgeClass = 'badge-orange';
+                            badgeText = `Scade tra ${diffDays} giorni`;
+                        }
+
+                        overviewHTML += `
+                            <div class="bill-row" style="padding: 8px 0;">
+                                <span><b>${b.title}</b><br><small style="color:var(--text-muted);">${b.amount.toFixed(2)} €</small></span>
+                                <span class="bill-badge ${badgeClass}">${badgeText}</span>
+                            </div>
+                        `;
+                    });
+                    overviewContainer.innerHTML = overviewHTML;
+                }
+
+                pageHTML = '';
+                bills.forEach(b => {
+                    if (!b.paid) totalUnpaid += b.amount;
+
+                    const diffDays = Math.ceil((new Date(b.date) - today) / (1000 * 60 * 60 * 24));
+                    let badgeClass = 'badge-green';
+                    let badgeText = `Scade tra ${diffDays} gg`;
+
+                    if (b.paid) {
+                        badgeClass = 'badge-gray';
+                        badgeText = 'Pagata';
+                    } else if (diffDays < 0) {
+                        badgeClass = 'badge-red';
+                        badgeText = `Scaduta (${Math.abs(diffDays)}g)`;
+                    } else if (diffDays <= 7) {
+                        badgeClass = 'badge-red';
+                        badgeText = `Scade tra ${diffDays} gg`;
+                    } else if (diffDays <= 14) {
+                        badgeClass = 'badge-orange';
+                        badgeText = `Scade tra ${diffDays} gg`;
+                    }
+
+                    pageHTML += `
+                        <div class="bill-row">
+                            <span><b>${b.title}</b> — <span style="font-weight:600; color:var(--primary);">${b.amount.toFixed(2)} €</span><br><small style="color:var(--text-muted);">Scadenza: ${b.date}</small></span>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span class="bill-badge ${badgeClass}">${badgeText}</span>
+                                ${!b.paid ? `<button class="btn-success" onclick="toggleBillPaid('${b.id}', true)">Paga</button>` : `<button class="btn-danger" onclick="toggleBillPaid('${b.id}', false)">Annulla</button>`}
+                                <button class="btn-danger" style="padding: 6px 8px;" onclick="deleteBill('${b.id}')"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                pageContainer.innerHTML = pageHTML || 'Nessuna bolletta inserita.';
+                pageTotalAmount.innerText = `${totalUnpaid.toFixed(2)} €`;
+
+                if (totalUnpaid > 0) {
+                    overviewTotalBox.style.display = 'flex';
+                    overviewTotalAmount.innerText = `${totalUnpaid.toFixed(2)} €`;
+                } else {
+                    overviewTotalBox.style.display = 'none';
+                }
+
+            } catch (err) {
+                console.error("Errore caricamento bollette:", err);
+                overviewContainer.innerHTML = 'Errore nel caricamento bollette.';
+            }
+        }
+
+        window.toggleBillPaid = async function(id, paidStatus) {
+            try {
+                const { db, firebaseFns } = window;
+                const { doc, getDoc, setDoc } = firebaseFns;
+                const billRef = doc(db, "bills", id);
+                const billSnap = await getDoc(billRef);
+                if (billSnap.exists()) {
+                    const data = billSnap.data();
+                    await setDoc(billRef, { ...data, paid: paidStatus });
+                    loadBills();
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Errore nell'aggiornamento della bolletta.");
+            }
+        }
+
+        window.deleteBill = async function(id) {
+            if (confirm("Vuoi eliminare questa bolletta?")) {
+                try {
+                    const { db, firebaseFns } = window;
+                    const { doc, deleteDoc } = firebaseFns;
+                    await deleteDoc(doc(db, "bills", id));
+                    loadBills();
+                } catch (err) {
+                    console.error(err);
+                    alert("Errore durante l'eliminazione.");
+                }
+            }
+        }
+
+        document.getElementById('btn-add-member').addEventListener('click', async () => {
+            const name = document.getElementById('new-member-name').value.trim();
+            const email = document.getElementById('new-member-email').value.trim().toLowerCase();
+            const pass = document.getElementById('new-member-pass').value.trim();
+            const role = document.getElementById('new-member-role').value;
+            
+            const permissions = [];
+            document.querySelectorAll('.perm-chk:checked').forEach(chk => {
+                permissions.push(chk.value);
+            });
+
+            if (!name || !email || !pass) {
+                alert("Compila tutti i campi obbligatori per aggiungere un membro.");
+                return;
+            }
+
+            try {
+                const { db, firebaseFns } = window;
+                const { doc, setDoc } = firebaseFns;
+
+                await setDoc(doc(db, "users", email), { name, pass, role, permissions });
+                alert(`Membro ${name} salvato con successo!`);
+                
+                document.getElementById('new-member-name').value = '';
+                document.getElementById('new-member-email').value = '';
+                document.getElementById('new-member-pass').value = '';
+                loadMembersList();
+            } catch (err) {
+                console.error(err);
+                alert("Errore durante il salvataggio.");
+            }
+        });
+
+        async function loadMembersList() {
+            const container = document.getElementById('members-list-container');
+            container.innerHTML = 'Caricamento membri in corso...';
+            try {
+                const { db, firebaseFns } = window;
+                const { collection, getDocs } = firebaseFns;
+
+                const querySnapshot = await getDocs(collection(db, "users"));
+                container.innerHTML = '';
+                
+                if (querySnapshot.empty) {
+                    container.innerHTML = 'Nessun membro trovato.';
+                    return;
+                }
+
+                querySnapshot.forEach((documentSnap) => {
+                    const data = documentSnap.data();
+                    const email = documentSnap.id;
+                    const name = data.name || 'Senza nome';
+                    const role = data.role || 'Member';
+                    const perms = data.permissions ? data.permissions.length : 4;
+
+                    const row = document.createElement('div');
+                    row.className = 'member-row';
+                    row.innerHTML = `
+                        <span><b>${name}</b><br><span style="color:var(--text-muted); font-size:12px;">${email} (${role} • ${perms} sezioni)</span></span>
+                        ${email !== 'stpa79@gmail.com' ? `<button class="btn-danger" onclick="deleteMember('${email}')">Elimina</button>` : '<span style="font-size:12px; color:var(--primary); font-weight:650;">Principale</span>'}
+                    `;
+                    container.appendChild(row);
+                });
+            } catch (err) {
+                console.error("Errore caricamento membri:", err);
+                container.innerHTML = 'Errore nel caricamento membri.';
+            }
+        }
+
+        window.deleteMember = async function(email) {
+            if(confirm(`Vuoi davvero eliminare l'accesso per ${email}?`)) {
+                try {
+                    const { db, firebaseFns } = window;
+                    const { doc, deleteDoc } = firebaseFns;
+                    await deleteDoc(doc(db, "users", email));
+                    loadMembersList();
+                } catch(err) {
+                    console.error(err);
+                    alert("Errore durante l'eliminazione.");
+                }
+            }
+        }
+
+        document.getElementById('sidebar-toggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        });
+
+        document.querySelectorAll('.sidebar-menu li').forEach(item => {
+            item.addEventListener('click', () => {
+                const target = item.getAttribute('data-target');
+                window.switchSection(target);
+            });
+        });
+
+        document.getElementById('gemini-send').addEventListener('click', askGemini);
+        document.getElementById('gemini-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') askGemini(); });
+        document.getElementById('close-gemini').addEventListener('click', () => { document.getElementById('gemini-response-box').style.display = 'none'; });
+
+        function askGemini() {
+            const query = document.getElementById('gemini-input').value.trim();
+            if (!query) return;
+            const responseBox = document.getElementById('gemini-response-box');
+            const answerBox = document.getElementById('gemini-answer');
+            responseBox.style.display = 'block';
+            answerBox.innerHTML = "Sto elaborando la risposta...";
+
+            setTimeout(() => {
+                answerBox.innerHTML = `Ciao ${currentUser}! Ho ricevuto la tua richiesta: "${query}". Sono qui per aiutarti a gestire tutto nel portale della famiglia!`;
+            }, 600);
+        }
+    </script>
+</body>
+</html>com",
             projectId: "sito-famiglia",
             storageBucket: "sito-famiglia.firebasestorage.app",
             messagingSenderId: "93216467751",
