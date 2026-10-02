@@ -71,12 +71,12 @@
                 <button id="sidebar-toggle" class="sidebar-toggle-btn"><i class="fa-solid fa-bars"></i></button>
             </div>
             <ul class="sidebar-menu">
-                <li class="active" data-target="section-overview"><i class="fa-solid fa-home"></i><span>Panoramica</span></li>
-                <li id="menu-bills" data-target="section-bills"><i class="fa-solid fa-file-invoice-dollar"></i><span>Bollette</span></li>
-                <li id="menu-gallery" data-target="section-gallery"><i class="fa-solid fa-images"></i><span>Foto e video</span></li>
-                <li id="menu-recipes" data-target="section-recipes"><i class="fa-solid fa-utensils"></i><span>Ricettario</span></li>
-                <li id="menu-calendar" data-target="section-calendar"><i class="fa-solid fa-calendar-days"></i><span>Calendario</span></li>
-                <li id="menu-admin" data-target="section-admin" style="display:none;"><i class="fa-solid fa-shield-halved"></i><span>Admin</span></li>
+                <li class="active" onclick="switchSection('section-overview')" data-target="section-overview"><i class="fa-solid fa-home"></i><span>Panoramica</span></li>
+                <li id="menu-bills" onclick="switchSection('section-bills')" data-target="section-bills"><i class="fa-solid fa-file-invoice-dollar"></i><span>Bollette</span></li>
+                <li id="menu-gallery" onclick="switchSection('section-gallery')" data-target="section-gallery"><i class="fa-solid fa-images"></i><span>Foto e video</span></li>
+                <li id="menu-recipes" onclick="switchSection('section-recipes')" data-target="section-recipes"><i class="fa-solid fa-utensils"></i><span>Ricettario</span></li>
+                <li id="menu-calendar" onclick="switchSection('section-calendar')" data-target="section-calendar"><i class="fa-solid fa-calendar-days"></i><span>Calendario</span></li>
+                <li id="menu-admin" onclick="switchSection('section-admin')" data-target="section-admin" style="display:none;"><i class="fa-solid fa-shield-halved"></i><span>Admin</span></li>
             </ul>
             <div class="sidebar-footer">
                 <span id="current-user-badge">Utente: -</span>
