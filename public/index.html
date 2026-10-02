@@ -186,9 +186,44 @@
                     <h2>Sezione Foto e video in lavorazione...</h2>
                 </section>
                 
+                <!-- SEZIONE RICETTARIO COMPLETA -->
                 <section id="section-recipes" class="content-section">
-                    <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button></div>
-                    <h2>Sezione Ricettario in lavorazione...</h2>
+                    <div style="margin-bottom: 20px;">
+                        <button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+                        <div class="card">
+                            <h3>Nuova Ricetta</h3>
+                            <div class="form-group">
+                                <label>Nome Ricetta</label>
+                                <input type="text" id="recipe-title" placeholder="Es. Biscotti frollini">
+                            </div>
+                            <div class="form-group">
+                                <label>Categoria</label>
+                                <select id="recipe-category">
+                                    <option value="Dolci e Dessert">Dolci e Dessert</option>
+                                    <option value="Primi Piatti">Primi Piatti</option>
+                                    <option value="Secondi Piatti">Secondi Piatti</option>
+                                    <option value="Antipasti e Contorni">Antipasti e Contorni</option>
+                                    <option value="Altro">Altro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Ingredienti</label>
+                                <textarea id="recipe-ingredients" rows="4" placeholder="Es. 500g farina, 200g burro..." style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; font-size:14px;"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Procedimento</label>
+                                <textarea id="recipe-steps" rows="5" placeholder="Descrivi i passaggi..." style="width:100%; padding:10px; border:1px solid var(--border); border-radius:6px; font-size:14px;"></textarea>
+                            </div>
+                            <button id="btn-add-recipe" class="btn-primary">Salva Ricetta</button>
+                        </div>
+
+                        <div class="card">
+                            <h3>Ricettario della Famiglia</h3>
+                            <div id="recipes-list-container">Caricamento ricette...</div>
+                        </div>
+                    </div>
                 </section>
                 
                 <!-- SEZIONE CALENDARIO COMPLETA -->
