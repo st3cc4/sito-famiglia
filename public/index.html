@@ -3,284 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portale della Famiglia</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- PWA Manifest & Meta tag -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#4f46e5">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Famiglia">
-
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, getDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
-            authDomain: "sito-famiglia.firebaseapp.com",
-            projectId: "sito-famiglia",
-            storageBucket: "sito-famiglia.firebasestorage.app",
-            messagingSenderId: "93216467751",
-            appId: "1:93216467751:web:9930052845521ca5ef895a",
-            measurementId: "G-NYRQJDTWM3"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        window.db = db;
-        window.firebaseFns = { collection, getDocs, setDoc, doc, deleteDoc, getDoc, addDoc };
-        
-        window.dispatchEvent(new Event('firebase-ready'));
-    </script>
-
-    <!-- Collegamento al file CSS esterno -->
-    <link rel="stylesheet" href="style.css">
+    <title>Portale Famiglia</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #2c3e50;
+        }
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f9fa;
+        }
+    </style>
 </head>
 <body>
 
-    <!-- SCHERMATA DI ACCESSO -->
-    <div id="auth-overlay" class="auth-overlay">
-        <div class="auth-box">
-            <h2><i class="fa-solid fa-house-chimney"></i> Portale della Famiglia</h2>
-            <p>Inserisci le tue credenziali per entrare</p>
-            
-            <div id="error-message" class="error-msg">Email o password errati.</div>
+    <div class="container">
+        <h2>Gestione Bollette</h2>
+        
+        <!-- Pulsante corretto senza il + -->
+        <button class="btn" id="btnNuovaBolletta">Nuova bolletta</button>
 
-            <input type="email" id="auth-email" placeholder="La tua email">
-            <input type="password" id="auth-password" placeholder="Password">
-            
-            <label class="remember-container">
-                <input type="checkbox" id="remember-me"> Ricordami su questo dispositivo
-            </label>
-
-            <button id="btn-login" class="btn-primary">Accedi</button>
-        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Importo</th>
+                    <th>Scadenza</th>
+                    <th>Stato</th>
+                </tr>
+            </thead>
+            <tbody id="tabellaBollette">
+                <tr>
+                    <td>Luce</td>
+                    <td>€ 45,50</td>
+                    <td>15/10/2026</td>
+                    <td>Da pagare</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
-    <!-- STRUTTURA PRINCIPALE DELL'APP -->
-    <div id="app-container" class="app-container" style="display: none;">
-        <!-- MENU LATERALE -->
-        <nav id="sidebar" class="sidebar collapsed">
-            <div class="sidebar-header">
-                <h3>Famiglia</h3>
-                <button id="sidebar-toggle" class="sidebar-toggle-btn"><i class="fa-solid fa-bars"></i></button>
-            </div>
-            <ul class="sidebar-menu">
-                <li class="active" data-target="section-overview"><i class="fa-solid fa-home"></i><span>HOME</span></li>
-                <li id="menu-bills" data-target="section-bills"><i class="fa-solid fa-file-invoice-dollar"></i><span>Bollette</span></li>
-                <li id="menu-gallery" data-target="section-gallery"><i class="fa-solid fa-images"></i><span>Foto e video</span></li>
-                <li id="menu-recipes" data-target="section-recipes"><i class="fa-solid fa-utensils"></i><span>Ricettario</span></li>
-                <li id="menu-calendar" data-target="section-calendar"><i class="fa-solid fa-calendar-days"></i><span>Calendario</span></li>
-                <li id="menu-admin" data-target="section-admin" style="display:none;"><i class="fa-solid fa-shield-halved"></i><span>Admin</span></li>
-            </ul>
-            <div class="sidebar-footer">
-                <span id="current-user-badge">Utente: -</span>
-            </div>
-        </nav>
+    <script>
+        // Gestione dell'evento click sul pulsante
+        document.getElementById('btnNuovaBolletta').addEventListener('click', function() {
+            alert('Funzionalità per aggiungere una nuova bolletta attivata!');
+            
+            // Esempio di inserimento dinamico di una riga di prova
+            const tbody = document.getElementById('tabellaBollette');
+            const nuovaRiga = document.createElement('tr');
+            nuovaRiga.innerHTML = '<td>Gas</td><td>€ 60,00</td><td>20/10/2026</td><td>Da pagare</td>';
+            tbody.appendChild(nuovaRiga);
+        });
+    </script>
 
-        <!-- CONTENUTO PRINCIPALE -->
-        <main class="main-content">
-            <header class="top-header">
-                <h1 id="page-title">HOME</h1>
-                <div class="gemini-search-bar">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    <input type="text" id="gemini-input" placeholder="Chiedi qualcosa a Gemini...">
-                    <button id="gemini-send"><i class="fa-solid fa-paper-plane"></i></button>
-                </div>
-            </header>
-
-            <div id="gemini-response-box" class="gemini-response-box" style="display: none;">
-                <div class="gemini-header"><span>Gemini (Assistente)</span><button id="close-gemini"><i class="fa-solid fa-xmark"></i></button></div>
-                <div id="gemini-answer"></div>
-            </div>
-
-            <div class="content-body">
-                <!-- SCHERMATA HOME -->
-                <section id="section-overview" class="content-section active">
-                    <div class="welcome-banner">
-                        <h2 id="welcome-title">Ciao!</h2>
-                        <p>Benvenuto nel portale della famiglia. Qui puoi gestire scadenze, foto, ricette e molto altro.</p>
-                    </div>
-
-                    <div class="overview-grid">
-                        <!-- 1. CARD BOLLETTE -->
-                        <div id="card-bills" class="card">
-                            <div>
-                                <h3><i class="fa-solid fa-file-invoice-dollar" style="color:var(--primary)"></i> Bollette in Scadenza</h3>
-                                <div id="overview-bills-list" style="font-size:14px; color:var(--text-muted);">Caricamento bollette...</div>
-                                <div id="overview-bills-total" class="bills-total-box" style="display:none;">
-                                    <span>Da pagare:</span>
-                                    <span id="overview-total-amount" style="color:var(--danger);">0.00 €</span>
-                                </div>
-                            </div>
-                            <div class="card-shortcut">
-                                <a onclick="switchSection('section-bills')">Gestisci bollette &rarr;</a>
-                            </div>
-                        </div>
-
-                        <!-- 2. CARD APPUNTAMENTI -->
-                        <div id="card-calendar" class="card">
-                            <div>
-                                <h3><i class="fa-solid fa-calendar-days" style="color:var(--primary)"></i> Prossimi Appuntamenti</h3>
-                                <div id="overview-events-list" style="font-size:14px; color:var(--text-muted);">Nessun appuntamento in calendario.</div>
-                            </div>
-                            <div class="card-shortcut">
-                                <a onclick="switchSection('section-calendar')">Vai al calendario &rarr;</a>
-                            </div>
-                        </div>
-
-                        <!-- 3. CARD RICETTE -->
-                        <div id="card-recipes" class="card">
-                            <div>
-                                <h3><i class="fa-solid fa-utensils" style="color:var(--primary)"></i> Ricette Recenti</h3>
-                                <div id="overview-recipes-list" style="font-size:14px; color:var(--text-muted);">Nessuna ricetta recente.</div>
-                            </div>
-                            <div class="card-shortcut">
-                                <a onclick="switchSection('section-recipes')">Apri ricettario &rarr;</a>
-                            </div>
-                        </div>
-
-                        <!-- 4. CARD MEDIA -->
-                        <div id="card-gallery" class="card">
-                            <div>
-                                <h3><i class="fa-solid fa-images" style="color:var(--primary)"></i> Ultimi Media Condivisi</h3>
-                                <div id="overview-media-list" style="font-size:14px; color:var(--text-muted);">Nessuna foto o video recente.</div>
-                            </div>
-                            <div class="card-shortcut">
-                                <a onclick="switchSection('section-gallery')">Apri galleria &rarr;</a>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- SEZIONE BOLLETTE COMPLETA -->
-                <section id="section-bills" class="content-section">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla HOME</button>
-                        <button class="btn-primary" id="toggle-add-bill-form"><i class="fa-solid fa-plus"></i> Nuova Bolletta</button>
-                    </div>
-
-                    <div style="display: flex; flex-direction: column; gap: 20px;">
-                        <!-- FORM AGGIUNGI BOLLETTA (Nascosto di default) -->
-                        <div class="card" id="bill-form-card" style="display: none;">
-                            <h3>Aggiungi Nuova Bolletta o Scatta Foto (OCR)</h3>
-                            <div style="margin-bottom: 15px;">
-                                <label class="btn-secondary" style="display: inline-block; cursor: pointer; text-align: center; width: 100%;">
-                                    <i class="fa-solid fa-camera"></i> Scatta / Carica Foto Bolletta (Estrai con OCR)
-                                    <input type="file" id="bill-ocr-input" accept="image/*" capture="environment" style="display: none;">
-                                </label>
-                                <div id="ocr-status" style="font-size: 12px; color: var(--text-muted); margin-top: 5px; text-align: center;"></div>
-                            </div>
-
-                            <div class="form-group">
-                                <label>Titolo / Ente (es. Enel Luce)</label>
-                                <input type="text" id="bill-title" placeholder="Es. Enel Luce">
-                            </div>
-                            <div class="form-group">
-                                <label>Importo (€)</label>
-                                <input type="number" step="0.01" id="bill-amount" placeholder="Es. 45.50">
-                            </div>
-                            <div class="form-group">
-                                <label>Data di Scadenza</label>
-                                <input type="date" id="bill-date">
-                            </div>
-                            <button id="btn-add-bill" class="btn-primary">Salva Bolletta</button>
-                        </div>
-
-                        <!-- ELENCO BOLLETTE -->
-                        <div class="card">
-                            <h3>Elenco Bollette</h3>
-                            <div id="bills-list-container">Caricamento bollette...</div>
-                            <div class="bills-total-box">
-                                <span>Totale non pagato:</span>
-                                <span id="bills-page-total" style="color:var(--danger);">0.00 €</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section id="section-gallery" class="content-section">
-                    <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla HOME</button></div>
-                    <h2>Sezione Foto e video in lavorazione...</h2>
-                </section>
-                
-                <section id="section-recipes" class="content-section">
-                    <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla HOME</button></div>
-                    <h2>Sezione Ricettario in lavorazione...</h2>
-                </section>
-                
-                <section id="section-calendar" class="content-section">
-                    <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla HOME</button></div>
-                    <h2>Sezione Calendario in lavorazione...</h2>
-                </section>
-                
-                <!-- SCHERMATA ADMIN GESTIONE MEMBRI E PERMESSI -->
-                <section id="section-admin" class="content-section">
-                    <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
-                        <div style="margin-bottom: 0;">
-                            <button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla HOME</button>
-                        </div>
-
-                        <div class="card">
-                            <h3 id="admin-form-title">Gestione membri e permessi</h3>
-                            <p id="admin-form-subtitle" style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Aggiungi familiari e scegli quali sezioni possono vedere.</p>
-                            
-                            <div class="form-group">
-                                <label>Nome</label>
-                                <input type="text" id="new-member-name" placeholder="Es. Sara">
-                            </div>
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input type="email" id="new-member-email" placeholder="Es. sara@famiglia.it">
-                            </div>
-                            <div class="form-group">
-                                <label>Password</label>
-                                <input type="password" id="new-member-pass" placeholder="Password di accesso">
-                            </div>
-                            <div class="form-group">
-                                <label>Ruolo</label>
-                                <select id="new-member-role">
-                                    <option value="Member">Membro</option>
-                                    <option value="Admin">Amministratore</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Sezioni Visibili:</label>
-                                <div class="checkbox-group">
-                                    <label><input type="checkbox" class="perm-chk" value="section-bills" checked> Bollette</label>
-                                    <label><input type="checkbox" class="perm-chk" value="section-gallery" checked> Foto e video</label>
-                                    <label><input type="checkbox" class="perm-chk" value="section-recipes" checked> Ricettario</label>
-                                    <label><input type="checkbox" class="perm-chk" value="section-calendar" checked> Calendario</label>
-                                </div>
-                            </div>
-                            <div style="display: flex; gap: 10px;">
-                                <button id="btn-add-member" class="btn-primary">Salva Membro</button>
-                                <button id="btn-cancel-edit" class="btn-secondary" style="display:none;" onclick="cancelEditMember()">Annulla</button>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <h3>Elenco membri</h3>
-                            <div id="members-list-container">Caricamento membri...</div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <footer class="app-footer">
-                <span>Sito creato da STECCA con Gemini</span>
-            </footer>
-        </main>
-    </div>
-
-    <!-- Tesseract.js per OCR automatico da foto bolletta -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <!-- Collegamento al file JavaScript esterno -->
-    <script src="script.js"></script>
 </body>
 </html>
