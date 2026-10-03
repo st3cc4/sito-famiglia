@@ -15,31 +15,19 @@ document.getElementById('sidebar-toggle').addEventListener('click', () => {
     document.getElementById('sidebar').classList.toggle('collapsed');
 });
 
-// Assicuriamo l'ascolto del login non appena i pulsanti sono pronti
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('btn-login').addEventListener('click', handleLogin);
-    document.getElementById('auth-password').addEventListener('keypress', (e) => { 
-        if (e.key === 'Enter') handleLogin(); 
-    });
-});
-
 window.addEventListener('firebase-ready', async () => {
     const { db, firebaseFns } = window;
     const { doc, getDoc, setDoc } = firebaseFns;
 
-    try {
-        const adminRef = doc(db, "users", "stpa79@gmail.com");
-        const adminSnap = await getDoc(adminRef);
-        if (!adminSnap.exists()) {
-            await setDoc(adminRef, { 
-                name: "Stecca", 
-                role: "Admin", 
-                pass: "sv058753",
-                permissions: ["section-bills", "section-gallery", "section-recipes", "section-calendar"]
-            });
-        }
-    } catch (err) {
-        console.error("Errore inizializzazione admin:", err);
+    const adminRef = doc(db, "users", "stpa79@gmail.com");
+    const adminSnap = await getDoc(adminRef);
+    if (!adminSnap.exists()) {
+        await setDoc(adminRef, { 
+            name: "Stecca", 
+            role: "Admin", 
+            pass: "sv058753",
+            permissions: ["section-bills", "section-gallery", "section-recipes", "section-calendar"]
+        });
     }
 
     const savedEmail = localStorage.getItem('family_user_email');
@@ -48,26 +36,19 @@ window.addEventListener('firebase-ready', async () => {
         document.getElementById('auth-email').value = savedEmail;
         document.getElementById('auth-password').value = savedPass;
         document.getElementById('remember-me').checked = true;
-        // Tentativo di accesso automatico immediato se salvato
-        handleLogin();
-    } else {
-        loadBills();
-        loadEvents();
-        loadRecipes();
     }
+
+    loadBills();
 });
 
+document.getElementById('btn-login').addEventListener('click', handleLogin);
+document.getElementById('auth-password').addEventListener('keypress', (e) => { if (e.key === 'Enter') handleLogin(); });
+
 async function handleLogin() {
-    const emailField = document.getElementById('auth-email');
-    const passField = document.getElementById('auth-password');
-    const rememberField = document.getElementById('remember-me');
+    const email = document.getElementById('auth-email').value.trim().toLowerCase();
+    const password = document.getElementById('auth-password').value.trim();
+    const remember = document.getElementById('remember-me').checked;
     const errorBox = document.getElementById('error-message');
-
-    if (!emailField || !passField) return;
-
-    const email = emailField.value.trim().toLowerCase();
-    const password = passField.value.trim();
-    const remember = rememberField ? rememberField.checked : false;
 
     if (!window.db) {
         alert("Connessione a Firebase in corso, attendi un secondo...");
@@ -107,8 +88,6 @@ async function handleLogin() {
                 loadMembersList();
             }
             loadBills();
-            loadEvents();
-            loadRecipes();
         } else {
             errorBox.style.display = 'block';
         }
@@ -145,11 +124,7 @@ window.switchSection = function(targetId) {
         else i.classList.remove('active');
     });
     document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-    
-    const targetSection = document.getElementById(targetId);
-    if (targetSection) {
-        targetSection.classList.add('active');
-    }
+    document.getElementById(targetId).classList.add('active');
     
     const titles = {
         'section-overview': 'Panoramica',
@@ -162,7 +137,6 @@ window.switchSection = function(targetId) {
     document.getElementById('page-title').innerText = titles[targetId] || 'Portale';
 }
 
-// ================= BOLLETTE =================
 document.getElementById('btn-add-bill').addEventListener('click', async () => {
     const title = document.getElementById('bill-title').value.trim();
     const amount = parseFloat(document.getElementById('bill-amount').value);
@@ -330,304 +304,6 @@ window.deleteBill = async function(id) {
     }
 }
 
-// ================= CALENDARIO =================
-document.getElementById('btn-add-event').addEventListener('click', async () => {
-    const editId = document.getElementById('event-edit-id').value;
-    const title = document.getElementById('event-title').value.trim();
-    const date = document.getElementById('event-date').value;
-    const time = document.getElementById('event-time').value;
-    const desc = document.getElementById('event-desc').value.trim();
-
-    if (!title || !date) {
-        alert("Inserisci almeno il titolo e la data dell'appuntamento.");
-        return;
-    }
-
-    try {
-        const { db, firebaseFns } = window;
-        const { doc, setDoc, addDoc, collection, getDoc } = firebaseFns;
-
-        if (editId) {
-            const eventRef = doc(db, "events", editId);
-            const snap = await getDoc(eventRef);
-            let likes = snap.exists() && snap.data().likes ? snap.data().likes : [];
-            await setDoc(eventRef, { title, date, time, desc, likes });
-            cancelEditEvent();
-        } else {
-            await addDoc(collection(db, "events"), { title, date, time, desc, likes: [] });
-            document.getElementById('event-title').value = '';
-            document.getElementById('event-date').value = '';
-            document.getElementById('event-time').value = '';
-            document.getElementById('event-desc').value = '';
-        }
-        loadEvents();
-    } catch (err) {
-        console.error(err);
-        alert("Errore nel salvataggio dell'appuntamento.");
-    }
-});
-
-async function loadEvents() {
-    const overviewContainer = document.getElementById('overview-events-list');
-    const pageContainer = document.getElementById('calendar-list-container');
-
-    if (!window.db) return;
-
-    try {
-        const { db, firebaseFns } = window;
-        const { collection, getDocs } = firebaseFns;
-
-        const querySnapshot = await getDocs(collection(db, "events"));
-        let events = [];
-
-        querySnapshot.forEach((docSnap) => {
-            events.push({ id: docSnap.id, ...docSnap.data() });
-        });
-
-        events.sort((a, b) => new Date(a.date + (a.time ? ' ' + a.time : '')) - new Date(b.date + (b.time ? ' ' + b.time : '')));
-
-        const today = new Date();
-        today.setHours(0,0,0,0);
-
-        let overviewHTML = '';
-        let pageHTML = '';
-
-        let upcomingEvents = events.filter(e => new Date(e.date) >= today);
-
-        if (upcomingEvents.length === 0) {
-            overviewContainer.innerHTML = 'Nessun appuntamento in programma.';
-        } else {
-            upcomingEvents.slice(0, 3).forEach(e => {
-                overviewHTML += `
-                    <div class="event-row" style="padding: 8px 0;">
-                        <span><b>${e.title}</b><br><small style="color:var(--text-muted);">${e.date} ${e.time ? '• ' + e.time : ''}</small></span>
-                    </div>
-                `;
-            });
-            overviewContainer.innerHTML = overviewHTML;
-        }
-
-        events.forEach(e => {
-            const likes = e.likes || [];
-            const userLiked = likes.includes(loggedUser);
-            pageHTML += `
-                <div class="event-row">
-                    <span><b>${e.title}</b> — <span style="color:var(--primary); font-weight:600;">${e.date} ${e.time ? 'alle ' + e.time : ''}</span><br><small style="color:var(--text-muted);">${e.desc || 'Nessuna nota'}</small></span>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <button class="like-btn ${userLiked ? 'liked' : ''}" onclick="toggleLike('events', '${e.id}')" title="Mi piace"><i class="fa-solid fa-heart"></i></button>
-                        <button class="btn-warning" style="padding: 6px 8px;" onclick="editEvent('${e.id}')"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn-danger" style="padding: 6px 8px;" onclick="deleteEvent('${e.id}')"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>
-            `;
-        });
-
-        pageContainer.innerHTML = pageHTML || 'Nessun appuntamento inserito.';
-
-    } catch (err) {
-        console.error("Errore caricamento eventi:", err);
-        overviewContainer.innerHTML = 'Errore nel caricamento appuntamenti.';
-    }
-}
-
-window.editEvent = async function(id) {
-    try {
-        const { db, firebaseFns } = window;
-        const { doc, getDoc } = firebaseFns;
-        const snap = await getDoc(doc(db, "events", id));
-        if (snap.exists()) {
-            const data = snap.data();
-            document.getElementById('event-edit-id').value = id;
-            document.getElementById('event-title').value = data.title || '';
-            document.getElementById('event-date').value = data.date || '';
-            document.getElementById('event-time').value = data.time || '';
-            document.getElementById('event-desc').value = data.desc || '';
-            document.getElementById('event-form-title').innerText = 'Modifica Appuntamento';
-            document.getElementById('btn-add-event').innerText = 'Aggiorna Appuntamento';
-            document.getElementById('btn-cancel-event').style.display = 'inline-block';
-            document.querySelector('.content-body').scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    } catch(err) { console.error(err); }
-}
-
-window.cancelEditEvent = function() {
-    document.getElementById('event-edit-id').value = '';
-    document.getElementById('event-title').value = '';
-    document.getElementById('event-date').value = '';
-    document.getElementById('event-time').value = '';
-    document.getElementById('event-desc').value = '';
-    document.getElementById('event-form-title').innerText = 'Nuovo Appuntamento';
-    document.getElementById('btn-add-event').innerText = 'Aggiungi al Calendario';
-    document.getElementById('btn-cancel-event').style.display = 'none';
-}
-
-window.deleteEvent = async function(id) {
-    if (confirm("Vuoi eliminare questo appuntamento?")) {
-        try {
-            const { db, firebaseFns } = window;
-            const { doc, deleteDoc } = firebaseFns;
-            await deleteDoc(doc(db, "events", id));
-            loadEvents();
-        } catch (err) { console.error(err); }
-    }
-}
-
-// ================= RICETTARIO =================
-document.getElementById('btn-add-recipe').addEventListener('click', async () => {
-    const editId = document.getElementById('recipe-edit-id').value;
-    const title = document.getElementById('recipe-title').value.trim();
-    const category = document.getElementById('recipe-category').value;
-    const ingredients = document.getElementById('recipe-ingredients').value.trim();
-    const steps = document.getElementById('recipe-steps').value.trim();
-
-    if (!title || !ingredients || !steps) {
-        alert("Compila tutti i campi per salvare la ricetta.");
-        return;
-    }
-
-    try {
-        const { db, firebaseFns } = window;
-        const { doc, setDoc, addDoc, collection, getDoc } = firebaseFns;
-
-        if (editId) {
-            const recipeRef = doc(db, "recipes", editId);
-            const snap = await getDoc(recipeRef);
-            let likes = snap.exists() && snap.data().likes ? snap.data().likes : [];
-            await setDoc(recipeRef, { title, category, ingredients, steps, likes });
-            cancelEditRecipe();
-        } else {
-            await addDoc(collection(db, "recipes"), { title, category, ingredients, steps, likes: [] });
-            document.getElementById('recipe-title').value = '';
-            document.getElementById('recipe-ingredients').value = '';
-            document.getElementById('recipe-steps').value = '';
-        }
-        loadRecipes();
-    } catch (err) {
-        console.error(err);
-        alert("Errore nel salvataggio della ricetta.");
-    }
-});
-
-async function loadRecipes() {
-    const container = document.getElementById('recipes-list-container');
-    if (!window.db) return;
-
-    try {
-        const { db, firebaseFns } = window;
-        const { collection, getDocs } = firebaseFns;
-
-        const querySnapshot = await getDocs(collection(db, "recipes"));
-        let recipes = [];
-
-        querySnapshot.forEach((docSnap) => {
-            recipes.push({ id: docSnap.id, ...docSnap.data() });
-        });
-
-        recipes.sort((a, b) => a.title.localeCompare(b.title));
-
-        let html = '';
-        recipes.forEach(r => {
-            const likes = r.likes || [];
-            const userLiked = likes.includes(loggedUser);
-            html += `
-                <div style="border-bottom: 1px solid var(--border); padding: 12px 0;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span><b>${r.title}</b> <span style="font-size:12px; color:var(--primary); background:#e0e7ff; padding:2px 8px; border-radius:10px; margin-left:8px;">${r.category}</span></span>
-                        <div style="display: flex; gap: 6px; align-items: center;">
-                            <button class="like-btn ${userLiked ? 'liked' : ''}" onclick="toggleLike('recipes', '${r.id}')" title="Mi piace"><i class="fa-solid fa-heart"></i></button>
-                            <button class="btn-secondary" style="padding: 4px 8px;" onclick="toggleRecipeDetails('${r.id}')"><i class="fa-solid fa-eye"></i> Leggi</button>
-                            <button class="btn-warning" style="padding: 4px 8px;" onclick="editRecipe('${r.id}')"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn-danger" style="padding: 4px 8px;" onclick="deleteRecipe('${r.id}')"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                    <div id="recipe-details-${r.id}" class="recipe-details">
-                        <p><b>Ingredienti:</b><br>${r.ingredients.replace(/\n/g, '<br>')}</p>
-                        <p style="margin-top: 8px;"><b>Procedimento:</b><br>${r.steps.replace(/\n/g, '<br>')}</p>
-                    </div>
-                </div>
-            `;
-        });
-
-        container.innerHTML = html || 'Nessuna ricetta inserita nel ricettario.';
-    } catch (err) {
-        console.error("Errore caricamento ricette:", err);
-        container.innerHTML = 'Errore nel caricamento ricette.';
-    }
-}
-
-window.editRecipe = async function(id) {
-    try {
-        const { db, firebaseFns } = window;
-        const { doc, getDoc } = firebaseFns;
-        const snap = await getDoc(doc(db, "recipes", id));
-        if (snap.exists()) {
-            const data = snap.data();
-            document.getElementById('recipe-edit-id').value = id;
-            document.getElementById('recipe-title').value = data.title || '';
-            document.getElementById('recipe-category').value = data.category || 'Dolci e Dessert';
-            document.getElementById('recipe-ingredients').value = data.ingredients || '';
-            document.getElementById('recipe-steps').value = data.steps || '';
-            document.getElementById('recipe-form-title').innerText = 'Modifica Ricetta';
-            document.getElementById('btn-add-recipe').innerText = 'Aggiorna Ricetta';
-            document.getElementById('btn-cancel-recipe').style.display = 'inline-block';
-            document.querySelector('.content-body').scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    } catch(err) { console.error(err); }
-}
-
-window.cancelEditRecipe = function() {
-    document.getElementById('recipe-edit-id').value = '';
-    document.getElementById('recipe-title').value = '';
-    document.getElementById('recipe-category').value = 'Dolci e Dessert';
-    document.getElementById('recipe-ingredients').value = '';
-    document.getElementById('recipe-steps').value = '';
-    document.getElementById('recipe-form-title').innerText = 'Nuova Ricetta';
-    document.getElementById('btn-add-recipe').innerText = 'Salva Ricetta';
-    document.getElementById('btn-cancel-recipe').style.display = 'none';
-}
-
-window.toggleRecipeDetails = function(id) {
-    const detailsBox = document.getElementById(`recipe-details-${id}`);
-    if (detailsBox) {
-        detailsBox.style.display = detailsBox.style.display === 'block' ? 'none' : 'block';
-    }
-}
-
-window.deleteRecipe = async function(id) {
-    if (confirm("Vuoi eliminare questa ricetta?")) {
-        try {
-            const { db, firebaseFns } = window;
-            const { doc, deleteDoc } = firebaseFns;
-            await deleteDoc(doc(db, "recipes", id));
-            loadRecipes();
-        } catch (err) { console.error(err); }
-    }
-}
-
-// ================= GESTIONE "MI PIACE" =================
-window.toggleLike = async function(collectionName, id) {
-    if (!loggedUser) return;
-    try {
-        const { db, firebaseFns } = window;
-        const { doc, getDoc, setDoc } = firebaseFns;
-        const ref = doc(db, collectionName, id);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-            let data = snap.data();
-            let likes = data.likes || [];
-            if (likes.includes(loggedUser)) {
-                likes = likes.filter(user => user !== loggedUser);
-            } else {
-                likes.push(loggedUser);
-            }
-            await setDoc(ref, { ...data, likes });
-            if (collectionName === 'recipes') loadRecipes();
-            if (collectionName === 'events') loadEvents();
-        }
-    } catch(err) { console.error("Errore mi piace:", err); }
-}
-
-// ================= ADMIN & UTENTI =================
 document.getElementById('btn-add-member').addEventListener('click', async () => {
     const name = document.getElementById('new-member-name').value.trim();
     const email = document.getElementById('new-member-email').value.trim().toLowerCase();
@@ -751,13 +427,15 @@ window.deleteMember = async function(email) {
             const { doc, deleteDoc } = firebaseFns;
             await deleteDoc(doc(db, "users", email));
             loadMembersList();
-        } catch(err) { console.error(err); }
+        } catch(err) {
+            console.error(err);
+            alert("Errore durante l'eliminazione.");
+        }
     }
 }
 
-// ================= GEMINI CHAT =================
 document.getElementById('gemini-send').addEventListener('click', askGemini);
-document.getElementById('gemint-input')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') askGemini(); });
+document.getElementById('gemini-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') askGemini(); });
 document.getElementById('close-gemini').addEventListener('click', () => { document.getElementById('gemini-response-box').style.display = 'none'; });
 
 function askGemini() {
