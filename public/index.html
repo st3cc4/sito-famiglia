@@ -71,7 +71,7 @@
                 <button id="sidebar-toggle" class="sidebar-toggle-btn"><i class="fa-solid fa-bars"></i></button>
             </div>
             <ul class="sidebar-menu">
-                <li class="active" data-target="section-overview"><i class="fa-solid fa-home"></i><span>Panoramica</span></li>
+                <li class="active" data-target="section-overview"><i class="fa-solid fa-home"></i><span>HOME</span></li>
                 <li id="menu-bills" data-target="section-bills"><i class="fa-solid fa-file-invoice-dollar"></i><span>Bollette</span></li>
                 <li id="menu-gallery" data-target="section-gallery"><i class="fa-solid fa-images"></i><span>Foto e video</span></li>
                 <li id="menu-recipes" data-target="section-recipes"><i class="fa-solid fa-utensils"></i><span>Ricettario</span></li>
@@ -86,7 +86,7 @@
         <!-- CONTENUTO PRINCIPALE -->
         <main class="main-content">
             <header class="top-header">
-                <h1 id="page-title">Panoramica</h1>
+                <h1 id="page-title">HOME</h1>
                 <div class="gemini-search-bar">
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                     <input type="text" id="gemini-input" placeholder="Chiedi qualcosa a Gemini...">
@@ -100,7 +100,7 @@
             </div>
 
             <div class="content-body">
-                <!-- SCHERMATA PANORAMICA -->
+                <!-- SCHERMATA HOME -->
                 <section id="section-overview" class="content-section active">
                     <div class="welcome-banner">
                         <h2 id="welcome-title">Ciao!</h2>
@@ -108,7 +108,7 @@
                     </div>
 
                     <div class="overview-grid">
-                        <!-- CARD BOLLETTE -->
+                        <!-- 1. CARD BOLLETTE -->
                         <div id="card-bills" class="card">
                             <div>
                                 <h3><i class="fa-solid fa-file-invoice-dollar" style="color:var(--primary)"></i> Bollette in Scadenza</h3>
@@ -123,18 +123,7 @@
                             </div>
                         </div>
 
-                        <!-- CARD MEDIA -->
-                        <div id="card-gallery" class="card">
-                            <div>
-                                <h3><i class="fa-solid fa-images" style="color:var(--primary)"></i> Ultimi Media Condivisi</h3>
-                                <div id="overview-media-list" style="font-size:14px; color:var(--text-muted);">Nessuna foto o video recente.</div>
-                            </div>
-                            <div class="card-shortcut">
-                                <a onclick="switchSection('section-gallery')">Apri galleria &rarr;</a>
-                            </div>
-                        </div>
-
-                        <!-- CARD APPUNTAMENTI -->
+                        <!-- 2. CARD APPUNTAMENTI -->
                         <div id="card-calendar" class="card">
                             <div>
                                 <h3><i class="fa-solid fa-calendar-days" style="color:var(--primary)"></i> Prossimi Appuntamenti</h3>
@@ -144,19 +133,52 @@
                                 <a onclick="switchSection('section-calendar')">Vai al calendario &rarr;</a>
                             </div>
                         </div>
+
+                        <!-- 3. CARD RICETTE -->
+                        <div id="card-recipes" class="card">
+                            <div>
+                                <h3><i class="fa-solid fa-utensils" style="color:var(--primary)"></i> Ricette Recenti</h3>
+                                <div id="overview-recipes-list" style="font-size:14px; color:var(--text-muted);">Nessuna ricetta recente.</div>
+                            </div>
+                            <div class="card-shortcut">
+                                <a onclick="switchSection('section-recipes')">Apri ricettario &rarr;</a>
+                            </div>
+                        </div>
+
+                        <!-- 4. CARD MEDIA -->
+                        <div id="card-gallery" class="card">
+                            <div>
+                                <h3><i class="fa-solid fa-images" style="color:var(--primary)"></i> Ultimi Media Condivisi</h3>
+                                <div id="overview-media-list" style="font-size:14px; color:var(--text-muted);">Nessuna foto o video recente.</div>
+                            </div>
+                            <div class="card-shortcut">
+                                <a onclick="switchSection('section-gallery')">Apri galleria &rarr;</a>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
                 <!-- SEZIONE BOLLETTE COMPLETA -->
                 <section id="section-bills" class="content-section">
-                    <div style="margin-bottom: 20px;">
-                        <button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla HOME</button>
+                        <button class="btn-primary" id="toggle-add-bill-form"><i class="fa-solid fa-plus"></i> Nuova Bolletta</button>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
-                        <div class="card">
-                            <h3>Aggiungi Nuova Bolletta</h3>
+
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <!-- FORM AGGIUNGI BOLLETTA (Nascosto di default) -->
+                        <div class="card" id="bill-form-card" style="display: none;">
+                            <h3>Aggiungi Nuova Bolletta o Scatta Foto (OCR)</h3>
+                            <div style="margin-bottom: 15px;">
+                                <label class="btn-secondary" style="display: inline-block; cursor: pointer; text-align: center; width: 100%;">
+                                    <i class="fa-solid fa-camera"></i> Scatta / Carica Foto Bolletta (Estrai con OCR)
+                                    <input type="file" id="bill-ocr-input" accept="image/*" capture="environment" style="display: none;">
+                                </label>
+                                <div id="ocr-status" style="font-size: 12px; color: var(--text-muted); margin-top: 5px; text-align: center;"></div>
+                            </div>
+
                             <div class="form-group">
-                                <label>Titolo (es. Luce, Gas, Internet)</label>
+                                <label>Titolo / Ente (es. Enel Luce)</label>
                                 <input type="text" id="bill-title" placeholder="Es. Enel Luce">
                             </div>
                             <div class="form-group">
@@ -170,6 +192,7 @@
                             <button id="btn-add-bill" class="btn-primary">Salva Bolletta</button>
                         </div>
 
+                        <!-- ELENCO BOLLETTE -->
                         <div class="card">
                             <h3>Elenco Bollette</h3>
                             <div id="bills-list-container">Caricamento bollette...</div>
@@ -182,17 +205,17 @@
                 </section>
 
                 <section id="section-gallery" class="content-section">
-                    <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button></div>
+                    <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla HOME</button></div>
                     <h2>Sezione Foto e video in lavorazione...</h2>
                 </section>
                 
                 <section id="section-recipes" class="content-section">
-                    <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button></div>
+                    <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla HOME</button></div>
                     <h2>Sezione Ricettario in lavorazione...</h2>
                 </section>
                 
                 <section id="section-calendar" class="content-section">
-                    <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button></div>
+                    <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla HOME</button></div>
                     <h2>Sezione Calendario in lavorazione...</h2>
                 </section>
                 
@@ -200,10 +223,9 @@
                 <section id="section-admin" class="content-section">
                     <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
                         <div style="margin-bottom: 0;">
-                            <button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button>
+                            <button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla HOME</button>
                         </div>
 
-                        <!-- CARD GESTIONE MEMBRI E PERMESSI -->
                         <div class="card">
                             <h3 id="admin-form-title">Gestione membri e permessi</h3>
                             <p id="admin-form-subtitle" style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Aggiungi familiari e scegli quali sezioni possono vedere.</p>
@@ -242,7 +264,6 @@
                             </div>
                         </div>
 
-                        <!-- CARD ELENCO MEMBRI -->
                         <div class="card">
                             <h3>Elenco membri</h3>
                             <div id="members-list-container">Caricamento membri...</div>
@@ -252,11 +273,13 @@
             </div>
 
             <footer class="app-footer">
-                <span>Portale della Famiglia creato con Gemini</span>
+                <span>Sito creato da STECCA con Gemini</span>
             </footer>
         </main>
     </div>
 
+    <!-- Tesseract.js per OCR automatico da foto bolletta -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <!-- Collegamento al file JavaScript esterno -->
     <script src="script.js"></script>
 </body>
