@@ -15,6 +15,16 @@ document.getElementById('sidebar-toggle').addEventListener('click', () => {
     document.getElementById('sidebar').classList.toggle('collapsed');
 });
 
+// Gestione clic sui pulsanti del menu laterale
+document.querySelectorAll('.sidebar-menu li').forEach(item => {
+    item.addEventListener('click', () => {
+        const target = item.getAttribute('data-target');
+        if (target) {
+            switchSection(target);
+        }
+    });
+});
+
 window.addEventListener('firebase-ready', async () => {
     const { db, firebaseFns } = window;
     const { doc, getDoc, setDoc } = firebaseFns;
@@ -40,7 +50,6 @@ window.addEventListener('firebase-ready', async () => {
         document.getElementById('auth-email').value = savedEmail;
         document.getElementById('auth-password').value = savedPass;
         document.getElementById('remember-me').checked = true;
-        // Esegue il login automatico se salvato
         handleLogin();
     } else {
         loadBills();
@@ -111,7 +120,7 @@ function applyUserPermissions() {
     const sectionsMap = {
         'section-bills': { menu: 'menu-bills', card: 'card-bills' },
         'section-gallery': { menu: 'menu-gallery', card: 'card-gallery' },
-        'section-recipes': { menu: 'menu-recipes', card: null },
+        'section-recipes': { menu: 'menu-recipes', card: 'card-recipes' },
         'section-calendar': { menu: 'menu-calendar', card: 'card-calendar' }
     };
 
@@ -137,7 +146,7 @@ window.switchSection = function(targetId) {
     document.getElementById(targetId).classList.add('active');
     
     const titles = {
-        'section-overview': 'Panoramica',
+        'section-overview': 'HOME',
         'section-bills': 'Bollette',
         'section-gallery': 'Foto e video',
         'section-recipes': 'Ricettario',
@@ -146,6 +155,78 @@ window.switchSection = function(targetId) {
     };
     document.getElementById('page-title').innerText = titles[targetId] || 'Portale';
 }
+
+// Toggle form aggiungi bolletta
+document.getElementById('toggle-add-bill-form').addEventListener('click', () => {
+    const formCard = document.getElementById('bill-form-card');
+    if (formCard.style.display === 'none') {
+        formCard.style.display = 'flex';
+    } else {
+        formCard.style.display = 'none';
+    }
+});
+
+// Gestione OCR con Tesseract.js sulla foto bolletta
+document.getElementById('bill-ocr-input').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const statusBox = document.getElementById('ocr-status');
+    statusBox.innerText = "⏳ Analisi OCR in corso... Attendere.";
+
+    try {
+        const result = await Tesseract.recognize(file, 'ita+eng', {
+            logger: m => {
+                if (m.status === 'recognizing text') {
+                    statusBox.innerText = `⏳ Riconoscimento testo: ${Math.round(m.progress * 100)}%`;
+                }
+            }
+        });
+
+        const text = result.data.text;
+        statusBox.innerText = "✅ Analisi completata! Campi compilati.";
+
+        // Estrazione importo (cerca pattern tipo 45,50 € o EUR o simili)
+        const amountRegex = /(?:totale|importo|euro|eur|\€)\s*[:=]?\s*(\d+[.,]\d{2})/i;
+        const generalAmountRegex = /(\d+[.,]\d{2})/g;
+        
+        let foundAmount = '';
+        const matchAmount = text.match(amountRegex);
+        if (matchAmount && matchAmount[1]) {
+            foundAmount = matchAmount[1].replace(',', '.');
+        } else {
+            // Prende l'ultimo numero con virgola trovato come fallback comune dell'importo totale
+            const allAmounts = text.match(generalAmountRegex);
+            if (allAmounts && allAmounts.length > 0) {
+                foundAmount = allAmounts[allAmounts.length - 1].replace(',', '.');
+            }
+        }
+
+        // Estrazione data (cerca formati DD/MM/YYYY o DD-MM-YYYY)
+        const dateRegex = /(\d{2})[\/\-](\d{2})[\/\-](\d{4})/g;
+        const matchDates = [...text.matchAll(dateRegex)];
+        let foundDate = '';
+        if (matchDates.length > 0) {
+            // Prende la prima o seconda data trovata (spesso scadenza)
+            const d = matchDates[0];
+            foundDate = `${d[3]}-${d[2]}-${d[1]}`;
+        }
+
+        // Estrazione ente (prime righe o parole chiave note)
+        const lines = text.split('\n').filter(l => l.trim().length > 3);
+        let foundTitle = lines.length > 0 ? lines[0].trim() : 'Bolletta Estratta';
+
+        if (foundTitle.length > 25) foundTitle = foundTitle.substring(0, 25);
+
+        if (foundTitle) document.getElementById('bill-title').value = foundTitle;
+        if (foundAmount) document.getElementById('bill-amount').value = foundAmount;
+        if (foundDate) document.getElementById('bill-date').value = foundDate;
+
+    } catch (err) {
+        console.error(err);
+        statusBox.innerText = "❌ Errore durante l'estrazione OCR. Compila i dati manualmente.";
+    }
+});
 
 document.getElementById('btn-add-bill').addEventListener('click', async () => {
     const title = document.getElementById('bill-title').value.trim();
@@ -166,6 +247,8 @@ document.getElementById('btn-add-bill').addEventListener('click', async () => {
         document.getElementById('bill-title').value = '';
         document.getElementById('bill-amount').value = '';
         document.getElementById('bill-date').value = '';
+        document.getElementById('bill-form-card').style.display = 'none';
+        document.getElementById('ocr-status').innerText = '';
         loadBills();
     } catch (err) {
         console.error(err);
@@ -457,7 +540,6 @@ function askGemini() {
     answerBox.innerHTML = "Sto elaborando la risposta...";
 
     setTimeout(() => {
-        answerBox.html = `Ciao ${loggedUser}! Ho ricevuto la tua richiesta: "${query}". Sono qui per aiutarti a gestire tutto nel portale della famiglia!`;
         answerBox.innerHTML = `Ciao ${loggedUser}! Ho ricevuto la tua richiesta: "${query}". Sono qui per aiutarti a gestire tutto nel portale della famiglia!`;
     }, 600);
 }
