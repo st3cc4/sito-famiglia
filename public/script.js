@@ -1,3 +1,35 @@
+// Importa Firebase e Firestore dai CDN ufficiali
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+import { getFirestore, collection, getDocs, addDoc, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// Configurazione Firebase dal tuo progetto
+const firebaseConfig = {
+    apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
+    authDomain: "sito-famiglia.firebaseapp.com",
+    projectId: "sito-famiglia",
+    storageBucket: "sito-famiglia.firebasestorage.app",
+    messagingSenderId: "93216467751",
+    appId: "1:93216467751:web:993005284551ca5ef895a",
+    measurementId: "G-NYRQJDTWM3"
+};
+
+// Inizializzazione Firebase & Firestore
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const db = getFirestore(app);
+
+// Esportazione globale per le funzioni interne
+window.db = db;
+window.firebaseFns = {
+    collection,
+    getDocs,
+    addDoc,
+    doc,
+    setDoc,
+    deleteDoc
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     // Riferimenti elementi UI
     const authOverlay = document.getElementById('auth-overlay');
@@ -93,14 +125,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Cerca utente su Firebase
+            // Cerca utente su Firebase Firestore
             try {
                 if (!window.db) {
                     errorMessage.textContent = 'Connessione Firebase non pronta.';
                     errorMessage.style.display = 'block';
                     return;
                 }
-                const { collection, getDocs } = window.firebaseFns;
                 const querySnapshot = await getDocs(collection(window.db, 'members'));
                 let foundUser = null;
                 
@@ -195,7 +226,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const { collection, addDoc } = window.firebaseFns;
                 await addDoc(collection(window.db, 'bills'), {
                     title,
                     amount,
@@ -219,7 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadBillsData() {
         if (!billsListContainer) return;
         try {
-            const { collection, getDocs } = window.firebaseFns;
             const querySnapshot = await getDocs(collection(window.db, 'bills'));
             let bills = [];
             querySnapshot.forEach(docSnap => {
@@ -302,7 +331,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.toggleBillPaid = async function(id, newStatus) {
         try {
-            const { doc, setDoc } = window.firebaseFns;
             const billRef = doc(window.db, 'bills', id);
             await setDoc(billRef, { paid: newStatus }, { merge: true });
             loadBillsData();
@@ -315,7 +343,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.deleteBill = async function(id) {
         if (!confirm('Sei sicuro di voler eliminare questa bolletta?')) return;
         try {
-            const { doc, deleteDoc } = window.firebaseFns;
             await deleteDoc(doc(window.db, 'bills', id));
             loadBillsData();
         } catch (err) {
@@ -394,7 +421,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const { collection, addDoc, doc, setDoc } = window.firebaseFns;
                 const memberData = { name, email, password, role, permissions };
 
                 if (editingMemberId) {
@@ -421,7 +447,6 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadMembersData() {
         if (!membersListContainer) return;
         try {
-            const { collection, getDocs } = window.firebaseFns;
             const querySnapshot = await getDocs(collection(window.db, 'members'));
             let members = [];
             querySnapshot.forEach(docSnap => {
@@ -490,7 +515,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.deleteMember = async function(id) {
         if (!confirm('Eliminare questo membro?')) return;
         try {
-            const { doc, deleteDoc } = window.firebaseFns;
             await deleteDoc(doc(window.db, 'members', id));
             loadMembersData();
         } catch (err) {
