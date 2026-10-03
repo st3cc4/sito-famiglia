@@ -19,15 +19,19 @@ window.addEventListener('firebase-ready', async () => {
     const { db, firebaseFns } = window;
     const { doc, getDoc, setDoc } = firebaseFns;
 
-    const adminRef = doc(db, "users", "stpa79@gmail.com");
-    const adminSnap = await getDoc(adminRef);
-    if (!adminSnap.exists()) {
-        await setDoc(adminRef, { 
-            name: "Stecca", 
-            role: "Admin", 
-            pass: "sv058753",
-            permissions: ["section-bills", "section-gallery", "section-recipes", "section-calendar"]
-        });
+    try {
+        const adminRef = doc(db, "users", "stpa79@gmail.com");
+        const adminSnap = await getDoc(adminRef);
+        if (!adminSnap.exists()) {
+            await setDoc(adminRef, { 
+                name: "Stecca", 
+                role: "Admin", 
+                pass: "sv058753",
+                permissions: ["section-bills", "section-gallery", "section-recipes", "section-calendar"]
+            });
+        }
+    } catch (err) {
+        console.error("Errore inizializzazione admin:", err);
     }
 
     const savedEmail = localStorage.getItem('family_user_email');
@@ -36,9 +40,11 @@ window.addEventListener('firebase-ready', async () => {
         document.getElementById('auth-email').value = savedEmail;
         document.getElementById('auth-password').value = savedPass;
         document.getElementById('remember-me').checked = true;
+        // Esegue il login automatico se salvato
+        handleLogin();
+    } else {
+        loadBills();
     }
-
-    loadBills();
 });
 
 document.getElementById('btn-login').addEventListener('click', handleLogin);
@@ -51,7 +57,8 @@ async function handleLogin() {
     const errorBox = document.getElementById('error-message');
 
     if (!window.db) {
-        alert("Connessione a Firebase in corso, attendi un secondo...");
+        errorBox.style.display = 'block';
+        errorBox.innerText = "Connessione a Firebase in corso, attendi un secondo...";
         return;
     }
 
@@ -76,6 +83,7 @@ async function handleLogin() {
                 localStorage.removeItem('family_user_pass');
             }
 
+            errorBox.style.display = 'none';
             document.getElementById('auth-overlay').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
             document.getElementById('current-user-badge').innerText = `Utente: ${loggedUser}`;
@@ -90,10 +98,12 @@ async function handleLogin() {
             loadBills();
         } else {
             errorBox.style.display = 'block';
+            errorBox.innerText = "Email o password errati.";
         }
     } catch (err) {
         console.error(err);
-        alert("Errore di connessione a Firebase.");
+        errorBox.style.display = 'block';
+        errorBox.innerText = "Errore di connessione a Firebase.";
     }
 }
 
@@ -447,6 +457,7 @@ function askGemini() {
     answerBox.innerHTML = "Sto elaborando la risposta...";
 
     setTimeout(() => {
+        answerBox.html = `Ciao ${loggedUser}! Ho ricevuto la tua richiesta: "${query}". Sono qui per aiutarti a gestire tutto nel portale della famiglia!`;
         answerBox.innerHTML = `Ciao ${loggedUser}! Ho ricevuto la tua richiesta: "${query}". Sono qui per aiutarti a gestire tutto nel portale della famiglia!`;
     }, 600);
 }
