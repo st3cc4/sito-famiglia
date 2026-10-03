@@ -1,6 +1,5 @@
-// Importa Firebase e Firestore dai CDN ufficiali
+// Importa Firebase e Firestore dai CDN ufficiali (senza Analytics che genera il blocco 403)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 import { getFirestore, collection, getDocs, addDoc, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // Configurazione Firebase dal tuo progetto
@@ -10,13 +9,11 @@ const firebaseConfig = {
     projectId: "sito-famiglia",
     storageBucket: "sito-famiglia.firebasestorage.app",
     messagingSenderId: "93216467751",
-    appId: "1:93216467751:web:993005284551ca5ef895a",
-    measurementId: "G-NYRQJDTWM3"
+    appId: "1:93216467751:web:993005284551ca5ef895a"
 };
 
-// Inizializzazione Firebase & Firestore
+// Inizializzazione Firebase & Firestore (senza Analytics)
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const db = getFirestore(app);
 
 // Esportazione globale per le funzioni interne
@@ -73,7 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Aggiorna titolo header
         const activeLiSpan = document.querySelector(`.sidebar-menu li[data-target="${targetId}"] span`);
         if (activeLiSpan) {
             pageTitle.textContent = activeLiSpan.textContent;
@@ -125,13 +121,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Cerca utente su Firebase Firestore se non è l'admin principale
+            // Cerca utente su Firebase Firestore
             try {
-                if (!window.db) {
-                    errorMessage.textContent = 'Connessione Firebase non pronta.';
-                    errorMessage.style.display = 'block';
-                    return;
-                }
                 const querySnapshot = await getDocs(collection(window.db, 'members'));
                 let foundUser = null;
                 
@@ -168,14 +159,12 @@ document.addEventListener('DOMContentLoaded', () => {
         currentUserBadge.textContent = `Utente: ${userObj.name || userObj.email}`;
         welcomeTitle.textContent = `Ciao, ${userObj.name || 'Famiglia'}!`;
 
-        // Gestione visibilità link Admin
         if (userObj.role === 'Admin') {
             if (menuAdmin) menuAdmin.style.display = 'flex';
         } else {
             if (menuAdmin) menuAdmin.style.display = 'none';
         }
 
-        // Applica permessi sezioni
         const perms = userObj.permissions || [];
         if (userObj.role !== 'Admin') {
             document.querySelectorAll('.sidebar-menu li[data-target]').forEach(li => {
@@ -190,7 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Carica dati iniziali
         loadBillsData();
         loadMembersData();
     }
@@ -255,9 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 bills.push({ id: docSnap.id, ...docSnap.data() });
             });
 
-            // Ordina per data scadenza
             bills.sort((a, b) => new Date(a.date) - new Date(b.date));
-
             renderBills(bills);
         } catch (err) {
             console.error(err);
@@ -317,7 +303,6 @@ document.addEventListener('DOMContentLoaded', () => {
         billsListContainer.innerHTML = html;
         if (billsPageTotal) billsPageTotal.textContent = `${unpaidTotal.toFixed(2)} €`;
 
-        // Aggiorna Home Overview
         if (overviewCount > 0) {
             overviewHtml += '</ul>';
             if (overviewBillsList) overviewBillsList.innerHTML = overviewHtml;
@@ -502,7 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.cancelEditMember = function() {
-        editingMemberId = null;
+        editingManagerId = null;
         newMemberName.value = '';
         newMemberEmail.value = '';
         newMemberPass.value = '';
