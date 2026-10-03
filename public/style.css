@@ -25,7 +25,6 @@ body {
     height: 100vh;
     left: 0;
     top: 0;
-    transition: width 0.3s ease;
     z-index: 100;
 }
 
@@ -39,6 +38,7 @@ body {
 
 .sidebar-header h2 {
     font-size: 1.2rem;
+    color: #ffffff;
 }
 
 .toggle-btn {
@@ -131,7 +131,8 @@ body {
 
 /* WELCOME BANNER */
 .welcome-banner {
-    background: white;
+    background: #5b42f3;
+    color: white;
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 25px;
@@ -140,7 +141,11 @@ body {
 
 .welcome-banner h2 {
     margin-bottom: 8px;
-    color: #2c3e50;
+    color: #ffffff;
+}
+
+.welcome-banner p {
+    color: #e0d9ff;
 }
 
 /* CARD IN COLONNA (UNA SOTTO L'ALTRA) */
