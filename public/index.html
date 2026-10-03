@@ -4,93 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portale Famiglia</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
-            margin: 0;
-            padding: 20px;
-            color: #333;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        h2 {
-            color: #2c3e50;
-        }
-        .btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            font-size: 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
-        .btn:hover {
-            background-color: #2980b9;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
-            text-align: left;
-        }
-        th {
-            background-color: #f8f9fa;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <header>
+        <h1>Portale Famiglia</h1>
+    </header>
 
-    <div class="container">
-        <h2>Gestione Bollette</h2>
-        
-        <!-- Pulsante corretto senza il + -->
-        <button class="btn" id="btnNuovaBolletta">Nuova bolletta</button>
+    <main class="container">
+        <!-- Sezione Bollette e Scadenze -->
+        <section class="card">
+            <div class="card-header">
+                <h2>Bollette e Scadenze</h2>
+                <button id="openModalBtn" class="btn-primary">Nuova bolletta</button>
+            </div>
+            <div id="billsList" class="list-container">
+                <p>Caricamento scadenze...</p>
+            </div>
+        </section>
+    </main>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Tipo</th>
-                    <th>Importo</th>
-                    <th>Scadenza</th>
-                    <th>Stato</th>
-                </tr>
-            </thead>
-            <tbody id="tabellaBollette">
-                <tr>
-                    <td>Luce</td>
-                    <td>€ 45,50</td>
-                    <td>15/10/2026</td>
-                    <td>Da pagare</td>
-                </tr>
-            </tbody>
-        </table>
+    <!-- Modale per aggiungere una bolletta -->
+    <div id="billModal" class="modal">
+        <div class="modal-content">
+            <span id="closeModalBtn" class="close">&times;</span>
+            <h2>Aggiungi Nuova Bolletta</h2>
+            <form id="billForm">
+                <div class="form-group">
+                    <label for="billTitle">Titolo (es. Luce, Gas, Bollo):</label>
+                    <input type="text" id="billTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="billAmount">Importo (€):</label>
+                    <input type="number" step="0.01" id="billAmount" required>
+                </div>
+                <div class="form-group">
+                    <label for="billDate">Data di Scadenza:</label>
+                    <input type="date" id="billDate" required>
+                </div>
+                <button type="submit" class="btn-primary">Salva Bolletta</button>
+            </form>
+        </div>
     </div>
 
-    <script>
-        // Gestione dell'evento click sul pulsante
-        document.getElementById('btnNuovaBolletta').addEventListener('click', function() {
-            alert('Funzionalità per aggiungere una nuova bolletta attivata!');
-            
-            // Esempio di inserimento dinamico di una riga di prova
-            const tbody = document.getElementById('tabellaBollette');
-            const nuovaRiga = document.createElement('tr');
-            nuovaRiga.innerHTML = '<td>Gas</td><td>€ 60,00</td><td>20/10/2026</td><td>Da pagare</td>';
-            tbody.appendChild(nuovaRiga);
-        });
-    </script>
-
+    <!-- Firebase SDK (Versioni compatibili con moduli o script standard) -->
+    <script type="module" src="script.js"></script>
 </body>
 </html>
