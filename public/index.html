@@ -71,12 +71,12 @@
                 <button id="sidebar-toggle" class="sidebar-toggle-btn"><i class="fa-solid fa-bars"></i></button>
             </div>
             <ul class="sidebar-menu">
-                <li class="active" onclick="switchSection('section-overview')" data-target="section-overview"><i class="fa-solid fa-home"></i><span>Panoramica</span></li>
-                <li id="menu-bills" onclick="switchSection('section-bills')" data-target="section-bills"><i class="fa-solid fa-file-invoice-dollar"></i><span>Bollette</span></li>
-                <li id="menu-gallery" onclick="switchSection('section-gallery')" data-target="section-gallery"><i class="fa-solid fa-images"></i><span>Foto e video</span></li>
-                <li id="menu-recipes" onclick="switchSection('section-recipes')" data-target="section-recipes"><i class="fa-solid fa-utensils"></i><span>Ricettario</span></li>
-                <li id="menu-calendar" onclick="switchSection('section-calendar')" data-target="section-calendar"><i class="fa-solid fa-calendar-days"></i><span>Calendario</span></li>
-                <li id="menu-admin" onclick="switchSection('section-admin')" data-target="section-admin" style="display:none;"><i class="fa-solid fa-shield-halved"></i><span>Admin</span></li>
+                <li class="active" data-target="section-overview"><i class="fa-solid fa-home"></i><span>Panoramica</span></li>
+                <li id="menu-bills" data-target="section-bills"><i class="fa-solid fa-file-invoice-dollar"></i><span>Bollette</span></li>
+                <li id="menu-gallery" data-target="section-gallery"><i class="fa-solid fa-images"></i><span>Foto e video</span></li>
+                <li id="menu-recipes" data-target="section-recipes"><i class="fa-solid fa-utensils"></i><span>Ricettario</span></li>
+                <li id="menu-calendar" data-target="section-calendar"><i class="fa-solid fa-calendar-days"></i><span>Calendario</span></li>
+                <li id="menu-admin" data-target="section-admin" style="display:none;"><i class="fa-solid fa-shield-halved"></i><span>Admin</span></li>
             </ul>
             <div class="sidebar-footer">
                 <span id="current-user-badge">Utente: -</span>
@@ -138,7 +138,7 @@
                         <div id="card-calendar" class="card">
                             <div>
                                 <h3><i class="fa-solid fa-calendar-days" style="color:var(--primary)"></i> Prossimi Appuntamenti</h3>
-                                <div id="overview-events-list" style="font-size:14px; color:var(--text-muted);">Caricamento appuntamenti...</div>
+                                <div id="overview-events-list" style="font-size:14px; color:var(--text-muted);">Nessun appuntamento in calendario.</div>
                             </div>
                             <div class="card-shortcut">
                                 <a onclick="switchSection('section-calendar')">Vai al calendario &rarr;</a>
@@ -152,7 +152,7 @@
                     <div style="margin-bottom: 20px;">
                         <button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button>
                     </div>
-                    <div class="content-grid">
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
                         <div class="card">
                             <h3>Aggiungi Nuova Bolletta</h3>
                             <div class="form-group">
@@ -186,86 +186,14 @@
                     <h2>Sezione Foto e video in lavorazione...</h2>
                 </section>
                 
-                <!-- SEZIONE RICETTARIO COMPLETA -->
                 <section id="section-recipes" class="content-section">
-                    <div style="margin-bottom: 20px;">
-                        <button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button>
-                    </div>
-                    <div class="content-grid">
-                        <div class="card">
-                            <h3 id="recipe-form-title">Nuova Ricetta</h3>
-                            <input type="hidden" id="recipe-edit-id" value="">
-                            <div class="form-group">
-                                <label>Nome Ricetta</label>
-                                <input type="text" id="recipe-title" placeholder="Es. Biscotti frollini">
-                            </div>
-                            <div class="form-group">
-                                <label>Categoria</label>
-                                <select id="recipe-category">
-                                    <option value="Dolci e Dessert">Dolci e Dessert</option>
-                                    <option value="Primi Piatti">Primi Piatti</option>
-                                    <option value="Secondi Piatti">Secondi Piatti</option>
-                                    <option value="Antipasti e Contorni">Antipasti e Contorni</option>
-                                    <option value="Altro">Altro</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Ingredienti</label>
-                                <textarea id="recipe-ingredients" rows="6" placeholder="Es. 500g farina, 200g burro..." class="mobile-textarea"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Procedimento</label>
-                                <textarea id="recipe-steps" rows="8" placeholder="Descrivi i passaggi..." class="mobile-textarea"></textarea>
-                            </div>
-                            <div style="display: flex; gap: 10px;">
-                                <button id="btn-add-recipe" class="btn-primary">Salva Ricetta</button>
-                                <button id="btn-cancel-recipe" class="btn-secondary" style="display:none;" onclick="cancelEditRecipe()">Annulla</button>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <h3>Ricettario della Famiglia</h3>
-                            <div id="recipes-list-container">Caricamento ricette...</div>
-                        </div>
-                    </div>
+                    <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button></div>
+                    <h2>Sezione Ricettario in lavorazione...</h2>
                 </section>
                 
-                <!-- SEZIONE CALENDARIO COMPLETA -->
                 <section id="section-calendar" class="content-section">
-                    <div style="margin-bottom: 20px;">
-                        <button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button>
-                    </div>
-                    <div class="content-grid">
-                        <div class="card">
-                            <h3 id="event-form-title">Nuovo Appuntamento</h3>
-                            <input type="hidden" id="event-edit-id" value="">
-                            <div class="form-group">
-                                <label>Titolo Evento</label>
-                                <input type="text" id="event-title" placeholder="Es. Visita medica">
-                            </div>
-                            <div class="form-group">
-                                <label>Data</label>
-                                <input type="date" id="event-date">
-                            </div>
-                            <div class="form-group">
-                                <label>Ora (Opzionale)</label>
-                                <input type="time" id="event-time">
-                            </div>
-                            <div class="form-group">
-                                <label>Descrizione / Note</label>
-                                <textarea id="event-desc" rows="4" placeholder="Es. Portare documenti" class="mobile-textarea"></textarea>
-                            </div>
-                            <div style="display: flex; gap: 10px;">
-                                <button id="btn-add-event" class="btn-primary">Aggiungi al Calendario</button>
-                                <button id="btn-cancel-event" class="btn-secondary" style="display:none;" onclick="cancelEditEvent()">Annulla</button>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <h3>Tutti gli Appuntamenti</h3>
-                            <div id="calendar-list-container">Caricamento appuntamenti...</div>
-                        </div>
-                    </div>
+                    <div style="margin-bottom: 20px;"><button class="btn-secondary" onclick="switchSection('section-overview')"><i class="fa-solid fa-arrow-left"></i> Torna alla Panoramica</button></div>
+                    <h2>Sezione Calendario in lavorazione...</h2>
                 </section>
                 
                 <!-- SCHERMATA ADMIN GESTIONE MEMBRI E PERMESSI -->
