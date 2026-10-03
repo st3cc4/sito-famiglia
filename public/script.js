@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!bill.paid) {
                 unpaidTotal += Number(bill.amount);
                 if (overviewCount < 3) {
-                    overviewHtml += `<li style="margin-bottom:6px; display:flex; justify-content:between;"><span>${bill.title}</span> <strong style="color:var(--danger);">${Number(bill.amount).toFixed(2)} €</strong> (Scad. ${bill.date})</li>`;
+                    overviewHtml += `<li style="margin-bottom:6px; display:flex; justify-content:space-between;"><span>${bill.title}</span> <strong style="color:var(--danger);">${Number(bill.amount).toFixed(2)} €</strong> (Scad. ${bill.date})</li>`;
                     overviewCount++;
                 }
             }
