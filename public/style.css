@@ -490,7 +490,8 @@ body {
     border-top: 1px solid var(--border);
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
+    padding-right: 30px;
     font-size: 12px;
     color: var(--text-muted);
 }
