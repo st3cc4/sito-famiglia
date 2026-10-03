@@ -153,7 +153,7 @@ window.switchSection = function(targetId) {
         'section-calendar': 'Calendario',
         'section-admin': 'Admin'
     };
-    document.getElementById('page-title').innerText = titles[targetId] || 'Portale';
+    document.getElementById('page-title').innerText = titles[targetId] || 'Sito';
 }
 
 // Toggle form aggiungi bolletta
@@ -166,9 +166,8 @@ document.getElementById('toggle-add-bill-form').addEventListener('click', () => 
     }
 });
 
-// Gestione OCR con Tesseract.js sulla foto bolletta
-document.getElementById('bill-ocr-input').addEventListener('change', async (e) => {
-    const file = e.target.files[0];
+// Gestione OCR unificata per entrambi i pulsanti (galleria e fotocamera)
+async function processOCRFile(file) {
     if (!file) return;
 
     const statusBox = document.getElementById('ocr-status');
@@ -186,7 +185,6 @@ document.getElementById('bill-ocr-input').addEventListener('change', async (e) =
         const text = result.data.text;
         statusBox.innerText = "✅ Analisi completata! Campi compilati.";
 
-        // Estrazione importo (cerca pattern tipo 45,50 € o EUR o simili)
         const amountRegex = /(?:totale|importo|euro|eur|\€)\s*[:=]?\s*(\d+[.,]\d{2})/i;
         const generalAmountRegex = /(\d+[.,]\d{2})/g;
         
@@ -195,24 +193,20 @@ document.getElementById('bill-ocr-input').addEventListener('change', async (e) =
         if (matchAmount && matchAmount[1]) {
             foundAmount = matchAmount[1].replace(',', '.');
         } else {
-            // Prende l'ultimo numero con virgola trovato come fallback comune dell'importo totale
             const allAmounts = text.match(generalAmountRegex);
             if (allAmounts && allAmounts.length > 0) {
                 foundAmount = allAmounts[allAmounts.length - 1].replace(',', '.');
             }
         }
 
-        // Estrazione data (cerca formati DD/MM/YYYY o DD-MM-YYYY)
         const dateRegex = /(\d{2})[\/\-](\d{2})[\/\-](\d{4})/g;
         const matchDates = [...text.matchAll(dateRegex)];
         let foundDate = '';
         if (matchDates.length > 0) {
-            // Prende la prima o seconda data trovata (spesso scadenza)
             const d = matchDates[0];
             foundDate = `${d[3]}-${d[2]}-${d[1]}`;
         }
 
-        // Estrazione ente (prime righe o parole chiave note)
         const lines = text.split('\n').filter(l => l.trim().length > 3);
         let foundTitle = lines.length > 0 ? lines[0].trim() : 'Bolletta Estratta';
 
@@ -226,6 +220,14 @@ document.getElementById('bill-ocr-input').addEventListener('change', async (e) =
         console.error(err);
         statusBox.innerText = "❌ Errore durante l'estrazione OCR. Compila i dati manualmente.";
     }
+}
+
+document.getElementById('bill-ocr-input').addEventListener('change', (e) => {
+    processOCRFile(e.target.files[0]);
+});
+
+document.getElementById('bill-camera-input').addEventListener('change', (e) => {
+    processOCRFile(e.target.files[0]);
 });
 
 document.getElementById('btn-add-bill').addEventListener('click', async () => {
@@ -540,6 +542,6 @@ function askGemini() {
     answerBox.innerHTML = "Sto elaborando la risposta...";
 
     setTimeout(() => {
-        answerBox.innerHTML = `Ciao ${loggedUser}! Ho ricevuto la tua richiesta: "${query}". Sono qui per aiutarti a gestire tutto nel portale della famiglia!`;
+        answerBox.innerHTML = `Ciao ${loggedUser}! Ho ricevuto la tua richiesta: "${query}". Sono qui per aiutarti a gestire tutto nel Sito della famiglia!`;
     }, 600);
 }
