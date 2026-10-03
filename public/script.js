@@ -493,4 +493,282 @@ document.getElementById('btn-add-recipe').addEventListener('click', async () => 
             const recipeRef = doc(db, "recipes", editId);
             const snap = await getDoc(recipeRef);
             let likes = snap.exists() && snap.data().likes ? snap.data().likes : [];
-            awai
+            await setDoc(recipeRef, { title, category, ingredients, steps, likes });
+            cancelEditRecipe();
+        } else {
+            await addDoc(collection(db, "recipes"), { title, category, ingredients, steps, likes: [] });
+            document.getElementById('recipe-title').value = '';
+            document.getElementById('recipe-ingredients').value = '';
+            document.getElementById('recipe-steps').value = '';
+        }
+        loadRecipes();
+    } catch (err) {
+        console.error(err);
+        alert("Errore nel salvataggio della ricetta.");
+    }
+});
+
+async function loadRecipes() {
+    const container = document.getElementById('recipes-list-container');
+    if (!window.db) return;
+
+    try {
+        const { db, firebaseFns } = window;
+        const { collection, getDocs } = firebaseFns;
+
+        const querySnapshot = await getDocs(collection(db, "recipes"));
+        let recipes = [];
+
+        querySnapshot.forEach((docSnap) => {
+            recipes.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        recipes.sort((a, b) => a.title.localeCompare(b.title));
+
+        let html = '';
+        recipes.forEach(r => {
+            const likes = r.likes || [];
+            const userLiked = likes.includes(loggedUser);
+            html += `
+                <div style="border-bottom: 1px solid var(--border); padding: 12px 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span><b>${r.title}</b> <span style="font-size:12px; color:var(--primary); background:#e0e7ff; padding:2px 8px; border-radius:10px; margin-left:8px;">${r.category}</span></span>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <button class="like-btn ${userLiked ? 'liked' : ''}" onclick="toggleLike('recipes', '${r.id}')" title="Mi piace"><i class="fa-solid fa-heart"></i></button>
+                            <button class="btn-secondary" style="padding: 4px 8px;" onclick="toggleRecipeDetails('${r.id}')"><i class="fa-solid fa-eye"></i> Leggi</button>
+                            <button class="btn-warning" style="padding: 4px 8px;" onclick="editRecipe('${r.id}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn-danger" style="padding: 4px 8px;" onclick="deleteRecipe('${r.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <div id="recipe-details-${r.id}" class="recipe-details">
+                        <p><b>Ingredienti:</b><br>${r.ingredients.replace(/\n/g, '<br>')}</p>
+                        <p style="margin-top: 8px;"><b>Procedimento:</b><br>${r.steps.replace(/\n/g, '<br>')}</p>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html || 'Nessuna ricetta inserita nel ricettario.';
+    } catch (err) {
+        console.error("Errore caricamento ricette:", err);
+        container.innerHTML = 'Errore nel caricamento ricette.';
+    }
+}
+
+window.editRecipe = async function(id) {
+    try {
+        const { db, firebaseFns } = window;
+        const { doc, getDoc } = firebaseFns;
+        const snap = await getDoc(doc(db, "recipes", id));
+        if (snap.exists()) {
+            const data = snap.data();
+            document.getElementById('recipe-edit-id').value = id;
+            document.getElementById('recipe-title').value = data.title || '';
+            document.getElementById('recipe-category').value = data.category || 'Dolci e Dessert';
+            document.getElementById('recipe-ingredients').value = data.ingredients || '';
+            document.getElementById('recipe-steps').value = data.steps || '';
+            document.getElementById('recipe-form-title').innerText = 'Modifica Ricetta';
+            document.getElementById('btn-add-recipe').innerText = 'Aggiorna Ricetta';
+            document.getElementById('btn-cancel-recipe').style.display = 'inline-block';
+            document.querySelector('.content-body').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    } catch(err) { console.error(err); }
+}
+
+window.cancelEditRecipe = function() {
+    document.getElementById('recipe-edit-id').value = '';
+    document.getElementById('recipe-title').value = '';
+    document.getElementById('recipe-category').value = 'Dolci e Dessert';
+    document.getElementById('recipe-ingredients').value = '';
+    document.getElementById('recipe-steps').value = '';
+    document.getElementById('recipe-form-title').innerText = 'Nuova Ricetta';
+    document.getElementById('btn-add-recipe').innerText = 'Salva Ricetta';
+    document.getElementById('btn-cancel-recipe').style.display = 'none';
+}
+
+window.toggleRecipeDetails = function(id) {
+    const detailsBox = document.getElementById(`recipe-details-${id}`);
+    if (detailsBox) {
+        detailsBox.style.display = detailsBox.style.display === 'block' ? 'none' : 'block';
+    }
+}
+
+window.deleteRecipe = async function(id) {
+    if (confirm("Vuoi eliminare questa ricetta?")) {
+        try {
+            const { db, firebaseFns } = window;
+            const { doc, deleteDoc } = firebaseFns;
+            await deleteDoc(doc(db, "recipes", id));
+            loadRecipes();
+        } catch (err) { console.error(err); }
+    }
+}
+
+// ================= GESTIONE "MI PIACE" =================
+window.toggleLike = async function(collectionName, id) {
+    if (!loggedUser) return;
+    try {
+        const { db, firebaseFns } = window;
+        const { doc, getDoc, setDoc } = firebaseFns;
+        const ref = doc(db, collectionName, id);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+            let data = snap.data();
+            let likes = data.likes || [];
+            if (likes.includes(loggedUser)) {
+                likes = likes.filter(user => user !== loggedUser);
+            } else {
+                likes.push(loggedUser);
+            }
+            await setDoc(ref, { ...data, likes });
+            if (collectionName === 'recipes') loadRecipes();
+            if (collectionName === 'events') loadEvents();
+        }
+    } catch(err) { console.error("Errore mi piace:", err); }
+}
+
+// ================= ADMIN & UTENTI =================
+document.getElementById('btn-add-member').addEventListener('click', async () => {
+    const name = document.getElementById('new-member-name').value.trim();
+    const email = document.getElementById('new-member-email').value.trim().toLowerCase();
+    const pass = document.getElementById('new-member-pass').value.trim();
+    const role = document.getElementById('new-member-role').value;
+    
+    const permissions = [];
+    document.querySelectorAll('.perm-chk:checked').forEach(chk => {
+        permissions.push(chk.value);
+    });
+
+    if (!name || !email || !pass) {
+        alert("Compila tutti i campi obbligatori per aggiungere/modificare il membro.");
+        return;
+    }
+
+    try {
+        const { db, firebaseFns } = window;
+        const { doc, setDoc } = firebaseFns;
+
+        await setDoc(doc(db, "users", email), { name, pass, role, permissions });
+        alert(`Membro ${name} salvato con successo!`);
+        
+        cancelEditMember();
+        loadMembersList();
+    } catch (err) {
+        console.error(err);
+        alert("Errore durante il salvataggio.");
+    }
+});
+
+window.editMember = async function(email) {
+    try {
+        const { db, firebaseFns } = window;
+        const { doc, getDoc } = firebaseFns;
+        const userSnap = await getDoc(doc(db, "users", email));
+
+        if (userSnap.exists()) {
+            const data = userSnap.data();
+            document.getElementById('new-member-name').value = data.name || '';
+            document.getElementById('new-member-email').value = email;
+            document.getElementById('new-member-email').disabled = true;
+            document.getElementById('new-member-pass').value = data.pass || '';
+            document.getElementById('new-member-role').value = data.role || 'Member';
+
+            const perms = data.permissions || [];
+            document.querySelectorAll('.perm-chk').forEach(chk => {
+                chk.checked = perms.includes(chk.value);
+            });
+
+            document.getElementById('admin-form-title').innerText = `Modifica permessi: ${data.name}`;
+            document.getElementById('admin-form-subtitle').innerText = `Aggiorna i dati o i permessi per ${email}.`;
+            document.getElementById('btn-add-member').innerText = 'Aggiorna Membro';
+            document.getElementById('btn-cancel-edit').style.display = 'inline-block';
+
+            document.querySelector('.content-body').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Errore nel recupero dei dati del membro.");
+    }
+}
+
+window.cancelEditMember = function() {
+    document.getElementById('new-member-name').value = '';
+    document.getElementById('new-member-email').value = '';
+    document.getElementById('new-member-email').disabled = false;
+    document.getElementById('new-member-pass').value = '';
+    document.getElementById('new-member-role').value = 'Member';
+    document.querySelectorAll('.perm-chk').forEach(chk => { chk.checked = true; });
+
+    document.getElementById('admin-form-title').innerText = 'Gestione membri e permessi';
+    document.getElementById('admin-form-subtitle').innerText = 'Aggiungi familiari e scegli quali sezioni possono vedere.';
+    document.getElementById('btn-add-member').innerText = 'Salva Membro';
+    document.getElementById('btn-cancel-edit').style.display = 'none';
+}
+
+async function loadMembersList() {
+    const container = document.getElementById('members-list-container');
+    container.innerHTML = 'Caricamento membri in corso...';
+    try {
+        const { db, firebaseFns } = window;
+        const { collection, getDocs } = firebaseFns;
+
+        const querySnapshot = await getDocs(collection(db, "users"));
+        container.innerHTML = '';
+        
+        if (querySnapshot.empty) {
+            container.innerHTML = 'Nessun membro trovato.';
+            return;
+        }
+
+        querySnapshot.forEach((documentSnap) => {
+            const data = documentSnap.data();
+            const email = documentSnap.id;
+            const name = data.name || 'Senza nome';
+            const role = data.role || 'Member';
+            const perms = data.permissions ? data.permissions.length : 4;
+
+            const row = document.createElement('div');
+            row.className = 'member-row';
+            row.innerHTML = `
+                <span><b>${name}</b><br><span style="color:var(--text-muted); font-size:12px;">${email} (${role} • ${perms} sezioni)</span></span>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-warning" onclick="editMember('${email}')"><i class="fa-solid fa-pen"></i> Modifica</button>
+                    ${email !== 'stpa79@gmail.com' ? `<button class="btn-danger" onclick="deleteMember('${email}')"><i class="fa-solid fa-trash"></i></button>` : ''}
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    } catch (err) {
+        console.error("Errore caricamento membri:", err);
+        container.innerHTML = 'Errore nel caricamento membri.';
+    }
+}
+
+window.deleteMember = async function(email) {
+    if(confirm(`Vuoi davvero eliminare l'accesso per ${email}?`)) {
+        try {
+            const { db, firebaseFns } = window;
+            const { doc, deleteDoc } = firebaseFns;
+            await deleteDoc(doc(db, "users", email));
+            loadMembersList();
+        } catch(err) { console.error(err); }
+    }
+}
+
+// ================= GEMINI CHAT =================
+document.getElementById('gemini-send').addEventListener('click', askGemini);
+document.getElementById('gemint-input')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') askGemini(); });
+document.getElementById('close-gemini').addEventListener('click', () => { document.getElementById('gemini-response-box').style.display = 'none'; });
+
+function askGemini() {
+    const query = document.getElementById('gemini-input').value.trim();
+    if (!query) return;
+    const responseBox = document.getElementById('gemini-response-box');
+    const answerBox = document.getElementById('gemini-answer');
+    responseBox.style.display = 'block';
+    answerBox.innerHTML = "Sto elaborando la risposta...";
+
+    setTimeout(() => {
+        answerBox.innerHTML = `Ciao ${loggedUser}! Ho ricevuto la tua richiesta: "${query}". Sono qui per aiutarti a gestire tutto nel portale della famiglia!`;
+    }, 600);
+}
