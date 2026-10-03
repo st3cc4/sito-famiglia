@@ -70,13 +70,6 @@ body { background: var(--bg-main); color: var(--text-main); height: 100vh; overf
 .welcome-banner p { font-size: 14px; opacity: 0.9; }
 
 .overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-.content-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
-
-/* OTTIMIZZAZIONE SPAZI MOBILI */
-@media (max-width: 900px) {
-    .content-grid { grid-template-columns: 1fr; }
-}
-
 .card { background: var(--card-bg); padding: 20px; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 20px; display: flex; flex-direction: column; justify-content: space-between; }
 .card h3 { margin-bottom: 12px; font-size: 16px; color: var(--text-main); }
 
@@ -96,20 +89,14 @@ body { background: var(--bg-main); color: var(--text-main); height: 100vh; overf
 
 .form-group { margin-bottom: 15px; }
 .form-group label { display: block; font-size: 14px; margin-bottom: 5px; color: var(--text-muted); }
-.form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
-.mobile-textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; resize: vertical; }
+.form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
 
-.member-row, .bill-row, .event-row, .recipe-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 14px; }
-.recipe-details { background: var(--bg-main); padding: 12px; border-radius: 6px; margin-top: 8px; font-size: 13px; border: 1px solid var(--border); display: none; }
-
+.member-row, .bill-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 14px; }
 .bill-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #fff; }
 .badge-red { background: var(--danger); }
 .badge-orange { background: var(--warning); }
 .badge-green { background: var(--success); }
 .badge-gray { background: var(--gray); }
-
-.like-btn { background: none; border: none; cursor: pointer; font-size: 18px; color: #cbd5e1; transition: color 0.2s; padding: 4px; }
-.like-btn.liked { color: #ef4444; }
 
 .bills-total-box { margin-top: 15px; padding-top: 12px; border-top: 2px dashed var(--border); display: flex; justify-content: space-between; font-weight: bold; font-size: 15px; }
 
