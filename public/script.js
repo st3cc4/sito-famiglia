@@ -113,8 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Credenziali Super Admin di default (Stecca)
-            if (email === 'stecca@famiglia.it' && password === 'famiglia2026') {
+            // Credenziali Super Admin di Stecca (verificate direttamente)
+            if (email === 'stpa79@gmail.com' && password === 'sv058753') {
                 const adminUser = {
                     name: 'Stecca',
                     email: email,
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Cerca utente su Firebase Firestore
+            // Cerca utente su Firebase Firestore se non è l'admin principale
             try {
                 if (!window.db) {
                     errorMessage.textContent = 'Connessione Firebase non pronta.';
