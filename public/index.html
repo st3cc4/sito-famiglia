@@ -123,13 +123,11 @@
                         <h3>Inserisci o scansiona bolletta</h3>
                         
                         <div class="form-group">
-                            <label>Scansiona con OCR (Seleziona una foto)</label>
-                            <!-- Due pulsanti separati per galleria e fotocamera -->
+                            <label>Scansiona con OCR (Seleziona una foto o scatta)</label>
                             <div style="display: flex; gap: 10px;">
                                 <button type="button" class="btn-secondary" style="flex: 1;" onclick="document.getElementById('bill-ocr-input').click()"><i class="fa-solid fa-image"></i> Scegli da galleria</button>
                                 <button type="button" class="btn-secondary" style="flex: 1;" onclick="document.getElementById('bill-camera-input').click()"><i class="fa-solid fa-camera"></i> Scatta foto</button>
                             </div>
-                            <!-- Input nascosti reali -->
                             <input type="file" id="bill-ocr-input" accept="image/*" style="display: none;" />
                             <input type="file" id="bill-camera-input" accept="image/*" capture="environment" style="display: none;" />
                             <small id="ocr-status" style="color: var(--primary); font-weight: 600; margin-top: 5px;"></small>
@@ -262,10 +260,10 @@
         </div>
     </div>
 
-    <!-- Script Firebase (Modulo globale) e Logica App -->
+    <!-- Script Firebase e logica di sincronizzazione -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         
         const firebaseConfig = {
             apiKey: "AIzaSyD_TuoConfigDiEsempioDaSostituire",
@@ -280,8 +278,9 @@
         const db = getFirestore(app);
 
         window.db = db;
-        window.firebaseFns = { doc, getDoc, setDoc, collection, getDocs, deleteDoc };
+        window.firebaseFns = { doc, getDoc, setDoc, collection, getDocs, deleteDoc, addDoc };
 
+        // Segnala che Firebase è pronto per evitare errori di chiamata anticipata
         window.dispatchEvent(new Event('firebase-ready'));
     </script>
 
