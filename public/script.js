@@ -1,4 +1,4 @@
-// Importa Firebase e Firestore dai CDN ufficiali (senza Analytics che genera il blocco 403)
+// Importa Firebase e Firestore dai CDN ufficiali
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, getDocs, addDoc, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -12,7 +12,7 @@ const firebaseConfig = {
     appId: "1:93216467751:web:993005284551ca5ef895a"
 };
 
-// Inizializzazione Firebase & Firestore (senza Analytics)
+// Inizializzazione Firebase & Firestore
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -45,10 +45,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebarMenuLi = document.querySelectorAll('.sidebar-menu li');
 
-    // Toggle sidebar
+    // Toggle sidebar corretto (aggiunge/rimuove la classe collapsed sul contenitore principale o sidebar)
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
+            if (sidebar) {
+                sidebar.classList.toggle('collapsed');
+            }
+            if (appContainer) {
+                appContainer.classList.toggle('sidebar-collapsed');
+            }
         });
     }
 
@@ -109,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Credenziali Super Admin di Stecca (verificate direttamente)
+            // Credenziali Super Admin di Stecca
             if (email === 'stpa79@gmail.com' && password === 'sv058753') {
                 const adminUser = {
                     name: 'Stecca',
@@ -235,7 +240,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadBillsData() {
-        if (!billsListContainer) return;
         try {
             const querySnapshot = await getDocs(collection(window.db, 'bills'));
             let bills = [];
@@ -247,7 +251,8 @@ document.addEventListener('DOMContentLoaded', () => {
             renderBills(bills);
         } catch (err) {
             console.error(err);
-            billsListContainer.innerHTML = 'Errore caricamento bollette.';
+            if (billsListContainer) billsListContainer.innerHTML = 'Errore caricamento bollette.';
+            if (overviewBillsList) overviewBillsList.innerHTML = 'Errore caricamento scadenze.';
         }
     }
 
@@ -256,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = '';
 
         if (bills.length === 0) {
-            billsListContainer.innerHTML = '<p style="color:var(--text-muted);">Nessuna bolletta inserita.</p>';
+            if (billsListContainer) billsListContainer.innerHTML = '<p style="color:var(--text-muted);">Nessuna bolletta inserita.</p>';
             if (overviewBillsList) overviewBillsList.innerHTML = 'Nessuna bolletta in scadenza.';
             if (overviewBillsTotal) overviewBillsTotal.style.display = 'none';
             if (billsPageTotal) billsPageTotal.textContent = '0.00 €';
@@ -275,14 +280,14 @@ document.addEventListener('DOMContentLoaded', () => {
             </thead>
             <tbody>`;
 
-        let overviewHtml = '<ul style="list-style:none; padding-left:0;">';
+        let overviewHtml = '<ul style="list-style:none; padding-left:0; margin:0;">';
         let overviewCount = 0;
 
         bills.forEach(bill => {
             if (!bill.paid) {
                 unpaidTotal += Number(bill.amount);
                 if (overviewCount < 3) {
-                    overviewHtml += `<li style="margin-bottom:6px; display:flex; justify-content:space-between;"><span>${bill.title}</span> <strong style="color:var(--danger);">${Number(bill.amount).toFixed(2)} €</strong> (Scad. ${bill.date})</li>`;
+                    overviewHtml += `<li style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:4px;"><span>${bill.title}</span> <strong style="color:var(--danger);">${Number(bill.amount).toFixed(2)} €</strong> <span style="font-size:12px; color:#666;">(Scad. ${bill.date})</span></li>`;
                     overviewCount++;
                 }
             }
@@ -300,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         html += `</tbody></table>`;
-        billsListContainer.innerHTML = html;
+        if (billsListContainer) billsListContainer.innerHTML = html;
         if (billsPageTotal) billsPageTotal.textContent = `${unpaidTotal.toFixed(2)} €`;
 
         if (overviewCount > 0) {
@@ -335,49 +340,6 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Errore durante l\'eliminazione.');
         }
     };
-
-    // OCR Tesseract per bollette
-    const billOcrInput = document.getElementById('bill-ocr-input');
-    const ocrStatus = document.getElementById('ocr-status');
-
-    if (billOcrInput) {
-        billOcrInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            if (ocrStatus) ocrStatus.textContent = 'Analisi immagine in corso con OCR...';
-
-            try {
-                const result = await Tesseract.recognize(file, 'ita', {
-                    logger: m => {
-                        if (m.status === 'recognizing text' && ocrStatus) {
-                            ocrStatus.textContent = `Estrazione testo: ${Math.round(m.progress * 100)}%`;
-                        }
-                    }
-                });
-
-                const text = result.data.text;
-                if (ocrStatus) ocrStatus.textContent = 'Elaborazione completata!';
-
-                const amountMatch = text.match(/(?:totale|eur|€)\s*[:\.]?\s*([0-9]+[,\.][0-9]{2})/i) || text.match(/([0-9]+[,\.][0-9]{2})/);
-                if (amountMatch && billAmount) {
-                    billAmount.value = amountMatch[1].replace(',', '.');
-                }
-
-                const dateMatch = text.match(/([0-9]{2}[\/\-][0-9]{2}[\/\-][0-9]{4})/);
-                if (dateMatch && billDate) {
-                    const parts = dateMatch[1].split(/[\/\-]/);
-                    billDate.value = `${parts[2]}-${parts[1]}-${parts[0]}`;
-                }
-
-                if (billFormCard) billFormCard.style.display = 'block';
-            } catch (err) {
-                console.error(err);
-                if (ocrStatus) ocrStatus.textContent = 'Errore durante l\'OCR. Inserisci i dati manualmente.';
-                if (billFormCard) billFormCard.style.display = 'block';
-            }
-        });
-    }
 
     // --- GESTIONE MEMBRI (ADMIN) ---
     const btnAddMember = document.getElementById('btn-add-member');
@@ -487,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.cancelEditMember = function() {
-        editingManagerId = null;
+        editingMemberId = null;
         newMemberName.value = '';
         newMemberEmail.value = '';
         newMemberPass.value = '';
