@@ -6,10 +6,6 @@
     <title>Portale Famiglia</title>
     <!-- Foglio di stile principale -->
     <link rel="stylesheet" href="style.css">
-    <!-- Firebase SDK (compatibile o moduli CDN) -->
-    <script type="module">
-        // Importa Firebase e configura la tua app qui o nel file JS
-    </script>
     <!-- Tesseract.js per OCR -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@v5/dist/tesseract.min.js"></script>
 </head>
@@ -184,7 +180,7 @@
         </main>
     </div>
 
-    <!-- Script JavaScript principale -->
-    <script src="script.js"></script>
+    <!-- Script JavaScript principale (caricato come modulo per Firebase) -->
+    <script type="module" src="script.js"></script>
 </body>
 </html>
