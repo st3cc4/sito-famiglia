@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebarMenuLi = document.querySelectorAll('.sidebar-menu li');
 
-    // Toggle sidebar corretto (aggiunge/rimuove la classe collapsed sul contenitore principale o sidebar)
+    // Toggle sidebar avanzato per gestire la classe di chiusura su tutta la schermata
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', () => {
             if (sidebar) {
@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!name || !email || !password) {
-                alert('Compila nome, email e password per il membro.');
+                alert('Compila nome, email e password per el membro.');
                 return;
             }
 
