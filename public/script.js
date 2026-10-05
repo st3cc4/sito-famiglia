@@ -45,14 +45,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebarMenuLi = document.querySelectorAll('.sidebar-menu li');
 
-    // Toggle sidebar avanzato per gestire la classe di chiusura su tutta la schermata
+    // Toggle sidebar
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', () => {
             if (sidebar) {
                 sidebar.classList.toggle('collapsed');
-            }
-            if (appContainer) {
-                appContainer.classList.toggle('sidebar-collapsed');
             }
         });
     }
@@ -75,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        const activeLiSpan = document.querySelector(`.sidebar-menu li[data-target="${targetId}"] span`);
+        const activeLiSpan = document.querySelector(`.sidebar-menu li[data-target="${targetId}"] span.text`);
         if (activeLiSpan) {
             pageTitle.textContent = activeLiSpan.textContent;
         } else if (targetId === 'section-overview') {
@@ -341,6 +338,49 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // OCR Tesseract per bollette
+    const billOcrInput = document.getElementById('bill-ocr-input');
+    const ocrStatus = document.getElementById('ocr-status');
+
+    if (billOcrInput) {
+        billOcrInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (ocrStatus) ocrStatus.textContent = 'Analisi immagine in corso con OCR...';
+
+            try {
+                const result = await Tesseract.recognize(file, 'ita', {
+                    logger: m => {
+                        if (m.status === 'recognizing text' && ocrStatus) {
+                            ocrStatus.textContent = `Estrazione testo: ${Math.round(m.progress * 100)}%`;
+                        }
+                    }
+                });
+
+                const text = result.data.text;
+                if (ocrStatus) ocrStatus.textContent = 'Elaborazione completata!';
+
+                const amountMatch = text.match(/(?:totale|eur|€)\s*[:\.]?\s*([0-9]+[,\.][0-9]{2})/i) || text.match(/([0-9]+[,\.][0-9]{2})/);
+                if (amountMatch && billAmount) {
+                    billAmount.value = amountMatch[1].replace(',', '.');
+                }
+
+                const dateMatch = text.match(/([0-9]{2}[\/\-][0-9]{2}[\/\-][0-9]{4})/);
+                if (dateMatch && billDate) {
+                    const parts = dateMatch[1].split(/[\/\-]/);
+                    billDate.value = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
+
+                if (billFormCard) billFormCard.style.display = 'block';
+            } catch (err) {
+                console.error(err);
+                if (ocrStatus) ocrStatus.textContent = 'Errore durante l\'OCR. Inserisci i dati manualmente.';
+                if (billFormCard) billFormCard.style.display = 'block';
+            }
+        });
+    }
+
     // --- GESTIONE MEMBRI (ADMIN) ---
     const btnAddMember = document.getElementById('btn-add-member');
     const newMemberName = document.getElementById('new-member-name');
@@ -363,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!name || !email || !password) {
-                alert('Compila nome, email e password per el membro.');
+                alert('Compila nome, email e password per il membro.');
                 return;
             }
 
