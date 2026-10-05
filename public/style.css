@@ -371,6 +371,28 @@ body {
     color: #d93025;
 }
 
+/* Gestione Colori Scadenze */
+.color-red { 
+    color: #d93025; 
+    font-weight: bold; 
+}
+
+.color-orange { 
+    color: #fa7921; 
+    font-weight: bold; 
+}
+
+.color-green { 
+    color: #137333; 
+}
+
+.summary-item { 
+    display: flex; 
+    justify-content: space-between; 
+    margin-bottom: 6px; 
+    font-size: 14px; 
+}
+
 /* Barra superiore delle schermate interne */
 .screen-header-bar {
     display: flex;
