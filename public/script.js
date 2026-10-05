@@ -37,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const rememberMeCheckbox = document.getElementById('remember-me');
     const errorMessage = document.getElementById('error-message');
     const currentUserBadge = document.getElementById('current-user-badge');
-    const welcomeTitle = document.getElementById('welcome-title');
     const pageTitle = document.getElementById('page-title');
     const menuAdmin = document.getElementById('menu-admin');
     
@@ -45,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebarMenuLi = document.querySelectorAll('.sidebar-menu li');
 
-    // Toggle sidebar
+    // Toggle sidebar ora gestito direttamente dalla barra superiore
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', () => {
             if (sidebar) {
@@ -159,7 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
         authOverlay.style.display = 'none';
         appContainer.style.display = 'flex';
         currentUserBadge.textContent = `Utente: ${userObj.name || userObj.email}`;
-        welcomeTitle.textContent = `Ciao, ${userObj.name || 'Famiglia'}!`;
 
         if (userObj.role === 'Admin') {
             if (menuAdmin) menuAdmin.style.display = 'flex';
@@ -485,7 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('admin-form-title').textContent = 'Modifica Membro';
         btnAddMember.textContent = 'Aggiorna Membro';
         document.getElementById('btn-cancel-edit').style.display = 'inline-block';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: 'smooth'});
     };
 
     window.cancelEditMember = function() {
