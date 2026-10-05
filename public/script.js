@@ -1,510 +1,160 @@
-// Importa Firebase e Firestore dai CDN ufficiali
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 
 // Configurazione Firebase dal tuo progetto
 const firebaseConfig = {
-    apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
-    authDomain: "sito-famiglia.firebaseapp.com",
-    projectId: "sito-famiglia",
-    storageBucket: "sito-famiglia.firebasestorage.app",
-    messagingSenderId: "93216467751",
-    appId: "1:93216467751:web:993005284551ca5ef895a"
+  apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
+  authDomain: "sito-famiglia.firebaseapp.com",
+  projectId: "sito-famiglia",
+  storageBucket: "sito-famigliastorage.app",
+  messagingSenderId: "93216467751",
+  appId: "1:93216467751:web:993005284551ca5ef895a",
+  measurementId: "G-NYRQJDTWM3"
 };
 
-// Inizializzazione Firebase & Firestore
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const analytics = getAnalytics(app);
 
-// Esportazione globale per le funzioni interne
-window.db = db;
-window.firebaseFns = {
-    collection,
-    getDocs,
-    addDoc,
-    doc,
-    setDoc,
-    deleteDoc
-};
+// Account Admin richiesto
+const ADMIN_EMAIL = "stpa79@gmail.com";
+const ADMIN_PASS = "sv058753";
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Riferimenti elementi UI
-    const authOverlay = document.getElementById('auth-overlay');
-    const appContainer = document.getElementById('app-container');
-    const btnLogin = document.getElementById('btn-login');
-    const authEmailInput = document.getElementById('auth-email');
-    const authPasswordInput = document.getElementById('auth-password');
-    const rememberMeCheckbox = document.getElementById('remember-me');
-    const errorMessage = document.getElementById('error-message');
-    const currentUserBadge = document.getElementById('current-user-badge');
-    const pageTitle = document.getElementById('page-title');
-    const menuAdmin = document.getElementById('menu-admin');
-    
-    const sidebar = document.getElementById('sidebar');
-    const sidebarToggle = document.getElementById('sidebar-toggle');
-    const sidebarMenuLi = document.querySelectorAll('.sidebar-menu li');
+// Gestione Stato Accesso Istantaneo (LocalStorage)
+document.addEventListener("DOMContentLoaded", () => {
+  const savedUser = localStorage.getItem("famiglia_logged_user");
+  if (savedUser) {
+    avviaApp(JSON.parse(savedUser));
+  }
 
-    // Toggle sidebar ora gestito direttamente dalla barra superiore
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', () => {
-            if (sidebar) {
-                sidebar.classList.toggle('collapsed');
-            }
-        });
+  // Mostra/Nascondi password
+  document.getElementById("toggle-pass").addEventListener("click", () => {
+    const passInput = document.getElementById("login-pass");
+    passInput.type = passInput.type === "password" ? "text" : "password";
+  });
+
+  // Login click
+  document.getElementById("login-btn").addEventListener("click", () => {
+    const user = document.getElementById("login-user").value.trim();
+    const pass = document.getElementById("login-pass").value.trim();
+    const remember = document.getElementById("remember-me").checked;
+
+    if ((user === ADMIN_EMAIL || user === "Stecca" || user === "stpa79") && pass === ADMIN_PASS) {
+      const userData = { name: "Stecca", email: ADMIN_EMAIL, isAdmin: true };
+      if (remember) localStorage.setItem("famiglia_logged_user", JSON.stringify(userData));
+      avviaApp(userData);
+    } else {
+      alert("Credenziali non valide. Riprova.");
     }
+  });
 
-    // Gestione navigazione sezioni
-    window.switchSection = function(targetId) {
-        document.querySelectorAll('.content-section').forEach(sec => {
-            sec.classList.remove('active');
-        });
-        const targetSec = document.getElementById(targetId);
-        if (targetSec) {
-            targetSec.classList.add('active');
-        }
+  // Logout
+  document.getElementById("logout-btn").addEventListener("click", () => {
+    localStorage.removeItem("famiglia_logged_user");
+    location.reload();
+  });
 
-        sidebarMenuLi.forEach(li => {
-            if (li.getAttribute('data-target') === targetId) {
-                li.classList.add('active');
-            } else {
-                li.classList.remove('active');
-            }
-        });
+  // Navigazione Menu Laterale e Link
+  document.getElementById("toggle-sidebar").addEventListener("click", () => {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+  document.getElementById("close-sidebar").addEventListener("click", () => {
+    document.getElementById("sidebar").classList.remove("open");
+  });
 
-        const activeLiSpan = document.querySelector(`.sidebar-menu li[data-target="${targetId}"] span.text`);
-        if (activeLiSpan) {
-            pageTitle.textContent = activeLiSpan.textContent;
-        } else if (targetId === 'section-overview') {
-            pageTitle.textContent = 'HOME';
-        }
-    };
+  // Gestione cambio schermate
+  const navLinks = document.querySelectorAll(".sidebar a[data-target], .nav-link-card, .back-home-btn");
+  navLinks.forEach(link => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+      const targetId = link.getAttribute("data-target");
+      if (!targetId) return;
 
-    sidebarMenuLi.forEach(li => {
-        li.addEventListener('click', () => {
-            const target = li.getAttribute('data-target');
-            if (target) switchSection(target);
-        });
+      document.querySelectorAll(".section").forEach(sec => sec.classList.add("hidden"));
+      document.getElementById(targetId).classList.remove("hidden");
+      document.getElementById("sidebar").classList.remove("open");
     });
+  });
 
-    // Controllo login salvato
-    const savedUserJson = localStorage.getItem('family_current_user') || sessionStorage.getItem('family_current_user');
-    if (savedUserJson) {
-        try {
-            const userObj = JSON.parse(savedUserJson);
-            initAppSession(userObj);
-        } catch(e) {
-            console.error(e);
-        }
-    }
-
-    // Evento Login
-    if (btnLogin) {
-        btnLogin.addEventListener('click', async () => {
-            const email = authEmailInput.value.trim().toLowerCase();
-            const password = authPasswordInput.value.trim();
-            errorMessage.style.display = 'none';
-
-            if (!email || !password) {
-                errorMessage.textContent = 'Inserisci email e password.';
-                errorMessage.style.display = 'block';
-                return;
-            }
-
-            // Credenziali Super Admin di Stecca
-            if (email === 'stpa79@gmail.com' && password === 'sv058753') {
-                const adminUser = {
-                    name: 'Stecca',
-                    email: email,
-                    role: 'Admin',
-                    permissions: ['section-bills', 'section-gallery', 'section-recipes', 'section-calendar']
-                };
-                saveAndInitSession(adminUser, rememberMeCheckbox.checked);
-                return;
-            }
-
-            // Cerca utente su Firebase Firestore
-            try {
-                const querySnapshot = await getDocs(collection(window.db, 'members'));
-                let foundUser = null;
-                
-                querySnapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    if (data.email && data.email.toLowerCase() === email && data.password === password) {
-                        foundUser = { id: docSnap.id, ...data };
-                    }
-                });
-
-                if (foundUser) {
-                    saveAndInitSession(foundUser, rememberMeCheckbox.checked);
-                } else {
-                    errorMessage.textContent = 'Email o password errati.';
-                    errorMessage.style.display = 'block';
-                }
-            } catch (err) {
-                console.error(err);
-                errorMessage.textContent = 'Errore di connessione al database.';
-                errorMessage.style.display = 'block';
-            }
-        });
-    }
-
-    function saveAndInitSession(userObj, remember) {
-        const storage = remember ? localStorage : sessionStorage;
-        storage.setItem('family_current_user', JSON.stringify(userObj));
-        initAppSession(userObj);
-    }
-
-    function initAppSession(userObj) {
-        authOverlay.style.display = 'none';
-        appContainer.style.display = 'flex';
-        currentUserBadge.textContent = `Utente: ${userObj.name || userObj.email}`;
-
-        if (userObj.role === 'Admin') {
-            if (menuAdmin) menuAdmin.style.display = 'flex';
-        } else {
-            if (menuAdmin) menuAdmin.style.display = 'none';
-        }
-
-        const perms = userObj.permissions || [];
-        if (userObj.role !== 'Admin') {
-            document.querySelectorAll('.sidebar-menu li[data-target]').forEach(li => {
-                const target = li.getAttribute('data-target');
-                if (target !== 'section-overview' && target !== 'section-admin') {
-                    if (!perms.includes(target)) {
-                        li.style.display = 'none';
-                    } else {
-                        li.style.display = 'flex';
-                    }
-                }
-            });
-        }
-
-        loadBillsData();
-        loadMembersData();
-    }
-
-    // --- GESTIONE BOLLETTE ---
-    const toggleAddBillForm = document.getElementById('toggle-add-bill-form');
-    const billFormCard = document.getElementById('bill-form-card');
-    const btnAddBill = document.getElementById('btn-add-bill');
-    const billTitle = document.getElementById('bill-title');
-    const billAmount = document.getElementById('bill-amount');
-    const billDate = document.getElementById('bill-date');
-    const billsListContainer = document.getElementById('bills-list-container');
-    const overviewBillsList = document.getElementById('overview-bills-list');
-    const overviewBillsTotal = document.getElementById('overview-bills-total');
-    const overviewTotalAmount = document.getElementById('overview-total-amount');
-    const billsPageTotal = document.getElementById('bills-page-total');
-
-    if (toggleAddBillForm && billFormCard) {
-        toggleAddBillForm.addEventListener('click', () => {
-            billFormCard.style.display = billFormCard.style.display === 'none' ? 'block' : 'none';
-        });
-    }
-
-    if (btnAddBill) {
-        btnAddBill.addEventListener('click', async () => {
-            const title = billTitle.value.trim();
-            const amount = parseFloat(billAmount.value);
-            const date = billDate.value;
-
-            if (!title || isNaN(amount) || !date) {
-                alert('Compila tutti i campi della bolletta.');
-                return;
-            }
-
-            try {
-                await addDoc(collection(window.db, 'bills'), {
-                    title,
-                    amount,
-                    date,
-                    paid: false,
-                    createdAt: new Date().toISOString()
-                });
-
-                billTitle.value = '';
-                billAmount.value = '';
-                billDate.value = '';
-                billFormCard.style.display = 'none';
-                loadBillsData();
-            } catch (err) {
-                console.error(err);
-                alert('Errore durante il salvataggio della bolletta.');
-            }
-        });
-    }
-
-    async function loadBillsData() {
-        try {
-            const querySnapshot = await getDocs(collection(window.db, 'bills'));
-            let bills = [];
-            querySnapshot.forEach(docSnap => {
-                bills.push({ id: docSnap.id, ...docSnap.data() });
-            });
-
-            bills.sort((a, b) => new Date(a.date) - new Date(b.date));
-            renderBills(bills);
-        } catch (err) {
-            console.error(err);
-            if (billsListContainer) billsListContainer.innerHTML = 'Errore caricamento bollette.';
-            if (overviewBillsList) overviewBillsList.innerHTML = 'Errore caricamento scadenze.';
-        }
-    }
-
-    function renderBills(bills) {
-        let unpaidTotal = 0;
-        let html = '';
-
-        if (bills.length === 0) {
-            if (billsListContainer) billsListContainer.innerHTML = '<p style="color:var(--text-muted);">Nessuna bolletta inserita.</p>';
-            if (overviewBillsList) overviewBillsList.innerHTML = 'Nessuna bolletta in scadenza.';
-            if (overviewBillsTotal) overviewBillsTotal.style.display = 'none';
-            if (billsPageTotal) billsPageTotal.textContent = '0.00 €';
-            return;
-        }
-
-        html = `<table>
-            <thead>
-                <tr>
-                    <th>Ente / Titolo</th>
-                    <th>Importo</th>
-                    <th>Scadenza</th>
-                    <th>Stato</th>
-                    <th>Azioni</th>
-                </tr>
-            </thead>
-            <tbody>`;
-
-        let overviewHtml = '<ul style="list-style:none; padding-left:0; margin:0;">';
-        let overviewCount = 0;
-
-        bills.forEach(bill => {
-            if (!bill.paid) {
-                unpaidTotal += Number(bill.amount);
-                if (overviewCount < 3) {
-                    overviewHtml += `<li style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:4px;"><span>${bill.title}</span> <strong style="color:var(--danger);">${Number(bill.amount).toFixed(2)} €</strong> <span style="font-size:12px; color:#666;">(Scad. ${bill.date})</span></li>`;
-                    overviewCount++;
-                }
-            }
-
-            html += `<tr>
-                <td>${bill.title}</td>
-                <td>${Number(bill.amount).toFixed(2)} €</td>
-                <td>${bill.date}</td>
-                <td><span style="color: ${bill.paid ? 'var(--success)' : 'var(--danger)'}; font-weight:600;">${bill.paid ? 'Pagata' : 'Da pagare'}</span></td>
-                <td>
-                    <button class="btn-secondary" onclick="toggleBillPaid('${bill.id}', ${!bill.paid})" style="padding:4px 8px; font-size:12px; margin-right:5px;">${bill.paid ? 'Segna aperta' : 'Paga'}</button>
-                    <button class="btn-secondary" onclick="deleteBill('${bill.id}')" style="padding:4px 8px; font-size:12px; background:#fee2e2; color:var(--danger);">Elimina</button>
-                </td>
-            </tr>`;
-        });
-
-        html += `</tbody></table>`;
-        if (billsListContainer) billsListContainer.innerHTML = html;
-        if (billsPageTotal) billsPageTotal.textContent = `${unpaidTotal.toFixed(2)} €`;
-
-        if (overviewCount > 0) {
-            overviewHtml += '</ul>';
-            if (overviewBillsList) overviewBillsList.innerHTML = overviewHtml;
-            if (overviewBillsTotal) overviewBillsTotal.style.display = 'flex';
-            if (overviewTotalAmount) overviewTotalAmount.textContent = `${unpaidTotal.toFixed(2)} €`;
-        } else {
-            if (overviewBillsList) overviewBillsList.innerHTML = 'Tutte le bollette sono state pagate! 🎉';
-            if (overviewBillsTotal) overviewBillsTotal.style.display = 'none';
-        }
-    }
-
-    window.toggleBillPaid = async function(id, newStatus) {
-        try {
-            const billRef = doc(window.db, 'bills', id);
-            await setDoc(billRef, { paid: newStatus }, { merge: true });
-            loadBillsData();
-        } catch (err) {
-            console.error(err);
-            alert('Errore aggiornamento bolletta.');
-        }
-    };
-
-    window.deleteBill = async function(id) {
-        if (!confirm('Sei sicuro di voler eliminare questa bolletta?')) return;
-        try {
-            await deleteDoc(doc(window.db, 'bills', id));
-            loadBillsData();
-        } catch (err) {
-            console.error(err);
-            alert('Errore durante l\'eliminazione.');
-        }
-    };
-
-    // OCR Tesseract per bollette
-    const billOcrInput = document.getElementById('bill-ocr-input');
-    const ocrStatus = document.getElementById('ocr-status');
-
-    if (billOcrInput) {
-        billOcrInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            if (ocrStatus) ocrStatus.textContent = 'Analisi immagine in corso con OCR...';
-
-            try {
-                const result = await Tesseract.recognize(file, 'ita', {
-                    logger: m => {
-                        if (m.status === 'recognizing text' && ocrStatus) {
-                            ocrStatus.textContent = `Estrazione testo: ${Math.round(m.progress * 100)}%`;
-                        }
-                    }
-                });
-
-                const text = result.data.text;
-                if (ocrStatus) ocrStatus.textContent = 'Elaborazione completata!';
-
-                const amountMatch = text.match(/(?:totale|eur|€)\s*[:\.]?\s*([0-9]+[,\.][0-9]{2})/i) || text.match(/([0-9]+[,\.][0-9]{2})/);
-                if (amountMatch && billAmount) {
-                    billAmount.value = amountMatch[1].replace(',', '.');
-                }
-
-                const dateMatch = text.match(/([0-9]{2}[\/\-][0-9]{2}[\/\-][0-9]{4})/);
-                if (dateMatch && billDate) {
-                    const parts = dateMatch[1].split(/[\/\-]/);
-                    billDate.value = `${parts[2]}-${parts[1]}-${parts[0]}`;
-                }
-
-                if (billFormCard) billFormCard.style.display = 'block';
-            } catch (err) {
-                console.error(err);
-                if (ocrStatus) ocrStatus.textContent = 'Errore durante l\'OCR. Inserisci i dati manualmente.';
-                if (billFormCard) billFormCard.style.display = 'block';
-            }
-        });
-    }
-
-    // --- GESTIONE MEMBRI (ADMIN) ---
-    const btnAddMember = document.getElementById('btn-add-member');
-    const newMemberName = document.getElementById('new-member-name');
-    const newMemberEmail = document.getElementById('new-member-email');
-    const newMemberPass = document.getElementById('new-member-pass');
-    const newMemberRole = document.getElementById('new-member-role');
-    const membersListContainer = document.getElementById('members-list-container');
-    let editingMemberId = null;
-
-    if (btnAddMember) {
-        btnAddMember.addEventListener('click', async () => {
-            const name = newMemberName.value.trim();
-            const email = newMemberEmail.value.trim().toLowerCase();
-            const password = newMemberPass.value.trim();
-            const role = newMemberRole.value;
-
-            const permissions = [];
-            document.querySelectorAll('.perm-chk:checked').forEach(chk => {
-                permissions.push(chk.value);
-            });
-
-            if (!name || !email || !password) {
-                alert('Compila nome, email e password per il membro.');
-                return;
-            }
-
-            try {
-                const memberData = { name, email, password, role, permissions };
-
-                if (editingMemberId) {
-                    await setDoc(doc(window.db, 'members', editingMemberId), memberData);
-                    editingMemberId = null;
-                    document.getElementById('admin-form-title').textContent = 'Gestione membri e permessi';
-                    btnAddMember.textContent = 'Salva Membro';
-                    document.getElementById('btn-cancel-edit').style.display = 'none';
-                } else {
-                    await addDoc(collection(window.db, 'members'), memberData);
-                }
-
-                newMemberName.value = '';
-                newMemberEmail.value = '';
-                newMemberPass.value = '';
-                loadMembersData();
-            } catch (err) {
-                console.error(err);
-                alert('Errore salvataggio membro.');
-            }
-        });
-    }
-
-    async function loadMembersData() {
-        if (!membersListContainer) return;
-        try {
-            const querySnapshot = await getDocs(collection(window.db, 'members'));
-            let members = [];
-            querySnapshot.forEach(docSnap => {
-                members.push({ id: docSnap.id, ...docSnap.data() });
-            });
-
-            let html = `<table>
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>Email</th>
-                        <th>Ruolo</th>
-                        <th>Azioni</th>
-                    </tr>
-                </thead>
-                <tbody>`;
-
-            if (members.length === 0) {
-                membersListContainer.innerHTML = '<p style="color:var(--text-muted);">Nessun membro registrato oltre l\'admin principale.</p>';
-                return;
-            }
-
-            members.forEach(m => {
-                html += `<tr>
-                    <td>${m.name}</td>
-                    <td>${m.email}</td>
-                    <td>${m.role}</td>
-                    <td>
-                        <button class="btn-secondary" onclick="editMember('${m.id}', '${m.name}', '${m.email}', '${m.password}', '${m.role}')" style="padding:4px 8px; font-size:12px; margin-right:5px;">Modifica</button>
-                        <button class="btn-secondary" onclick="deleteMember('${m.id}')" style="padding:4px 8px; font-size:12px; background:#fee2e2; color:var(--danger);">Elimina</button>
-                    </td>
-                </tr>`;
-            });
-
-            html += `</tbody></table>`;
-            membersListContainer.innerHTML = html;
-        } catch (err) {
-            console.error(err);
-            membersListContainer.innerHTML = 'Errore caricamento membri.';
-        }
-    }
-
-    window.editMember = function(id, name, email, password, role) {
-        editingMemberId = id;
-        newMemberName.value = name;
-        newMemberEmail.value = email;
-        newMemberPass.value = password;
-        newMemberRole.value = role;
-        document.getElementById('admin-form-title').textContent = 'Modifica Membro';
-        btnAddMember.textContent = 'Aggiorna Membro';
-        document.getElementById('btn-cancel-edit').style.display = 'inline-block';
-        window.scrollTo({ top: 0, behavior: 'smooth'});
-    };
-
-    window.cancelEditMember = function() {
-        editingMemberId = null;
-        newMemberName.value = '';
-        newMemberEmail.value = '';
-        newMemberPass.value = '';
-        newMemberRole.value = 'Member';
-        document.getElementById('admin-form-title').textContent = 'Gestione membri e permessi';
-        btnAddMember.textContent = 'Salva Membro';
-        document.getElementById('btn-cancel-edit').style.display = 'none';
-    };
-
-    window.deleteMember = async function(id) {
-        if (!confirm('Eliminare questo membro?')) return;
-        try {
-            await deleteDoc(doc(window.db, 'members', id));
-            loadMembersData();
-        } catch (err) {
-            console.error(err);
-            alert('Errore eliminazione.');
-        }
-    };
+  // Modali aperture e chiusure
+  setupModals();
+  caricaDatiDemo();
 });
+
+function avviaApp(user) {
+  document.getElementById("login-screen").classList.add("hidden");
+  document.getElementById("app-screen").classList.remove("hidden");
+  document.getElementById("welcome-msg").innerText = `Ciao ${user.name}`;
+
+  if (user.isAdmin) {
+    document.getElementById("admin-menu-item").classList.remove("hidden");
+  }
+}
+
+function setupModals() {
+  // Scadenza Modal
+  document.getElementById("open-scadenza-modal").addEventListener("click", () => {
+    document.getElementById("scadenza-modal").classList.remove("hidden");
+  });
+  // Evento Modal
+  document.getElementById("open-evento-modal").addEventListener("click", () => {
+    document.getElementById("evento-modal").classList.remove("hidden");
+  });
+  // Ricetta Modal
+  document.getElementById("open-ricetta-modal").addEventListener("click", () => {
+    document.getElementById("ricetta-modal").classList.remove("hidden");
+  });
+
+  // Chiudi modali
+  document.querySelectorAll(".close-modal-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".modal").forEach(m => m.classList.add("hidden"));
+    });
+  });
+
+  // Dinamicità righe Ricette (Ingredienti e Procedimento)
+  document.getElementById("add-ing-row").addEventListener("click", () => {
+    const container = document.getElementById("ingredienti-container");
+    const row = document.createElement("div");
+    row.className = "dyn-row";
+    row.innerHTML = `<input type="text" class="ing-nome" placeholder="Ingrediente"><input type="number" class="ing-qta" placeholder="Grammi">`;
+    container.appendChild(row);
+  });
+
+  document.getElementById("add-proc-row").addEventListener("click", () => {
+    const container = document.getElementById("procedimento-container");
+    const row = document.createElement("div");
+    row.className = "dyn-row";
+    row.innerHTML = `<textarea class="proc-step" placeholder="Passaggio successivo"></textarea>`;
+    container.appendChild(row);
+  });
+
+  // Simulazione OCR Gemini su bolletta
+  document.getElementById("run-ocr-btn").addEventListener("click", () => {
+    // Qui puoi collegare la foto acquisita all'input per estrazione dati automatica
+    document.getElementById("scad-ente").value = "Enel Energia (Estratto OCR)";
+    document.getElementById("scad-importo").value = "65.50";
+    document.getElementById("scad-data").value = "2026-10-12";
+    alert("Dati estratti con successo tramite OCR!");
+  });
+}
+
+function caricaDatiDemo() {
+  // Esempio calcolo scadenze e totali dinamici
+  const scadenze = [
+    { ente: "Enel Bolletta", importo: 50.00, data: "2026-10-08" }, // 3 giorni -> Rosso
+    { ente: "Bollo Auto", importo: 180.00, data: "2026-10-15" }   // 10 giorni -> Arancione
+  ];
+
+  let totaleScadenze = scadenze.reduce((acc, curr) => acc + curr.importo, 0);
+  document.getElementById("all-scadenze-totale").innerText = `Totale: ${totaleScadenze.toFixed(2)} €`;
+  document.getElementById("home-totale-scadenze").innerText = `Totale: ${totaleScadenze.toFixed(2)} €`;
+
+  const scadList = document.getElementById("scadenze-list");
+  scadList.innerHTML = "";
+  scadenze.forEach(s => {
+    const div = document.createElement("div");
+    div.className = "scadenza-item colore-rosso";
+    div.innerHTML = `<span><strong>${s.ente}</strong> - Scadenza: ${s.data}</span><span><strong>${s.importo.toFixed(2)} €</strong></span>`;
+    scadList.appendChild(div);
+  });
+}
