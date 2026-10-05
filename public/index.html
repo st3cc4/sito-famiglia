@@ -1,248 +1,325 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PWA Famiglia</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family PWA - Home</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Icone FontAwesome per il menu e i pulsanti -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Manifest per rendere la pagina una PWA installabile -->
+    <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
-  <!-- SCHERMATA LOGIN -->
-  <div id="login-screen" class="screen active">
-    <div class="login-container">
-      <h2>Benvenuto</h2>
-      <div class="input-group">
-        <label>Username o email</label>
-        <input type="text" id="login-user" placeholder="">
-      </div>
-      <div class="input-group password-group">
-        <label>Password</label>
-        <div class="password-wrapper">
-          <input type="password" id="login-pass">
-          <button type="button" id="toggle-pass" class="eye-btn">&#128065;</button>
+    <!-- SCHERMATA DI LOGIN -->
+    <div id="login-screen" class="login-container">
+        <div class="login-box">
+            <h2>Accedi alla Famiglia</h2>
+            <div class="input-group">
+                <label for="login-email">Username o email</label>
+                <input type="text" id="login-email" placeholder="Inserisci username o email">
+            </div>
+            <div class="input-group password-group">
+                <label for="login-password">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="login-password" placeholder="Password">
+                    <i class="fa-solid fa-eye-slash" id="toggle-password"></i>
+                </div>
+            </div>
+            <div class="remember-group">
+                <input type="checkbox" id="remember-me" checked>
+                <label for="remember-me">Ricordami</label>
+            </div>
+            <button id="login-btn" class="primary-btn">Accedi</button>
         </div>
-      </div>
-      <div class="checkbox-group">
-        <input type="checkbox" id="remember-me" checked>
-        <label for="remember-me">Ricordami</label>
-      </div>
-      <button id="login-btn" class="primary-btn">Accedi</button>
     </div>
-  </div>
 
-  <!-- APP PRINCIPALE -->
-  <div id="app-screen" class="app-layout hidden">
-    
-    <!-- MENU LATERALE A SCOMPARSA -->
-    <nav id="sidebar" class="sidebar">
-      <button id="close-sidebar" class="close-sidebar-btn">&times;</button>
-      <h3>Menù</h3>
-      <ul>
-        <li><a href="#" data-target="home-section">HOME</a></li>
-        <li><a href="#" data-target="scadenze-section">Scadenze</a></li>
-        <li><a href="#" data-target="eventi-section">Eventi</a></li>
-        <li><a href="#" data-target="media-section">Media</a></li>
-        <li><a href="#" data-target="ricette-section">Ricette</a></li>
-        <li id="admin-menu-item" class="hidden"><a href="#" data-target="admin-section">Admin</a></li>
-        <li><a href="#" id="logout-btn">Esci</a></li>
-      </ul>
-    </nav>
+    <!-- STRUTTURA PRINCIPALE DELL'APP (nascosta finché non si fa il login) -->
+    <div id="app-container" class="app-container hidden">
+        
+        <!-- HEADER SUPERIORE -->
+        <header class="app-header">
+            <button id="menu-toggle" class="icon-btn"><i class="fa-solid fa-bars"></i></button>
+            <h1 id="page-title">HOME</h1>
+            <div class="header-right">
+                <a href="https://gemini.google.com" target="_blank" class="chat-link" title="Parla con Gemini"><i class="fa-solid fa-wand-magic-sparkles"></i></a>
+            </div>
+        </header>
 
-    <!-- CONTENUTO PRINCIPALE -->
-    <main class="main-content">
-      <header class="top-bar">
-        <button id="toggle-sidebar" class="menu-btn">&#9776;</button>
-        <div class="top-right-links">
-          <a href="https://gemini.google.com" target="_blank" class="gemini-link">Parla con Gemini</a>
+        <!-- MENU LATERALE A SCOMPARSA -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Menu Famiglia</h3>
+                <button id="sidebar-close" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <ul class="sidebar-menu">
+                <li onclick="switchScreen('home')"><i class="fa-solid fa-house"></i> Home</li>
+                <li onclick="switchScreen('scadenze')"><i class="fa-solid fa-file-invoice-dollar"></i> Scadenze</li>
+                <li onclick="switchScreen('eventi')"><i class="fa-solid fa-calendar-days"></i> Eventi</li>
+                <li onclick="switchScreen('media')"><i class="fa-solid fa-photo-film"></i> Media</li>
+                <li onclick="switchScreen('ricette')"><i class="fa-solid fa-utensils"></i> Ricette</li>
+                <li id="admin-menu-item" class="hidden" onclick="switchScreen('admin')"><i class="fa-solid fa-shield-halved"></i> Admin</li>
+                <li onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Esci</li>
+            </ul>
+        </nav>
+
+        <!-- CONTENUTO PRINCIPALE / SCHERMATE -->
+        <main class="main-content">
+
+            <!-- 1. HOME -->
+            <section id="screen-home" class="screen">
+                <div class="welcome-banner">
+                    <h2 id="welcome-user">Ciao Utente</h2>
+                    <button class="home-return-btn hidden" onclick="switchScreen('home')">Torna alla HOME</button>
+                </div>
+
+                <div class="cards-grid-vertical">
+                    <!-- Scheda Scadenze -->
+                    <div class="card" onclick="switchScreen('scadenze')">
+                        <div class="card-header">
+                            <h3>Scadenze</h3>
+                            <a href="#" onclick="switchScreen('scadenze'); event.stopPropagation();">Visualizza tutte</a>
+                        </div>
+                        <div id="home-scadenze-summary" class="card-body">
+                            <p>Caricamento scadenze...</p>
+                        </div>
+                        <div class="card-footer-right">
+                            Totale da pagare: <span id="home-total-scadenze">0.00 €</span>
+                        </div>
+                    </div>
+
+                    <!-- Scheda Appuntamenti -->
+                    <div class="card" onclick="switchScreen('eventi')">
+                        <div class="card-header">
+                            <h3>Appuntamenti della settimana</h3>
+                            <a href="#" onclick="switchScreen('eventi'); event.stopPropagation();">Visualizza tutti</a>
+                        </div>
+                        <div id="home-eventi-summary" class="card-body">
+                            <p>Nessun appuntamento questa settimana.</p>
+                        </div>
+                    </div>
+
+                    <!-- Scheda Media -->
+                    <div class="card" onclick="switchScreen('media')">
+                        <div class="card-header">
+                            <h3>Ultime Foto / Video</h3>
+                            <a href="#" onclick="switchScreen('media'); event.stopPropagation();">Visualizza tutti</a>
+                        </div>
+                        <div id="home-media-summary" class="card-body media-grid-mini">
+                            <p>Nessun elemento multimediale.</p>
+                        </div>
+                    </div>
+
+                    <!-- Scheda Ricette -->
+                    <div class="card" onclick="switchScreen('ricette')">
+                        <div class="card-header">
+                            <h3>Ricette più apprezzate</h3>
+                            <a href="#" onclick="switchScreen('ricette'); event.stopPropagation();">Visualizza tutte</a>
+                        </div>
+                        <div id="home-ricette-summary" class="card-body">
+                            <p>Nessuna ricetta disponibile.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. SCADENZE -->
+            <section id="screen-scadenze" class="screen hidden">
+                <div class="screen-header-actions">
+                    <button class="secondary-btn" onclick="switchScreen('home')">Torna alla HOME</button>
+                    <div class="total-badge">Totale Scadenze: <span id="global-total-scadenze">0.00 €</span></div>
+                    <button class="primary-btn" onclick="openModal('modal-scadenza')">Nuova scadenza</button>
+                </div>
+                <h2>Gestione Scadenze</h2>
+                <div id="scadenze-list" class="list-container">
+                    <!-- Elementi popolati via script -->
+                </div>
+            </section>
+
+            <!-- 3. EVENTI -->
+            <section id="screen-eventi" class="screen hidden">
+                <div class="screen-header-actions">
+                    <button class="secondary-btn" onclick="switchScreen('home')">Torna alla HOME</button>
+                    <div>
+                        <button class="danger-btn" onclick="deleteSelectedEvents()">Cancella selezionati</button>
+                        <button class="primary-btn" onclick="openModal('modal-evento')">Aggiungi evento</button>
+                    </div>
+                </div>
+                <h2>Calendario Eventi</h2>
+                <div id="eventi-list" class="list-container">
+                    <!-- Elementi popolati via script -->
+                </div>
+            </section>
+
+            <!-- 4. MEDIA -->
+            <section id="screen-media" class="screen hidden">
+                <div class="screen-header-actions">
+                    <button class="secondary-btn" onclick="switchScreen('home')">Torna alla HOME</button>
+                    <div>
+                        <button class="danger-btn" onclick="deleteSelectedMedia()">Cancellare selezionati</button>
+                        <button class="secondary-btn" onclick="downloadSelectedMedia()">Scarica</button>
+                        <label class="primary-btn file-upload-label">
+                            Importa foto/video <input type="file" id="media-file-input" multiple accept="image/*,video/*" hidden onchange="handleMediaUpload(event)">
+                        </label>
+                    </div>
+                </div>
+                <h2>Galleria Media</h2>
+                <div id="media-grid" class="media-grid">
+                    <!-- Elementi popolati via script -->
+                </div>
+            </section>
+
+            <!-- 5. RICETTE -->
+            <section id="screen-ricette" class="screen hidden">
+                <div class="screen-header-actions">
+                    <button class="secondary-btn" onclick="switchScreen('home')">Torna alla HOME</button>
+                    <button class="primary-btn" onclick="openModal('modal-ricetta')">Nuova Ricetta</button>
+                </div>
+                <h2>Ricettario della Famiglia</h2>
+                <div id="ricette-list" class="list-container">
+                    <!-- Elementi popolati via script -->
+                </div>
+            </section>
+
+            <!-- 6. ADMIN -->
+            <section id="screen-admin" class="screen hidden">
+                <div class="screen-header-actions">
+                    <button class="secondary-btn" onclick="switchScreen('home')">Torna alla HOME</button>
+                </div>
+                <h2>Pannello Amministratore</h2>
+                <div class="admin-panel">
+                    <h3>Gestione Membri Famiglia</h3>
+                    <button class="primary-btn" onclick="openModal('modal-membro')">Aggiungi un nuovo membro</button>
+                    <div id="members-list" class="list-container" style="margin-top: 15px;">
+                        <!-- Membri popolati via script -->
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- FOOTER FIRMATO -->
+        <footer class="app-footer">
+            Created by STECCA with GEMINI
+        </footer>
+
+    </div>
+
+    <!-- POPUP MODALI -->
+
+    <!-- Modal Nuova Scadenza -->
+    <div id="modal-scadenza" class="modal hidden">
+        <div class="modal-content">
+            <h3>Nuova Scadenza</h3>
+            <div class="input-group">
+                <label>Scatta o importa foto bolletta (per OCR automatico)</label>
+                <input type="file" accept="image/*" capture="environment" id="ocr-file-input" onchange="processOCR(event)">
+            </div>
+            <div class="input-group">
+                <label>Ente / Descrizione</label>
+                <input type="text" id="scadenza-ente" placeholder="Es. Enel, Bollo Auto, Assicurazione">
+            </div>
+            <div class="input-group">
+                <label>Data Scadenza</label>
+                <input type="date" id="scadenza-data">
+            </div>
+            <div class="input-group">
+                <label>Importo (€)</label>
+                <input type="number" step="0.01" id="scadenza-importo" placeholder="0.00">
+            </div>
+            <div class="modal-buttons">
+                <button class="secondary-btn" onclick="closeModal('modal-scadenza')">Annulla</button>
+                <button class="primary-btn" onclick="saveScadenza()">Salva</button>
+            </div>
         </div>
-      </header>
+    </div>
 
-      <div class="content-body">
+    <!-- Modal Nuovo Evento -->
+    <div id="modal-evento" class="modal hidden">
+        <div class="modal-content">
+            <h3>Nuovo Evento</h3>
+            <div class="input-group">
+                <label>Titolo Evento</label>
+                <input type="text" id="evento-titolo" placeholder="Es. Visita medica, Riunione">
+            </div>
+            <div class="input-group">
+                <label>Data e Ora</label>
+                <input type="datetime-local" id="evento-data">
+            </div>
+            <div class="modal-buttons">
+                <button class="secondary-btn" onclick="closeModal('modal-evento')">Annulla</button>
+                <button class="primary-btn" onclick="saveEvento()">Salva</button>
+            </div>
+        </div>
+    </div>
 
-        <!-- SEZIONE HOME -->
-        <section id="home-section" class="section active">
-          <h1 id="welcome-msg">Ciao</h1>
-          <div class="cards-container">
+    <!-- Modal Nuova Ricetta -->
+    <div id="modal-ricetta" class="modal hidden">
+        <div class="modal-content modal-large">
+            <h3>Nuova Ricetta</h3>
+            <div class="input-group">
+                <label>Nome Ricetta</label>
+                <input type="text" id="ricetta-nome" placeholder="Es. Frollini fatti in casa">
+            </div>
             
-            <div class="card">
-              <h3>Bollette e Scadenze</h3>
-              <div id="home-scadenze-summary">Nessuna scadenza imminente</div>
-              <div class="card-footer">
-                <span id="home-totale-scadenze" class="totale-destra">Totale: 0.00 €</span>
-                <a href="#" class="nav-link-card" data-target="scadenze-section">Vai a Scadenze &rarr;</a>
-              </div>
-            </div>
-
-            <div class="card">
-              <h3>Appuntamenti della Settimana</h3>
-              <div id="home-eventi-summary">Nessun evento questa settimana</div>
-              <div class="card-footer">
-                <a href="#" class="nav-link-card" data-target="eventi-section">Vai a Eventi &rarr;</a>
-              </div>
-            </div>
-
-            <div class="card">
-              <h3>Ultimi Media Caricati</h3>
-              <div id="home-media-summary">Nessun media presente</div>
-              <div class="card-footer">
-                <a href="#" class="nav-link-card" data-target="media-section">Vai a Media &rarr;</a>
-              </div>
-            </div>
-
-            <div class="card">
-              <h3>Top 3 Ricette</h3>
-              <div id="home-ricette-summary">Nessuna ricetta</div>
-              <div class="card-footer">
-                <a href="#" class="nav-link-card" data-target="ricette-section">Vai a Ricette &rarr;</a>
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-        <!-- SEZIONE SCADENZE -->
-        <section id="scadenze-section" class="section hidden">
-          <div class="section-header">
-            <h2>Scadenze</h2>
-            <div class="header-actions">
-              <span id="all-scadenze-totale" class="totale-destra">Totale: 0.00 €</span>
-              <button id="open-scadenza-modal" class="primary-btn">Nuova scadenza</button>
-            </div>
-          </div>
-          <button class="back-home-btn" data-target="home-section">Torna alla HOME</button>
-          <div id="scadenze-list" class="list-container"></div>
-        </section>
-
-        <!-- SEZIONE EVENTI -->
-        <section id="eventi-section" class="section hidden">
-          <h2>Eventi</h2>
-          <button class="back-home-btn" data-target="home-section">Torna alla HOME</button>
-          <div class="action-bar">
-            <button id="open-evento-modal" class="primary-btn">Aggiungi evento</button>
-            <button id="delete-eventi-btn" class="danger-btn">Cancella selezionati</button>
-          </div>
-          <div id="eventi-list" class="list-container"></div>
-        </section>
-
-        <!-- SEZIONE MEDIA -->
-        <section id="media-section" class="section hidden">
-          <h2>Media (Foto e Video)</h2>
-          <button class="back-home-btn" data-target="home-section">Torna alla HOME</button>
-          <div class="action-bar">
-            <input type="file" id="media-file-input" multiple accept="image/*,video/*" class="hidden">
-            <button id="import-media-btn" class="primary-btn">Importa foto/video</button>
-            <button id="download-media-btn" class="secondary-btn">Scarica selezionati</button>
-            <button id="delete-media-btn" class="danger-btn">Cancella selezionati</button>
-          </div>
-          <div id="media-grid" class="media-grid-container"></div>
-        </section>
-
-        <!-- SEZIONE RICETTE -->
-        <section id="ricette-section" class="section hidden">
-          <h2>Ricette</h2>
-          <button class="back-home-btn" data-target="home-section">Torna alla HOME</button>
-          <div class="action-bar">
-            <button id="open-ricetta-modal" class="primary-btn">Nuova Ricetta</button>
-          </div>
-          <div id="ricette-list" class="list-container"></div>
-        </section>
-
-        <!-- SEZIONE ADMIN -->
-        <section id="admin-section" class="section hidden">
-          <h2>Pannello Admin</h2>
-          <button class="back-home-btn" data-target="home-section">Torna alla HOME</button>
-          <div class="admin-panel">
-            <h3>Gestione Membri Famiglia</h3>
             <div class="input-group">
-              <label>Nome Nuovo Membro</label>
-              <input type="text" id="new-member-name">
+                <label>Ingredienti (con quantità in grammi)</label>
+                <div id="ingredienti-container">
+                    <div class="dynamic-row">
+                        <input type="text" class="ingrediente-input" placeholder="Es. Farina 500g">
+                    </div>
+                </div>
+                <button type="button" class="text-link-btn" onclick="addIngredienteRow()">Aggiungi un altro ingrediente</button>
             </div>
+
             <div class="input-group">
-              <label>Email / ID</label>
-              <input type="email" id="new-member-email">
+                <label>Procedimento</label>
+                <div id="procedimento-container">
+                    <div class="dynamic-row num-row">
+                        <span class="step-number">1.</span>
+                        <input type="text" class="procedimento-input" placeholder="Primo passaggio...">
+                    </div>
+                </div>
+                <button type="button" class="text-link-btn" onclick="addProcedimentoRow()">Aggiungi un altro passaggio</button>
             </div>
-            <div class="input-group">
-              <label>Password</label>
-              <input type="password" id="new-member-pass">
+
+            <div class="modal-buttons">
+                <button class="secondary-btn" onclick="closeModal('modal-ricetta')">Annulla</button>
+                <button class="primary-btn" onclick="saveRicetta()">Salva Ricetta</button>
             </div>
-            <button id="add-member-btn" class="primary-btn">Aggiungi membro</button>
-            <div id="members-list" class="list-container" style="margin-top:20px;"></div>
-          </div>
-        </section>
-
-      </div>
-
-      <footer class="app-footer">
-        Created by STECCA with GEMINI
-      </footer>
-    </main>
-  </div>
-
-  <!-- MODALE NUOVA SCADENZA -->
-  <div id="scadenza-modal" class="modal hidden">
-    <div class="modal-content">
-      <h3>Nuova Scadenza</h3>
-      <div class="ocr-box">
-        <label>Estrai dati bolletta con OCR:</label>
-        <input type="file" id="ocr-file-input" accept="image/*" capture="environment">
-        <button id="run-ocr-btn" class="secondary-btn">Scatta / Importa foto per OCR</button>
-      </div>
-      <div class="input-group"><label>Ente / Titolo</label><input type="text" id="scad-ente"></div>
-      <div class="input-group"><label>Data Scadenza</label><input type="date" id="scad-data"></div>
-      <div class="input-group"><label>Importo (€)</label><input type="number" step="0.01" id="scad-importo"></div>
-      <div class="modal-actions">
-        <button id="save-scadenza-btn" class="primary-btn">Salva</button>
-        <button class="close-modal-btn primary-btn">Annulla</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODALE NUOVO EVENTO -->
-  <div id="evento-modal" class="modal hidden">
-    <div class="modal-content">
-      <h3>Nuovo Evento</h3>
-      <div class="input-group"><label>Titolo Evento</label><input type="text" id="ev-titolo"></div>
-      <div class="input-group"><label>Data</label><input type="date" id="ev-data"></div>
-      <div class="modal-actions">
-        <button id="save-evento-btn" class="primary-btn">Salva</button>
-        <button class="close-modal-btn primary-btn">Annulla</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODALE NUOVA RICETTA -->
-  <div id="ricetta-modal" class="modal hidden">
-    <div class="modal-content large-modal">
-      <h3>Nuova Ricetta</h3>
-      <div class="input-group"><label>Nome Ricetta</label><input type="text" id="ric-nome"></div>
-      
-      <h4>Ingredienti (quantità in grammi)</h4>
-      <div id="ingredienti-container">
-        <div class="dyn-row">
-          <input type="text" class="ing-nome" placeholder="Ingrediente">
-          <input type="number" class="ing-qta" placeholder="Grammi">
         </div>
-      </div>
-      <button type="button" id="add-ing-row" class="secondary-btn">Aggiungi un altro ingrediente</button>
-
-      <h4>Procedimento</h4>
-      <div id="procedimento-container">
-        <div class="dyn-row">
-          <textarea class="proc-step" placeholder="Passaggio procedimento"></textarea>
-        </div>
-      </div>
-      <button type="button" id="add-proc-row" class="secondary-btn">Aggiungi un altro passaggio</button>
-
-      <div class="modal-actions" style="margin-top:15px;">
-        <button id="save-ricetta-btn" class="primary-btn">Salva Ricetta</button>
-        <button class="close-modal-btn primary-btn">Annulla</button>
-      </div>
     </div>
-  </div>
 
-  <!-- Firebase SDKs -->
-  <script type="module" src="script.js"></script>
+    <!-- Modal Aggiungi Membro (Admin) -->
+    <div id="modal-membro" class="modal hidden">
+        <div class="modal-content">
+            <h3>Nuovo Membro Famiglia</h3>
+            <div class="input-group">
+                <label>Username / Email</label>
+                <input type="text" id="membro-email" placeholder="email@famiglia.it">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="membro-password" placeholder="Password temporanea">
+            </div>
+            <div class="input-group">
+                <label>Permessi di visualizzazione</label>
+                <div class="checkboxes-group">
+                    <label><input type="checkbox" value="scadenze" checked> Scadenze</label>
+                    <label><input type="checkbox" value="eventi" checked> Eventi</label>
+                    <label><input type="checkbox" value="media" checked> Media</label>
+                    <label><input type="checkbox" value="ricette" checked> Ricette</label>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="secondary-btn" onclick="closeModal('modal-membro')">Annulla</button>
+                <button class="primary-btn" onclick="saveMembro()">Aggiungi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module" src="script.js"></script>
 </body>
 </html>
