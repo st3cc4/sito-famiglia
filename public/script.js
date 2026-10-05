@@ -3,7 +3,7 @@
    Created by STECCA with GEMINI
    ========================================== */
 
-// Importazioni Firebase (SDK compatibile o moduli ES)
+// Importazioni Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -26,11 +26,11 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// Utente amministratore predefinito richiesto
+// Account amministratore predefinito
 const ADMIN_EMAIL = "stpa79@gmail.com";
 const ADMIN_PASS = "sv058753";
 
-// Variabili di stato globale
+// Variabile globale utente
 let currentUser = null;
 
 // Avvio al caricamento della pagina
@@ -50,7 +50,6 @@ function initAuthListener() {
             checkAdminPermissions(user.email);
             loadHomeData();
         } else {
-            // Controlla se c'è un login salvato localmente per accesso istantaneo
             document.getElementById("login-screen").classList.remove("hidden");
         }
     });
@@ -65,11 +64,8 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
     try {
         const persistence = rememberMe ? browserLocalPersistence : browserSessionPersistence;
         await setPersistence(auth, persistence);
-        
-        // Controllo credenziali Admin o utente normale
         await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
-        // Se l'utente admin non esiste ancora in Firebase Auth, lo creiamo al primo accesso
         if (email === ADMIN_EMAIL && password === ADMIN_PASS) {
             try {
                 await createUserWithEmailAndPassword(auth, email, password);
@@ -116,22 +112,18 @@ function setupEventListeners() {
 }
 
 function switchScreen(screenName) {
-    // Nascondi tutte le schermate
     document.querySelectorAll(".screen-content").forEach(el => el.classList.add("hidden"));
     
-    // Mostra la schermata selezionata
     const target = document.getElementById(`screen-${screenName}`);
     if (target) {
         target.classList.remove("hidden");
         document.getElementById("screen-title").textContent = screenName.toUpperCase();
     }
 
-    // Chiudi il menu su mobile dopo il click
     if (window.innerWidth < 768) {
         document.getElementById("sidebar").classList.add("-translate-x-full");
     }
 
-    // Carica i dati specifici della schermata
     if (screenName === 'home') loadHomeData();
     if (screenName === 'scadenze') loadScadenzeData();
     if (screenName === 'eventi') loadEventiData();
@@ -150,7 +142,7 @@ async function loadHomeData() {
         let totaleDaPagare = 0;
 
         querySnapshot.forEach((docSnap) => {
-            const data = docSnap.dataset || docSnap.data();
+            const data = docSnap.data();
             scadenze.push({ id: docSnap.id, ...data });
             totaleDaPagare += parseFloat(data.importo || 0);
         });
@@ -172,12 +164,6 @@ function renderHomeScadenze(scadenze) {
     container.innerHTML = "";
 
     const oggi = new Date();
-
-    // Filtri colore richiesti:
-    // 1. Rosse: scadenza entro 7 giorni
-    // 2. Arancioni: scadenza entro 14 giorni (se non ci sono rosse o in aggiunta)
-    // 3. Verdi/Standard: scadenza entro 21 giorni o più
-    
     scadenze.sort((a, b) => new Date(a.data) - new Date(b.data));
 
     if (scadenze.length === 0) {
@@ -189,15 +175,12 @@ function renderHomeScadenze(scadenze) {
         const dataScad = new Date(item.data);
         const diffDays = Math.ceil((dataScad - oggi) / (1000 * 60 * 60 * 24));
 
-        let badgeClass = "badge-scadenza-verde";
-        let textColor = "text-green-700";
+        let badgeClass = "badge-scadenza-verde"; // 21 giorni o più
 
         if (diffDays <= 7) {
-            badgeClass = "badge-scadenza-rosso";
-            textColor = "text-red-750 font-bold";
+            badgeClass = "badge-scadenza-rosso"; // Rosse entro 7 giorni
         } else if (diffDays <= 14) {
-            badgeClass = "badge-scadenza-arancione";
-            textColor = "text-orange-700 font-semibold";
+            badgeClass = "badge-scadenza-arancione"; // Arancioni entro 14 giorni
         }
 
         const div = document.createElement("div");
@@ -242,20 +225,17 @@ async function saveScadenza(e) {
     }
 }
 
-// Integrazione OCR simulata/pronta per Gemini Vision
+// OCR simulato/pronto per Gemini Vision
 async function processOCR(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    alert("Foto acquisita! Invio all'OCR di Gemini per l'estrazione automatica di Ente, Data e Importo...");
+    alert("Foto acquisita! Invio all'OCR di Gemini per l'estrazione automatica...");
     
-    // Qui in un'implementazione reale invieresti l'immagine all'API di Gemini.
-    // Simuliamo l'estrazione automatica compilando i campi per comodità:
     setTimeout(() => {
         document.getElementById("scad-ente").value = "Enel Energia (Rilevato da OCR)";
         document.getElementById("scad-categoria").value = "Bolletta";
         document.getElementById("scad-importo").value = "64.50";
-        // Data di esempio a 5 giorni da oggi
         const futureDate = new Date();
         futureDate.setDate(futureDate.getDate() + 5);
         document.getElementById("scad-data").value = futureDate.toISOString().split('T')[0];
@@ -264,7 +244,7 @@ async function processOCR(event) {
 }
 
 // ==========================================
-// 5. GESTIONE RICETTE (Con righe dinamiche)
+// 5. GESTIONE RICETTE (Righe dinamiche)
 // ==========================================
 function addIngredienteRow() {
     const container = document.getElementById("ingredienti-container");
@@ -297,7 +277,7 @@ async function saveRicetta(e) {
     
     const ingredienti = [];
     document.querySelectorAll(".ing-input").forEach(input => {
-        if(input.value.trim()) ingredienti.append ? ingredienti.push("- " + input.value.trim()) : ingredienti.push("- " + input.value.trim());
+        if(input.value.trim()) ingredienti.push("- " + input.value.trim());
     });
 
     const procedimento = [];
@@ -316,12 +296,25 @@ async function saveRicetta(e) {
     }
 }
 
-// Funzioni segnaposto per le altre sezioni (Eventi, Media, Admin)
+// Funzioni di supporto / segnaposto per le altre sezioni
 async function loadScadenzeData() { loadHomeData(); }
-async function loadEventiData() { /* Implementazione eventi */ }
-async function loadMediaData() { /* Implementazione media */ }
-async function loadRicetteData() { /* Implementazione ricette */ }
-async function loadAdminData() { /* Implementazione admin */ }
-async function loadHomeEventiSummary() { /* Riassunto eventi */ }
-async function loadHomeMediaSummary() { /* Riassunto media */ }
-async function loadHomeRicetteSummary() { /* Riassunto ricette */ }
+async function loadEventiData() {}
+async function loadMediaData() {}
+async function loadRicetteData() {}
+async function loadAdminData() {}
+async function loadHomeEventiSummary() {}
+async function loadHomeMediaSummary() {}
+async function loadHomeRicetteSummary() {}
+function deleteSelectedEvents() {}
+function deleteSelectedMedia() {}
+function downloadSelectedMedia() {}
+function handleMediaUpload(e) {}
+
+// Registrazione del Service Worker per la PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((reg) => console.log('Service Worker registrato con successo:', reg.scope))
+      .catch((err) => console.log('Registrazione Service Worker fallita:', err));
+  });
+}
