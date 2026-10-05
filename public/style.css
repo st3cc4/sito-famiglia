@@ -128,23 +128,14 @@ body {
     height: 100vh;
 }
 
-/* Quando è compressa, riduciamo la larghezza a 70px netti e centriamo le icone */
+/* Quando è compressa, diventa una barra di 70px con solo le icone */
 .sidebar.collapsed {
     width: 70px;
 }
 
-.sidebar.collapsed .sidebar-header {
-    padding: 20px 12px;
-    justify-content: center;
-}
-
-.sidebar.collapsed .sidebar-header h3 {
-    display: none;
-}
-
 .sidebar.collapsed .sidebar-menu li {
     justify-content: center;
-    padding: 12px 0;
+    padding: 14px 0;
     gap: 0;
 }
 
@@ -153,36 +144,12 @@ body {
 }
 
 .sidebar.collapsed .sidebar-menu span.icon {
-    font-size: 20px;
-}
-
-.sidebar-header {
-    padding: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border-color);
-    height: 70px;
-}
-
-.sidebar-toggle-btn {
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    color: var(--text-muted);
-    padding: 5px;
-    border-radius: 4px;
-}
-
-.sidebar-toggle-btn:hover {
-    background-color: #f1f5f9;
-    color: var(--text-main);
+    font-size: 22px;
 }
 
 .sidebar-menu {
     list-style: none;
-    padding: 15px 10px;
+    padding: 20px 10px;
     overflow-y: auto;
     flex-grow: 1;
 }
@@ -196,7 +163,7 @@ body {
     cursor: pointer;
     font-weight: 500;
     color: var(--text-muted);
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     transition: background 0.2s, color 0.2s;
 }
 
@@ -216,6 +183,22 @@ body {
     text-align: center;
 }
 
+/* Pulsante toggle nella topbar */
+.sidebar-toggle-btn {
+    background: #f1f5f9;
+    border: 1px solid var(--border-color);
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--text-main);
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.sidebar-toggle-btn:hover {
+    background-color: #e2e8f0;
+}
+
 /* Contenuto Principale */
 .main-content {
     flex-grow: 1;
@@ -223,7 +206,6 @@ body {
     flex-direction: column;
     overflow: hidden;
     background-color: var(--bg-main);
-    width: calc(100% - 260px); /* Si adatta dinamicamente */
 }
 
 .topbar {
