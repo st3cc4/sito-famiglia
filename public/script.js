@@ -1,404 +1,431 @@
-// Import delle funzioni SDK Firebase (configurazione presa dalla tua immagine)
+// Import delle funzioni SDK Firebase (configurazione presa dai tuoi dati)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+import { 
+    getAuth, 
+    signInWithEmailAndPassword, 
+    onAuthStateChanged, 
+    signOut, 
+    setPersistence, 
+    browserLocalPersistence, 
+    browserSessionPersistence 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { 
+    getFirestore, 
+    collection, 
+    addTimestamp, 
+    getDocs, 
+    addDoc, 
+    deleteDoc, 
+    doc, 
+    query, 
+    where, 
+    orderBy 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+// Configurazione Firebase fornita da te
 const firebaseConfig = {
-    apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
+    apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QCNghqzOTV6UKA",
     authDomain: "sito-famiglia.firebaseapp.com",
     projectId: "sito-famiglia",
-    storageBucket: "sito-famigliastorage.app",
+    storageBucket: "sito-famiglia.appspot.com",
     messagingSenderId: "9321647751",
     appId: "1:9321647751:web:993005284551ca5ef895a",
     measurementId: "G-NYRQJDTWM3"
 };
 
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-// DATI E STATO DELL'APPLICAZIONE (Mock locale sincronizzabile con Firebase)
-let currentUser = null;
+// Utente Admin predefinito richiesto
+const ADMIN_EMAIL = "stpa79@gmail.com";
+const ADMIN_PASS = "sv058753";
 
-// Dati iniziali di esempio (puoi collegarli a Firestore in seguito)
-let state = {
-    scadenze: [
-        { id: 1, ente: "Enel Energia", data: "2026-10-08", importo: 65.50 }, // Entro 7 giorni -> Rosso
-        { id: 2, ente: "Bollo Auto", data: "2026-10-15", importo: 180.00 }, // Entro 14 giorni -> Arancione
-        { id: 3, ente: "Assicurazione Casa", data: "2026-11-01", importo: 320.00 } // Oltre 21 giorni -> Verde/Normale
-    ],
-    eventi: [
-        { id: 1, titolo: "Visita Dentista", data: "2026-10-07T10:00" },
-        { id: 2, titolo: "Riunione Condominio", data: "2026-10-09T21:00" }
-    ],
-    media: [
-        { id: 1, tipo: "image", url: "https://picsum.photos/300/300?random=1", nome: "foto1.jpg" },
-        { id: 2, tipo: "image", url: "https://picsum.photos/300/300?random=2", nome: "foto2.jpg" }
-    ],
-    ricette: [
-        { 
-            id: 1, 
-            nome: "Frollini classici al burro", 
-            ingredienti: ["Farina 500g", "Burro 250g", "Zucchero 200g", "Uova 2"], 
-            procedimento: ["Lavorare il burro morbido con lo zucchero.", "Unire le uova e la farina.", "Cuocere in forno a 180°C per 15 minuti."] 
-        },
-        { 
-            id: 2, 
-            nome: "Churros fritti tradizionali", 
-            ingredienti: ["Acqua 250ml", "Farina 200g", "Burro 50g", "Zucchero q.b."], 
-            procedimento: ["Bollire acqua e burro, unire la farina energicamente.", "Mettere l'impasto nella sac à poche.", "Friggere in olio caldo fino a doratura."] 
-        }
-    ],
-    membri: [
-        { email: "stpa79@gmail.com", permessi: ["scadenze", "eventi", "media", "ricette", "admin"] },
-        { email: "elena@famiglia.it", permessi: ["scadenze", "eventi", "media", "ricette"] }
-    ]
-};
-
-// INIZIALIZZAZIONE ALL'AVVIO
 document.addEventListener("DOMContentLoaded", () => {
-    setupEventListeners();
-    checkRememberedUser();
-});
 
-function setupEventListeners() {
-    // Login Button
-    document.getElementById("login-btn").addEventListener("click", handleLogin);
-    
-    // Mostra/Nascondi Password
-    const togglePassword = document.getElementById("toggle-password");
-    const passwordInput = document.getElementById("login-password");
-    togglePassword.addEventListener("click", () => {
-        const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
-        passwordInput.setAttribute("type", type);
-        togglePassword.classList.toggle("fa-eye");
-        togglePassword.classList.toggle("fa-eye-slash");
-    });
-
-    // Menu laterale toggle
-    document.getElementById("menu-toggle").addEventListener("click", () => {
-        document.getElementById("sidebar").classList.add("open");
-    });
-    document.getElementById("sidebar-close").addEventListener("click", () => {
-        document.getElementById("sidebar").classList.remove("open");
-    });
-}
-
-// GESTIONE ACCESSO E MEMORIZZAZIONE (ACCESSO ISTANTANEO)
-function handleLogin() {
-    const inputId = document.getElementById("login-email").value.trim();
-    const inputPass = document.getElementById("login-password").value.trim();
-    const rememberMe = document.getElementById("remember-me").checked;
-
-    // Crediche amministratore richieste: ID = stpa79@gmail.com e Password = sv058753
-    if ((inputId === "stpa79@gmail.com" && inputPass === "sv058753") || inputId.length > 3) {
-        currentUser = { email: inputId, isAdmin: (inputId === "stpa79@gmail.com") };
-        
-        if (rememberMe) {
-            localStorage.setItem("family_user", JSON.stringify(currentUser));
-        }
-
-        initAppSession();
-    } else {
-        alert("Credenziali non valide. Riprova.");
-    }
-}
-
-function checkRememberedUser() {
-    const savedUser = localStorage.getItem("family_user");
-    if (savedUser) {
-        currentUser = JSON.parse(savedUser);
-        initAppSession();
-    }
-}
-
-function initAppSession() {
-    document.getElementById("login-screen").classList.add("hidden");
-    document.getElementById("app-container").classList.remove("hidden");
-    
-    // Imposta nome utente nel benvenuto
-    document.getElementById("welcome-user").innerText = `Ciao ${currentUser.email.split('@')[0]}`;
-
-    // Mostra o nascondi il menu Admin
-    if (currentUser.isAdmin || currentUser.email === "stpa79@gmail.com") {
-        document.getElementById("admin-menu-item").classList.remove("hidden");
+    // --- GESTIONE VISIBILITA PASSWORD ---
+    const togglePwd = document.getElementById("toggle-pwd");
+    const pwdInput = document.getElementById("login-password");
+    if(togglePwd) {
+        togglePwd.addEventListener("click", () => {
+            if (pwdInput.type === "password") {
+                pwdInput.type = "text";
+                togglePwd.classList.replace("fa-eye-slash", "fa-eye");
+            } else {
+                pwdInput.type = "password";
+                togglePwd.classList.replace("fa-eye", "fa-eye-slash");
+            }
+        });
     }
 
-    refreshAllScreens();
-    switchScreen('home');
-}
+    // --- ACCESSO E PERSISTENZA ---
+    const loginBtn = document.getElementById("login-btn");
+    if(loginBtn) {
+        loginBtn.addEventListener("click", async () => {
+            const email = document.getElementById("login-email").value.trim();
+            const password = pwdInput.value;
+            const rememberMe = document.getElementById("remember-me").checked;
 
-function logout() {
-    localStorage.removeItem("family_user");
-    currentUser = null;
-    document.getElementById("app-container").classList.add("hidden");
-    document.getElementById("login-screen").classList.remove("hidden");
-    document.getElementById("sidebar").classList.remove("open");
-}
+            try {
+                // Imposta persistenza in base a "Ricordami"
+                const persistence = rememberMe ? browserLocalPersistence : browserSessionPersistence;
+                await setPersistence(auth, persistence);
 
-// NAVIGAZIONE TRA SCHERMATE
-window.switchScreen = function(screenName) {
-    document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
-    document.getElementById(`screen-${screenName}`).classList.remove("hidden");
-    document.getElementById("sidebar").classList.remove("open");
-    document.getElementById("page-title").innerText = screenName.toUpperCase();
-    refreshAllScreens();
-}
-
-// AGGIORNAMENTO DATI E SCHEDE
-function refreshAllScreens() {
-    renderHomeSummary();
-    renderScadenze();
-    renderEventi();
-    renderMedia();
-    renderRicette();
-    if (currentUser && currentUser.isAdmin) renderAdminMembers();
-}
-
-// 1. HOME & SOGLIE SCADENZE (7 gg rosso, 14 gg arancione, 21+ verde/normale)
-function renderHomeSummary() {
-    const container = document.getElementById("home-scadenze-summary");
-    const today = new Date();
-    let totalScadenze = 0;
-    
-    // Filtro e calcolo scadenze
-    let html = "";
-    let sortedScadenze = [...state.scadenze].sort((a,b) => new Date(a.data) - new Date(b.data));
-    
-    sortedScadenze.forEach(s => {
-        totalScadenze += s.importo;
-        const diffDays = Math.ceil((new Date(s.data) - today) / (1000 * 60 * 60 * 24));
-        
-        let badgeClass = "badge-green";
-        if (diffDays <= 7) badgeClass = "badge-red";
-        else if (diffDays <= 14) badgeClass = "badge-orange";
-
-        html += `<div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-            <span>${s.ente} (${s.data})</span>
-            <span class="${badgeClass}">${s.importo.toFixed(2)} €</span>
-        </div>`;
-    });
-
-    container.innerHTML = html || "<p>Nessuna scadenza imminente.</p>";
-    document.getElementById("home-total-scadenze").innerText = `${totalScadenze.toFixed(2)} €`;
-    document.getElementById("global-total-scadenze").innerText = `${totalScadenze.toFixed(2)} €`;
-
-    // Eventi Home (settimana)
-    const eventContainer = document.getElementById("home-eventi-summary");
-    eventContainer.innerHTML = state.eventi.map(e => `<div>• ${e.titolo} - ${e.data.replace('T', ' ')}</div>`).join('') || "<p>Nessun appuntamento.</p>";
-
-    // Media Home (ultimi 5)
-    const mediaContainer = document.getElementById("home-media-summary");
-    const lastMedia = state.media.slice(-5).reverse();
-    mediaContainer.innerHTML = lastMedia.map(m => `<div class="media-item"><img src="${m.url}" alt="${m.nome}"></div>`).join('') || "<p>Nessun media.</p>";
-
-    // Ricette Home (prime 3)
-    const ricetteContainer = document.getElementById("home-ricette-summary");
-    const topRicette = state.ricette.slice(0, 3);
-    ricetteContainer.innerHTML = topRicette.map(r => `<div><strong>${r.nome}</strong></div>`).join('') || "<p>Nessuna ricetta.</p>";
-}
-
-// 2. SCADENZE SCREEN & OCR SIMULATO CON GEMINI
-function renderScadenze() {
-    const list = document.getElementById("scadenze-list");
-    list.innerHTML = state.scadenze.map(s => `
-        <div class="list-card">
-            <div>
-                <strong>${s.ente}</strong><br>
-                <small>Scadenza: ${s.data}</small>
-            </div>
-            <div>
-                <span style="font-size: 18px; font-weight: bold; margin-right: 15px;">${s.importo.toFixed(2)} €</span>
-                <button class="danger-btn" style="padding: 5px 10px;" onclick="deleteScadenza(${s.id})">Elimina</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-window.processOCR = function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    // Simulazione estrazione OCR tramite Gemini
-    alert("Invio foto all'OCR di Gemini in corso...");
-    setTimeout(() => {
-        document.getElementById("scadenza-ente").value = "Bolletta Acque SpA (Estratto OCR)";
-        document.getElementById("scadenza-data").value = "2026-10-20";
-        document.getElementById("scadenza-importo").value = "74.20";
-        alert("Dati estratti con successo! Controlla e conferma.");
-    }, 1200);
-}
-
-window.saveScadenza = function() {
-    const ente = document.getElementById("scadenza-ente").value;
-    const data = document.getElementById("scadenza-data").value;
-    const importo = parseFloat(document.getElementById("scadenza-importo").value);
-
-    if (!ente || !data || isNaN(importo)) {
-        alert("Compila tutti i campi correttamente.");
-        return;
+                // Controllo accesso admin diretto o Firebase Auth
+                if(email === ADMIN_EMAIL && password === ADMIN_PASS) {
+                    // Accesso amministratore simulato/effettivo
+                    initAppSession({ email: ADMIN_EMAIL, displayName: "Stecca" });
+                } else {
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    initAppSession(userCredential.user);
+                }
+            } catch (error) {
+                alert("Errore di accesso: " + error.message);
+            }
+        });
     }
 
-    state.scadenze.push({ id: Date.now(), ente, data, importo });
-    closeModal('modal-scadenza');
-    refreshAllScreens();
-}
-
-window.deleteScadenza = function(id) {
-    state.scadenze = state.scadenze.filter(s => s.id !== id);
-    refreshAllScreens();
-}
-
-// 3. EVENTI SCREEN
-function renderEventi() {
-    const list = document.getElementById("eventi-list");
-    list.innerHTML = state.eventi.map(e => `
-        <div class="list-card">
-            <div>
-                <input type="checkbox" class="event-checkbox" value="${e.id}" style="margin-right: 10px;">
-                <strong>${e.titolo}</strong>
-            </div>
-            <span>${e.data.replace('T', ' ')}</span>
-        </div>
-    `).join('');
-}
-
-window.saveEvento = function() {
-    const titolo = document.getElementById("evento-titolo").value;
-    const data = document.getElementById("evento-data").value;
-    if (!titolo || !data) return alert("Inserisci titolo e data.");
-    
-    state.eventi.push({ id: Date.now(), titolo, data });
-    closeModal('modal-evento');
-    refreshAllScreens();
-}
-
-window.deleteSelectedEvents = function() {
-    const selectedIds = Array.from(document.querySelectorAll('.event-checkbox:checked')).map(cb => parseInt(cb.value));
-    state.eventi = state.eventi.filter(e => !selectedIds.includes(e.id));
-    refreshAllScreens();
-}
-
-// 4. MEDIA SCREEN
-function renderMedia() {
-    const grid = document.getElementById("media-grid");
-    grid.innerHTML = state.media.map(m => `
-        <div class="media-item">
-            <input type="checkbox" class="media-checkbox" value="${m.id}">
-            <img src="${m.url}" alt="${m.nome}">
-        </div>
-    `).join('');
-}
-
-window.handleMediaUpload = function(event) {
-    const files = event.target.files;
-    for (let file of files) {
-        const url = URL.createObjectURL(file);
-        state.media.push({ id: Date.now() + Math.random(), tipo: file.type.startsWith('video') ? 'video' : 'image', url, nome: file.name });
-    }
-    refreshAllScreens();
-}
-
-window.deleteSelectedMedia = function() {
-    const selectedIds = Array.from(document.querySelectorAll('.media-checkbox:checked')).map(cb => parseFloat(cb.value));
-    state.media = state.media.filter(m => !selectedIds.includes(m.id));
-    refreshAllScreens();
-}
-
-window.downloadSelectedMedia = function() {
-    const selectedCheckboxes = document.querySelectorAll('.media-checkbox:checked');
-    if (selectedCheckboxes.length === 0) return alert("Seleziona almeno un elemento da scaricare.");
-    selectedCheckboxes.forEach(cb => {
-        const mediaObj = state.media.find(m => m.id == cb.value);
-        if (mediaObj) {
-            const a = document.createElement('a');
-            a.href = mediaObj.url;
-            a.download = mediaObj.nome;
-            a.click();
+    // Controllo automatico accesso (Accesso istantaneo dal secondo accesso in poi se ricordato)
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            initAppSession(user);
         }
     });
-}
 
-// 5. RICETTE SCREEN (Ingredienti con puntino/trattino e procedimento numerato)
-window.addIngredienteRow = function() {
-    const container = document.getElementById("ingredienti-container");
-    const div = document.createElement("div");
-    div.className = "dynamic-row";
-    div.innerHTML = `<span style="font-weight: bold; margin-right: 5px;">•</span><input type="text" class="ingrediente-input" placeholder="Altro ingrediente in grammi">`;
-    container.appendChild(div);
-}
+    function initAppSession(user) {
+        document.getElementById("login-screen").classList.add("hidden");
+        document.getElementById("app-container").classList.remove("hidden");
+        
+        const userName = user.email === ADMIN_EMAIL ? "Stecca" : (user.displayName || user.email.split('@')[0]);
+        document.getElementById("welcome-msg").textContent = `Ciao ${userName}`;
 
-window.addProcedimentoRow = function() {
-    const container = document.getElementById("procedimento-container");
-    const count = container.children.length + 1;
-    const div = document.createElement("div");
-    div.className = "dynamic-row num-row";
-    div.innerHTML = `<span class="step-number">${count}.</span><input type="text" class="procedimento-input" placeholder="Passaggio successivo...">`;
-    container.appendChild(div);
-}
+        // Mostra menu Admin se è l'amministratore
+        if(user.email === ADMIN_EMAIL) {
+            document.getElementById("admin-menu-item").classList.remove("hidden");
+        }
 
-function renderRicette() {
-    const list = document.getElementById("ricette-list");
-    list.innerHTML = state.ricette.map(r => `
-        <div class="card" style="margin-bottom: 15px; cursor: default;">
-            <h3>${r.nome}</h3>
-            <p><strong>Ingredienti:</strong></p>
-            <ul>${r.ingredienti.map(i => `<li>• ${i}</li>`).join('')}</ul>
-            <p style="margin-top: 10px;"><strong>Procedimento:</strong></p>
-            <ol>${r.procedimento.map(p => `<li>${p}</li>`).join('')}</ol>
-        </div>
-    `).join('');
-}
-
-window.saveRicetta = function() {
-    const nome = document.getElementById("ricetta-nome").value;
-    const ingredienti = Array.from(document.querySelectorAll('.ingrediente-input')).map(i => i.value).filter(v => v.trim() !== "");
-    const procedimento = Array.from(document.querySelectorAll('.procedimento-input')).map(i => i.value).filter(v => v.trim() !== "");
-
-    if (!nome || ingredienti.length === 0 || procedimento.length === 0) {
-        alert("Inserisci il nome, almeno un ingrediente e un procedimento.");
-        return;
+        loadDashboardData();
     }
 
-    state.ricette.push({ id: Date.now(), nome, ingredienti, procedimento });
-    closeModal('modal-ricetta');
-    refreshAllScreens();
-}
+    // Logout
+    const logoutBtn = document.getElementById("logout-btn");
+    if(logoutBtn) {
+        logoutBtn.addEventListener("click", async () => {
+            await signOut(auth);
+            location.reload();
+        });
+    }
 
-// 6. ADMIN SCREEN
-function renderAdminMembers() {
-    const list = document.getElementById("members-list");
-    list.innerHTML = state.membri.map(m => `
-        <div class="list-card">
-            <div>
-                <strong>${m.email}</strong><br>
-                <small>Permessi: ${m.permessi.join(', ')}</small>
-            </div>
-            ${m.email !== 'stpa79@gmail.com' ? `<button class="danger-btn" style="padding: 5px 10px;" onclick="deleteMembro('${m.email}')">Elimina</button>` : ''}
+    // --- MENU LATERALE ---
+    const sidebar = document.getElementById("sidebar");
+    document.getElementById("toggle-sidebar").addEventListener("click", () => sidebar.classList.add("open"));
+    document.getElementByIdCertamente Stecca! È assolutamente possibile creare un'applicazione web progressiva (PWA) per la famiglia con tutte le caratteristiche che hai descritto. 
+
+Rispondendo prima alle tue domande preliminari:
+1. **Nomi dei file**: I nomi corretti e standard sono al singolare, ovvero **`index.html`**, **`style.css`** e **`script.js`**.
+2. **Codice completo**: Visto che hai bisogno di tutto il codice dall'inizio alla fine, ti fornirò i tre file completi e pronti da caricare su GitHub e Firebase.
+
+Ecco tutto il codice strutturato appositamente per adattarsi ai telefoni con schede verticali, un menu laterale a scomparsa, il login persistente, la gestione delle scadenze con colori condizionali, i popup per le ricette e gli eventi, la gestione amministrativa e la firma finale come richiesto.
+
+---
+
+### 1. `index.html`
+Crea un file chiamato `index.html` e incolla questo codice:
+
+```html
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portale Famiglia</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+    <!-- SCHERMATA LOGIN -->
+    <div id="login-screen" class="screen active">
+        <div class="login-container">
+            <h2>Accesso Portale Famiglia</h2>
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="login-user">Username o email</label>
+                    <input type="text" id="login-user" required autocomplete="username">
+                </div>
+                <div class="input-group password-group">
+                    <label for="login-pass">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="login-pass" required autocomplete="current-password">
+                        <button type="button" id="toggle-password" class="icon-btn"><i class="fa-solid fa-eye-slash"></i></button>
+                    </div>
+                </div>
+                <div class="remember-group">
+                    <input type="checkbox" id="remember-me" checked>
+                    <label for="remember-me">Ricordami</label>
+                </div>
+                <button type="submit" class="btn-primary">Accedi</button>
+            </form>
         </div>
-    `).join('');
-}
+    </div>
 
-window.saveMembro = function() {
-    const email = document.getElementById("membro-email").value.trim();
-    if (!email) return alert("Inserisci un'email valida.");
-    
-    const checkboxes = document.querySelectorAll('#modal-membro input[type="checkbox"]:checked');
-    const permessi = Array.from(checkboxes).map(cb => cb.value);
+    <!-- APP PRINCIPALE -->
+    <div id="app-container" class="hidden">
+        
+        <!-- HEADER -->
+        <header class="app-header">
+            <button id="menu-toggle" class="icon-btn"><i class="fa-solid fa-bars"></i></button>
+            <h1 id="app-title">HOME</h1>
+            <div class="header-right">
+                <a href="[https://gemini.google.com](https://gemini.google.com)" target="_blank" class="ai-link" title="Parla con Gemini"><i class="fa-solid fa-wand-magic-sparkles"></i></a>
+            </div>
+        </header>
 
-    state.membri.push({ email, permessi });
-    closeModal('modal-membro');
-    refreshAllScreens();
-}
+        <!-- MENU LATERALE -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h3>Menu</h3>
+                <button id="sidebar-close" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <ul class="sidebar-menu">
+                <li data-target="home" class="active"><i class="fa-solid fa-house"></i> Home</li>
+                <li data-target="scadenze"><i class="fa-solid fa-file-invoice-dollar"></i> Scadenze</li>
+                <li data-target="eventi"><i class="fa-solid fa-calendar-days"></i> Eventi</li>
+                <li data-target="media"><i class="fa-solid fa-photo-film"></i> Media</li>
+                <li data-target="ricette"><i class="fa-solid fa-utensils"></i> Ricette</li>
+                <li id="admin-menu-item" data-target="admin" class="hidden"><i class="fa-solid fa-user-shield"></i> Admin</li>
+                <li id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Esci</li>
+            </ul>
+        </nav>
+        <div id="sidebar-overlay" class="overlay"></div>
 
-window.deleteMembro = function(email) {
-    state.membri = state.membri.filter(m => m.email !== email);
-    refreshAllScreens();
-}
+        <!-- CONTENUTO DELLE SCHERMATE -->
+        <main class="main-content">
 
-// UTILITY MODALI
-window.openModal = function(modalId) {
-    document.getElementById(modalId).classList.remove("hidden");
-}
+            <!-- SCHERMATA HOME -->
+            <section id="screen-home" class="page-section active">
+                <div class="welcome-box">
+                    <h2 id="welcome-msg">Ciao</h2>
+                </div>
+                
+                <div class="cards-container">
+                    <!-- Scheda Scadenze -->
+                    <div class="card vertical-card">
+                        <div class="card-header">
+                            <h3>Scadenze</h3>
+                            <a href="#" class="nav-link-shortcut" data-target="scadenze">Vai <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                        <div id="home-scadenze-content" class="card-body"></div>
+                        <div class="card-footer-right">
+                            <span id="home-total-scadenze">Totale: 0,00 €</span>
+                        </div>
+                    </div>
 
-window.closeModal = function(modalId) {
-    document.getElementById(modalId).classList.add("hidden");
-}
+                    <!-- Scheda Eventi -->
+                    <div class="card vertical-card">
+                        <div class="card-header">
+                            <h3>Appuntamenti della settimana</h3>
+                            <a href="#" class="nav-link-shortcut" data-target="eventi">Vai <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                        <div id="home-eventi-content" class="card-body"></div>
+                    </div>
+
+                    <!-- Scheda Media -->
+                    <div class="card vertical-card">
+                        <div class="card-header">
+                            <h3>Ultimi Media</h3>
+                            <a href="#" class="nav-link-shortcut" data-target="media">Vai <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                        <div id="home-media-content" class="card-body media-grid-preview"></div>
+                    </div>
+
+                    <!-- Scheda Ricette -->
+                    <div class="card vertical-card">
+                        <div class="card-header">
+                            <h3>Ricette più apprezzate</h3>
+                            <a href="#" class="nav-link-shortcut" data-target="ricette">Vai <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                        <div id="home-ricette-content" class="card-body"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SCHERMATA SCADENZE -->
+            <section id="screen-scadenze" class="page-section">
+                <div class="section-top-bar">
+                    <button class="btn-secondary btn-home"><i class="fa-solid fa-house"></i> Home</button>
+                    <div class="total-badge">Totale: <span id="scadenze-totale-generale">0,00 €</span></div>
+                    <button id="open-new-scadenza" class="btn-primary">Nuova scadenza</button>
+                </div>
+                <div id="scadenze-list" class="list-container"></div>
+            </section>
+
+            <!-- SCHERMATA EVENTI -->
+            <section id="screen-eventi" class="page-section">
+                <div class="section-top-bar">
+                    <button class="btn-secondary btn-home"><i class="fa-solid fa-house"></i> Home</button>
+                    <button id="open-new-evento" class="btn-primary">Aggiungi evento</button>
+                    <button id="delete-selected-eventi" class="btn-danger">Cancella selezionati</button>
+                </div>
+                <div id="eventi-list" class="list-container"></div>
+            </section>
+
+            <!-- SCHERMATA MEDIA -->
+            <section id="screen-media" class="page-section">
+                <div class="section-top-bar">
+                    <button class="btn-secondary btn-home"><i class="fa-solid fa-house"></i> Home</button>
+                    <input type="file" id="media-file-input" multiple accept="image/*,video/*" class="hidden">
+                    <button id="import-media-btn" class="btn-primary">Importa foto/video</button>
+                    <button id="download-selected-media" class="btn-secondary">Scarica selezionati</button>
+                    <button id="delete-selected-media" class="btn-danger">Cancella selezionati</button>
+                </div>
+                <div id="media-grid" class="media-grid"></div>
+            </section>
+
+            <!-- SCHERMATA RICETTE -->
+            <section id="screen-ricette" class="page-section">
+                <div class="section-top-bar">
+                    <button class="btn-secondary btn-home"><i class="fa-solid fa-house"></i> Home</button>
+                    <button id="open-new-ricetta" class="btn-primary">Nuova Ricetta</button>
+                </div>
+                <div id="ricette-list" class="list-container"></div>
+            </section>
+
+            <!-- SCHERMATA ADMIN -->
+            <section id="screen-admin" class="page-section">
+                <div class="section-top-bar">
+                    <button class="btn-secondary btn-home"><i class="fa-solid fa-house"></i> Home</button>
+                </div>
+                <div class="admin-container">
+                    <h2>Gestione Membri Famiglia</h2>
+                    <form id="add-member-form">
+                        <div class="input-group">
+                            <label>Email / ID</label>
+                            <input type="email" id="new-member-email" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Password</label>
+                            <input type="password" id="new-member-pass" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Permessi di visualizzazione</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" name="perm" value="scadenze" checked> Scadenze</label>
+                                <label><input type="checkbox" name="perm" value="eventi" checked> Eventi</label>
+                                <label><input type="checkbox" name="perm" value="media" checked> Media</label>
+                                <label><input type="checkbox" name="perm" value="ricette" checked> Ricette</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary">Aggiungi membro</button>
+                    </form>
+                    <div id="members-list" class="list-container"></div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- FOOTER FIRMA -->
+        <footer class="app-footer">
+            <span>Created by STECCA with GEMINI</span>
+        </footer>
+    </div>
+
+    <!-- POPUP NUOVA SCADENZA -->
+    <div id="modal-scadenza" class="modal">
+        <div class="modal-content">
+            <h3>Nuova Scadenza</h3>
+            <form id="form-scadenza">
+                <div class="input-group">
+                    <label>Ente / Titolo</label>
+                    <input type="text" id="scad-ente" required>
+                </div>
+                <div class="input-group">
+                    <label>Data Scadenza</label>
+                    <input type="date" id="scad-data" required>
+                </div>
+                <div class="input-group">
+                    <label>Importo (€)</label>
+                    <input type="number" step="0.01" id="scad-importo" required>
+                </div>
+                <div class="input-group">
+                    <label>Fotografa / Importa bolletta per OCR</label>
+                    <div class="ocr-buttons">
+                        <input type="file" id="ocr-camera" accept="image/*" capture="environment" class="hidden">
+                        <input type="file" id="ocr-gallery" accept="image/*" class="hidden">
+                        <button type="button" id="btn-shoot-ocr" class="btn-secondary"><i class="fa-solid fa-camera"></i> Scatta foto</button>
+                        <button type="button" id="btn-upload-ocr" class="btn-secondary"><i class="fa-solid fa-upload"></i> Importa foto</button>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary close-modal">Annulla</button>
+                    <button type="submit" class="btn-primary">Salva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- POPUP NUOVO EVENTO -->
+    <div id="modal-evento" class="modal">
+        <div class="modal-content">
+            <h3>Nuovo Evento</h3>
+            <form id="form-evento">
+                <div class="input-group">
+                    <label>Titolo Evento</label>
+                    <input type="text" id="ev-titolo" required>
+                </div>
+                <div class="input-group">
+                    <label>Data e Ora</label>
+                    <input type="datetime-local" id="ev-data" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary close-modal">Annulla</button>
+                    <button type="submit" class="btn-primary">Salva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- POPUP NUOVA RICETTA -->
+    <div id="modal-ricetta" class="modal">
+        <div class="modal-content large-modal">
+            <h3>Nuova Ricetta</h3>
+            <form id="form-ricetta">
+                <div class="input-group">
+                    <label>Nome Ricetta</label>
+                    <input type="text" id="ric-nome" required>
+                </div>
+                
+                <div class="input-group">
+                    <label>Ingredienti (con quantità in grammi)</label>
+                    <div id="ingredienti-container">
+                        <div class="dynamic-row">
+                            <input type="text" placeholder="es. Farina - 500g" class="ing-input" required>
+                        </div>
+                    </div>
+                    <button type="button" id="add-ing-row" class="btn-text">Aggiungi un altro ingrediente</button>
+                </div>
+
+                <div class="input-group">
+                    <label>Procedimento</label>
+                    <div id="procedimento-container">
+                        <div class="dynamic-row num-row">
+                            <span class="step-number">1.</span>
+                            <input type="text" placeholder="Descrivi il passaggio..." class="proc-input" required>
+                        </div>
+                    </div>
+                    <button type="button" id="add-proc-row" class="btn-text">Aggiungi un altro passaggio</button>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary close-modal">Annulla</button>
+                    <button type="submit" class="btn-primary">Salva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script Firebase e App -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>
