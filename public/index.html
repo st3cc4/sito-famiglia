@@ -4,183 +4,191 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portale Famiglia</title>
-    <!-- Foglio di stile principale -->
+    <!-- CSS Esterno -->
     <link rel="stylesheet" href="style.css">
-    <!-- Tesseract.js per OCR -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@v5/dist/tesseract.min.js"></script>
+    <!-- Tesseract.js per OCR bollette -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 
-    <!-- Overlay di Autenticazione (Login) -->
+    <!-- OVERLAY DI AUTENTICAZIONE / LOGIN -->
     <div id="auth-overlay" class="auth-overlay">
-        <div class="auth-box">
-            <h2>Accedi al Portale</h2>
-            <div id="error-message" class="error-message" style="display: none;"></div>
+        <div class="auth-card">
+            <h2>Accedi al Portale Famiglia</h2>
+            <p>Inserisci le tue credenziali per continuare</p>
             <div class="form-group">
                 <label for="auth-email">Email</label>
-                <input type="email" id="auth-email" placeholder="latuamail@famiglia.it">
+                <input type="email" id="auth-email" placeholder="nome@email.com">
             </div>
             <div class="form-group">
                 <label for="auth-password">Password</label>
-                <input type="password" id="auth-password" placeholder="••••••••">
+                <input type="password" id="auth-password" placeholder="La tua password">
             </div>
-            <div class="form-group-checkbox">
+            <div class="form-group checkbox-group" style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
                 <input type="checkbox" id="remember-me">
-                <label for="remember-me">Ricordami</label>
+                <label for="remember-me" style="margin-bottom: 0; cursor: pointer;">Ricordami su questo dispositivo</label>
             </div>
-            <button id="btn-login" class="btn-primary">Entra</button>
+            <button id="btn-login" class="btn-primary" style="width: 100%;">Accedi</button>
+            <p id="error-message" class="error-msg" style="display:none; color:var(--danger); margin-top:10px; font-size:14px;"></p>
         </div>
     </div>
 
-    <!-- Contenitore Principale dell'App (nascosto prima del login) -->
+    <!-- CONTENITORE PRINCIPALE DELL'APP -->
     <div id="app-container" class="app-container" style="display: none;">
         
-        <!-- Sidebar di Navigazione -->
+        <!-- SIDEBAR DI NAVIGAZIONE -->
         <aside id="sidebar" class="sidebar">
             <div class="sidebar-header">
-                <h3 id="welcome-title">Ciao!</h3>
-                <button id="sidebar-toggle" class="sidebar-toggle">☰</button>
+                <h3 id="welcome-title">Ciao, Famiglia!</h3>
+                <button id="sidebar-toggle" class="sidebar-toggle-btn" title="Comprimi/Espandi menu">☰</button>
             </div>
             <ul class="sidebar-menu">
-                <li data-target="section-overview" class="active"><span>Home</span></li>
-                <li data-target="section-bills"><span>Bollette e Scadenze</span></li>
-                <li data-target="section-gallery"><span>Galleria</span></li>
-                <li data-target="section-recipes"><span>Ricette</span></li>
-                <li data-target="section-calendar"><span>Calendario</span></li>
-                <li id="menu-admin" data-target="section-admin" style="display: none;"><span>Amministrazione</span></li>
+                <li class="active" data-target="section-overview">
+                    <span class="icon">🏠</span>
+                    <span class="text">Home</span>
+                </li>
+                <li data-target="section-bills">
+                    <span class="icon">📄</span>
+                    <span class="text">Bollette e Scadenze</span>
+                </li>
+                <li data-target="section-gallery">
+                    <span class="icon">🖼️</span>
+                    <span class="text">Galleria</span>
+                </li>
+                <li data-target="section-recipes">
+                    <span class="icon">🍳</span>
+                    <span class="text">Ricette</span>
+                </li>
+                <li data-target="section-calendar">
+                    <span class="icon">📅</span>
+                    <span class="text">Calendario</span>
+                </li>
+                <li id="menu-admin" data-target="section-admin" style="display: none;">
+                    <span class="icon">⚙️</span>
+                    <span class="text">Amministrazione</span>
+                </li>
             </ul>
         </aside>
 
-        <!-- Area Contenuti Principali -->
-        <main class="main-content">
-            <header class="content-header">
-                <h2 id="page-title">HOME</h2>
-                <div id="current-user-badge" class="user-badge">Utente</div>
+        <!-- AREA CONTENUTO PRINCIPALE -->
+        <div class="main-content">
+            <header class="topbar">
+                <h1 id="page-title">HOME</h1>
+                <div class="user-info">
+                    <span id="current-user-badge" class="badge">Utente: Ospite</span>
+                </div>
             </header>
 
-            <div class="content-body">
+            <main class="content-body">
                 
-                <!-- Sezione Overview / Home -->
+                <!-- SEZIONE 1: HOME / PANORAMICA -->
                 <section id="section-overview" class="content-section active">
                     <div class="card">
                         <h3>Panoramica Scadenze</h3>
                         <div id="overview-bills-list">Caricamento scadenze...</div>
-                        <div id="overview-bills-total" style="display:none; margin-top:10px;">
-                            Totale da pagare: <strong id="overview-total-amount">0.00 €</strong>
+                        <div id="overview-bills-total" style="margin-top: 15px; font-weight: bold; display: none; justify-content: space-between; border-top: 2px solid #eee; padding-top: 10px;">
+                            <span>Totale Scadenze da pagare:</span>
+                            <span id="overview-total-amount" style="color: var(--danger);">0.00 €</span>
                         </div>
                     </div>
                 </section>
 
-                <!-- Sezione Bollette -->
+                <!-- SEZIONE 2: BOLLETTE E SCADENZE -->
                 <section id="section-bills" class="content-section">
                     <div class="card">
-                        <div class="card-header-flex">
-                            <h3>Gestione Bollette</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3>Gestione Bollette e Scadenze</h3>
                             <div>
-                                <button id="toggle-add-bill-form" class="btn-primary">+ Nuova Bolletta</button>
+                                <label for="bill-ocr-input" class="btn-secondary" style="cursor: pointer; display: inline-block; padding: 8px 12px; font-size: 14px; margin-right: 10px;">📷 Scansiona con OCR</label>
+                                <input type="file" id="bill-ocr-input" accept="image/*" style="display: none;">
+                                <button id="toggle-add-bill-form" class="btn-primary" style="padding: 8px 12px; font-size: 14px;">+ Nuova Bolletta</button>
                             </div>
                         </div>
-                        
-                        <!-- Box OCR -->
-                        <div class="ocr-box" style="margin: 15px 0; padding: 10px; background: var(--bg-light); border-radius: 6px;">
-                            <label for="bill-ocr-input" style="cursor: pointer; font-weight: 600;">📷 Compila bolletta automaticamente con foto (OCR)</label>
-                            <input type="file" id="bill-ocr-input" accept="image/*" style="display: block; margin-top: 5px;">
-                            <span id="ocr-status" style="font-size: 12px; color: var(--text-muted);"></span>
+                        <p id="ocr-status" style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;"></p>
+
+                        <!-- Form nascosto aggiunta bolletta -->
+                        <div id="bill-form-card" style="display: none; background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <h4 style="margin-bottom: 10px;">Inserisci Dati Bolletta</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                <input type="text" id="bill-title" placeholder="Ente / Titolo (es. Enel)" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                                <input type="number" step="0.01" id="bill-amount" placeholder="Importo (€)" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                                <input type="date" id="bill-date" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                            </div>
+                            <button id="btn-add-bill" class="btn-primary" style="padding: 6px 14px; font-size: 13px;">Salva Bolletta</button>
                         </div>
 
-                        <!-- Form Nuova Bolletta (inizialmente nascosto) -->
-                        <div id="bill-form-card" style="display: none; margin-bottom: 20px; padding: 15px; border: 1px solid var(--border-color); border-radius: 6px;">
-                            <h4>Inserisci Dati Bolletta</h4>
-                            <div class="form-group">
-                                <label>Titolo / Ente</label>
-                                <input type="text" id="bill-title" placeholder="Es. Enel Energia">
-                            </div>
-                            <div class="form-group">
-                                <label>Importo (€)</label>
-                                <input type="number" step="0.01" id="bill-amount" placeholder="0.00">
-                            </div>
-                            <div class="form-group">
-                                <label>Data Scadenza</label>
-                                <input type="date" id="bill-date">
-                            </div>
-                            <button id="btn-add-bill" class="btn-primary">Salva Bolletta</button>
+                        <div id="bills-list-container">
+                            <p style="color: var(--text-muted);">Caricamento bollette...</p>
                         </div>
-
-                        <div id="bills-list-container">Caricamento bollette...</div>
-                        <div style="margin-top: 15px; font-weight: bold;">
-                            Totale scoperto: <span id="bills-page-total">0.00 €</span>
+                        <div style="margin-top: 15px; text-align: right; font-weight: bold; font-size: 16px;">
+                            Totale non pagato: <span id="bills-page-total" style="color: var(--danger);">0.00 €</span>
                         </div>
                     </div>
                 </section>
 
-                <!-- Sezione Galleria -->
+                <!-- SEZIONE 3: GALLERIA -->
                 <section id="section-gallery" class="content-section">
                     <div class="card">
                         <h3>Galleria Foto e Video</h3>
-                        <p>Contenuti multimediali della famiglia.</p>
+                        <p style="color: var(--text-muted); margin-top: 10px;">Area in fase di sviluppo per la condivisione multimediale.</p>
                     </div>
                 </section>
 
-                <!-- Sezione Ricette -->
+                <!-- SEZIONE 4: RICETTE -->
                 <section id="section-recipes" class="content-section">
                     <div class="card">
-                        <h3>Ricettario di Famiglia</h3>
-                        <p>Le ricette tradizionali e i frollini.</p>
+                        <h3>Ricette di famiglia</h3>
+                        <p style="color: var(--text-muted); margin-top: 10px;">Qui troverai la raccolta dei piatti preferiti.</p>
                     </div>
                 </section>
 
-                <!-- Sezione Calendario -->
+                <!-- SEZIONE 5: CALENDARIO -->
                 <section id="section-calendar" class="content-section">
                     <div class="card">
-                        <h3>Calendario e Impegni</h3>
-                        <p>Eventi in programma.</p>
+                        <h3>Calendario Scadenze ed Eventi</h3>
+                        <p style="color: var(--text-muted); margin-top: 10px;">Sincronizzazione impegni familiari.</p>
                     </div>
                 </section>
 
-                <!-- Sezione Admin (Visibile solo ai permessi di amministrazione) -->
+                <!-- SEZIONE 6: AMMINISTRAZIONE (Solo Admin) -->
                 <section id="section-admin" class="content-section">
                     <div class="card">
                         <h3 id="admin-form-title">Gestione membri e permessi</h3>
-                        <div class="form-group">
-                            <label>Nome</label>
-                            <input type="text" id="new-member-name" placeholder="Nome membro">
+                        <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin-top: 15px; margin-bottom: 20px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                <input type="text" id="new-member-name" placeholder="Nome utente" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                                <input type="email" id="new-member-email" placeholder="Email utente" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                <input type="password" id="new-member-pass" placeholder="Password temporanea" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                                <select id="new-member-role" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                                    <option value="Member">Membro Normale</option>
+                                    <option value="Admin">Amministratore</option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom: 10px; font-size: 14px;">
+                                <strong>Permessi sezioni:</strong><br>
+                                <label style="margin-right: 15px;"><input type="checkbox" class="perm-chk" value="section-bills" checked> Bollette</label>
+                                <label style="margin-right: 15px;"><input type="checkbox" class="perm-chk" value="section-gallery" checked> Galleria</label>
+                                <label style="margin-right: 15px;"><input type="checkbox" class="perm-chk" value="section-recipes" checked> Ricette</label>
+                                <label><input type="checkbox" class="perm-chk" value="section-calendar" checked> Calendario</label>
+                            </div>
+                            <button id="btn-add-member" class="btn-primary" style="padding: 6px 14px; font-size: 13px;">Salva Membro</button>
+                            <button id="btn-cancel-edit" class="btn-secondary" onclick="cancelEditMember()" style="display: none; padding: 6px 14px; font-size: 13px; margin-left: 5px;">Annulla</button>
                         </div>
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" id="new-member-email" placeholder="email@famiglia.it">
-                        </div>
-                        <div class="form-group">
-                            <label>Password</label>
-                            <input type="password" id="new-member-pass" placeholder="Password accesso">
-                        </div>
-                        <div class="form-group">
-                            <label>Ruolo</label>
-                            <select id="new-member-role">
-                                <option value="Member">Membro</option>
-                                <option value="Admin">Admin</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Permessi Sezioni:</label><br>
-                            <input type="checkbox" class="perm-chk" value="section-bills" checked> Bollette<br>
-                            <input type="checkbox" class="perm-chk" value="section-gallery" checked> Galleria<br>
-                            <input type="checkbox" class="perm-chk" value="section-recipes" checked> Ricette<br>
-                            <input type="checkbox" class="perm-chk" value="section-calendar" checked> Calendario
-                        </div>
-                        <button id="btn-add-member" class="btn-primary">Salva Membro</button>
-                        <button id="btn-cancel-edit" class="btn-secondary" style="display:none;" onclick="cancelEditMember()">Annulla</button>
-                        
-                        <div style="margin-top: 30px;" id="members-list-container">
-                            Caricamento membri...
+
+                        <h4>Membri Registrati</h4>
+                        <div id="members-list-container" style="margin-top: 10px;">
+                            <p style="color: var(--text-muted);">Caricamento membri...</p>
                         </div>
                     </div>
                 </section>
 
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
 
-    <!-- Script JavaScript principale (caricato come modulo per Firebase) -->
+    <!-- Script principale come Modulo ES6 -->
     <script type="module" src="script.js"></script>
 </body>
 </html>
