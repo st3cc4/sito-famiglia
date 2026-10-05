@@ -38,10 +38,6 @@
         
         <!-- SIDEBAR DI NAVIGAZIONE -->
         <aside id="sidebar" class="sidebar">
-            <div class="sidebar-header">
-                <h3 id="welcome-title">Ciao, Famiglia!</h3>
-                <button id="sidebar-toggle" class="sidebar-toggle-btn" title="Comprimi/Espandi menu">☰</button>
-            </div>
             <ul class="sidebar-menu">
                 <li class="active" data-target="section-overview">
                     <span class="icon">🏠</span>
@@ -73,7 +69,10 @@
         <!-- AREA CONTENUTO PRINCIPALE -->
         <div class="main-content">
             <header class="topbar">
-                <h1 id="page-title">HOME</h1>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button id="sidebar-toggle" class="sidebar-toggle-btn" title="Comprimi/Espandi menu">☰</button>
+                    <h1 id="page-title">HOME</h1>
+                </div>
                 <div class="user-info">
                     <span id="current-user-badge" class="badge">Utente: Ospite</span>
                 </div>
