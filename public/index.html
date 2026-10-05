@@ -1,193 +1,248 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portale Famiglia</title>
-    <!-- CSS Esterno -->
-    <link rel="stylesheet" href="style.css">
-    <!-- Tesseract.js per OCR bollette -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PWA Famiglia</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
-    <!-- OVERLAY DI AUTENTICAZIONE / LOGIN -->
-    <div id="auth-overlay" class="auth-overlay">
-        <div class="auth-card">
-            <h2>Accedi al Portale Famiglia</h2>
-            <p>Inserisci le tue credenziali per continuare</p>
-            <div class="form-group">
-                <label for="auth-email">Email</label>
-                <input type="email" id="auth-email" placeholder="nome@email.com">
-            </div>
-            <div class="form-group">
-                <label for="auth-password">Password</label>
-                <input type="password" id="auth-password" placeholder="La tua password">
-            </div>
-            <div class="form-group checkbox-group" style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
-                <input type="checkbox" id="remember-me">
-                <label for="remember-me" style="margin-bottom: 0; cursor: pointer;">Ricordami su questo dispositivo</label>
-            </div>
-            <button id="btn-login" class="btn-primary" style="width: 100%;">Accedi</button>
-            <p id="error-message" class="error-msg" style="display:none; color:var(--danger); margin-top:10px; font-size:14px;"></p>
+  <!-- SCHERMATA LOGIN -->
+  <div id="login-screen" class="screen active">
+    <div class="login-container">
+      <h2>Benvenuto</h2>
+      <div class="input-group">
+        <label>Username o email</label>
+        <input type="text" id="login-user" placeholder="">
+      </div>
+      <div class="input-group password-group">
+        <label>Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="login-pass">
+          <button type="button" id="toggle-pass" class="eye-btn">&#128065;</button>
         </div>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="remember-me" checked>
+        <label for="remember-me">Ricordami</label>
+      </div>
+      <button id="login-btn" class="primary-btn">Accedi</button>
     </div>
+  </div>
 
-    <!-- CONTENITORE PRINCIPALE DELL'APP -->
-    <div id="app-container" class="app-container" style="display: none;">
-        
-        <!-- SIDEBAR DI NAVIGAZIONE -->
-        <aside id="sidebar" class="sidebar">
-            <ul class="sidebar-menu">
-                <li class="active" data-target="section-overview">
-                    <span class="icon">🏠</span>
-                    <span class="text">Home</span>
-                </li>
-                <li data-target="section-bills">
-                    <span class="icon">📄</span>
-                    <span class="text">Bollette e Scadenze</span>
-                </li>
-                <li data-target="section-gallery">
-                    <span class="icon">🖼️</span>
-                    <span class="text">Galleria</span>
-                </li>
-                <li data-target="section-recipes">
-                    <span class="icon">🍳</span>
-                    <span class="text">Ricette</span>
-                </li>
-                <li data-target="section-calendar">
-                    <span class="icon">📅</span>
-                    <span class="text">Calendario</span>
-                </li>
-                <li id="menu-admin" data-target="section-admin" style="display: none;">
-                    <span class="icon">⚙️</span>
-                    <span class="text">Amministrazione</span>
-                </li>
-            </ul>
-        </aside>
+  <!-- APP PRINCIPALE -->
+  <div id="app-screen" class="app-layout hidden">
+    
+    <!-- MENU LATERALE A SCOMPARSA -->
+    <nav id="sidebar" class="sidebar">
+      <button id="close-sidebar" class="close-sidebar-btn">&times;</button>
+      <h3>Menù</h3>
+      <ul>
+        <li><a href="#" data-target="home-section">HOME</a></li>
+        <li><a href="#" data-target="scadenze-section">Scadenze</a></li>
+        <li><a href="#" data-target="eventi-section">Eventi</a></li>
+        <li><a href="#" data-target="media-section">Media</a></li>
+        <li><a href="#" data-target="ricette-section">Ricette</a></li>
+        <li id="admin-menu-item" class="hidden"><a href="#" data-target="admin-section">Admin</a></li>
+        <li><a href="#" id="logout-btn">Esci</a></li>
+      </ul>
+    </nav>
 
-        <!-- AREA CONTENUTO PRINCIPALE -->
-        <div class="main-content">
-            <header class="topbar">
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <button id="sidebar-toggle" class="sidebar-toggle-btn" title="Comprimi/Espandi menu">☰</button>
-                    <h1 id="page-title">HOME</h1>
-                </div>
-                <div class="user-info">
-                    <span id="current-user-badge" class="badge">Utente: Ospite</span>
-                </div>
-            </header>
-
-            <main class="content-body">
-                
-                <!-- SEZIONE 1: HOME / PANORAMICA -->
-                <section id="section-overview" class="content-section active">
-                    <div class="card">
-                        <h3>Panoramica Scadenze</h3>
-                        <div id="overview-bills-list">Caricamento scadenze...</div>
-                        <div id="overview-bills-total" style="margin-top: 15px; font-weight: bold; display: none; justify-content: space-between; border-top: 2px solid #eee; padding-top: 10px;">
-                            <span>Totale Scadenze da pagare:</span>
-                            <span id="overview-total-amount" style="color: var(--danger);">0.00 €</span>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- SEZIONE 2: BOLLETTE E SCADENZE -->
-                <section id="section-bills" class="content-section">
-                    <div class="card">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                            <h3>Gestione Bollette e Scadenze</h3>
-                            <div>
-                                <label for="bill-ocr-input" class="btn-secondary" style="cursor: pointer; display: inline-block; padding: 8px 12px; font-size: 14px; margin-right: 10px;">📷 Scansiona con OCR</label>
-                                <input type="file" id="bill-ocr-input" accept="image/*" style="display: none;">
-                                <button id="toggle-add-bill-form" class="btn-primary" style="padding: 8px 12px; font-size: 14px;">+ Nuova Bolletta</button>
-                            </div>
-                        </div>
-                        <p id="ocr-status" style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;"></p>
-
-                        <!-- Form nascosto aggiunta bolletta -->
-                        <div id="bill-form-card" style="display: none; background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                            <h4 style="margin-bottom: 10px;">Inserisci Dati Bolletta</h4>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                                <input type="text" id="bill-title" placeholder="Ente / Titolo (es. Enel)" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
-                                <input type="number" step="0.01" id="bill-amount" placeholder="Importo (€)" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
-                                <input type="date" id="bill-date" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
-                            </div>
-                            <button id="btn-add-bill" class="btn-primary" style="padding: 6px 14px; font-size: 13px;">Salva Bolletta</button>
-                        </div>
-
-                        <div id="bills-list-container">
-                            <p style="color: var(--text-muted);">Caricamento bollette...</p>
-                        </div>
-                        <div style="margin-top: 15px; text-align: right; font-weight: bold; font-size: 16px;">
-                            Totale non pagato: <span id="bills-page-total" style="color: var(--danger);">0.00 €</span>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- SEZIONE 3: GALLERIA -->
-                <section id="section-gallery" class="content-section">
-                    <div class="card">
-                        <h3>Galleria Foto e Video</h3>
-                        <p style="color: var(--text-muted); margin-top: 10px;">Area in fase di sviluppo per la condivisione multimediale.</p>
-                    </div>
-                </section>
-
-                <!-- SEZIONE 4: RICETTE -->
-                <section id="section-recipes" class="content-section">
-                    <div class="card">
-                        <h3>Ricette di famiglia</h3>
-                        <p style="color: var(--text-muted); margin-top: 10px;">Qui troverai la raccolta dei piatti preferiti.</p>
-                    </div>
-                </section>
-
-                <!-- SEZIONE 5: CALENDARIO -->
-                <section id="section-calendar" class="content-section">
-                    <div class="card">
-                        <h3>Calendario Scadenze ed Eventi</h3>
-                        <p style="color: var(--text-muted); margin-top: 10px;">Sincronizzazione impegni familiari.</p>
-                    </div>
-                </section>
-
-                <!-- SEZIONE 6: AMMINISTRAZIONE (Solo Admin) -->
-                <section id="section-admin" class="content-section">
-                    <div class="card">
-                        <h3 id="admin-form-title">Gestione membri e permessi</h3>
-                        <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin-top: 15px; margin-bottom: 20px;">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                                <input type="text" id="new-member-name" placeholder="Nome utente" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
-                                <input type="email" id="new-member-email" placeholder="Email utente" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
-                            </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                                <input type="password" id="new-member-pass" placeholder="Password temporanea" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
-                                <select id="new-member-role" style="padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
-                                    <option value="Member">Membro Normale</option>
-                                    <option value="Admin">Amministratore</option>
-                                </select>
-                            </div>
-                            <div style="margin-bottom: 10px; font-size: 14px;">
-                                <strong>Permessi sezioni:</strong><br>
-                                <label style="margin-right: 15px;"><input type="checkbox" class="perm-chk" value="section-bills" checked> Bollette</label>
-                                <label style="margin-right: 15px;"><input type="checkbox" class="perm-chk" value="section-gallery" checked> Galleria</label>
-                                <label style="margin-right: 15px;"><input type="checkbox" class="perm-chk" value="section-recipes" checked> Ricette</label>
-                                <label><input type="checkbox" class="perm-chk" value="section-calendar" checked> Calendario</label>
-                            </div>
-                            <button id="btn-add-member" class="btn-primary" style="padding: 6px 14px; font-size: 13px;">Salva Membro</button>
-                            <button id="btn-cancel-edit" class="btn-secondary" onclick="cancelEditMember()" style="display: none; padding: 6px 14px; font-size: 13px; margin-left: 5px;">Annulla</button>
-                        </div>
-
-                        <h4>Membri Registrati</h4>
-                        <div id="members-list-container" style="margin-top: 10px;">
-                            <p style="color: var(--text-muted);">Caricamento membri...</p>
-                        </div>
-                    </div>
-                </section>
-
-            </main>
+    <!-- CONTENUTO PRINCIPALE -->
+    <main class="main-content">
+      <header class="top-bar">
+        <button id="toggle-sidebar" class="menu-btn">&#9776;</button>
+        <div class="top-right-links">
+          <a href="https://gemini.google.com" target="_blank" class="gemini-link">Parla con Gemini</a>
         </div>
-    </div>
+      </header>
 
-    <!-- Script principale come Modulo ES6 -->
-    <script type="module" src="script.js"></script>
+      <div class="content-body">
+
+        <!-- SEZIONE HOME -->
+        <section id="home-section" class="section active">
+          <h1 id="welcome-msg">Ciao</h1>
+          <div class="cards-container">
+            
+            <div class="card">
+              <h3>Bollette e Scadenze</h3>
+              <div id="home-scadenze-summary">Nessuna scadenza imminente</div>
+              <div class="card-footer">
+                <span id="home-totale-scadenze" class="totale-destra">Totale: 0.00 €</span>
+                <a href="#" class="nav-link-card" data-target="scadenze-section">Vai a Scadenze &rarr;</a>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Appuntamenti della Settimana</h3>
+              <div id="home-eventi-summary">Nessun evento questa settimana</div>
+              <div class="card-footer">
+                <a href="#" class="nav-link-card" data-target="eventi-section">Vai a Eventi &rarr;</a>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Ultimi Media Caricati</h3>
+              <div id="home-media-summary">Nessun media presente</div>
+              <div class="card-footer">
+                <a href="#" class="nav-link-card" data-target="media-section">Vai a Media &rarr;</a>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Top 3 Ricette</h3>
+              <div id="home-ricette-summary">Nessuna ricetta</div>
+              <div class="card-footer">
+                <a href="#" class="nav-link-card" data-target="ricette-section">Vai a Ricette &rarr;</a>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- SEZIONE SCADENZE -->
+        <section id="scadenze-section" class="section hidden">
+          <div class="section-header">
+            <h2>Scadenze</h2>
+            <div class="header-actions">
+              <span id="all-scadenze-totale" class="totale-destra">Totale: 0.00 €</span>
+              <button id="open-scadenza-modal" class="primary-btn">Nuova scadenza</button>
+            </div>
+          </div>
+          <button class="back-home-btn" data-target="home-section">Torna alla HOME</button>
+          <div id="scadenze-list" class="list-container"></div>
+        </section>
+
+        <!-- SEZIONE EVENTI -->
+        <section id="eventi-section" class="section hidden">
+          <h2>Eventi</h2>
+          <button class="back-home-btn" data-target="home-section">Torna alla HOME</button>
+          <div class="action-bar">
+            <button id="open-evento-modal" class="primary-btn">Aggiungi evento</button>
+            <button id="delete-eventi-btn" class="danger-btn">Cancella selezionati</button>
+          </div>
+          <div id="eventi-list" class="list-container"></div>
+        </section>
+
+        <!-- SEZIONE MEDIA -->
+        <section id="media-section" class="section hidden">
+          <h2>Media (Foto e Video)</h2>
+          <button class="back-home-btn" data-target="home-section">Torna alla HOME</button>
+          <div class="action-bar">
+            <input type="file" id="media-file-input" multiple accept="image/*,video/*" class="hidden">
+            <button id="import-media-btn" class="primary-btn">Importa foto/video</button>
+            <button id="download-media-btn" class="secondary-btn">Scarica selezionati</button>
+            <button id="delete-media-btn" class="danger-btn">Cancella selezionati</button>
+          </div>
+          <div id="media-grid" class="media-grid-container"></div>
+        </section>
+
+        <!-- SEZIONE RICETTE -->
+        <section id="ricette-section" class="section hidden">
+          <h2>Ricette</h2>
+          <button class="back-home-btn" data-target="home-section">Torna alla HOME</button>
+          <div class="action-bar">
+            <button id="open-ricetta-modal" class="primary-btn">Nuova Ricetta</button>
+          </div>
+          <div id="ricette-list" class="list-container"></div>
+        </section>
+
+        <!-- SEZIONE ADMIN -->
+        <section id="admin-section" class="section hidden">
+          <h2>Pannello Admin</h2>
+          <button class="back-home-btn" data-target="home-section">Torna alla HOME</button>
+          <div class="admin-panel">
+            <h3>Gestione Membri Famiglia</h3>
+            <div class="input-group">
+              <label>Nome Nuovo Membro</label>
+              <input type="text" id="new-member-name">
+            </div>
+            <div class="input-group">
+              <label>Email / ID</label>
+              <input type="email" id="new-member-email">
+            </div>
+            <div class="input-group">
+              <label>Password</label>
+              <input type="password" id="new-member-pass">
+            </div>
+            <button id="add-member-btn" class="primary-btn">Aggiungi membro</button>
+            <div id="members-list" class="list-container" style="margin-top:20px;"></div>
+          </div>
+        </section>
+
+      </div>
+
+      <footer class="app-footer">
+        Created by STECCA with GEMINI
+      </footer>
+    </main>
+  </div>
+
+  <!-- MODALE NUOVA SCADENZA -->
+  <div id="scadenza-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Nuova Scadenza</h3>
+      <div class="ocr-box">
+        <label>Estrai dati bolletta con OCR:</label>
+        <input type="file" id="ocr-file-input" accept="image/*" capture="environment">
+        <button id="run-ocr-btn" class="secondary-btn">Scatta / Importa foto per OCR</button>
+      </div>
+      <div class="input-group"><label>Ente / Titolo</label><input type="text" id="scad-ente"></div>
+      <div class="input-group"><label>Data Scadenza</label><input type="date" id="scad-data"></div>
+      <div class="input-group"><label>Importo (€)</label><input type="number" step="0.01" id="scad-importo"></div>
+      <div class="modal-actions">
+        <button id="save-scadenza-btn" class="primary-btn">Salva</button>
+        <button class="close-modal-btn primary-btn">Annulla</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALE NUOVO EVENTO -->
+  <div id="evento-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Nuovo Evento</h3>
+      <div class="input-group"><label>Titolo Evento</label><input type="text" id="ev-titolo"></div>
+      <div class="input-group"><label>Data</label><input type="date" id="ev-data"></div>
+      <div class="modal-actions">
+        <button id="save-evento-btn" class="primary-btn">Salva</button>
+        <button class="close-modal-btn primary-btn">Annulla</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALE NUOVA RICETTA -->
+  <div id="ricetta-modal" class="modal hidden">
+    <div class="modal-content large-modal">
+      <h3>Nuova Ricetta</h3>
+      <div class="input-group"><label>Nome Ricetta</label><input type="text" id="ric-nome"></div>
+      
+      <h4>Ingredienti (quantità in grammi)</h4>
+      <div id="ingredienti-container">
+        <div class="dyn-row">
+          <input type="text" class="ing-nome" placeholder="Ingrediente">
+          <input type="number" class="ing-qta" placeholder="Grammi">
+        </div>
+      </div>
+      <button type="button" id="add-ing-row" class="secondary-btn">Aggiungi un altro ingrediente</button>
+
+      <h4>Procedimento</h4>
+      <div id="procedimento-container">
+        <div class="dyn-row">
+          <textarea class="proc-step" placeholder="Passaggio procedimento"></textarea>
+        </div>
+      </div>
+      <button type="button" id="add-proc-row" class="secondary-btn">Aggiungi un altro passaggio</button>
+
+      <div class="modal-actions" style="margin-top:15px;">
+        <button id="save-ricetta-btn" class="primary-btn">Salva Ricetta</button>
+        <button class="close-modal-btn primary-btn">Annulla</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script type="module" src="script.js"></script>
 </body>
 </html>
