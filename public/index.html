@@ -3,303 +3,374 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family PWA - Famiglia</title>
-    
-    <!-- Tailwind CSS per la grafica -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Font Awesome per le icone -->
+    <title>PWA Famiglia - Home</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome per le icone -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <!-- File CSS personalizzato -->
+    <link rel="stylesheet" href="style.css">
     <!-- Manifest per PWA -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#3b82f6">
 </head>
-<body class="bg-gray-100 font-sans text-gray-800 flex h-screen overflow-hidden">
+<body class="bg-gray-100 font-sans text-gray-800 antialiased h-screen flex flex-col overflow-hidden">
 
-    <!-- SCHERMATA LOGIN -->
-    <div id="login-screen" class="fixed inset-0 bg-blue-600 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
+    <!-- SCHERMATA DI LOGIN (Visibile se non autenticato) -->
+    <div id="login-screen" class="fixed inset-0 bg-gray-900 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
             <div class="text-center mb-6">
-                <i class="fa-solid fa-house-chimney text-4xl text-blue-600 mb-2"></i>
-                <h2 class="text-2xl font-bold text-gray-900">Family App</h2>
-                <p class="text-sm text-gray-500">Accedi per entrare nella tua famiglia</p>
+                <h1 class="text-2xl font-bold text-gray-800"><i class="fa-solid fa-house-chimney text-blue-600 mr-2"></i>Famiglia App</h1>
+                <p class="text-sm text-gray-500">Accedi per entrare nella tua area riservata</p>
             </div>
             <form id="login-form" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" id="login-email" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email / ID</label>
+                    <input type="email" id="login-email" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="nome@email.com">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Password</label>
-                    <input type="password" id="login-password" required class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="login-password" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="••••••••">
                 </div>
-                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 font-medium transition">Accedi</button>
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center text-sm text-gray-600">
+                        <input type="checkbox" id="remember-me" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2">
+                        Ricordami su questo dispositivo
+                    </label>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition duration-200">Accedi</button>
             </form>
         </div>
     </div>
 
-    <!-- MENU LATERALE PERSISTENTE A SCOMPARSA -->
-    <aside id="sidebar" class="bg-white w-64 shadow-md flex flex-col transition-all duration-300 z-40 absolute md:relative h-full -translate-x-full md:translate-x-0">
-        <div class="p-4 border-b flex items-center justify-between">
-            <span class="font-bold text-lg text-blue-600">Family Menu</span>
-            <button id="close-sidebar" class="md:hidden text-gray-500 hover:text-gray-750">
-                <i class="fa-solid fa-xmark text-xl"></i>
-            </button>
-        </div>
-        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
-            <a href="#" data-target="home-view" class="nav-link flex items-center space-x-3 p-2.5 rounded-lg bg-blue-50 text-blue-600 font-medium">
-                <i class="fa-solid fa-house w-5"></i><span>Home</span>
-            </a>
-            <a href="#" data-target="scadenze-view" class="nav-link flex items-center space-x-3 p-2.5 rounded-lg text-gray-600 hover:bg-gray-50 font-medium">
-                <i class="fa-solid fa-file-invoice-dollar w-5"></i><span>Scadenze</span>
-            </a>
-            <a href="#" data-target="eventi-view" class="nav-link flex items-center space-x-3 p-2.5 rounded-lg text-gray-600 hover:bg-gray-50 font-medium">
-                <i class="fa-solid fa-calendar-days w-5"></i><span>Eventi</span>
-            </a>
-            <a href="#" data-target="media-view" class="nav-link flex items-center space-x-3 p-2.5 rounded-lg text-gray-600 hover:bg-gray-50 font-medium">
-                <i class="fa-solid fa-photo-film w-5"></i><span>Media</span>
-            </a>
-            <a href="#" data-target="ricette-view" class="nav-link flex items-center space-x-3 p-2.5 rounded-lg text-gray-600 hover:bg-gray-50 font-medium">
-                <i class="fa-solid fa-utensils w-5"></i><span>Ricette</span>
-            </a>
-            <a href="#" id="admin-menu-item" data-target="admin-view" class="nav-link hidden flex items-center space-x-3 p-2.5 rounded-lg text-gray-600 hover:bg-gray-50 font-medium">
-                <i class="fa-solid fa-shield-halved w-5"></i><span>Admin</span>
-            </a>
-        </nav>
-        <div class="p-4 border-t text-xs text-gray-400 text-center">
-            Created by STECCA with GEMINI
-        </div>
-    </aside>
+    <!-- WRAPPER PRINCIPALE DELL'APP -->
+    <div id="app-container" class="flex h-full w-full relative">
 
-    <!-- CONTENUTO PRINCIPALE -->
-    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-        
-        <!-- HEADER SUPERIORE -->
-        <header class="bg-white shadow-sm h-16 flex items-center justify-between px-6 z-30">
-            <div class="flex items-center space-x-4">
-                <button id="toggle-sidebar" class="text-gray-600 hover:text-gray-900 focus:outline-none">
-                    <i class="fa-solid fa-bars text-xl"></i>
-                </button>
-                <h1 id="page-title" class="text-xl font-bold text-gray-800">HOME</h1>
+        <!-- MENÙ LATERALE A SCOMPARSA (PERSISTENTE) -->
+        <aside id="sidebar" class="bg-white w-64 border-r border-gray-200 flex flex-col transition-all duration-300 absolute md:relative z-40 h-full -translate-x-full md:translate-x-0">
+            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                <span class="font-bold text-lg text-blue-600"><i class="fa-solid fa-bars-progress mr-2"></i>Menu</span>
+                <button id="close-sidebar" class="md:hidden text-gray-500 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <div class="flex items-center space-x-4">
-                <!-- Collegamento diretto a Gemini -->
-                <a href="https://g.co/gemini/share" target="_blank" class="bg-purple-100 text-purple-700 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-purple-200 transition flex items-center space-x-2">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    <span>Parla con Gemini</span>
-                </a>
-                <button id="logout-btn" class="text-gray-500 hover:text-red-600 text-sm font-medium">Esci</button>
+            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+                <a href="#" onclick="switchScreen('home')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-50 text-blue-600 font-medium"><i class="fa-solid fa-house w-5"></i> Home</a>
+                <a href="#" onclick="switchScreen('scadenze')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium"><i class="fa-solid fa-file-invoice-dollar w-5"></i> Scadenze</a>
+                <a href="#" onclick="switchScreen('eventi')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium"><i class="fa-solid fa-calendar-days w-5"></i> Eventi</a>
+                <a href="#" onclick="switchScreen('media')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium"><i class="fa-solid fa-photo-film w-5"></i> Media</a>
+                <a href="#" onclick="switchScreen('ricette')" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium"><i class="fa-solid fa-utensils w-5"></i> Ricette</a>
+                <a href="#" id="admin-menu-item" onclick="switchScreen('admin')" class="nav-link hidden flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium"><i class="fa-solid fa-shield-halved w-5"></i> Admin</a>
+            </nav>
+            <div class="p-4 border-t border-gray-200 text-xs text-gray-400 text-center">
+                PWA Famiglia v1.0
             </div>
-        </header>
+        </aside>
 
-        <!-- AREA SCHERMATE DINAMICHE -->
-        <div class="flex-1 overflow-y-auto p-4 md:p-6 relative">
-
-            <!-- SCHERMATA HOME -->
-            <section id="home-view" class="view-section space-y-6">
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <h2 id="welcome-message" class="text-2xl font-bold text-gray-800">Ciao</h2>
-                    <p class="text-sm text-gray-500 mt-1">Ecco il riassunto delle attività di famiglia.</p>
+        <!-- CONTENUTO CENTRALE -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden">
+            
+            <!-- HEADER SUPERIORE -->
+            <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 z-30">
+                <div class="flex items-center gap-4">
+                    <button id="toggle-sidebar" class="text-gray-600 hover:text-gray-900 text-xl"><i class="fa-solid fa-bars"></i></button>
+                    <h2 id="screen-title" class="text-xl font-bold text-gray-800">HOME</h2>
                 </div>
+                <div class="flex items-center gap-4">
+                    <!-- Collegamento rapido per parlare con Gemini -->
+                    <a href="https://gemini.google.com" target="_blank" class="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3.5 py-1.5 rounded-full text-sm font-medium hover:opacity-90 transition">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Parla con Gemini
+                    </a>
+                    <button onclick="logout()" class="text-gray-500 hover:text-red-600 text-sm font-medium"><i class="fa-solid fa-right-from-bracket mr-1"></i> Esci</button>
+                </div>
+            </header>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Scheda Scadenze -->
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
+            <!-- AREA DINAMICA DELLE SCHERMATE -->
+            <main class="flex-1 overflow-y-auto p-4 md:p-6 relative">
+
+                <!-- 1. SCHERMATA HOME -->
+                <section id="screen-home" class="screen-content space-y-6">
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="font-bold text-gray-700"><i class="fa-solid fa-file-invoice-dollar mr-2 text-blue-500"></i>Scadenze Imminenti</h3>
-                                <a href="#" data-target="scadenze-view" class="nav-link text-xs text-blue-600 hover:underline">Vedi tutte</a>
-                            </div>
-                            <div id="home-scadenze-list" class="space-y-2 text-sm">
-                                <!-- Popolato via JS -->
-                                <p class="text-gray-400 italic">Nessuna scadenza imminente.</p>
-                            </div>
+                            <h3 id="welcome-message" class="text-2xl font-bold">Ciao Stecca!</h3>
+                            <p class="text-blue-100 text-sm mt-1">Ecco il riassunto delle attività familiari aggiornato a oggi.</p>
                         </div>
-                        <div class="mt-4 pt-3 border-t text-right font-bold text-gray-800 text-sm">
-                            Totale da pagare: <span id="home-total-scadenze">€ 0,00</span>
+                        <div class="bg-white/10 backdrop-blur-md px-4 py-3 rounded-xl border border-white/20 text-right">
+                            <span class="block text-xs text-blue-200">Totale Scadenze da Pagare</span>
+                            <span id="home-total-scadenze" class="text-xl font-bold">€ 0,00</span>
                         </div>
                     </div>
 
-                    <!-- Scheda Appuntamenti -->
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
+                    <!-- Schede in verticale per smartphone -->
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Scheda Scadenze -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="font-bold text-gray-800 flex items-center gap-2"><i class="fa-solid fa-file-invoice text-blue-600"></i> Scadenze in Primo Piano</h4>
+                                <button onclick="switchScreen('scadenze')" class="text-xs text-blue-600 hover:underline font-medium">Vai a Scadenze <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                            </div>
+                            <div id="home-scadenze-list" class="space-y-3">
+                                <!-- Contenuto dinamico -->
+                            </div>
+                        </div>
+
+                        <!-- Scheda Appuntamenti / Eventi -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="font-bold text-gray-800 flex items-center gap-2"><i class="fa-solid fa-calendar text-blue-600"></i> Appuntamenti della Settimana</h4>
+                                <button onclick="switchScreen('eventi')" class="text-xs text-blue-600 hover:underline font-medium">Vai a Eventi <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                            </div>
+                            <div id="home-eventi-list" class="space-y-3">
+                                <!-- Contenuto dinamico -->
+                            </div>
+                        </div>
+
+                        <!-- Scheda Media -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="font-bold text-gray-800 flex items-center gap-2"><i class="fa-solid fa-images text-blue-600"></i> Ultime 5 Foto / Video</h4>
+                                <button onclick="switchScreen('media')" class="text-xs text-blue-600 hover:underline font-medium">Vai a Media <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                            </div>
+                            <div id="home-media-grid" class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                                <!-- Contenuto dinamico -->
+                            </div>
+                        </div>
+
+                        <!-- Scheda Ricette -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="font-bold text-gray-800 flex items-center gap-2"><i class="fa-solid fa-utensils text-blue-600"></i> Ricette più Apprezzate</h4>
+                                <button onclick="switchScreen('ricette')" class="text-xs text-blue-600 hover:underline font-medium">Vai a Ricette <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                            </div>
+                            <div id="home-ricette-list" class="space-y-3">
+                                <!-- Contenuto dinamico -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. SCHERMATA SCADENZE -->
+                <section id="screen-scadenze" class="screen-content hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                         <div>
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="font-bold text-gray-700"><i class="fa-solid fa-calendar-days mr-2 text-blue-500"></i>Appuntamenti della Settimana</h3>
-                                <a href="#" data-target="eventi-view" class="nav-link text-xs text-blue-600 hover:underline">Vedi tutti</a>
+                            <h3 class="font-bold text-lg text-gray-800">Gestione Scadenze</h3>
+                            <p class="text-xs text-gray-500">Bollette, bollo auto, assicurazione e rate</p>
+                        </div>
+                        <div class="flex items-center gap-4 w-full sm:w-auto justify-between">
+                            <div class="text-right">
+                                <span class="text-xs text-gray-500 block">Totale Scadenze:</span>
+                                <span id="scadenze-totale-generale" class="font-bold text-blue-600 text-lg">€ 0,00</span>
                             </div>
-                            <div id="home-eventi-list" class="space-y-2 text-sm">
-                                <p class="text-gray-400 italic">Nessun evento questa settimana.</p>
-                            </div>
+                            <button onclick="openModal('modal-scadenza')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">Nuova scadenza</button>
                         </div>
                     </div>
-
-                    <!-- Scheda Media -->
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="font-bold text-gray-700"><i class="fa-solid fa-photo-film mr-2 text-blue-500"></i>Ultimi Media</h3>
-                                <a href="#" data-target="media-view" class="nav-link text-xs text-blue-600 hover:underline">Vedi tutti</a>
-                            </div>
-                            <div id="home-media-grid" class="grid grid-cols-5 gap-2">
-                                <!-- Anteprime foto/video -->
-                            </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50 border-b border-gray-200 text-xs text-gray-500 uppercase">
+                                        <th class="p-4">Ente / Titolo</th>
+                                        <th class="p-4">Categoria</th>
+                                        <th class="p-4">Data Scadenza</th>
+                                        <th class="p-4">Importo</th>
+                                        <th class="p-4 text-right">Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-scadenze-body" class="divide-y divide-gray-200 text-sm">
+                                    <!-- Dinamico -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
+                    <div class="flex justify-start">
+                        <button onclick="switchScreen('home')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition"><i class="fa-solid fa-arrow-left mr-2"></i> Torna alla HOME</button>
+                    </div>
+                </section>
 
-                    <!-- Scheda Ricette -->
-                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="font-bold text-gray-700"><i class="fa-solid fa-utensils mr-2 text-blue-500"></i>Ricette Più Apprezzate</h3>
-                                <a href="#" data-target="ricette-view" class="nav-link text-xs text-blue-600 hover:underline">Vedi tutte</a>
-                            </div>
-                            <div id="home-ricette-list" class="space-y-2 text-sm">
-                                <p class="text-gray-400 italic">Nessuna ricetta disponibile.</p>
-                            </div>
+                <!-- 3. SCHERMATA EVENTI -->
+                <section id="screen-eventi" class="screen-content hidden space-y-6">
+                    <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="font-bold text-lg text-gray-800">Calendario Eventi</h3>
+                        <div class="flex gap-2">
+                            <button onclick="deleteSelectedEvents()" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded-lg text-sm font-medium transition">Cancella selezionati</button>
+                            <button onclick="openModal('modal-evento')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">Aggiungi evento</button>
                         </div>
                     </div>
-                </div>
-            </section>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                        <div id="eventi-container" class="space-y-3">
+                            <!-- Dinamico -->
+                        </div>
+                    </div>
+                    <div class="flex justify-start">
+                        <button onclick="switchScreen('home')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition"><i class="fa-solid fa-arrow-left mr-2"></i> Torna alla HOME</button>
+                    </div>
+                </section>
 
-            <!-- SCHERMATA SCADENZE -->
-            <section id="scadenze-view" class="view-section hidden space-y-6">
-                <div class="flex justify-between items-center">
-                    <button class="back-to-home text-sm text-blue-600 hover:underline flex items-center space-x-1">
-                        <i class="fa-solid fa-arrow-left"></i><span>Torna alla Home</span>
-                    </button>
-                    <div class="flex items-center space-x-4">
-                        <span class="font-bold text-gray-700 text-sm">Totale complessivo: <span id="total-scadenze-view">€ 0,00</span></span>
-                        <button id="open-new-scadenza-modal" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">Nuova scadenza</button>
+                <!-- 4. SCHERMATA MEDIA -->
+                <section id="screen-media" class="screen-content hidden space-y-6">
+                    <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="font-bold text-lg text-gray-800">Galleria Media</h3>
+                        <div class="flex gap-2">
+                            <input type="file" id="media-file-input" multiple accept="image/*,video/*" class="hidden" onchange="handleMediaUpload(event)">
+                            <button onclick="document.getElementById('media-file-input').click()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">Importa foto/video</button>
+                            <button onclick="downloadSelectedMedia()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition">Scarica</button>
+                            <button onclick="deleteSelectedMedia()" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded-lg text-sm font-medium transition">Cancellare</button>
+                        </div>
                     </div>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <div id="scadenze-list-container" class="space-y-3">
-                        <!-- Elenco completo scadenze -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                        <div id="media-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            <!-- Dinamico -->
+                        </div>
                     </div>
-                </div>
-            </section>
+                    <div class="flex justify-start">
+                        <button onclick="switchScreen('home')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition"><i class="fa-solid fa-arrow-left mr-2"></i> Torna alla HOME</button>
+                    </div>
+                </section>
 
-            <!-- SCHERMATA EVENTI -->
-            <section id="eventi-view" class="view-section hidden space-y-6">
-                <div class="flex justify-between items-center">
-                    <button class="back-to-home text-sm text-blue-600 hover:underline flex items-center space-x-1">
-                        <i class="fa-solid fa-arrow-left"></i><span>Torna alla Home</span>
-                    </button>
-                    <div class="flex space-x-2">
-                        <button id="delete-selected-eventi" class="bg-red-50 text-red-600 px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-100 transition">Cancella selezionati</button>
-                        <button id="open-new-evento-modal" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">Aggiungi evento</button>
+                <!-- 5. SCHERMATA RICETTE -->
+                <section id="screen-ricette" class="screen-content hidden space-y-6">
+                    <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="font-bold text-lg text-gray-800">Ricettario di Famiglia</h3>
+                        <button onclick="openModal('modal-ricetta')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">Nuova Ricetta</button>
                     </div>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <div id="eventi-list-container" class="space-y-3">
-                        <!-- Elenco eventi -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="ricette-container">
+                        <!-- Dinamico -->
                     </div>
-                </div>
-            </section>
+                    <div class="flex justify-start">
+                        <button onclick="switchScreen('home')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition"><i class="fa-solid fa-arrow-left mr-2"></i> Torna alla HOME</button>
+                    </div>
+                </section>
 
-            <!-- SCHERMATA MEDIA -->
-            <section id="media-view" class="view-section hidden space-y-6">
-                <div class="flex justify-between items-center">
-                    <button class="back-to-home text-sm text-blue-600 hover:underline flex items-center space-x-1">
-                        <i class="fa-solid fa-arrow-left"></i><span>Torna alla Home</span>
-                    </button>
-                    <div class="flex space-x-2">
-                        <input type="file" id="media-file-input" multiple accept="image/*,video/*" class="hidden">
-                        <button id="import-media-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">Importa foto/video</button>
-                        <button id="download-media-btn" class="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition">Scarica</button>
-                        <button id="delete-media-btn" class="bg-red-50 text-red-600 px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-100 transition">Cancellare</button>
+                <!-- 6. SCHERMATA ADMIN -->
+                <section id="screen-admin" class="screen-content hidden space-y-6">
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="font-bold text-lg text-gray-800">Pannello di Amministrazione</h3>
+                        <p class="text-xs text-gray-500">Gestione membri e permessi di visualizzazione</p>
                     </div>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <div id="media-grid-container" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <!-- Griglia media -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-gray-700">Membri della Famiglia</h4>
+                            <button onclick="openModal('modal- membro')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm">Aggiungi nuovo membro</button>
+                        </div>
+                        <div id="admin-members-list" class="divide-y divide-gray-200">
+                            <!-- Dinamico -->
+                        </div>
                     </div>
-                </div>
-            </section>
+                    <div class="flex justify-start">
+                        <button onclick="switchScreen('home')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition"><i class="fa-solid fa-arrow-left mr-2"></i> Torna alla HOME</button>
+                    </div>
+                </section>
 
-            <!-- SCHERMATA RICETTE -->
-            <section id="ricette-view" class="view-section hidden space-y-6">
-                <div class="flex justify-between items-center">
-                    <button class="back-to-home text-sm text-blue-600 hover:underline flex items-center space-x-1">
-                        <i class="fa-solid fa-arrow-left"></i><span>Torna alla Home</span>
-                    </button>
-                    <button id="open-new-ricetta-modal" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">Nuova Ricetta</button>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <div id="ricette-list-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <!-- Lista ricette -->
-                    </div>
-                </div>
-            </section>
+            </main>
 
-            <!-- SCHERMATA ADMIN -->
-            <section id="admin-view" class="view-section hidden space-y-6">
-                <div class="flex justify-between items-center">
-                    <button class="back-to-home text-sm text-blue-600 hover:underline flex items-center space-x-1">
-                        <i class="fa-solid fa-arrow-left"></i><span>Torna alla Home</span>
-                    </button>
-                </div>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
-                    <h3 class="text-lg font-bold text-gray-800">Gestione Membri Famiglia</h3>
-                    <div class="flex space-x-2">
-                        <input type="email" id="new-member-email" placeholder="Email nuovo membro" class="px-3 py-2 border rounded-lg text-sm flex-1">
-                        <button id="add-member-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">Aggiungi Membro</button>
-                    </div>
-                    <div id="members-list-container" class="space-y-2 mt-4">
-                        <!-- Lista membri -->
-                    </div>
-                </div>
-            </section>
-
+            <!-- FOOTER CON FIRMA RICHIESTA -->
+            <footer class="bg-white border-t border-gray-200 h-10 flex items-center justify-end px-6 text-xs text-gray-500">
+                Created by STECCA with GEMINI
+            </footer>
         </div>
-    </main>
+    </div>
 
-    <!-- Script di Inizializzazione Firebase e Logica principale (Verrà completato nel prossimo file) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
-            authDomain: "sito-famiglia.firebaseapp.com",
-            projectId: "sito-famiglia",
-            storageBucket: "sito-famigliastorage.app",
-            messagingSenderId: "93216467751",
-            appId: "1:93216467751:web:993005284551ca5ef895a",
-            measurementId: "G-NYRQJDTWM3"
-        };
+    <!-- MODALI (POP-UP) -->
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        window.firebaseAuth = auth;
+    <!-- Modal Nuova Scadenza (con OCR Gemini) -->
+    <div id="modal-scadenza" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="font-bold text-lg text-gray-800">Aggiungi Nuova Scadenza</h3>
+            <div class="space-y-2">
+                <label class="block text-xs font-medium text-gray-600">Scatta o importa foto della bolletta per l'OCR di Gemini</label>
+                <div class="flex gap-2">
+                    <input type="file" id="ocr-file-input" accept="image/*" capture="environment" class="hidden" onchange="processOCR(event)">
+                    <button onclick="document.getElementById('ocr-file-input').click()" class="flex-1 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-camera"></i> Scatta / Importa Foto
+                    </button>
+                </div>
+            </div>
+            <form id="form-scadenza" class="space-y-3" onsubmit="saveScadenza(event)">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Ente / Titolo</label>
+                    <input type="text" id="scad-ente" required class="w-full px-3 py-2 border rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Categoria</label>
+                    <select id="scad-categoria" class="w-full px-3 py-2 border rounded-lg text-sm">
+                        <option value="Bolletta">Bolletta</option>
+                        <option value="Bollo Auto">Bollo Auto</option>
+                        <option value="Assicurazione">Assicurazione</option>
+                        <option value="Rata">Rata</option>
+                        <option value="Altro">Altro</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Data Scadenza</label>
+                    <input type="date" id="scad-data" required class="w-full px-3 py-2 border rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Importo (€)</label>
+                    <input type="number" step="0.01" id="scad-importo" required class="w-full px-3 py-2 border rounded-lg text-sm">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-scadenza')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">Annulla</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">Salva</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-        // Gestione Login Istantaneo e Persistente
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('welcome-message').innerText = `Ciao ${user.email === 'stpa79@gmail.com' ? 'Stecca (Admin)' : user.email}`;
-                if(user.email === 'stpa79@gmail.com') {
-                    document.getElementById('admin-menu-item').classList.remove('hidden');
-                }
-            } else {
-                document.getElementById('login-screen').classList.remove('hidden');
-            }
-        });
+    <!-- Modal Nuovo Evento -->
+    <div id="modal-evento" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 space-y-4">
+            <h3 class="font-bold text-lg text-gray-800">Aggiungi Evento</h3>
+            <form id="form-evento" class="space-y-3" onsubmit="saveEvento(event)">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Titolo Evento</label>
+                    <input type="text" id="ev-titolo" required class="w-full px-3 py-2 border rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Data e Ora</label>
+                    <input type="datetime-local" id="ev-data" required class="w-full px-3 py-2 border rounded-lg text-sm">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-evento')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">Annulla</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">Salva</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-            } catch (error) {
-                alert("Errore di accesso: " + error.message);
-            }
-        });
+    <!-- Modal Nuova Ricetta -->
+    <div id="modal-ricetta" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="font-bold text-lg text-gray-800">Nuova Ricetta</h3>
+            <form id="form-ricetta" class="space-y-4" onsubmit="saveRicetta(event)">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600">Nome Ricetta</label>
+                    <input type="text" id="ric-nome" required class="w-full px-3 py-2 border rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Ingredienti (con quantità in grammi)</label>
+                    <div id="ingredienti-container" class="space-y-2">
+                        <div class="flex gap-2 ingredient-row">
+                            <input type="text" placeholder="Es. Farina 500g" class="flex-1 px-3 py-2 border rounded-lg text-sm ing-input" required>
+                        </div>
+                    </div>
+                    <button type="button" onclick="addIngredienteRow()" class="mt-2 text-xs text-blue-600 font-medium hover:underline">Aggiungi un altro ingrediente</button>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Procedimento</label>
+                    <div id="procedimento-container" class="space-y-2">
+                        <div class="flex gap-2 proc-row">
+                            <span class="text-sm font-bold text-gray-400 pt-2 proc-num">1.</span>
+                            <input type="text" placeholder="Passaggio..." class="flex-1 px-3 py-2 border rounded-lg text-sm proc-input" required>
+                        </div>
+                    </div>
+                    <button type="button" onclick="addProcedimentoRow()" class="mt-2 text-xs text-blue-600 font-medium hover:underline">Aggiungi un altro passaggio</button>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('modal-ricetta')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">Annulla</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">Salva</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            signOut(auth);
-        });
-    </script>
+    <!-- Script principale -->
+    <script src="script.js"></script>
 </body>
 </html>
