@@ -6,123 +6,122 @@
 }
 
 body {
-    background-color: #f4f6f9;
+    background-color: #f0f4f8;
     color: #333;
-    padding: 15px;
+    padding: 20px;
+}
+
+.container {
     max-width: 600px;
     margin: 0 auto;
 }
 
-header {
+h1 {
     text-align: center;
-    margin-bottom: 20px;
-    color: #2c3e50;
-}
-
-header h1 {
-    font-size: 1.8rem;
+    color: #1e3a8a;
     margin-bottom: 5px;
 }
 
-header p {
-    color: #7f8c8d;
-    font-size: 0.95rem;
+.subtitle {
+    text-align: center;
+    color: #64748b;
+    margin-bottom: 25px;
 }
 
 .card {
     background: #ffffff;
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     margin-bottom: 20px;
 }
 
-.card h2 {
+h2 {
     font-size: 1.2rem;
+    color: #334155;
     margin-bottom: 15px;
-    color: #34495e;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 8px;
 }
 
-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.form-group {
     margin-bottom: 15px;
 }
 
-input, textarea {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    font-size: 1rem;
-    width: 100%;
-}
-
-button {
-    background-color: #3498db;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background 0.2s;
-}
-
-button:hover {
-    background-color: #2980b9;
-}
-
-ul {
-    list-style: none;
-}
-
-li {
-    background: #f9f9f9;
-    padding: 10px 15px;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-left: 4px solid #3498db;
-}
-
-li button {
-    background-color: #e74c3c;
-    padding: 5px 10px;
-    font-size: 0.8rem;
-}
-
-li button:hover {
-    background-color: #c0392b;
-}
-
-.ricetta-item {
-    background: #fdfefe;
-    border: 1px solid #e1e8ed;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    position: relative;
-}
-
-.ricetta-item h3 {
-    font-size: 1rem;
-    color: #2c3e50;
+label {
+    display: block;
+    font-size: 0.9rem;
+    color: #475569;
     margin-bottom: 5px;
 }
 
-.ricetta-item p {
-    font-size: 0.9rem;
-    color: #555;
-    white-space: pre-wrap;
+input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 1rem;
 }
 
-.ricetta-item button {
-    margin-top: 8px;
-    background-color: #e74c3c;
-    padding: 4px 8px;
-    font-size: 0.75rem;
+input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.btn {
+    width: 100%;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn:hover {
+    background-color: #2563eb;
+}
+
+.lista {
+    list-style: none;
+}
+
+.elemento-lista {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.elemento-lista:last-child {
+    border-bottom: none;
+}
+
+.info-scadenza h3 {
+    font-size: 1rem;
+    color: #1e293b;
+}
+
+.info-scadenza p {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.btn-elimina {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.btn-elimina:hover {
+    background-color: #dc2626;
 }
