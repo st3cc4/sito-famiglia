@@ -1,91 +1,128 @@
-/* ==========================================
-   PWA FAMIGLIA - STILI PERSONALIZZATI (style.css)
-   Created by STECCA with GEMINI
-   ========================================== */
-
-/* Regole generali e reset di base */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-html, body {
-    height: 100%;
+body {
+    background-color: #f4f6f9;
+    color: #333;
+    padding: 15px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+}
+
+header p {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+}
+
+.card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+}
+
+.card h2 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: #34495e;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+input, textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
     width: 100%;
-    overflow: hidden;
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* Transizioni fluide per la barra laterale (sidebar) */
-#sidebar {
-    will-change: transform;
+button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
 }
 
-/* Scrollbar personalizzata per un aspetto più pulito e moderno */
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+button:hover {
+    background-color: #2980b9;
 }
 
-::-webkit-scrollbar-track {
-    background: #f1f5f9;
+ul {
+    list-style: none;
 }
 
-::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 3px;
+li {
+    background: #f9f9f9;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid #3498db;
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+li button {
+    background-color: #e74c3c;
+    padding: 5px 10px;
+    font-size: 0.8rem;
 }
 
-/* Effetti visivi per le schede nelle sezioni */
-.screen-content {
-    animation: fadeIn 0.25s ease-in-out;
+li button:hover {
+    background-color: #c0392b;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(4px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.ricetta-item {
+    background: #fdfefe;
+    border: 1px solid #e1e8ed;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    position: relative;
 }
 
-/* Ottimizzazione specifica per dispositivi mobili (smartphone) */
-@media (max-width: 768px) {
-    #sidebar {
-        box-shadow: 10px 0 25px -5px rgba(0, 0, 0, 0.1);
-    }
-    
-    /* Adattamento tabelle per schermi piccoli */
-    table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
+.ricetta-item h3 {
+    font-size: 1rem;
+    color: #2c3e50;
+    margin-bottom: 5px;
 }
 
-/* Stili specifici per i badge di scadenza nella Home */
-.badge-scadenza-rosso {
-    background-color: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #fecaca;
+.ricetta-item p {
+    font-size: 0.9rem;
+    color: #555;
+    white-space: pre-wrap;
 }
 
-.badge-scadenza-arancione {
-    background-color: #ffedd5;
-    color: #9a3412;
-    border: 1px solid #fed7aa;
-}
-
-.badge-scadenza-verde {
-    background-color: #f0fdf4;
-    color: #166534;
-    border: 1px solid #dcfce7;
+.ricetta-item button {
+    margin-top: 8px;
+    background-color: #e74c3c;
+    padding: 4px 8px;
+    font-size: 0.75rem;
 }
