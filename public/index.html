@@ -4,17 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestione Famiglia</title>
-    <!-- Collegamento al file di stile -->
     <link rel="stylesheet" href="style.css">
-    <!-- Collegamento al Manifest per la PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#3b82f6">
 </head>
 <body>
 
-    <div class="container">
-        <h1>Casa Dolce Casa 🏡</h1>
-        <p class="subtitle">Gestione scadenze e bollette di famiglia</p>
+    <!-- SEZIONE LOGIN / REGISTRAZIONE (Inizialmente visibile se non loggati) -->
+    <div id="auth-container" class="container">
+        <div class="card auth-card">
+            <h1>Famiglia 🏡</h1>
+            <p id="auth-subtitle" class="subtitle">Accedi per gestire le scadenze</p>
+            
+            <form id="auth-form">
+                <div class="form-group">
+                    <label for="auth-email">Email</label>
+                    <input type="email" id="auth-email" required placeholder="La tua email...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="auth-password">Password</label>
+                    <input type="password" id="auth-password" required placeholder="La tua password...">
+                </div>
+
+                <button type="submit" id="auth-btn" class="btn">Accedi</button>
+            </form>
+
+            <p class="auth-switch">
+                <span id="auth-toggle-text">Non hai un account?</span> 
+                <a href="#" id="auth-toggle-btn">Registrati</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- SEZIONE APP PRINCIPALE (Inizialmente nascosta finché non si fa il login) -->
+    <div id="app-container" class="container" style="display: none;">
+        <header class="app-header">
+            <div>
+                <h1>Casa Dolce Casa 🏡</h1>
+                <p class="subtitle">Benvenuto, <span id="user-email-display"></span></p>
+            </div>
+            <button id="btn-logout" class="btn-logout">Esci</button>
+        </header>
 
         <!-- Sezione per aggiungere una nuova scadenza -->
         <div class="card">
@@ -43,12 +74,12 @@
         <div class="card">
             <h2>Scadenze Future</h2>
             <ul id="lista-scadenze" class="lista">
-                <!-- I dati verranno aggiunti automaticamente qui -->
+                <!-- I dati verranno aggiunti automaticamente da Firebase -->
             </ul>
         </div>
     </div>
 
-    <!-- Collegamento al file JavaScript -->
-    <script src="app.js"></script>
+    <!-- Script JavaScript principale -->
+    <script type="module" src="app.js"></script>
 </body>
 </html>
