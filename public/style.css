@@ -276,13 +276,29 @@ input:focus {
     border-bottom: 1px solid #f1f5f9;
 }
 
+.azioni-utente {
+    display: flex;
+    gap: 6px;
+}
+
 .btn-elimina {
     background-color: #ef4444;
     color: white;
     border: none;
-    padding: 6px 12px;
+    padding: 6px 10px;
     border-radius: 6px;
     cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.btn-modifica {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
 }
 
 .footer-home-nav {
