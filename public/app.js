@@ -202,7 +202,7 @@ function formatCapitalize(str) {
     return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 }
 
-// --- OCR LOCALE CON TESSERACT E PARSER OTTIMIZZATO PER SCADENZE ---
+// --- OCR AVANZATO CON TESSERACT E PARSER INTELLIGENTE BOLLETTE ITALIANE ---
 async function elaboraImmagineConTesseract(file) {
     ocrLoading.style.display = 'block';
     ocrProgress.textContent = '0%';
@@ -218,7 +218,7 @@ async function elaboraImmagineConTesseract(file) {
         });
 
         const testo = result.data.text;
-        pulisciECompilaDati(testo);
+        analizzaTestoBollettaAvanzato(testo);
 
     } catch (error) {
         console.error("Errore OCR:", error);
@@ -228,21 +228,22 @@ async function elaboraImmagineConTesseract(file) {
     }
 }
 
-function pulisciECompilaDati(testo) {
-    const linee = testo.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+function analizzaTestoBollettaAvanzato(testo) {
+    const testoPulito = testo.replace(/\r\n/g, '\n');
+    const linee = testoPulito.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const testoLower = testoPulito.toLowerCase();
 
-    // 1. Riconoscimento Ente
-    let enteTrovato = "Enel";
-    const testoUnito = testo.toLowerCase();
-    
-    if (testoUnito.includes("enel")) enteTrovato = "Enel";
-    else if (testoUnito.includes("iren")) enteTrovato = "Iren";
-    else if (testoUnito.includes("hera")) enteTrovato = "Hera";
-    else if (testoUnito.includes("enigas") || testoUnito.includes("eni")) enteTrovato = "Eni Gas e Luce";
-    else if (testoUnito.includes("acea")) enteTrovato = "Acea";
+    // 1. RICONOSCIMENTO ENTE / TITOLO
+    let enteTrovato = "Bolletta";
+    if (testoLower.includes("dolomiti")) enteTrovato = "Dolomiti Energia";
+    else if (testoLower.includes("enel")) enteTrovato = "Enel";
+    else if (testoLower.includes("iren")) enteTrovato = "Iren";
+    else if (testoLower.includes("hera")) enteTrovato = "Hera";
+    else if (testoLower.includes("eni")) enteTrovato = "Eni Gas e Luce";
+    else if (testoLower.includes("acea")) enteTrovato = "Acea";
     else if (linee.length > 0) {
         for (let l of linee) {
-            if (l.length > 2 && !l.includes("XXXX") && !l.includes("Codice")) {
+            if (l.length > 3 && !l.includes("XXXX") && !l.includes("Codice") && !l.includes("Fattura")) {
                 enteTrovato = l;
                 break;
             }
@@ -250,60 +251,72 @@ function pulisciECompilaDati(testo) {
     }
     inputTitolo.value = formatCapitalize(enteTrovato);
 
-    // 2. Riconoscimento Importo
+    // 2. RICONOSCIMENTO IMPORTO (Cerca importi formattati con virgola o cifre grandi tipiche delle bollette)
     let importoTrovato = "";
+    // Cerca pattern tipo 1.446,22 oppure 147,30 vicino a parole come "totale", "pagare", "euro"
     for (let i = 0; i < linee.length; i++) {
         let linea = linee[i].toLowerCase();
-        if (linea.includes("quanto pago") || linea.includes("totale") || linea.includes("importo")) {
-            let match = linee[i].match(/([0-9]+[.,][0-9]{2})/);
-            if (!match && i + 1 < linee.length) {
-                match = linee[i+1].match(/([0-9]+[.,][0-9]{2})/);
+        if (linea.includes("totale") || linea.includes("pagare") || linea.includes("euro") || linea.includes("€")) {
+            // Controlla la riga stessa o le 2 successive per numeri con formato monetario italiano (es. 1.446,22 o 147,30)
+            for (let j = i; j <= Math.min(i + 2, linee.length - 1); j++) {
+                const match = linee[j].match(/([0-9]{1,3}(?:\.[0-9]{3})*[.,][0-9]{2})/);
+                if (match) {
+                    importoTrovato = match[1].replace(/\./g, '').replace(',', '.');
+                    break;
+                }
             }
-            if (match) {
-                importoTrovato = match[1].replace(',', '.');
-                break;
-            }
+            if (importoTrovato) break;
         }
     }
+    // Fallback generale se non trova l'etichetta testuale esatta
     if (!importoTrovato) {
         for (let linea of linee) {
-            const match = linea.match(/\b([1-9][0-9]*[.,][0-9]{2})\b/);
+            const match = linea.match(/\b([1-9][0-9]*(?:\.[0-9]{3})*[.,][0-9]{2})\b/);
             if (match) {
-                importoTrovato = match[1].replace(',', '.');
+                importoTrovato = match[1].replace(/\./g, '').replace(',', '.');
                 break;
             }
         }
     }
     if (importoTrovato) inputImporto.value = importoTrovato;
 
-    // 3. Riconoscimento Data (Cerca rigorosamente la riga con "quando scade" o "scade il")
+    // 3. RICONOSCIMENTO DATA DI SCADENZA (Gestisce sia date numeriche gg/mm/aaaa che date in lettere es. "5 agosto 2025")
     let dataTrovata = "";
+    
+    // Mappa mesi in italiano per convertire "5 agosto 2025" in "2025-08-05"
+    const mesiMappa = {
+        'gennaio': '01', 'febbraio': '02', 'marzo': '03', 'aprile': '04',
+        'maggio': '05', 'giugno': '06', 'luglio': '07', 'agosto': '08',
+        'settembre': '09', 'ottobre': '10', 'novembre': '11', 'dicembre': '12'
+    };
+
     for (let i = 0; i < linee.length; i++) {
         let linea = linee[i].toLowerCase();
-        // Cerchiamo specificamente dove viene indicata la scadenza del pagamento (escludendo la data di fine offerta futura)
-        if (linea.includes("quando scade") || linea.includes("scade?") || linea.includes("entro il")) {
-            let match = linee[i].match(/\b(0[1-9]|[12][0-9]|3[01])[\/\-](0[1-9]|1[0-2])[\/\-](20\d{2})\b/);
-            if (!match && i + 1 < linee.length) {
-                match = linee[i+1].match(/\b(0[1-9]|[12][0-9]|3[01])[\/\-](0[1-9]|1[0-2])[\/\-](20\d{2})\b/);
-            }
-            if (match) {
-                const giorno = match[1];
-                const mese = match[2];
-                const anno = match[3];
-                dataTrovata = `${anno}-${mese}-${giorno}`;
-                break;
-            }
-        }
-    }
+        if (linea.includes("quando scade") || linea.includes("scade") || linea.includes("scadenza") || linea.includes("entro il")) {
+            // Blocco di ricerca nelle righe vicine
+            for (let j = i; j <= Math.min(i + 2, linee.length - 1); j++) {
+                let rigaTarget = linee[j];
+                
+                // Controlla formato numerico GG/MM/AAAA o GG-MM-AAAA
+                let matchNum = rigaTarget.match(/\b(0[1-9]|[12][0-9]|3[01])[\/\-](0[1-9]|1[0-2])[\/\-](20\d{2})\b/);
+                if (matchNum) {
+                    dataTrovata = `${matchNum[3]}-${matchNum[2]}-${matchNum[1]}`;
+                    break;
+                }
 
-    // Fallback se non trova la dicitura specifica "quando scade": prende la prima data realistica non troppo futura (es. anno corrente/scorso)
-    if (!dataTrovata) {
-        for (let linea of linee) {
-            const match = linea.match(/\b(0[1-9]|[12][0-9]|3[01])[\/\-](0[1-9]|1[0-2])[\/\-](202[4-5])\b/);
-            if (match) {
-                dataTrovata = `${match[3]}-${match[2]}-${match[1]}`;
-                break;
+                // Controlla formato testuale es. "5 agosto 2025" o "05 agosto 2025"
+                let matchTxt = rigaTarget.toLowerCase().match(/\b([0-9]{1,2})\s+([a-zà-ù]+)\s+(20\d{2})\b/);
+                if (matchTxt) {
+                    let giorno = matchTxt[1].padStart(2, '0');
+                    let nomeMese = matchTxt[2];
+                    let anno = matchTxt[3];
+                    if (mesiMappa[nomeMese]) {
+                        dataTrovata = `${anno}-${mesiMappa[nomeMese]}-${giorno}`;
+                        break;
+                    }
+                }
             }
+            if (dataTrovata) break;
         }
     }
 
@@ -527,7 +540,7 @@ scadenzaForm.addEventListener('submit', async (e) => {
         modalScadenza.style.display = 'none';
         caricaScadenze();
     } catch (error) { alert("Errore: " + error.message); }
-});
+} );
 
 async function eliminaScadenza(id) {
     try {
