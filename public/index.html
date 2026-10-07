@@ -98,7 +98,7 @@
 
                     <div class="card card-summary" id="card-sec-appuntamenti">
                         <div class="card-header">
-                            <h2>📌 Appuntamenti</h2>
+                            <h2>📌 Appuntamenti Settimana</h2>
                             <button class="link-goto" data-target="sec-appuntamenti">Vai ad Appuntamenti ➔</button>
                         </div>
                         <div id="home-summary-appuntamenti" class="summary-content">
@@ -147,7 +147,7 @@
                 <div class="app-signature">Created by STECCA with GEMINI</div>
             </section>
 
-            <!-- POP-UP MODALE PER INSERIRE / MODIFICARE SCADENZA (CON OCR) -->
+            <!-- POP-UP MODALE PER SCADENZA -->
             <div id="modal-scadenza" class="modal-overlay" style="display: none;">
                 <div class="modal-card">
                     <div class="modal-header">
@@ -189,15 +189,46 @@
 
             <!-- SCHERMATA 3: APPUNTAMENTI -->
             <section id="sec-appuntamenti" class="page-section">
-                <div class="card">
-                    <h2>Gestione Appuntamenti</h2>
-                    <p class="text-muted">Sezione in arrivo...</p>
+                <div class="scadenze-top-bar">
+                    <button id="btn-apri-modal-app" class="btn-nuova-scadenza">Nuovo Appuntamento</button>
                 </div>
+
+                <div class="card">
+                    <h2>Elenco Appuntamenti</h2>
+                    <ul id="lista-appuntamenti" class="lista"></ul>
+                </div>
+
                 <div class="footer-home-nav">
                     <button class="btn-back-home" data-target="sec-home">🏠 Torna alla Home</button>
                 </div>
                 <div class="app-signature">Created by STECCA with GEMINI</div>
             </section>
+
+            <!-- POP-UP MODALE PER APPUNTAMENTO -->
+            <div id="modal-appuntamento" class="modal-overlay" style="display: none;">
+                <div class="modal-card">
+                    <div class="modal-header">
+                        <h2>Nuovo Appuntamento</h2>
+                        <button id="btn-chiudi-modal-app" class="btn-chiudi">✖</button>
+                    </div>
+
+                    <form id="appuntamento-form">
+                        <div class="form-group">
+                            <label for="app-titolo">Titolo Appuntamento</label>
+                            <input type="text" id="app-titolo" required placeholder="Es. Visita medica, Riunione...">
+                        </div>
+                        <div class="form-group">
+                            <label for="app-data">Data</label>
+                            <input type="date" id="app-data" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="app-orario">Orario</label>
+                            <input type="time" id="app-orario" required>
+                        </div>
+                        <button type="submit" class="btn">Salva Appuntamento</button>
+                    </form>
+                </div>
+            </div>
 
             <!-- SCHERMATA 4: MEDIA -->
             <section id="sec-media" class="page-section">
