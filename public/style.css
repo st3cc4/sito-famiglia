@@ -253,11 +253,103 @@ input:focus {
 
 .text-muted { color: #94a3b8; font-size: 0.9rem; }
 
+/* SCADENZE SECTION STYLES */
+.scadenze-top-bar {
+    margin-bottom: 20px;
+}
+
+.btn-nuova-scadenza {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.btn-nuova-scadenza:hover {
+    background-color: #2563eb;
+}
+
+/* MODAL POPUP */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 10px;
+}
+
+.modal-header h2 {
+    font-size: 1.2rem;
+    color: #1e293b;
+}
+
+.btn-chiudi {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #64748b;
+}
+
+/* OCR BUTTONS */
+.ocr-buttons-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.btn-ocr {
+    flex: 1;
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #334155;
+    cursor: pointer;
+    display: block;
+}
+
+.btn-ocr:hover {
+    background-color: #f1f5f9;
+    border-color: #94a3b8;
+}
+
 .scadenza-badge-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
+    padding: 12px;
     border-radius: 8px;
     margin-bottom: 8px;
     font-size: 0.95rem;
@@ -276,10 +368,7 @@ input:focus {
     border-bottom: 1px solid #f1f5f9;
 }
 
-.azioni-utente {
-    display: flex;
-    gap: 6px;
-}
+.azioni-utente { display: flex; gap: 6px; }
 
 .btn-elimina {
     background-color: #ef4444;
