@@ -202,7 +202,7 @@ function formatCapitalize(str) {
     return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 }
 
-// --- OCR AVANZATO CON TESSERACT E PARSER INTELLIGENTE BOLLETTE ITALIANE ---
+// --- OCR ULTRA-POTENZIATO PER BOLLETTE ITALIANE ---
 async function elaboraImmagineConTesseract(file) {
     ocrLoading.style.display = 'block';
     ocrProgress.textContent = '0%';
@@ -218,7 +218,7 @@ async function elaboraImmagineConTesseract(file) {
         });
 
         const testo = result.data.text;
-        analizzaTestoBollettaAvanzato(testo);
+        analizzaTestoBollettaDefinitivo(testo);
 
     } catch (error) {
         console.error("Errore OCR:", error);
@@ -228,12 +228,12 @@ async function elaboraImmagineConTesseract(file) {
     }
 }
 
-function analizzaTestoBollettaAvanzato(testo) {
+function analizzaTestoBollettaDefinitivo(testo) {
     const testoPulito = testo.replace(/\r\n/g, '\n');
     const linee = testoPulito.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     const testoLower = testoPulito.toLowerCase();
 
-    // 1. RICONOSCIMENTO ENTE / TITOLO
+    // 1. RICONOSCIMENTO ENTE
     let enteTrovato = "Bolletta";
     if (testoLower.includes("dolomiti")) enteTrovato = "Dolomiti Energia";
     else if (testoLower.includes("enel")) enteTrovato = "Enel";
@@ -241,49 +241,40 @@ function analizzaTestoBollettaAvanzato(testo) {
     else if (testoLower.includes("hera")) enteTrovato = "Hera";
     else if (testoLower.includes("eni")) enteTrovato = "Eni Gas e Luce";
     else if (testoLower.includes("acea")) enteTrovato = "Acea";
-    else if (linee.length > 0) {
-        for (let l of linee) {
-            if (l.length > 3 && !l.includes("XXXX") && !l.includes("Codice") && !l.includes("Fattura")) {
-                enteTrovato = l;
-                break;
-            }
-        }
-    }
     inputTitolo.value = formatCapitalize(enteTrovato);
 
-    // 2. RICONOSCIMENTO IMPORTO (Cerca importi formattati con virgola o cifre grandi tipiche delle bollette)
+    // 2. RICONOSCIMENTO IMPORTO (Cerca importi consistenti associati a totale o cifre grandi)
     let importoTrovato = "";
-    // Cerca pattern tipo 1.446,22 oppure 147,30 vicino a parole come "totale", "pagare", "euro"
-    for (let i = 0; i < linee.length; i++) {
-        let linea = linee[i].toLowerCase();
-        if (linea.includes("totale") || linea.includes("pagare") || linea.includes("euro") || linea.includes("€")) {
-            // Controlla la riga stessa o le 2 successive per numeri con formato monetario italiano (es. 1.446,22 o 147,30)
-            for (let j = i; j <= Math.min(i + 2, linee.length - 1); j++) {
-                const match = linee[j].match(/([0-9]{1,3}(?:\.[0-9]{3})*[.,][0-9]{2})/);
-                if (match) {
-                    importoTrovato = match[1].replace(/\./g, '').replace(',', '.');
-                    break;
-                }
-            }
-            if (importoTrovato) break;
+    
+    // Cerca direttamente numeri formattati con migliaia e decimali (es. 1.446,22 o 1.446.22)
+    for (let linea of linee) {
+        const matchGrande = linea.match(/\b([1-9][0-9]{0,2}(?:\.[0-9]{3})+[.,][0-9]{2})\b/);
+        if (matchGrande) {
+            importoTrovato = matchGrande[1].replace(/\./g, '').replace(',', '.');
+            break;
         }
     }
-    // Fallback generale se non trova l'etichetta testuale esatta
+
+    // Se non lo trova, cerca vicino a parole chiave "totale" o "pagare"
     if (!importoTrovato) {
-        for (let linea of linee) {
-            const match = linea.match(/\b([1-9][0-9]*(?:\.[0-9]{3})*[.,][0-9]{2})\b/);
-            if (match) {
-                importoTrovato = match[1].replace(/\./g, '').replace(',', '.');
-                break;
+        for (let i = 0; i < linee.length; i++) {
+            let linea = linee[i].toLowerCase();
+            if (linea.includes("totale") || linea.includes("pagare") || linea.includes("euro")) {
+                for (let j = i; j <= Math.min(i + 2, linee.length - 1); j++) {
+                    const match = linee[j].match(/([0-9]+[.,][0-9]{2})/);
+                    if (match) {
+                        importoTrovato = match[1].replace(',', '.');
+                        break;
+                    }
+                }
+                if (importoTrovato) break;
             }
         }
     }
     if (importoTrovato) inputImporto.value = importoTrovato;
 
-    // 3. RICONOSCIMENTO DATA DI SCADENZA (Gestisce sia date numeriche gg/mm/aaaa che date in lettere es. "5 agosto 2025")
+    // 3. RICONOSCIMENTO DATA DI SCADENZA (Cerca date in lettere o numeriche vicino a "scade")
     let dataTrovata = "";
-    
-    // Mappa mesi in italiano per convertire "5 agosto 2025" in "2025-08-05"
     const mesiMappa = {
         'gennaio': '01', 'febbraio': '02', 'marzo': '03', 'aprile': '04',
         'maggio': '05', 'giugno': '06', 'luglio': '07', 'agosto': '08',
@@ -292,19 +283,11 @@ function analizzaTestoBollettaAvanzato(testo) {
 
     for (let i = 0; i < linee.length; i++) {
         let linea = linee[i].toLowerCase();
-        if (linea.includes("quando scade") || linea.includes("scade") || linea.includes("scadenza") || linea.includes("entro il")) {
-            // Blocco di ricerca nelle righe vicine
+        if (linea.includes("scade") || linea.includes("scadenza") || linea.includes("quando scade")) {
             for (let j = i; j <= Math.min(i + 2, linee.length - 1); j++) {
                 let rigaTarget = linee[j];
-                
-                // Controlla formato numerico GG/MM/AAAA o GG-MM-AAAA
-                let matchNum = rigaTarget.match(/\b(0[1-9]|[12][0-9]|3[01])[\/\-](0[1-9]|1[0-2])[\/\-](20\d{2})\b/);
-                if (matchNum) {
-                    dataTrovata = `${matchNum[3]}-${matchNum[2]}-${matchNum[1]}`;
-                    break;
-                }
 
-                // Controlla formato testuale es. "5 agosto 2025" o "05 agosto 2025"
+                // Cerca formato testuale (es. "5 agosto 2025")
                 let matchTxt = rigaTarget.toLowerCase().match(/\b([0-9]{1,2})\s+([a-zà-ù]+)\s+(20\d{2})\b/);
                 if (matchTxt) {
                     let giorno = matchTxt[1].padStart(2, '0');
@@ -314,6 +297,13 @@ function analizzaTestoBollettaAvanzato(testo) {
                         dataTrovata = `${anno}-${mesiMappa[nomeMese]}-${giorno}`;
                         break;
                     }
+                }
+
+                // Cerca formato numerico (es. 05/08/2025)
+                let matchNum = rigaTarget.match(/\b(0[1-9]|[12][0-9]|3[01])[\/\-](0[1-9]|1[0-2])[\/\-](20\d{2})\b/);
+                if (matchNum) {
+                    dataTrovata = `${matchNum[3]}-${matchNum[2]}-${matchNum[1]}`;
+                    break;
                 }
             }
             if (dataTrovata) break;
@@ -540,7 +530,7 @@ scadenzaForm.addEventListener('submit', async (e) => {
         modalScadenza.style.display = 'none';
         caricaScadenze();
     } catch (error) { alert("Errore: " + error.message); }
-} );
+});
 
 async function eliminaScadenza(id) {
     try {
