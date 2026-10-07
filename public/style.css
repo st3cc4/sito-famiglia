@@ -16,7 +16,6 @@ body {
     padding: 20px;
 }
 
-/* --- AUTH LOGIN --- */
 .auth-title {
     color: #1e3a8a;
     font-size: 1.8rem;
@@ -72,6 +71,25 @@ input:focus {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+.checkbox-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    background: #f8fafc;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: #334155;
+    margin-bottom: 0;
+}
+
 .login-row {
     display: flex;
     justify-content: space-between;
@@ -108,7 +126,7 @@ input:focus {
 .auth-links { margin-top: 15px; font-size: 0.9rem; }
 .auth-links a { color: #3b82f6; text-decoration: none; }
 
-/* --- LAYOUT CON SIDEBAR --- */
+/* LAYOUT CON SIDEBAR */
 .layout-wrapper {
     display: flex;
     min-height: 100vh;
@@ -117,7 +135,7 @@ input:focus {
 .sidebar {
     width: 220px;
     background-color: #1e293b;
-    color: #white;
+    color: white;
     transition: width 0.3s ease;
     display: flex;
     flex-direction: column;
@@ -201,14 +219,8 @@ input:focus {
     cursor: pointer;
 }
 
-/* --- SEZIONI E DASHBOARD --- */
-.page-section {
-    display: none;
-}
-
-.page-section.active {
-    display: block;
-}
+.page-section { display: none; }
+.page-section.active { display: block; }
 
 .dashboard-grid {
     display: flex;
@@ -239,16 +251,8 @@ input:focus {
     font-size: 0.85rem;
 }
 
-.link-goto:hover {
-    text-decoration: underline;
-}
+.text-muted { color: #94a3b8; font-size: 0.9rem; }
 
-.text-muted {
-    color: #94a3b8;
-    font-size: 0.9rem;
-}
-
-/* --- SCADENZE COLORATE PER REGOLA DNI --- */
 .scadenza-badge-item {
     display: flex;
     justify-content: space-between;
@@ -259,25 +263,10 @@ input:focus {
     font-size: 0.95rem;
 }
 
-.status-red {
-    background-color: #fef2f2;
-    color: #991b1b;
-    border-left: 4px solid #ef4444;
-}
+.status-red { background-color: #fef2f2; color: #991b1b; border-left: 4px solid #ef4444; }
+.status-orange { background-color: #fff7ed; color: #9a3412; border-left: 4px solid #f97316; }
+.status-green { background-color: #f0fdf4; color: #166534; border-left: 4px solid #22c55e; }
 
-.status-orange {
-    background-color: #fff7ed;
-    color: #9a3412;
-    border-left: 4px solid #f97316;
-}
-
-.status-green {
-    background-color: #f0fdf4;
-    color: #166534;
-    border-left: 4px solid #22c55e;
-}
-
-/* --- LISTA ED ELEMENTI --- */
 .lista { list-style: none; }
 .elemento-lista {
     display: flex;
@@ -296,7 +285,6 @@ input:focus {
     cursor: pointer;
 }
 
-/* --- PULSANTE TORNA ALLA HOME IN BASSO A DESTRA --- */
 .footer-home-nav {
     display: flex;
     justify-content: flex-end;
@@ -312,9 +300,4 @@ input:focus {
     border-radius: 8px;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.btn-back-home:hover {
-    background-color: #334155;
 }
