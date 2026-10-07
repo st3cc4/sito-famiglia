@@ -7,8 +7,6 @@
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#3b82f6">
-    <!-- Libreria Tesseract.js per l'OCR offline nel browser -->
-    <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
 </head>
 <body>
 
@@ -47,7 +45,7 @@
     <!-- SEZIONE APP PRINCIPALE -->
     <div id="app-container" class="layout-wrapper" style="display: none;">
         
-        <!-- MENU LATERALE (Inizia chiuso) -->
+        <!-- MENU LATERALE -->
         <aside id="sidebar" class="sidebar collapsed">
             <button id="toggle-sidebar" class="sidebar-toggle-btn" title="Espandi/Riduci menu">☰</button>
             <nav class="sidebar-nav">
@@ -149,7 +147,7 @@
                 <div class="app-signature">Created by STECCA with GEMINI</div>
             </section>
 
-            <!-- POP-UP MODALE PER INSERIRE / MODIFICARE SCADENZA (CON TESSERACT OCR) -->
+            <!-- POP-UP MODALE CON GEMINI VISION OCR -->
             <div id="modal-scadenza" class="modal-overlay" style="display: none;">
                 <div class="modal-card">
                     <div class="modal-header">
@@ -168,7 +166,7 @@
                         </label>
                     </div>
                     <div id="ocr-loading" style="display: none; text-align: center; color: #3b82f6; margin-bottom: 15px; font-weight: bold;">
-                        🤖 Lettura bolletta in corso (Tesseract)... <span id="ocr-progress">0%</span>
+                        🤖 Analisi bolletta con Gemini IA in corso...
                     </div>
 
                     <form id="scadenza-form">
