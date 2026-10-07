@@ -38,7 +38,6 @@ const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Email del tuo account Amministratore principale
 const ADMIN_EMAIL = "stpa79@gmail.com"; 
 
 const authContainer = document.getElementById('auth-container');
@@ -124,7 +123,6 @@ btnLogout.addEventListener('click', async () => {
     try { await signOut(auth); } catch (error) { console.error(error); }
 });
 
-// Controllo sessione utente e caricamento permessi
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         authContainer.style.display = 'none';
@@ -133,7 +131,6 @@ onAuthStateChanged(auth, async (user) => {
         let nomeVisualizzato = user.email.split('@')[0];
         let permessi = { scadenze: true, appuntamenti: true, media: true, ricette: true };
 
-        // Verifichiamo se l'utente ha un profilo personalizzato in Firestore
         try {
             const userDoc = await getDoc(doc(db, "utenti", user.email));
             if (userDoc.exists()) {
@@ -147,13 +144,11 @@ onAuthStateChanged(auth, async (user) => {
 
         greetingTitle.textContent = `Ciao, ${nomeVisualizzato}`;
 
-        // Controllo visibilità sezioni in base ai permessi
         gestisciVisibilitaSezione('sec-scadenze', 'menu-scadenze', 'card-sec-scadenze', permessi.scadenze);
         gestisciVisibilitaSezione('sec-appuntamenti', 'menu-appuntamenti', 'card-sec-appuntamenti', permessi.appuntamenti);
         gestisciVisibilitaSezione('sec-media', 'menu-media', 'card-sec-media', permessi.media);
         gestisciVisibilitaSezione('sec-ricette', 'menu-ricette', 'card-sec-ricette', permessi.ricette);
 
-        // Se sei l'amministratore (stpa79@gmail.com), mostriamo il menu Gestione Utenti
         if (user.email === ADMIN_EMAIL) {
             menuUtenti.style.display = 'flex';
             caricaListaUtenti();
@@ -197,6 +192,7 @@ utenteForm.addEventListener('submit', async (e) => {
         await setDoc(doc(db, "utenti", email), { email, nome, permessi });
         alert(`Utente ${nome} salvato con successo!`);
         utenteForm.reset();
+        userEmailInput.removeAttribute('readonly'); // Riattiva la modifica email
         caricaListaUtenti();
     } catch (error) {
         alert("Errore nel salvataggio utente: " + error.message);
@@ -215,15 +211,39 @@ async function caricaListaUtenti() {
 
         querySnapshot.forEach((docSnap) => {
             const u = docSnap.data();
+            const p = u.permessi || {};
+
+            // Simboli colorati richiesti: ✔ verde e ✖ rosso
+            const iconScad = p.scadenze ? '<span style="color:#22c55e; font-weight:bold;">✔ Scadenze</span>' : '<span style="color:#ef4444; font-weight:bold;">✖ Scadenze</span>';
+            const iconApp = p.appuntamenti ? '<span style="color:#22c55e; font-weight:bold;">✔ Appuntamenti</span>' : '<span style="color:#ef4444; font-weight:bold;">✖ Appuntamenti</span>';
+            const iconMed = p.media ? '<span style="color:#22c55e; font-weight:bold;">✔ Media</span>' : '<span style="color:#ef4444; font-weight:bold;">✖ Media</span>';
+            const iconRic = p.ricette ? '<span style="color:#22c55e; font-weight:bold;">✔ Ricette</span>' : '<span style="color:#ef4444; font-weight:bold;">✖ Ricette</span>';
+
             const li = document.createElement('li');
             li.className = 'elemento-lista';
             li.innerHTML = `
                 <div>
-                    <strong>${u.nome}</strong> (${u.email})
-                    <p class="text-muted">Visibilità: S:${u.permessi?.scadenze?'✔':'✖'} | A:${u.permessi?.appuntamenti?'✔':'✖'} | M:${u.permessi?.media?'✔':'✖'} | R:${u.permessi?.ricette?'✔':'✖'}</p>
+                    <strong>${u.nome}</strong> <span class="text-muted">(${u.email})</span>
+                    <p class="text-muted" style="margin-top: 4px;">${iconScad} | ${iconApp} | ${iconMed} | ${iconRic}</p>
                 </div>
-                <button class="btn-elimina" data-email="${u.email}">Elimina</button>
+                <div class="azioni-utente">
+                    <button class="btn-modifica">Modifica</button>
+                    <button class="btn-elimina">Elimina</button>
+                </div>
             `;
+
+            // Pulsante Modifica: ricarica i dati nei campi sopra
+            li.querySelector('.btn-modifica').addEventListener('click', () => {
+                userEmailInput.value = u.email;
+                userEmailInput.setAttribute('readonly', true); // L'email fa da chiave, meglio non cambiarla in volo
+                userNameInput.value = u.nome;
+                permScadenze.checked = !!p.scadenze;
+                permAppuntamenti.checked = !!p.appuntamenti;
+                permMedia.checked = !!p.media;
+                permRicette.checked = !!p.ricette;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
             li.querySelector('.btn-elimina').addEventListener('click', () => eliminaUtente(u.email));
             listaUtenti.appendChild(li);
         });
@@ -236,6 +256,8 @@ async function eliminaUtente(email) {
     if (confirm(`Vuoi rimuovere la configurazione per ${email}?`)) {
         try {
             await deleteDoc(doc(db, "utenti", email));
+            userEmailInput.removeAttribute('readonly');
+            utenteForm.reset();
             caricaListaUtenti();
         } catch (error) {
             alert("Errore durante l'eliminazione: " + error.message);
