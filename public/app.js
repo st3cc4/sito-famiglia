@@ -3,12 +3,12 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase
 import { 
     getAuth, 
     signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword, 
     signOut, 
     onAuthStateChanged,
     setPersistence,
     browserLocalPersistence,
-    browserSessionPersistence
+    browserSessionPersistence,
+    sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { 
     getFirestore, 
@@ -42,10 +42,7 @@ const authForm = document.getElementById('auth-form');
 const authEmailInput = document.getElementById('auth-email');
 const authPasswordInput = document.getElementById('auth-password');
 const rememberCheck = document.getElementById('remember-check');
-const authBtn = document.getElementById('auth-btn');
-const authSubtitle = document.getElementById('auth-subtitle');
-const authToggleText = document.getElementById('auth-toggle-text');
-const authToggleBtn = document.getElementById('auth-toggle-btn');
+const forgotPasswordBtn = document.getElementById('forgot-password-btn');
 const userEmailDisplay = document.getElementById('user-email-display');
 const btnLogout = document.getElementById('btn-logout');
 
@@ -55,45 +52,41 @@ const inputData = document.getElementById('data');
 const inputImporto = document.getElementById('importo');
 const listaScadenze = document.getElementById('lista-scadenze');
 
-let isRegistering = false;
-
-authToggleBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    isRegistering = !isRegistering;
-    if (isRegistering) {
-        authSubtitle.textContent = "Crea un nuovo account per la famiglia";
-        authBtn.textContent = "Registrati";
-        authToggleText.textContent = "Hai già un account?";
-        authToggleBtn.textContent = "Accedi";
-    } else {
-        authSubtitle.textContent = "Accedi per gestire le scadenze";
-        authBtn.textContent = "Accedi";
-        authToggleText.textContent = "Non hai un account?";
-        authToggleBtn.textContent = "Registrati";
-    }
-});
-
+// Gestione del Login (senza registrazione libera)
 authForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = authEmailInput.value;
     const password = authPasswordInput.value;
 
-    // Impostiamo la persistenza in base al checkbox
     const persistenceType = rememberCheck.checked ? browserLocalPersistence : browserSessionPersistence;
 
     try {
         await setPersistence(auth, persistenceType);
-        
-        if (isRegistering) {
-            await createUserWithEmailAndPassword(auth, email, password);
-        } else {
-            await signInWithEmailAndPassword(auth, email, password);
-        }
+        await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
-        alert("Errore di autenticazione: " + error.message);
+        alert("Errore di accesso: controlla email o password.");
     }
 });
 
+// Funzione per il recupero/cambio password tramite email
+forgotPasswordBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = authEmailInput.value;
+    
+    if (!email) {
+        alert("Inserisci prima la tua email nel campo apposito, poi clicca su 'Password dimenticata?'.");
+        return;
+    }
+
+    try {
+        await sendPasswordResetEmail(auth, email);
+        alert("Ti è stata inviata un'email con le istruzioni per reimpostare la password.");
+    } catch (error) {
+        alert("Errore durante l'invio dell'email di recupero: " + error.message);
+    }
+});
+
+// Gestione del Logout
 btnLogout.addEventListener('click', async () => {
     try {
         await signOut(auth);
@@ -102,6 +95,7 @@ btnLogout.addEventListener('click', async () => {
     }
 });
 
+// Controllo dello stato di autenticazione
 onAuthStateChanged(auth, (user) => {
     if (user) {
         authContainer.style.display = 'none';
