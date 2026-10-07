@@ -10,11 +10,11 @@
 </head>
 <body>
 
-    <!-- SEZIONE LOGIN / REGISTRAZIONE -->
+    <!-- SEZIONE LOGIN -->
     <div id="auth-container" class="container">
         <div class="card auth-card">
             <h1>Famiglia 🏡</h1>
-            <p id="auth-subtitle" class="subtitle">Accedi per gestire le scadenze</p>
+            <p class="subtitle">Accedi per gestire le scadenze</p>
             
             <form id="auth-form">
                 <div class="form-group">
@@ -27,18 +27,19 @@
                     <input type="password" id="auth-password" name="password" autocomplete="current-password" required placeholder="La tua password...">
                 </div>
 
-                <div class="remember-me">
-                    <input type="checkbox" id="remember-check" checked>
-                    <label for="remember-check">Ricordami su questo dispositivo</label>
+                <!-- Riga con Ricordami a sinistra e Pulsante Accedi a destra -->
+                <div class="login-actions">
+                    <div class="remember-me">
+                        <input type="checkbox" id="remember-check" checked>
+                        <label for="remember-check">Ricordami</label>
+                    </div>
+                    <button type="submit" id="auth-btn" class="btn-inline">Accedi</button>
                 </div>
-
-                <button type="submit" id="auth-btn" class="btn">Accedi</button>
             </form>
 
-            <p class="auth-switch">
-                <span id="auth-toggle-text">Non hai un account?</span> 
-                <a href="#" id="auth-toggle-btn">Registrati</a>
-            </p>
+            <div class="auth-links">
+                <a href="#" id="forgot-password-btn">Password dimenticata?</a>
+            </div>
         </div>
     </div>
 
