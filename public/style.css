@@ -57,6 +57,7 @@ input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="date"],
+input[type="time"],
 input[type="number"] {
     width: 100%;
     padding: 10px;
@@ -255,7 +256,6 @@ input:focus {
 
 .text-muted { color: #94a3b8; font-size: 0.9rem; }
 
-/* STILI SCADENZE E TOTALI */
 .scadenze-top-bar {
     display: flex;
     justify-content: space-between;
@@ -299,7 +299,6 @@ input:focus {
     color: #1e293b;
 }
 
-/* FIRMA IN BASSO A DESTRA */
 .app-signature {
     text-align: right;
     font-size: 0.8rem;
@@ -308,7 +307,6 @@ input:focus {
     font-style: italic;
 }
 
-/* MODAL POPUP */
 .modal-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -373,12 +371,7 @@ input:focus {
     display: block;
 }
 
-.btn-ocr:hover {
-    background-color: #f1f5f9;
-    border-color: #94a3b8;
-}
-
-.scadenza-badge-item {
+.scadenza-badge-item, .appuntamento-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -386,6 +379,8 @@ input:focus {
     border-radius: 8px;
     margin-bottom: 8px;
     font-size: 0.95rem;
+    background-color: #f8fafc;
+    border-left: 4px solid #3b82f6;
 }
 
 .status-red { background-color: #fef2f2; color: #991b1b; border-left: 4px solid #ef4444; }
