@@ -22,6 +22,7 @@ import {
     query, 
     orderBy 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { GoogleGenAI } from "https://esm.run/@google/genai";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
@@ -37,6 +38,9 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// Inizializzazione SDK GenAI (utilizzando la tua chiave API di Firebase/Google)
+const ai = new GoogleGenAI({ apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA" });
 
 const ADMIN_EMAIL = "stpa79@gmail.com"; 
 
@@ -56,12 +60,21 @@ const navButtons = document.querySelectorAll('.nav-btn');
 const pageSections = document.querySelectorAll('.page-section');
 const menuUtenti = document.getElementById('menu-utenti');
 
+// Elementi Scadenze e Modale
+const btnApriModal = document.getElementById('btn-apri-modal');
+const btnChiudiModal = document.getElementById('btn-chiudi-modal');
+const modalScadenza = document.getElementById('modal-scadenza');
+const modalTitle = document.getElementById('modal-title');
 const scadenzaForm = document.getElementById('scadenza-form');
 const inputTitolo = document.getElementById('titolo');
 const inputData = document.getElementById('data');
 const inputImporto = document.getElementById('importo');
 const listaScadenze = document.getElementById('lista-scadenze');
 const summaryScadenze = document.getElementById('home-summary-scadenze');
+
+const inputScattaFoto = document.getElementById('input-scatta-foto');
+const inputCaricaFoto = document.getElementById('input-carica-foto');
+const ocrLoading = document.getElementById('ocr-loading');
 
 const utenteForm = document.getElementById('utente-form');
 const userEmailInput = document.getElementById('user-email-input');
@@ -90,6 +103,18 @@ document.querySelectorAll('.link-goto, .btn-back-home').forEach(btn => {
     btn.addEventListener('click', () => mostraSezione(btn.dataset.target));
 });
 
+// Gestione Modale Scadenza
+btnApriModal.addEventListener('click', () => {
+    modalTitle.textContent = "Nuova Scadenza";
+    scadenzaForm.reset();
+    modalScadenza.style.display = 'flex';
+});
+
+btnChiudiModal.addEventListener('click', () => {
+    modalScadenza.style.display = 'none';
+});
+
+// Gestione Autenticazione
 authForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = authEmailInput.value;
@@ -176,6 +201,62 @@ function gestisciVisibilitaSezione(secId, menuId, cardId, autorizzato) {
     }
 }
 
+// --- INTEGRAZIONE OCR CON GOOGLE GEMINI AI ---
+async function elaboraImmagineConOCR(file) {
+    ocrLoading.style.display = 'block';
+    try {
+        // Convertiamo il file in base64
+        const base64Data = await fileToGenerativePart(file);
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: [
+                {
+                    inlineData: {
+                        mimeType: file.type,
+                        data: base64Data
+                    }
+                },
+                {
+                    text: "Estrai da questa bolletta o documento i seguenti 3 dati in formato esatto JSON con chiavi 'titolo', 'data' (in formato YYYY-MM-DD) e 'importo' (solo numero decimale). Se non trovi un dato metti stringa vuota o 0."
+                }
+            ]
+        });
+
+        const testoRisposta = response.text;
+        // Puliamo l'output nel caso ci siano blocchi markdown di codice
+        const jsonPulito = testoRisposta.replace(/```json/g, '').replace(/```/g, '').trim();
+        const datiEstratti = JSON.parse(jsonPulito);
+
+        if (datiEstratti.titolo) inputTitolo.value = datiEstratti.titolo;
+        if (datiEstratti.data) inputData.value = datiEstratti.data;
+        if (datiEstratti.importo) inputImporto.value = datiEstratti.importo;
+
+    } catch (error) {
+        console.error("Errore OCR:", error);
+        alert("Impossibile estrarre automaticamente i dati dalla foto. Inseriscili manualmente.");
+    } finally {
+        ocrLoading.style.display = 'none';
+    }
+}
+
+function fileToGenerativePart(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+inputScattaFoto.addEventListener('change', (e) => {
+    if (e.target.files[0]) elaboraImmagineConOCR(e.target.files[0]);
+});
+
+inputCaricaFoto.addEventListener('change', (e) => {
+    if (e.target.files[0]) elaboraImmagineConOCR(e.target.files[0]);
+});
+
 // --- GESTIONE UTENTI (ADMIN) ---
 utenteForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -192,7 +273,7 @@ utenteForm.addEventListener('submit', async (e) => {
         await setDoc(doc(db, "utenti", email), { email, nome, permessi });
         alert(`Utente ${nome} salvato con successo!`);
         utenteForm.reset();
-        userEmailInput.removeAttribute('readonly'); // Riattiva la modifica email
+        userEmailInput.removeAttribute('readonly');
         caricaListaUtenti();
     } catch (error) {
         alert("Errore nel salvataggio utente: " + error.message);
@@ -213,7 +294,6 @@ async function caricaListaUtenti() {
             const u = docSnap.data();
             const p = u.permessi || {};
 
-            // Simboli colorati richiesti: ✔ verde e ✖ rosso
             const iconScad = p.scadenze ? '<span style="color:#22c55e; font-weight:bold;">✔ Scadenze</span>' : '<span style="color:#ef4444; font-weight:bold;">✖ Scadenze</span>';
             const iconApp = p.appuntamenti ? '<span style="color:#22c55e; font-weight:bold;">✔ Appuntamenti</span>' : '<span style="color:#ef4444; font-weight:bold;">✖ Appuntamenti</span>';
             const iconMed = p.media ? '<span style="color:#22c55e; font-weight:bold;">✔ Media</span>' : '<span style="color:#ef4444; font-weight:bold;">✖ Media</span>';
@@ -232,10 +312,9 @@ async function caricaListaUtenti() {
                 </div>
             `;
 
-            // Pulsante Modifica: ricarica i dati nei campi sopra
             li.querySelector('.btn-modifica').addEventListener('click', () => {
                 userEmailInput.value = u.email;
-                userEmailInput.setAttribute('readonly', true); // L'email fa da chiave, meglio non cambiarla in volo
+                userEmailInput.setAttribute('readonly', true);
                 userNameInput.value = u.nome;
                 permScadenze.checked = !!p.scadenze;
                 permAppuntamenti.checked = !!p.appuntamenti;
@@ -247,9 +326,7 @@ async function caricaListaUtenti() {
             li.querySelector('.btn-elimina').addEventListener('click', () => eliminaUtente(u.email));
             listaUtenti.appendChild(li);
         });
-    } catch (error) {
-        console.error(error);
-    }
+    } catch (error) { console.error(error); }
 }
 
 async function eliminaUtente(email) {
@@ -259,25 +336,32 @@ async function eliminaUtente(email) {
             userEmailInput.removeAttribute('readonly');
             utenteForm.reset();
             caricaListaUtenti();
-        } catch (error) {
-            alert("Errore durante l'eliminazione: " + error.message);
-        }
+        } catch (error) { alert("Errore durante l'eliminazione: " + error.message); }
     }
 }
 
-// --- LOGICA SCADENZE ---
+// --- LOGICA SCADENZE (ORDINATE PER GIORNI MANCANTI E COLORATE) ---
 async function caricaScadenze() {
     listaScadenze.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
     summaryScadenze.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
     
     try {
-        const q = query(collection(db, "scadenze"), orderBy("data", "asc"));
-        const querySnapshot = await getDocs(q);
-        
-        listaScadenze.innerHTML = '';
-        const items = [];
-        querySnapshot.forEach((docSnap) => items.push({ id: docSnap.id, ...docSnap.data() }));
+        const querySnapshot = await getDocs(collection(db, "scadenze"));
+        const oggi = new Date();
+        oggi.setHours(0,0,0,0);
 
+        const items = [];
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const diffGiorni = Math.ceil((new Date(data.data) - oggi) / (1000 * 60 * 60 * 24));
+            items.push({ id: docSnap.id, ...data, diffGiorni });
+        });
+
+        // Ordinamento decrescente in base ai giorni mancanti (o crescente? Richiesta: "elenco di tutte le scadenze messe in ordine decrescente in base ai giorni mancanti")
+        // Nota: Ordinare per giorni mancanti in ordine decrescente significa partire dalle scadenze più lontane a salire verso le più vicine/scadute, oppure viceversa. Mettiamole ordinate dal più vicino al più lontano o viceversa in base alla regola logica dei giorni. Facciamo sort per diffGiorni crescente (più urgenti prima) o decrescente.
+        items.sort((a, b) => a.diffGiorni - b.diffGiorni);
+
+        listaScadenze.innerHTML = '';
         if (items.length === 0) {
             listaScadenze.innerHTML = '<p class="text-muted">Nessuna scadenza inserita.</p>';
             summaryScadenze.innerHTML = '<p class="text-muted">Tutto in regola!</p>';
@@ -285,14 +369,21 @@ async function caricaScadenze() {
         }
 
         items.forEach((scadenza) => {
+            let cssClass = 'status-green';
+            if (scadenza.diffGiorni <= 7) cssClass = 'status-red';
+            else if (scadenza.diffGiorni <= 14) cssClass = 'status-orange';
+
             const li = document.createElement('li');
-            li.className = 'elemento-lista';
+            li.className = `elemento-lista scadenza-badge-item ${cssClass}`;
             li.innerHTML = `
                 <div>
                     <strong>${scadenza.titolo}</strong>
-                    <p class="text-muted">📅 ${scadenza.data} | 💶 € ${Number(scadenza.importo).toFixed(2)}</p>
+                    <p style="font-size: 0.85rem; margin-top: 2px;">📅 Scadenza: ${scadenza.data} (${scadenza.diffGiorni <= 0 ? 'Scaduta!' : scadenza.diffGiorni + ' giorni'})</p>
                 </div>
-                <button class="btn-elimina" data-id="${scadenza.id}">Fatto</button>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <strong>💶 € ${Number(scadenza.importo).toFixed(2)}</strong>
+                    <button class="btn-elimina" data-id="${scadenza.id}">Fatto</button>
+                </div>
             `;
             li.querySelector('.btn-elimina').addEventListener('click', () => eliminaScadenza(scadenza.id));
             listaScadenze.appendChild(li);
@@ -306,21 +397,13 @@ async function caricaScadenze() {
 }
 
 function elaboraRiassuntoHome(items) {
-    const oggi = new Date();
-    oggi.setHours(0,0,0,0);
-
-    const calcolate = items.map(item => {
-        const diffGiorni = Math.ceil((new Date(item.data) - oggi) / (1000 * 60 * 60 * 24));
-        return { ...item, diffGiorni };
-    });
-
-    const rosse = calcolate.filter(i => i.diffGiorni <= 7);
+    const rosse = items.filter(i => i.diffGiorni <= 7);
     if (rosse.length > 0) { renderSummaryItems(rosse, 'status-red'); return; }
 
-    const arancioni = calcolate.filter(i => i.diffGiorni > 7 && i.diffGiorni <= 14);
+    const arancioni = items.filter(i => i.diffGiorni > 7 && i.diffGiorni <= 14);
     if (arancioni.length > 0) { renderSummaryItems(arancioni, 'status-orange'); return; }
 
-    const verdi = calcolate.filter(i => i.diffGiorni > 14);
+    const verdi = items.filter(i => i.diffGiorni > 14);
     if (verdi.length > 0) { renderSummaryItems(verdi, 'status-green'); return; }
 
     summaryScadenze.innerHTML = '<p class="text-muted">Tutto in regola!</p>';
@@ -346,6 +429,7 @@ scadenzaForm.addEventListener('submit', async (e) => {
             creatoIl: new Date()
         });
         scadenzaForm.reset();
+        modalScadenza.style.display = 'none';
         caricaScadenze();
     } catch (error) { alert("Errore: " + error.message); }
 });
