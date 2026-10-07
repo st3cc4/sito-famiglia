@@ -202,7 +202,7 @@ function formatCapitalize(str) {
     return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 }
 
-// --- OCR ULTRA-POTENZIATO PER BOLLETTE ITALIANE ---
+// --- OCR DEFINITIVO CORRETTO PER DATA E IMPORTO REALE ---
 async function elaboraImmagineConTesseract(file) {
     ocrLoading.style.display = 'block';
     ocrProgress.textContent = '0%';
@@ -218,7 +218,7 @@ async function elaboraImmagineConTesseract(file) {
         });
 
         const testo = result.data.text;
-        analizzaTestoBollettaDefinitivo(testo);
+        analizzaTestoBollettaMirato(testo);
 
     } catch (error) {
         console.error("Errore OCR:", error);
@@ -228,12 +228,12 @@ async function elaboraImmagineConTesseract(file) {
     }
 }
 
-function analizzaTestoBollettaDefinitivo(testo) {
+function analizzaTestoBollettaMirato(testo) {
     const testoPulito = testo.replace(/\r\n/g, '\n');
     const linee = testoPulito.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     const testoLower = testoPulito.toLowerCase();
 
-    // 1. RICONOSCIMENTO ENTE
+    // 1. ENTE
     let enteTrovato = "Bolletta";
     if (testoLower.includes("dolomiti")) enteTrovato = "Dolomiti Energia";
     else if (testoLower.includes("enel")) enteTrovato = "Enel";
@@ -243,37 +243,39 @@ function analizzaTestoBollettaDefinitivo(testo) {
     else if (testoLower.includes("acea")) enteTrovato = "Acea";
     inputTitolo.value = formatCapitalize(enteTrovato);
 
-    // 2. RICONOSCIMENTO IMPORTO (Cerca importi consistenti associati a totale o cifre grandi)
+    // 2. IMPORTO REALE (Cerca esclusivamente dove c'è la dicitura TOTALE DA PAGARE)
     let importoTrovato = "";
-    
-    // Cerca direttamente numeri formattati con migliaia e decimali (es. 1.446,22 o 1.446.22)
-    for (let linea of linee) {
-        const matchGrande = linea.match(/\b([1-9][0-9]{0,2}(?:\.[0-9]{3})+[.,][0-9]{2})\b/);
-        if (matchGrande) {
-            importoTrovato = matchGrande[1].replace(/\./g, '').replace(',', '.');
-            break;
+    for (let i = 0; i < linee.length; i++) {
+        let linea = linee[i].toLowerCase();
+        // Cerca la sezione "totale da pagare"
+        if (linea.includes("totale da pagare") || linea.includes("quanto pago")) {
+            // Controlla la riga stessa e le 3 successive alla ricerca di un importo con virgola (es. 1.446,22 o 147,30)
+            for (let j = i; j <= Math.min(i + 3, linee.length - 1); j++) {
+                const match = linee[j].match(/([0-9]{1,3}(?:\.[0-9]{3})*[.,][0-9]{2})/);
+                if (match) {
+                    importoTrovato = match[1].replace(/\./g, '').replace(',', '.');
+                    break;
+                }
+            }
+            if (importoTrovato) break;
         }
     }
-
-    // Se non lo trova, cerca vicino a parole chiave "totale" o "pagare"
+    // Fallback generico se non trova l'etichetta ma trova un prezzo realistico (sotto i 10.000 euro)
     if (!importoTrovato) {
-        for (let i = 0; i < linee.length; i++) {
-            let linea = linee[i].toLowerCase();
-            if (linea.includes("totale") || linea.includes("pagare") || linea.includes("euro")) {
-                for (let j = i; j <= Math.min(i + 2, linee.length - 1); j++) {
-                    const match = linee[j].match(/([0-9]+[.,][0-9]{2})/);
-                    if (match) {
-                        importoTrovato = match[1].replace(',', '.');
-                        break;
-                    }
+        for (let linea of linee) {
+            const match = linea.match(/\b([1-9][0-9]{0,3}[.,][0-9]{2})\b/);
+            if (match) {
+                let val = parseFloat(match[1].replace(',', '.'));
+                if (val < 10000) { // Evita di prendere i kWh o i metri cubi che sono cifre enormi
+                    importoTrovato = match[1].replace(',', '.');
+                    break;
                 }
-                if (importoTrovato) break;
             }
         }
     }
     if (importoTrovato) inputImporto.value = importoTrovato;
 
-    // 3. RICONOSCIMENTO DATA DI SCADENZA (Cerca date in lettere o numeriche vicino a "scade")
+    // 3. DATA DI SCADENZA REALE (Cerca esclusivamente dove c'è QUANDO SCADE o SCADE IL pagamento)
     let dataTrovata = "";
     const mesiMappa = {
         'gennaio': '01', 'febbraio': '02', 'marzo': '03', 'aprile': '04',
@@ -283,7 +285,11 @@ function analizzaTestoBollettaDefinitivo(testo) {
 
     for (let i = 0; i < linee.length; i++) {
         let linea = linee[i].toLowerCase();
-        if (linea.includes("scade") || linea.includes("scadenza") || linea.includes("quando scade")) {
+        // Cerchiamo rigorosamente il blocco di scadenza della fattura (escludendo scadenze offerte promozionali)
+        if (linea.includes("quando scade") || linea.includes("scade") || linea.includes("entro il")) {
+            // Se la riga contiene parole ingannevoli sull'offerta, la saltiamo
+            if (linea.includes("condizioni economiche") || linea.includes("offerta")) continue;
+
             for (let j = i; j <= Math.min(i + 2, linee.length - 1); j++) {
                 let rigaTarget = linee[j];
 
@@ -299,7 +305,7 @@ function analizzaTestoBollettaDefinitivo(testo) {
                     }
                 }
 
-                // Cerca formato numerico (es. 05/08/2025)
+                // Cerca formato numerico (es. 05/08/2025 o 01/04/2025)
                 let matchNum = rigaTarget.match(/\b(0[1-9]|[12][0-9]|3[01])[\/\-](0[1-9]|1[0-2])[\/\-](20\d{2})\b/);
                 if (matchNum) {
                     dataTrovata = `${matchNum[3]}-${matchNum[2]}-${matchNum[1]}`;
