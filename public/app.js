@@ -1,4 +1,3 @@
-// Importazione dei moduli necessari da Firebase tramite CDN ufficiale
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 import { 
@@ -6,7 +5,10 @@ import {
     signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, 
     signOut, 
-    onAuthStateChanged 
+    onAuthStateChanged,
+    setPersistence,
+    browserLocalPersistence,
+    browserSessionPersistence
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { 
     getFirestore, 
@@ -19,7 +21,6 @@ import {
     orderBy 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Configurazione di Firebase presa dai tuoi dati
 const firebaseConfig = {
     apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
     authDomain: "sito-famiglia.firebaseapp.com",
@@ -30,18 +31,17 @@ const firebaseConfig = {
     measurementId: "G-NYRQJDTWM3"
 };
 
-// Inizializzazione di Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Selezione degli elementi HTML
 const authContainer = document.getElementById('auth-container');
 const appContainer = document.getElementById('app-container');
 const authForm = document.getElementById('auth-form');
 const authEmailInput = document.getElementById('auth-email');
 const authPasswordInput = document.getElementById('auth-password');
+const rememberCheck = document.getElementById('remember-check');
 const authBtn = document.getElementById('auth-btn');
 const authSubtitle = document.getElementById('auth-subtitle');
 const authToggleText = document.getElementById('auth-toggle-text');
@@ -55,7 +55,6 @@ const inputData = document.getElementById('data');
 const inputImporto = document.getElementById('importo');
 const listaScadenze = document.getElementById('lista-scadenze');
 
-// Stato per gestire se l'utente sta facendo Login o Registrazione
 let isRegistering = false;
 
 authToggleBtn.addEventListener('click', (e) => {
@@ -74,13 +73,17 @@ authToggleBtn.addEventListener('click', (e) => {
     }
 });
 
-// Gestione dell'invio del form di autenticazione (Login / Registrazione)
 authForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = authEmailInput.value;
     const password = authPasswordInput.value;
 
+    // Impostiamo la persistenza in base al checkbox
+    const persistenceType = rememberCheck.checked ? browserLocalPersistence : browserSessionPersistence;
+
     try {
+        await setPersistence(auth, persistenceType);
+        
         if (isRegistering) {
             await createUserWithEmailAndPassword(auth, email, password);
         } else {
@@ -91,7 +94,6 @@ authForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Gestione del Logout
 btnLogout.addEventListener('click', async () => {
     try {
         await signOut(auth);
@@ -100,25 +102,21 @@ btnLogout.addEventListener('click', async () => {
     }
 });
 
-// Controllo dello stato di autenticazione in tempo reale
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        // Utente loggato: mostra l'app e carica i dati
         authContainer.style.display = 'none';
         appContainer.style.display = 'block';
         userEmailDisplay.textContent = user.email;
         caricaScadenze();
     } else {
-        // Utente disconnesso: mostra la schermata di login
         authContainer.style.display = 'block';
         appContainer.style.display = 'none';
         authForm.reset();
     }
 });
 
-// --- GESTIONE DEL DATABASE FIRESTORE (Scadenze) ---
+// --- GESTIONE FIRESTORE ---
 
-// Funzione per caricare le scadenze da Firestore
 async function caricaScadenze() {
     listaScadenze.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 10px;">Caricamento in corso...</p>';
     
@@ -148,9 +146,7 @@ async function caricaScadenze() {
                 <button class="btn-elimina" data-id="${id}">Fatto / Elimina</button>
             `;
 
-            // Aggiungiamo l'evento per eliminare la scadenza
             li.querySelector('.btn-elimina').addEventListener('click', () => eliminaScadenza(id));
-
             listaScadenze.appendChild(li);
         });
     } catch (error) {
@@ -159,7 +155,6 @@ async function caricaScadenze() {
     }
 }
 
-// Funzione per aggiungere una nuova scadenza su Firestore
 scadenzaForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -173,17 +168,16 @@ scadenzaForm.addEventListener('submit', async (e) => {
     try {
         await addDoc(collection(db, "scadenze"), nuovaScadenza);
         scadenzaForm.reset();
-        caricaScadenze(); // Ricarica la lista aggiornata
+        caricaScadenze();
     } catch (error) {
         alert("Errore nel salvataggio della scadenza: " + error.message);
     }
 });
 
-// Funzione per eliminare una scadenza da Firestore
 async function eliminaScadenza(id) {
     try {
         await deleteDoc(doc(db, "scadenze", id));
-        caricaScadenze(); // Ricarica la lista aggiornata
+        caricaScadenze();
     } catch (error) {
         alert("Errore durante l'eliminazione: " + error.message);
     }
