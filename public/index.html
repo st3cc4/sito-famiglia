@@ -69,7 +69,6 @@
                     <span class="icon">🍳</span>
                     <span class="text">Ricette</span>
                 </button>
-                <!-- Visibile solo se admin -->
                 <button class="nav-btn" data-target="sec-utenti" id="menu-utenti" style="display: none;">
                     <span class="icon">⚙️</span>
                     <span class="text">Gestione Utenti</span>
@@ -131,11 +130,48 @@
 
             <!-- SCHERMATA 2: SCADENZE -->
             <section id="sec-scadenze" class="page-section">
+                <!-- Pulsante principale Nuova Scadenza -->
+                <div class="scadenze-top-bar">
+                    <button id="btn-apri-modal" class="btn-nuova-scadenza">Nuova Scadenza</button>
+                </div>
+
                 <div class="card">
-                    <h2>Aggiungi Nuova Scadenza</h2>
+                    <h2>Elenco Scadenze</h2>
+                    <ul id="lista-scadenze" class="lista"></ul>
+                </div>
+
+                <div class="footer-home-nav">
+                    <button class="btn-back-home" data-target="sec-home">🏠 Torna alla Home</button>
+                </div>
+            </section>
+
+            <!-- POP-UP MODALE PER INSERIRE / MODIFICARE SCADENZA (CON OCR) -->
+            <div id="modal-scadenza" class="modal-overlay" style="display: none;">
+                <div class="modal-card">
+                    <div class="modal-header">
+                        <h2 id="modal-title">Nuova Scadenza</h2>
+                        <button id="btn-chiudi-modal" class="btn-chiudi">✖</button>
+                    </div>
+
+                    <!-- Pulsanti OCR (Visibili o utilizzabili per foto/file) -->
+                    <div class="ocr-buttons-container">
+                        <label class="btn-ocr phone-only" id="label-scatta-foto">
+                            📷 Scatta Foto Bolletta
+                            <input type="file" id="input-scatta-foto" accept="image/*" capture="environment" style="display: none;">
+                        </label>
+                        <label class="btn-ocr" id="label-carica-foto">
+                            🖼️ Importa Foto Bolletta
+                            <input type="file" id="input-carica-foto" accept="image/*" style="display: none;">
+                        </label>
+                    </div>
+                    <div id="ocr-loading" style="display: none; text-align: center; color: #3b82f6; margin-bottom: 15px; font-weight: bold;">
+                        🤖 Analisi bolletta con IA in corso...
+                    </div>
+
+                    <!-- Form dati -->
                     <form id="scadenza-form">
                         <div class="form-group">
-                            <label for="titolo">Titolo (es. Bolletta Luce, Bollo Auto)</label>
+                            <label for="titolo">Ente / Titolo (es. Enel, Bollo Auto)</label>
                             <input type="text" id="titolo" required placeholder="Inserisci il nome...">
                         </div>
                         <div class="form-group">
@@ -149,14 +185,7 @@
                         <button type="submit" class="btn">Salva Scadenza</button>
                     </form>
                 </div>
-                <div class="card">
-                    <h2>Tutte le Scadenze</h2>
-                    <ul id="lista-scadenze" class="lista"></ul>
-                </div>
-                <div class="footer-home-nav">
-                    <button class="btn-back-home" data-target="sec-home">🏠 Torna alla Home</button>
-                </div>
-            </section>
+            </div>
 
             <!-- SCHERMATA 3: APPUNTAMENTI -->
             <section id="sec-appuntamenti" class="page-section">
