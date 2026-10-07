@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#3b82f6">
+    <!-- Libreria Tesseract.js per leggere il testo della bolletta -->
+    <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
 </head>
 <body>
 
@@ -147,7 +149,7 @@
                 <div class="app-signature">Created by STECCA with GEMINI</div>
             </section>
 
-            <!-- POP-UP MODALE CON GEMINI VISION OCR -->
+            <!-- POP-UP MODALE CON OCR INTELLIGENTE -->
             <div id="modal-scadenza" class="modal-overlay" style="display: none;">
                 <div class="modal-card">
                     <div class="modal-header">
@@ -166,7 +168,7 @@
                         </label>
                     </div>
                     <div id="ocr-loading" style="display: none; text-align: center; color: #3b82f6; margin-bottom: 15px; font-weight: bold;">
-                        🤖 Analisi bolletta con Gemini IA in corso...
+                        🤖 Analisi bolletta in corso... <span id="ocr-progress">0%</span>
                     </div>
 
                     <form id="scadenza-form">
