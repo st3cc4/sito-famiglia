@@ -71,7 +71,6 @@ const totaleGeneraleScadenze = document.getElementById('totale-generale-scadenze
 const inputScattaFoto = document.getElementById('input-scatta-foto');
 const inputCaricaFoto = document.getElementById('input-carica-foto');
 const ocrLoading = document.getElementById('ocr-loading');
-const ocrProgress = document.getElementById('ocr-progress');
 
 const utenteForm = document.getElementById('utente-form');
 const userEmailInput = document.getElementById('user-email-input');
@@ -202,89 +201,71 @@ function formatCapitalize(str) {
     return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 }
 
-// --- TESSERACT OCR NEL BROWSER ---
-async function elaboraImmagineConTesseract(file) {
+// --- INTEGRAZIONE DIRETTA GEMINI VISION VIA FETCH (ZERO ERRORE) ---
+async function elaboraImmagineConGemini(file) {
     ocrLoading.style.display = 'block';
-    ocrProgress.textContent = '0%';
-
     try {
-        const result = await Tesseract.recognize(
-            file,
-            'ita', // Lingua italiana per riconoscere meglio le parole delle bollette
-            {
-                logger: m => {
-                    if (m.status === 'recognizing text') {
-                        const percent = Math.round(m.progress * 100);
-                        ocrProgress.textContent = percent + '%';
-                    }
-                }
-            }
-        );
+        const base64Data = await fileToBase64(file);
 
-        const testo = result.data.text;
-        analizzaTestoBolletta(testo);
+        // Chiamata HTTP diretta alle API di Google Gemini 2.5 Flash
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${firebaseConfig.apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [
+                        {
+                            inline_data: {
+                                mime_type: file.type,
+                                data: base64Data
+                            }
+                        },
+                        {
+                            text: "Analizza la bolletta. Estrai esclusivamente in formato JSON valido i seguenti 3 dati: 'titolo' (nome del fornitore/ente es. Enel, Servizio Elettrico Nazionale, A2A), 'data' (data di scadenza vera del pagamento in formato YYYY-MM-DD), 'importo' (l'importo totale da pagare come numero decimale es. 147.30). Rispondi SOLO con il JSON senza formattazione markdown."
+                        }
+                    ]
+                }]
+            })
+        });
+
+        const data = await response.json();
+        
+        if (data.candidates && data.candidates[0].content.parts[0].text) {
+            let testoRisposta = data.candidates[0].content.parts[0].text.trim();
+            testoRisposta = testoRisposta.replace(/```json/gi, '').replace(/```/gi, '').trim();
+            
+            const dati = JSON.parse(testoRisposta);
+
+            if (dati.titolo) inputTitolo.value = formatCapitalize(dati.titolo);
+            if (dati.data) inputData.value = dati.data;
+            if (dati.importo) inputImporto.value = dati.importo;
+        } else {
+            throw new Error("Risposta vuota da Gemini");
+        }
 
     } catch (error) {
-        console.error("Errore Tesseract OCR:", error);
-        alert("Impossibile leggere l'immagine. Inserisci i dati manualmente.");
+        console.error("Errore Gemini Vision:", error);
+        alert("Impossibile analizzare la foto con Gemini. Compila i dati manualmente.");
     } finally {
         ocrLoading.style.display = 'none';
     }
 }
 
-// Funzione intelligente per estrarre Importo, Data ed Ente dal testo della bolletta
-function analizzaTestoBolletta(testo) {
-    const linee = testo.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-
-    // 1. Estrazione Importo (cerca pattern tipo € 45.20 oppure 123,45 o 123.45)
-    let importoTrovato = '';
-    const regexImporto = /(?:totale|importo|euro|€)?[\s:]*([0-9]+[.,][0-9]{2})/i;
-    
-    for (const linea of linee) {
-        const match = linea.match(regexImporto);
-        if (match) {
-            importoTrovato = match[1].replace(',', '.');
-        }
-    }
-    if (importoTrovato) {
-        inputImporto.value = importoTrovato;
-    }
-
-    // 2. Estrazione Data (cerca date nel formato GG/MM/AAAA o GG-MM-AAAA)
-    let dataTrovata = '';
-    const regexData = /\b(0[1-9]|[12][0-9]|3[01])[\/\-](0[1-9]|1[0-2])[\/\-](20\d{2})\b/;
-    
-    for (const linea of linee) {
-        const match = linea.match(regexData);
-        if (match) {
-            const giorno = match[1];
-            const mese = match[2];
-            const anno = match[3];
-            dataTrovata = `${anno}-${mese}-${giorno}`;
-            break;
-        }
-    }
-    if (dataTrovata) {
-        inputData.value = dataTrovata;
-    }
-
-    // 3. Estrazione Ente (prende solitamente la prima riga significativa o la più lunga in alto)
-    if (linee.length > 0) {
-        let possibileEnte = linee[0];
-        // Se la prima riga è troppo corta o sembra un codice, prendi la seconda o terza
-        if (possibileEnte.length < 3 && linee.length > 1) {
-            possibileEnte = linee[1];
-        }
-        inputTitolo.value = formatCapitalize(possibileEnte);
-    }
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
 }
 
 inputScattaFoto.addEventListener('change', (e) => {
-    if (e.target.files[0]) elaboraImmagineConTesseract(e.target.files[0]);
+    if (e.target.files[0]) elaboraImmagineConGemini(e.target.files[0]);
 });
 
 inputCaricaFoto.addEventListener('change', (e) => {
-    if (e.target.files[0]) elaboraImmagineConTesseract(e.target.files[0]);
+    if (e.target.files[0]) elaboraImmagineConGemini(e.target.files[0]);
 });
 
 // GESTIONE UTENTI (ADMIN)
