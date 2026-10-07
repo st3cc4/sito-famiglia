@@ -45,8 +45,8 @@
     <!-- SEZIONE APP PRINCIPALE -->
     <div id="app-container" class="layout-wrapper" style="display: none;">
         
-        <!-- MENU LATERALE -->
-        <aside id="sidebar" class="sidebar">
+        <!-- MENU LATERALE (Inizia già chiuso con la classe collapsed) -->
+        <aside id="sidebar" class="sidebar collapsed">
             <button id="toggle-sidebar" class="sidebar-toggle-btn" title="Espandi/Riduci menu">☰</button>
             <nav class="sidebar-nav">
                 <button class="nav-btn active" data-target="sec-home">
@@ -130,7 +130,6 @@
 
             <!-- SCHERMATA 2: SCADENZE -->
             <section id="sec-scadenze" class="page-section">
-                <!-- Pulsante principale Nuova Scadenza -->
                 <div class="scadenze-top-bar">
                     <button id="btn-apri-modal" class="btn-nuova-scadenza">Nuova Scadenza</button>
                 </div>
@@ -153,7 +152,6 @@
                         <button id="btn-chiudi-modal" class="btn-chiudi">✖</button>
                     </div>
 
-                    <!-- Pulsanti OCR (Visibili o utilizzabili per foto/file) -->
                     <div class="ocr-buttons-container">
                         <label class="btn-ocr phone-only" id="label-scatta-foto">
                             📷 Scatta Foto Bolletta
@@ -168,7 +166,6 @@
                         🤖 Analisi bolletta con IA in corso...
                     </div>
 
-                    <!-- Form dati -->
                     <form id="scadenza-form">
                         <div class="form-group">
                             <label for="titolo">Ente / Titolo (es. Enel, Bollo Auto)</label>
