@@ -39,7 +39,6 @@ const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Inizializzazione SDK GenAI (utilizzando la tua chiave API di Firebase/Google)
 const ai = new GoogleGenAI({ apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA" });
 
 const ADMIN_EMAIL = "stpa79@gmail.com"; 
@@ -60,7 +59,6 @@ const navButtons = document.querySelectorAll('.nav-btn');
 const pageSections = document.querySelectorAll('.page-section');
 const menuUtenti = document.getElementById('menu-utenti');
 
-// Elementi Scadenze e Modale
 const btnApriModal = document.getElementById('btn-apri-modal');
 const btnChiudiModal = document.getElementById('btn-chiudi-modal');
 const modalScadenza = document.getElementById('modal-scadenza');
@@ -103,7 +101,6 @@ document.querySelectorAll('.link-goto, .btn-back-home').forEach(btn => {
     btn.addEventListener('click', () => mostraSezione(btn.dataset.target));
 });
 
-// Gestione Modale Scadenza
 btnApriModal.addEventListener('click', () => {
     modalTitle.textContent = "Nuova Scadenza";
     scadenzaForm.reset();
@@ -114,7 +111,6 @@ btnChiudiModal.addEventListener('click', () => {
     modalScadenza.style.display = 'none';
 });
 
-// Gestione Autenticazione
 authForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = authEmailInput.value;
@@ -201,11 +197,17 @@ function gestisciVisibilitaSezione(secId, menuId, cardId, autorizzato) {
     }
 }
 
-// --- INTEGRAZIONE OCR CON GOOGLE GEMINI AI ---
+// Funzione di utilità per formattare il testo con la prima lettera maiuscola e il resto minuscolo
+function formatCapitalize(str) {
+    if (!str) return '';
+    const trimmed = str.trim();
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+}
+
+// OCR CON GOOGLE GEMINI AI
 async function elaboraImmagineConOCR(file) {
     ocrLoading.style.display = 'block';
     try {
-        // Convertiamo il file in base64
         const base64Data = await fileToGenerativePart(file);
 
         const response = await ai.models.generateContent({
@@ -224,11 +226,12 @@ async function elaboraImmagineConOCR(file) {
         });
 
         const testoRisposta = response.text;
-        // Puliamo l'output nel caso ci siano blocchi markdown di codice
         const jsonPulito = testoRisposta.replace(/```json/g, '').replace(/```/g, '').trim();
         const datiEstratti = JSON.parse(jsonPulito);
 
-        if (datiEstratti.titolo) inputTitolo.value = datiEstratti.titolo;
+        if (datiEstratti.titolo) {
+            inputTitolo.value = formatCapitalize(datiEstratti.titolo);
+        }
         if (datiEstratti.data) inputData.value = datiEstratti.data;
         if (datiEstratti.importo) inputImporto.value = datiEstratti.importo;
 
@@ -257,11 +260,11 @@ inputCaricaFoto.addEventListener('change', (e) => {
     if (e.target.files[0]) elaboraImmagineConOCR(e.target.files[0]);
 });
 
-// --- GESTIONE UTENTI (ADMIN) ---
+// GESTIONE UTENTI (ADMIN)
 utenteForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = userEmailInput.value.trim().toLowerCase();
-    const nome = userNameInput.value.trim();
+    const nome = formatCapitalize(userNameInput.value);
     const permessi = {
         scadenze: permScadenze.checked,
         appuntamenti: permAppuntamenti.checked,
@@ -340,7 +343,7 @@ async function eliminaUtente(email) {
     }
 }
 
-// --- LOGICA SCADENZE (ORDINATE PER GIORNI MANCANTI E COLORATE) ---
+// LOGICA SCADENZE
 async function caricaScadenze() {
     listaScadenze.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
     summaryScadenze.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
@@ -357,8 +360,6 @@ async function caricaScadenze() {
             items.push({ id: docSnap.id, ...data, diffGiorni });
         });
 
-        // Ordinamento decrescente in base ai giorni mancanti (o crescente? Richiesta: "elenco di tutte le scadenze messe in ordine decrescente in base ai giorni mancanti")
-        // Nota: Ordinare per giorni mancanti in ordine decrescente significa partire dalle scadenze più lontane a salire verso le più vicine/scadute, oppure viceversa. Mettiamole ordinate dal più vicino al più lontano o viceversa in base alla regola logica dei giorni. Facciamo sort per diffGiorni crescente (più urgenti prima) o decrescente.
         items.sort((a, b) => a.diffGiorni - b.diffGiorni);
 
         listaScadenze.innerHTML = '';
@@ -421,9 +422,11 @@ function renderSummaryItems(lista, cssClass) {
 
 scadenzaForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const titoloFormattato = formatCapitalize(inputTitolo.value);
+
     try {
         await addDoc(collection(db, "scadenze"), {
-            titolo: inputTitolo.value,
+            titolo: titoloFormattato,
             data: inputData.value,
             importo: parseFloat(inputImporto.value),
             creatoIl: new Date()
@@ -438,5 +441,5 @@ async function eliminaScadenza(id) {
     try {
         await deleteDoc(doc(db, "scadenze", id));
         caricaScadenze();
-    } catch (error) { alert("Errore: " + error.message); }
+    } catch (error) { alert("Errore durante l'eliminazione: " + error.message); }
 }
