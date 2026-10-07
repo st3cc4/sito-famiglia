@@ -197,7 +197,7 @@ function gestisciVisibilitaSezione(secId, menuId, cardId, autorizzato) {
     }
 }
 
-// Funzione di utilità per formattare il testo con la prima lettera maiuscola e il resto minuscolo
+// Funzione per formattare il testo con la prima lettera maiuscola e il resto minuscolo
 function formatCapitalize(str) {
     if (!str) return '';
     const trimmed = str.trim();
