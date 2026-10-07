@@ -14,7 +14,7 @@
     <div id="auth-container" class="container">
         <div class="card auth-card">
             <h1 class="auth-title">🏡 Famiglia</h1>
-            <p class="subtitle">Accedi per gestire le scadenze</p>
+            <p class="subtitle">Accedi per gestire la casa</p>
             
             <form id="auth-form">
                 <div class="form-group">
@@ -27,7 +27,6 @@
                     <input type="password" id="auth-password" name="password" autocomplete="current-password" required placeholder="La tua password...">
                 </div>
 
-                <!-- Riga con Ricordami a sinistra e Pulsante Accedi a destra -->
                 <div class="login-row">
                     <div class="remember-me">
                         <input type="checkbox" id="remember-check" checked>
@@ -44,45 +43,163 @@
     </div>
 
     <!-- SEZIONE APP PRINCIPALE -->
-    <div id="app-container" class="container" style="display: none;">
-        <header class="app-header">
-            <div>
-                <h1>🏡 Famiglia</h1>
-                <p class="subtitle">Benvenuto, <span id="user-email-display"></span></p>
-            </div>
-            <button id="btn-logout" class="btn-logout">Esci</button>
-        </header>
+    <div id="app-container" class="layout-wrapper" style="display: none;">
+        
+        <!-- MENU LATERALE (SIDEBAR COLLAPSABILE) -->
+        <aside id="sidebar" class="sidebar">
+            <button id="toggle-sidebar" class="sidebar-toggle-btn" title="Espandi/Riduci menu">☰</button>
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" data-target="sec-home">
+                    <span class="icon">🏠</span>
+                    <span class="text">Home</span>
+                </button>
+                <button class="nav-btn" data-target="sec-scadenze">
+                    <span class="icon">📅</span>
+                    <span class="text">Scadenze</span>
+                </button>
+                <button class="nav-btn" data-target="sec-appuntamenti">
+                    <span class="icon">📌</span>
+                    <span class="text">Appuntamenti</span>
+                </button>
+                <button class="nav-btn" data-target="sec-media">
+                    <span class="icon">🖼️</span>
+                    <span class="text">Media</span>
+                </button>
+                <button class="nav-btn" data-target="sec-ricette">
+                    <span class="icon">🍳</span>
+                    <span class="text">Ricette</span>
+                </button>
+            </nav>
+        </aside>
 
-        <!-- Sezione per aggiungere una nuova scadenza -->
-        <div class="card">
-            <h2>Aggiungi Nuova Scadenza</h2>
-            <form id="scadenza-form">
-                <div class="form-group">
-                    <label for="titolo">Titolo (es. Bolletta Luce, Bollo Auto)</label>
-                    <input type="text" id="titolo" required placeholder="Inserisci il nome...">
+        <!-- CONTENUTO PRINCIPALE -->
+        <main class="main-content">
+            <header class="app-header">
+                <div>
+                    <h1 id="greeting-title">Ciao, Utente</h1>
                 </div>
-                
-                <div class="form-group">
-                    <label for="data">Data di Scadenza</label>
-                    <input type="date" id="data" required>
+                <button id="btn-logout" class="btn-logout">Esci</button>
+            </header>
+
+            <!-- SCHERMATA 1: HOME (DASHBOARD) -->
+            <section id="sec-home" class="page-section active">
+                <div class="dashboard-grid">
+                    
+                    <!-- Card Scadenze -->
+                    <div class="card card-summary">
+                        <div class="card-header">
+                            <h2>📅 Scadenze</h2>
+                            <button class="link-goto" data-target="sec-scadenze">Vai a Scadenze ➔</button>
+                        </div>
+                        <div id="home-summary-scadenze" class="summary-content">
+                            <!-- Caricato dinamicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Card Appuntamenti -->
+                    <div class="card card-summary">
+                        <div class="card-header">
+                            <h2>📌 Appuntamenti Settimana</h2>
+                            <button class="link-goto" data-target="sec-appuntamenti">Vai ad Appuntamenti ➔</button>
+                        </div>
+                        <div id="home-summary-appuntamenti" class="summary-content">
+                            <p class="text-muted">Nessun appuntamento per questa settimana.</p>
+                        </div>
+                    </div>
+
+                    <!-- Card Media -->
+                    <div class="card card-summary">
+                        <div class="card-header">
+                            <h2>🖼️ Ultimi Media Caricati</h2>
+                            <button class="link-goto" data-target="sec-media">Vai a Media ➔</button>
+                        </div>
+                        <div id="home-summary-media" class="summary-content">
+                            <p class="text-muted">Nessun foto/video caricato di recente.</p>
+                        </div>
+                    </div>
+
+                    <!-- Card Ricette -->
+                    <div class="card card-summary">
+                        <div class="card-header">
+                            <h2>🍳 Ricette Più Apprezzate</h2>
+                            <button class="link-goto" data-target="sec-ricette">Vai a Ricette ➔</button>
+                        </div>
+                        <div id="home-summary-ricette" class="summary-content">
+                            <p class="text-muted">Nessuna ricetta inserita.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- SCHERMATA 2: SCADENZE -->
+            <section id="sec-scadenze" class="page-section">
+                <div class="card">
+                    <h2>Aggiungi Nuova Scadenza</h2>
+                    <form id="scadenza-form">
+                        <div class="form-group">
+                            <label for="titolo">Titolo (es. Bolletta Luce, Bollo Auto)</label>
+                            <input type="text" id="titolo" required placeholder="Inserisci il nome...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="data">Data di Scadenza</label>
+                            <input type="date" id="data" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="importo">Importo (€)</label>
+                            <input type="number" step="0.01" id="importo" required placeholder="0.00">
+                        </div>
+
+                        <button type="submit" class="btn">Salva Scadenza</button>
+                    </form>
                 </div>
 
-                <div class="form-group">
-                    <label for="importo">Importo (€)</label>
-                    <input type="number" step="0.01" id="importo" required placeholder="0.00">
+                <div class="card">
+                    <h2>Tutte le Scadenze</h2>
+                    <ul id="lista-scadenze" class="lista"></ul>
                 </div>
 
-                <button type="submit" class="btn">Salva Scadenza</button>
-            </form>
-        </div>
+                <div class="footer-home-nav">
+                    <button class="btn-back-home" data-target="sec-home">🏠 Torna alla Home</button>
+                </div>
+            </section>
 
-        <!-- Sezione della lista scadenze -->
-        <div class="card">
-            <h2>Scadenze Future</h2>
-            <ul id="lista-scadenze" class="lista">
-                <!-- I dati verranno aggiunti automaticamente da Firebase -->
-            </ul>
-        </div>
+            <!-- SCHERMATA 3: APPUNTAMENTI -->
+            <section id="sec-appuntamenti" class="page-section">
+                <div class="card">
+                    <h2>Gestione Appuntamenti</h2>
+                    <p class="text-muted">Sezione in arrivo...</p>
+                </div>
+                <div class="footer-home-nav">
+                    <button class="btn-back-home" data-target="sec-home">🏠 Torna alla Home</button>
+                </div>
+            </section>
+
+            <!-- SCHERMATA 4: MEDIA -->
+            <section id="sec-media" class="page-section">
+                <div class="card">
+                    <h2>Galleria Media</h2>
+                    <p class="text-muted">Sezione in arrivo...</p>
+                </div>
+                <div class="footer-home-nav">
+                    <button class="btn-back-home" data-target="sec-home">🏠 Torna alla Home</button>
+                </div>
+            </section>
+
+            <!-- SCHERMATA 5: RICETTE -->
+            <section id="sec-ricette" class="page-section">
+                <div class="card">
+                    <h2>Ricettario di Famiglia</h2>
+                    <p class="text-muted">Sezione in arrivo...</p>
+                </div>
+                <div class="footer-home-nav">
+                    <button class="btn-back-home" data-target="sec-home">🏠 Torna alla Home</button>
+                </div>
+            </section>
+
+        </main>
     </div>
 
     <script type="module" src="app.js"></script>
