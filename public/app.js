@@ -71,6 +71,7 @@ const totaleGeneraleScadenze = document.getElementById('totale-generale-scadenze
 const inputScattaFoto = document.getElementById('input-scatta-foto');
 const inputCaricaFoto = document.getElementById('input-carica-foto');
 const ocrLoading = document.getElementById('ocr-loading');
+const ocrProgress = document.getElementById('ocr-progress');
 
 const utenteForm = document.getElementById('utente-form');
 const userEmailInput = document.getElementById('user-email-input');
@@ -201,71 +202,113 @@ function formatCapitalize(str) {
     return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 }
 
-// --- INTEGRAZIONE DIRETTA GEMINI VISION VIA FETCH (ZERO ERRORE) ---
-async function elaboraImmagineConGemini(file) {
+// --- OCR LOCALE CON TESSERACT E PARSER INTELLIGENTE ---
+async function elaboraImmagineConTesseract(file) {
     ocrLoading.style.display = 'block';
-    try {
-        const base64Data = await fileToBase64(file);
+    ocrProgress.textContent = '0%';
 
-        // Chiamata HTTP diretta alle API di Google Gemini 2.5 Flash
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${firebaseConfig.apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [
-                        {
-                            inline_data: {
-                                mime_type: file.type,
-                                data: base64Data
-                            }
-                        },
-                        {
-                            text: "Analizza la bolletta. Estrai esclusivamente in formato JSON valido i seguenti 3 dati: 'titolo' (nome del fornitore/ente es. Enel, Servizio Elettrico Nazionale, A2A), 'data' (data di scadenza vera del pagamento in formato YYYY-MM-DD), 'importo' (l'importo totale da pagare come numero decimale es. 147.30). Rispondi SOLO con il JSON senza formattazione markdown."
-                        }
-                    ]
-                }]
-            })
+    try {
+        const result = await Tesseract.recognize(file, 'ita', {
+            logger: m => {
+                if (m.status === 'recognizing text') {
+                    const percent = Math.round(m.progress * 100);
+                    ocrProgress.textContent = percent + '%';
+                }
+            }
         });
 
-        const data = await response.json();
-        
-        if (data.candidates && data.candidates[0].content.parts[0].text) {
-            let testoRisposta = data.candidates[0].content.parts[0].text.trim();
-            testoRisposta = testoRisposta.replace(/```json/gi, '').replace(/```/gi, '').trim();
-            
-            const dati = JSON.parse(testoRisposta);
-
-            if (dati.titolo) inputTitolo.value = formatCapitalize(dati.titolo);
-            if (dati.data) inputData.value = dati.data;
-            if (dati.importo) inputImporto.value = dati.importo;
-        } else {
-            throw new Error("Risposta vuota da Gemini");
-        }
+        const testo = result.data.text;
+        pulisciECompilaDati(testo);
 
     } catch (error) {
-        console.error("Errore Gemini Vision:", error);
-        alert("Impossibile analizzare la foto con Gemini. Compila i dati manualmente.");
+        console.error("Errore OCR:", error);
+        alert("Impossibile leggere l'immagine. Inserisci i dati manualmente.");
     } finally {
         ocrLoading.style.display = 'none';
     }
 }
 
-function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-    });
+function pulisciECompilaDati(testo) {
+    const linee = testo.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+    // 1. Riconoscimento Ente (cerca parole chiave note o prende la prima riga utile pulita)
+    let enteTrovato = "Enel"; // Default comune per le bollette di casa
+    const testoUnito = testo.toLowerCase();
+    
+    if (testoUnito.includes("enel")) enteTrovato = "Enel";
+    else if (testoUnito.includes("iren")) enteTrovato = "Iren";
+    else if (testoUnito.includes("hera")) enteTrovato = "Hera";
+    else if (testoUnito.includes("enigas") || testoUnito.includes("eni")) enteTrovato = "Eni Gas e Luce";
+    else if (testoUnito.includes("acea")) enteTrovato = "Acea";
+    else if (linee.length > 0) {
+        // Prende una riga pulita escludendo codici fiscali o numeri
+        for (let l of linee) {
+            if (l.length > 2 && !l.includes("XXXX") && !l.includes("Codice")) {
+                enteTrovato = l;
+                break;
+            }
+        }
+    }
+    inputTitolo.value = formatCapitalize(enteTrovato);
+
+    // 2. Riconoscimento Importo (Cerca righe vicine a "quanto pago", "totale", o importi in euro)
+    let importoTrovato = "";
+    for (let i = 0; i < linee.length; i++) {
+        let linea = linee[i].toLowerCase();
+        if (linea.includes("quanto pago") || linea.includes("totale") || linea.includes("importo")) {
+            // Controlla la riga corrente o la successiva per trovare un numero decimale (es. 147,30)
+            let match = linee[i].match(/([0-9]+[.,][0-9]{2})/);
+            if (!match && i + 1 < linee.length) {
+                match = linee[i+1].match(/([0-9]+[.,][0-9]{2})/);
+            }
+            if (match) {
+                importoTrovato = match[1].replace(',', '.');
+                break;
+            }
+        }
+    }
+    // Fallivo il cerca-target specifico, prende il primo importo valido con formato prezzo trovato nel testo
+    if (!importoTrovato) {
+        for (let linea of linee) {
+            const match = linea.match(/\b([1-9][0-9]*[.,][0-9]{2})\b/);
+            if (match) {
+                importoTrovato = match[1].replace(',', '.');
+                break;
+            }
+        }
+    }
+    if (importoTrovato) inputImporto.value = importoTrovato;
+
+    // 3. Riconoscimento Data (Cerca vicino a "scade", "quando scade" la data nel formato GG/MM/AAAA)
+    let dataTrovata = "";
+    for (let i = 0; i < linee.length; i++) {
+        let linea = linee[i].toLowerCase();
+        if (linea.includes("scade") || linea.includes("scadenza")) {
+            // Cerca data nella stessa riga o nella successiva
+            let match = linee[i].match(/\b(0[1-9]|[12][0-9]|3[01])[\/\-](0[1-9]|1[0-2])[\/\-](20\d{2})\b/);
+            if (!match && i + 1 < linee.length) {
+                match = linee[i+1].match(/\b(0[1-9]|[12][0-9]|3[01])[\/\-](0[1-9]|1[0-2])[\/\-](20\d{2})\b/);
+            }
+            if (match) {
+                const giorno = match[1];
+                const mese = match[2];
+                const anno = match[3];
+                dataTrovata = `${anno}-${mese}-${giorno}`;
+                break;
+            }
+        }
+    }
+    if (dataTrovata) {
+        inputData.value = dataTrovata;
+    }
 }
 
 inputScattaFoto.addEventListener('change', (e) => {
-    if (e.target.files[0]) elaboraImmagineConGemini(e.target.files[0]);
+    if (e.target.files[0]) elaboraImmagineConTesseract(e.target.files[0]);
 });
 
 inputCaricaFoto.addEventListener('change', (e) => {
-    if (e.target.files[0]) elaboraImmagineConGemini(e.target.files[0]);
+    if (e.target.files[0]) elaboraImmagineConTesseract(e.target.files[0]);
 });
 
 // GESTIONE UTENTI (ADMIN)
