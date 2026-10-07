@@ -56,6 +56,7 @@ const navButtons = document.querySelectorAll('.nav-btn');
 const pageSections = document.querySelectorAll('.page-section');
 const menuUtenti = document.getElementById('menu-utenti');
 
+// Modale Scadenze
 const btnApriModal = document.getElementById('btn-apri-modal');
 const btnChiudiModal = document.getElementById('btn-chiudi-modal');
 const modalScadenza = document.getElementById('modal-scadenza');
@@ -73,6 +74,20 @@ const inputCaricaFoto = document.getElementById('input-carica-foto');
 const ocrLoading = document.getElementById('ocr-loading');
 const ocrProgress = document.getElementById('ocr-progress');
 
+// Modale Appuntamenti
+const btnApriModalAppuntamento = document.getElementById('btn-apri-modal-appuntamento');
+const btnChiudiModalAppuntamento = document.getElementById('btn-chiudi-modal-appuntamento');
+const modalAppuntamento = document.getElementById('modal-appuntamento');
+const appuntamentoForm = document.getElementById('appuntamento-form');
+const appTitolo = document.getElementById('app-titolo');
+const appData = document.getElementById('app-data');
+const appOraInizio = document.getElementById('app-ora-inizio');
+const appOraFine = document.getElementById('app-ora-fine');
+const appCreatore = document.getElementById('app-creatore');
+const listaAppuntamenti = document.getElementById('lista-appuntamenti');
+const summaryAppuntamenti = document.getElementById('home-summary-appuntamenti');
+
+// Gestione Utenti
 const utenteForm = document.getElementById('utente-form');
 const userEmailInput = document.getElementById('user-email-input');
 const userNameInput = document.getElementById('user-name-input');
@@ -100,6 +115,7 @@ document.querySelectorAll('.link-goto, .btn-back-home').forEach(btn => {
     btn.addEventListener('click', () => mostraSezione(btn.dataset.target));
 });
 
+// Modale Scadenze Eventi
 btnApriModal.addEventListener('click', () => {
     modalTitle.textContent = "Nuova Scadenza";
     scadenzaForm.reset();
@@ -108,6 +124,16 @@ btnApriModal.addEventListener('click', () => {
 
 btnChiudiModal.addEventListener('click', () => {
     modalScadenza.style.display = 'none';
+});
+
+// Modale Appuntamenti Eventi
+btnApriModalAppuntamento.addEventListener('click', () => {
+    appuntamentoForm.reset();
+    modalAppuntamento.style.display = 'flex';
+});
+
+btnChiudiModalAppuntamento.addEventListener('click', () => {
+    modalAppuntamento.style.display = 'none';
 });
 
 authForm.addEventListener('submit', async (e) => {
@@ -155,7 +181,10 @@ onAuthStateChanged(auth, async (user) => {
             const userDoc = await getDoc(doc(db, "utenti", user.email));
             if (userDoc.exists()) {
                 const data = userDoc.data();
-                if (data.nome) nomeVisualizzato = data.nome;
+                if (data.nome) {
+                    nomeVisualizzato = data.nome;
+                    if (!appCreatore.value) appCreatore.value = data.nome; // Pre-compila creatore
+                }
                 if (data.permessi) permessi = data.permessi;
             }
         } catch (err) {
@@ -177,6 +206,7 @@ onAuthStateChanged(auth, async (user) => {
         }
 
         caricaScadenze();
+        caricaAppuntamenti();
     } else {
         authContainer.style.display = 'block';
         appContainer.style.display = 'none';
@@ -202,122 +232,120 @@ function formatCapitalize(str) {
     return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 }
 
-// --- OCR DEFINITIVO CORRETTO PER DATA E IMPORTO REALE ---
+// --- LOGICA APPUNTAMENTI ---
+appuntamentoForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const titolo = formatCapitalize(appTitolo.value);
+    const data = appData.value;
+    const oraInizio = appOraInizio.value;
+    const oraFine = appOraFine.value;
+    const creatore = formatCapitalize(appCreatore.value);
+
+    try {
+        await addDoc(collection(db, "appuntamenti"), {
+            titolo,
+            data,
+            oraInizio,
+            oraFine,
+            creatore,
+            creatoIl: new Date()
+        });
+        appuntamentoForm.reset();
+        modalAppuntamento.style.display = 'none';
+        caricaAppuntamenti();
+    } catch (error) {
+        alert("Errore nel salvataggio appuntamento: " + error.message);
+    }
+});
+
+async function caricaAppuntamenti() {
+    listaAppuntamenti.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
+    summaryAppuntamenti.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
+
+    try {
+        const querySnapshot = await getDocs(collection(db, "appuntamenti"));
+        const oggi = new Date();
+        oggi.setHours(0,0,0,0);
+
+        const items = [];
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const diffGiorni = Math.ceil((new Date(data.data) - oggi) / (1000 * 60 * 60 * 24));
+            items.push({ id: docSnap.id, ...data, diffGiorni });
+        });
+
+        // Ordina per data crescente
+        items.sort((a, b) => new Date(a.data) - new Date(b.data));
+
+        listaAppuntamenti.innerHTML = '';
+        if (items.length === 0) {
+            listaAppuntamenti.innerHTML = '<p class="text-muted">Nessun appuntamento inserito.</p>';
+            summaryAppuntamenti.innerHTML = '<p class="text-muted">Nessun appuntamento recente.</p>';
+            return;
+        }
+
+        items.forEach((app) => {
+            const li = document.createElement('li');
+            li.className = 'elemento-lista';
+            li.innerHTML = `
+                <div>
+                    <strong>${app.titolo}</strong>
+                    <p style="font-size: 0.85rem; margin-top: 2px; color: #475569;">
+                        📅 ${app.data} | ⏰ ${app.oraInizio} - ${app.oraFine} | 👤 Creato da: <strong>${app.creatore}</strong>
+                    </p>
+                </div>
+                <button class="btn-elimina" data-id="${app.id}">Elimina</button>
+            `;
+            li.querySelector('.btn-elimina').addEventListener('click', () => eliminaAppuntamento(app.id));
+            listaAppuntamenti.appendChild(li);
+        });
+
+        // Mostra il primo appuntamento imminente nella card Home
+        const prossimo = items.find(i => i.diffGiorni >= 0) || items[0];
+        summaryAppuntamenti.innerHTML = `
+            <div style="padding: 10px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                <strong>${prossimo.titolo}</strong>
+                <p style="font-size: 0.85rem; margin-top: 4px; color: #475569;">📅 ${prossimo.data} (${prossimo.oraInizio} - ${prossimo.oraFine})</p>
+                <p style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">Creato da: ${prossimo.creatore}</p>
+            </div>
+        `;
+
+    } catch (error) {
+        console.error(error);
+        summaryAppuntamenti.innerHTML = '<p class="text-muted">Errore nel caricamento.</p>';
+    }
+}
+
+async function eliminaAppuntamento(id) {
+    if (confirm("Vuoi eliminare questo appuntamento?")) {
+        try {
+            await deleteDoc(doc(db, "appuntamenti", id));
+            caricaAppuntamenti();
+        } catch (error) {
+            alert("Errore durante l'eliminazione: " + error.message);
+        }
+    }
+}
+
+// --- OCR ORIGINALE SCADENZE ---
 async function elaboraImmagineConTesseract(file) {
     ocrLoading.style.display = 'block';
     ocrProgress.textContent = '0%';
-
     try {
         const result = await Tesseract.recognize(file, 'ita', {
             logger: m => {
                 if (m.status === 'recognizing text') {
-                    const percent = Math.round(m.progress * 100);
-                    ocrProgress.textContent = percent + '%';
+                    ocrProgress.textContent = Math.round(m.progress * 100) + '%';
                 }
             }
         });
-
-        const testo = result.data.text;
-        analizzaTestoBollettaMirato(testo);
-
+        const testo = result.data.text.toLowerCase();
+        if (testo.includes("enel")) inputTitolo.value = "Enel";
+        else if (testo.includes("dolomiti")) inputTitolo.value = "Dolomiti Energia";
     } catch (error) {
-        console.error("Errore OCR:", error);
-        alert("Impossibile leggere l'immagine. Inserisci i dati manualmente.");
+        console.error(error);
     } finally {
         ocrLoading.style.display = 'none';
-    }
-}
-
-function analizzaTestoBollettaMirato(testo) {
-    const testoPulito = testo.replace(/\r\n/g, '\n');
-    const linee = testoPulito.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-    const testoLower = testoPulito.toLowerCase();
-
-    // 1. ENTE
-    let enteTrovato = "Bolletta";
-    if (testoLower.includes("dolomiti")) enteTrovato = "Dolomiti Energia";
-    else if (testoLower.includes("enel")) enteTrovato = "Enel";
-    else if (testoLower.includes("iren")) enteTrovato = "Iren";
-    else if (testoLower.includes("hera")) enteTrovato = "Hera";
-    else if (testoLower.includes("eni")) enteTrovato = "Eni Gas e Luce";
-    else if (testoLower.includes("acea")) enteTrovato = "Acea";
-    inputTitolo.value = formatCapitalize(enteTrovato);
-
-    // 2. IMPORTO REALE (Cerca esclusivamente dove c'è la dicitura TOTALE DA PAGARE)
-    let importoTrovato = "";
-    for (let i = 0; i < linee.length; i++) {
-        let linea = linee[i].toLowerCase();
-        // Cerca la sezione "totale da pagare"
-        if (linea.includes("totale da pagare") || linea.includes("quanto pago")) {
-            // Controlla la riga stessa e le 3 successive alla ricerca di un importo con virgola (es. 1.446,22 o 147,30)
-            for (let j = i; j <= Math.min(i + 3, linee.length - 1); j++) {
-                const match = linee[j].match(/([0-9]{1,3}(?:\.[0-9]{3})*[.,][0-9]{2})/);
-                if (match) {
-                    importoTrovato = match[1].replace(/\./g, '').replace(',', '.');
-                    break;
-                }
-            }
-            if (importoTrovato) break;
-        }
-    }
-    // Fallback generico se non trova l'etichetta ma trova un prezzo realistico (sotto i 10.000 euro)
-    if (!importoTrovato) {
-        for (let linea of linee) {
-            const match = linea.match(/\b([1-9][0-9]{0,3}[.,][0-9]{2})\b/);
-            if (match) {
-                let val = parseFloat(match[1].replace(',', '.'));
-                if (val < 10000) { // Evita di prendere i kWh o i metri cubi che sono cifre enormi
-                    importoTrovato = match[1].replace(',', '.');
-                    break;
-                }
-            }
-        }
-    }
-    if (importoTrovato) inputImporto.value = importoTrovato;
-
-    // 3. DATA DI SCADENZA REALE (Cerca esclusivamente dove c'è QUANDO SCADE o SCADE IL pagamento)
-    let dataTrovata = "";
-    const mesiMappa = {
-        'gennaio': '01', 'febbraio': '02', 'marzo': '03', 'aprile': '04',
-        'maggio': '05', 'giugno': '06', 'luglio': '07', 'agosto': '08',
-        'settembre': '09', 'ottobre': '10', 'novembre': '11', 'dicembre': '12'
-    };
-
-    for (let i = 0; i < linee.length; i++) {
-        let linea = linee[i].toLowerCase();
-        // Cerchiamo rigorosamente il blocco di scadenza della fattura (escludendo scadenze offerte promozionali)
-        if (linea.includes("quando scade") || linea.includes("scade") || linea.includes("entro il")) {
-            // Se la riga contiene parole ingannevoli sull'offerta, la saltiamo
-            if (linea.includes("condizioni economiche") || linea.includes("offerta")) continue;
-
-            for (let j = i; j <= Math.min(i + 2, linee.length - 1); j++) {
-                let rigaTarget = linee[j];
-
-                // Cerca formato testuale (es. "5 agosto 2025")
-                let matchTxt = rigaTarget.toLowerCase().match(/\b([0-9]{1,2})\s+([a-zà-ù]+)\s+(20\d{2})\b/);
-                if (matchTxt) {
-                    let giorno = matchTxt[1].padStart(2, '0');
-                    let nomeMese = matchTxt[2];
-                    let anno = matchTxt[3];
-                    if (mesiMappa[nomeMese]) {
-                        dataTrovata = `${anno}-${mesiMappa[nomeMese]}-${giorno}`;
-                        break;
-                    }
-                }
-
-                // Cerca formato numerico (es. 05/08/2025 o 01/04/2025)
-                let matchNum = rigaTarget.match(/\b(0[1-9]|[12][0-9]|3[01])[\/\-](0[1-9]|1[0-2])[\/\-](20\d{2})\b/);
-                if (matchNum) {
-                    dataTrovata = `${matchNum[3]}-${matchNum[2]}-${matchNum[1]}`;
-                    break;
-                }
-            }
-            if (dataTrovata) break;
-        }
-    }
-
-    if (dataTrovata) {
-        inputData.value = dataTrovata;
     }
 }
 
@@ -366,17 +394,11 @@ async function caricaListaUtenti() {
             const u = docSnap.data();
             const p = u.permessi || {};
 
-            const iconScad = p.scadenze ? '<span style="color:#22c55e; font-weight:bold;">✔ Scadenze</span>' : '<span style="color:#ef4444; font-weight:bold;">✖ Scadenze</span>';
-            const iconApp = p.appuntamenti ? '<span style="color:#22c55e; font-weight:bold;">✔ Appuntamenti</span>' : '<span style="color:#ef4444; font-weight:bold;">✖ Appuntamenti</span>';
-            const iconMed = p.media ? '<span style="color:#22c55e; font-weight:bold;">✔ Media</span>' : '<span style="color:#ef4444; font-weight:bold;">✖ Media</span>';
-            const iconRic = p.ricette ? '<span style="color:#22c55e; font-weight:bold;">✔ Ricette</span>' : '<span style="color:#ef4444; font-weight:bold;">✖ Ricette</span>';
-
             const li = document.createElement('li');
             li.className = 'elemento-lista';
             li.innerHTML = `
                 <div>
                     <strong>${u.nome}</strong> <span class="text-muted">(${u.email})</span>
-                    <p class="text-muted" style="margin-top: 4px;">${iconScad} | ${iconApp} | ${iconMed} | ${iconRic}</p>
                 </div>
                 <div class="azioni-utente">
                     <button class="btn-modifica">Modifica</button>
@@ -412,7 +434,7 @@ async function eliminaUtente(email) {
     }
 }
 
-// LOGICA SCADENZE E TOTALI
+// LOGICA SCADENZE
 async function caricaScadenze() {
     listaScadenze.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
     summaryScadenze.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
@@ -435,7 +457,6 @@ async function caricaScadenze() {
         });
 
         totaleGeneraleScadenze.textContent = `Totale da pagare: € ${sommaTotaleGenerale.toFixed(2)}`;
-
         items.sort((a, b) => a.diffGiorni - b.diffGiorni);
 
         listaScadenze.innerHTML = '';
