@@ -17,6 +17,8 @@ import {
     getDocs, 
     deleteDoc, 
     doc, 
+    setDoc,
+    getDoc,
     query, 
     orderBy 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -36,7 +38,9 @@ const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Selezione Elementi DOM
+// Email del tuo account Amministratore principale
+const ADMIN_EMAIL = "stpa79@gmail.com"; 
+
 const authContainer = document.getElementById('auth-container');
 const appContainer = document.getElementById('app-container');
 const authForm = document.getElementById('auth-form');
@@ -51,6 +55,7 @@ const sidebar = document.getElementById('sidebar');
 const toggleSidebarBtn = document.getElementById('toggle-sidebar');
 const navButtons = document.querySelectorAll('.nav-btn');
 const pageSections = document.querySelectorAll('.page-section');
+const menuUtenti = document.getElementById('menu-utenti');
 
 const scadenzaForm = document.getElementById('scadenza-form');
 const inputTitolo = document.getElementById('titolo');
@@ -59,12 +64,17 @@ const inputImporto = document.getElementById('importo');
 const listaScadenze = document.getElementById('lista-scadenze');
 const summaryScadenze = document.getElementById('home-summary-scadenze');
 
-// Gestione Sidebar Toggle
-toggleSidebarBtn.addEventListener('click', () => {
-    sidebar.classList.toggle('collapsed');
-});
+const utenteForm = document.getElementById('utente-form');
+const userEmailInput = document.getElementById('user-email-input');
+const userNameInput = document.getElementById('user-name-input');
+const permScadenze = document.getElementById('perm-scadenze');
+const permAppuntamenti = document.getElementById('perm-appuntamenti');
+const permMedia = document.getElementById('perm-media');
+const permRicette = document.getElementById('perm-ricette');
+const listaUtenti = document.getElementById('lista-utenti');
 
-// Cambio Schermata/Scheda
+toggleSidebarBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+
 function mostraSezione(targetId) {
     pageSections.forEach(sec => sec.classList.remove('active'));
     navButtons.forEach(btn => btn.classList.remove('active'));
@@ -76,15 +86,11 @@ function mostraSezione(targetId) {
     if(activeBtn) activeBtn.classList.add('active');
 }
 
-navButtons.forEach(btn => {
-    btn.addEventListener('click', () => mostraSezione(btn.dataset.target));
-});
-
+navButtons.forEach(btn => btn.addEventListener('click', () => mostraSezione(btn.dataset.target)));
 document.querySelectorAll('.link-goto, .btn-back-home').forEach(btn => {
     btn.addEventListener('click', () => mostraSezione(btn.dataset.target));
 });
 
-// Gestione Autenticazione
 authForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = authEmailInput.value;
@@ -118,15 +124,43 @@ btnLogout.addEventListener('click', async () => {
     try { await signOut(auth); } catch (error) { console.error(error); }
 });
 
-onAuthStateChanged(auth, (user) => {
+// Controllo sessione utente e caricamento permessi
+onAuthStateChanged(auth, async (user) => {
     if (user) {
         authContainer.style.display = 'none';
         appContainer.style.display = 'flex';
-        
-        // Estraiamo il nome prima della @ dell'email
-        const username = user.email.split('@')[0];
-        greetingTitle.textContent = `Ciao, ${username}`;
-        
+
+        let nomeVisualizzato = user.email.split('@')[0];
+        let permessi = { scadenze: true, appuntamenti: true, media: true, ricette: true };
+
+        // Verifichiamo se l'utente ha un profilo personalizzato in Firestore
+        try {
+            const userDoc = await getDoc(doc(db, "utenti", user.email));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                if (data.nome) nomeVisualizzato = data.nome;
+                if (data.permessi) permessi = data.permessi;
+            }
+        } catch (err) {
+            console.error("Errore lettura profilo utente", err);
+        }
+
+        greetingTitle.textContent = `Ciao, ${nomeVisualizzato}`;
+
+        // Controllo visibilità sezioni in base ai permessi
+        gestisciVisibilitaSezione('sec-scadenze', 'menu-scadenze', 'card-sec-scadenze', permessi.scadenze);
+        gestisciVisibilitaSezione('sec-appuntamenti', 'menu-appuntamenti', 'card-sec-appuntamenti', permessi.appuntamenti);
+        gestisciVisibilitaSezione('sec-media', 'menu-media', 'card-sec-media', permessi.media);
+        gestisciVisibilitaSezione('sec-ricette', 'menu-ricette', 'card-sec-ricette', permessi.ricette);
+
+        // Se sei l'amministratore (stpa79@gmail.com), mostriamo il menu Gestione Utenti
+        if (user.email === ADMIN_EMAIL) {
+            menuUtenti.style.display = 'flex';
+            caricaListaUtenti();
+        } else {
+            menuUtenti.style.display = 'none';
+        }
+
         caricaScadenze();
     } else {
         authContainer.style.display = 'block';
@@ -135,7 +169,81 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// --- LOGICA DELLE SCADENZE SMART PER LA HOME ---
+function gestisciVisibilitaSezione(secId, menuId, cardId, autorizzato) {
+    const menuBtn = document.getElementById(menuId);
+    const cardHome = document.getElementById(cardId);
+    if (!autorizzato) {
+        if (menuBtn) menuBtn.style.display = 'none';
+        if (cardHome) cardHome.style.display = 'none';
+    } else {
+        if (menuBtn) menuBtn.style.display = 'flex';
+        if (cardHome) cardHome.style.display = 'block';
+    }
+}
+
+// --- GESTIONE UTENTI (ADMIN) ---
+utenteForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = userEmailInput.value.trim().toLowerCase();
+    const nome = userNameInput.value.trim();
+    const permessi = {
+        scadenze: permScadenze.checked,
+        appuntamenti: permAppuntamenti.checked,
+        media: permMedia.checked,
+        ricette: permRicette.checked
+    };
+
+    try {
+        await setDoc(doc(db, "utenti", email), { email, nome, permessi });
+        alert(`Utente ${nome} salvato con successo!`);
+        utenteForm.reset();
+        caricaListaUtenti();
+    } catch (error) {
+        alert("Errore nel salvataggio utente: " + error.message);
+    }
+});
+
+async function caricaListaUtenti() {
+    listaUtenti.innerHTML = '<p class="text-muted">Caricamento...</p>';
+    try {
+        const querySnapshot = await getDocs(collection(db, "utenti"));
+        listaUtenti.innerHTML = '';
+        if (querySnapshot.empty) {
+            listaUtenti.innerHTML = '<p class="text-muted">Nessun utente configurato.</p>';
+            return;
+        }
+
+        querySnapshot.forEach((docSnap) => {
+            const u = docSnap.data();
+            const li = document.createElement('li');
+            li.className = 'elemento-lista';
+            li.innerHTML = `
+                <div>
+                    <strong>${u.nome}</strong> (${u.email})
+                    <p class="text-muted">Visibilità: S:${u.permessi?.scadenze?'✔':'✖'} | A:${u.permessi?.appuntamenti?'✔':'✖'} | M:${u.permessi?.media?'✔':'✖'} | R:${u.permessi?.ricette?'✔':'✖'}</p>
+                </div>
+                <button class="btn-elimina" data-email="${u.email}">Elimina</button>
+            `;
+            li.querySelector('.btn-elimina').addEventListener('click', () => eliminaUtente(u.email));
+            listaUtenti.appendChild(li);
+        });
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+async function eliminaUtente(email) {
+    if (confirm(`Vuoi rimuovere la configurazione per ${email}?`)) {
+        try {
+            await deleteDoc(doc(db, "utenti", email));
+            caricaListaUtenti();
+        } catch (error) {
+            alert("Errore durante l'eliminazione: " + error.message);
+        }
+    }
+}
+
+// --- LOGICA SCADENZE ---
 async function caricaScadenze() {
     listaScadenze.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
     summaryScadenze.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
@@ -146,18 +254,14 @@ async function caricaScadenze() {
         
         listaScadenze.innerHTML = '';
         const items = [];
-
-        querySnapshot.forEach((docSnap) => {
-            items.push({ id: docSnap.id, ...docSnap.data() });
-        });
+        querySnapshot.forEach((docSnap) => items.push({ id: docSnap.id, ...docSnap.data() }));
 
         if (items.length === 0) {
             listaScadenze.innerHTML = '<p class="text-muted">Nessuna scadenza inserita.</p>';
-            summaryScadenze.innerHTML = '<p class="text-muted">Nessuna scadenza presente.</p>';
+            summaryScadenze.innerHTML = '<p class="text-muted">Tutto in regola!</p>';
             return;
         }
 
-        // Popolamento lista completa nella scheda Scadenze
         items.forEach((scadenza) => {
             const li = document.createElement('li');
             li.className = 'elemento-lista';
@@ -172,9 +276,7 @@ async function caricaScadenze() {
             listaScadenze.appendChild(li);
         });
 
-        // Generazione Riassunto Smart per la Home
         elaboraRiassuntoHome(items);
-
     } catch (error) {
         console.error(error);
         summaryScadenze.innerHTML = '<p class="text-muted">Errore nel caricamento.</p>';
@@ -185,35 +287,19 @@ function elaboraRiassuntoHome(items) {
     const oggi = new Date();
     oggi.setHours(0,0,0,0);
 
-    // Calcolo giorni rimanenti per ogni scadenza
     const calcolate = items.map(item => {
-        const dataScad = new Date(item.data);
-        const diffTempo = dataScad - oggi;
-        const diffGiorni = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+        const diffGiorni = Math.ceil((new Date(item.data) - oggi) / (1000 * 60 * 60 * 24));
         return { ...item, diffGiorni };
     });
 
-    // Categoria Rosso: <= 7 giorni o già scadute
     const rosse = calcolate.filter(i => i.diffGiorni <= 7);
-    
-    if (rosse.length > 0) {
-        renderSummaryItems(rosse, 'status-red');
-        return;
-    }
+    if (rosse.length > 0) { renderSummaryItems(rosse, 'status-red'); return; }
 
-    // Categoria Arancione: entro 14 giorni
     const arancioni = calcolate.filter(i => i.diffGiorni > 7 && i.diffGiorni <= 14);
-    if (arancioni.length > 0) {
-        renderSummaryItems(arancioni, 'status-orange');
-        return;
-    }
+    if (arancioni.length > 0) { renderSummaryItems(arancioni, 'status-orange'); return; }
 
-    // Categoria Verde: dai 21 giorni in su (o comunque le successive)
     const verdi = calcolate.filter(i => i.diffGiorni > 14);
-    if (verdi.length > 0) {
-        renderSummaryItems(verdi, 'status-green');
-        return;
-    }
+    if (verdi.length > 0) { renderSummaryItems(verdi, 'status-green'); return; }
 
     summaryScadenze.innerHTML = '<p class="text-muted">Tutto in regola!</p>';
 }
@@ -223,37 +309,28 @@ function renderSummaryItems(lista, cssClass) {
     lista.forEach(item => {
         const div = document.createElement('div');
         div.className = `scadenza-badge-item ${cssClass}`;
-        div.innerHTML = `
-            <span><strong>${item.titolo}</strong> (${item.data})</span>
-            <strong>€ ${Number(item.importo).toFixed(2)}</strong>
-        `;
+        div.innerHTML = `<span><strong>${item.titolo}</strong> (${item.data})</span><strong>€ ${Number(item.importo).toFixed(2)}</strong>`;
         summaryScadenze.appendChild(div);
     });
 }
 
 scadenzaForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const nuovaScadenza = {
-        titolo: inputTitolo.value,
-        data: inputData.value,
-        importo: parseFloat(inputImporto.value),
-        creatoIl: new Date()
-    };
-
     try {
-        await addDoc(collection(db, "scadenze"), nuovaScadenza);
+        await addDoc(collection(db, "scadenze"), {
+            titolo: inputTitolo.value,
+            data: inputData.value,
+            importo: parseFloat(inputImporto.value),
+            creatoIl: new Date()
+        });
         scadenzaForm.reset();
         caricaScadenze();
-    } catch (error) {
-        alert("Errore nel salvataggio: " + error.message);
-    }
+    } catch (error) { alert("Errore: " + error.message); }
 });
 
 async function eliminaScadenza(id) {
     try {
         await deleteDoc(doc(db, "scadenze", id));
         caricaScadenze();
-    } catch (error) {
-        alert("Errore durante l'eliminazione: " + error.message);
-    }
+    } catch (error) { alert("Errore: " + error.message); }
 }
