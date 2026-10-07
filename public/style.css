@@ -57,7 +57,6 @@ input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="date"],
-input[type="time"],
 input[type="number"] {
     width: 100%;
     padding: 10px;
@@ -127,7 +126,6 @@ input:focus {
 .auth-links { margin-top: 15px; font-size: 0.9rem; }
 .auth-links a { color: #3b82f6; text-decoration: none; }
 
-/* LAYOUT CON SIDEBAR */
 .layout-wrapper {
     display: flex;
     min-height: 100vh;
@@ -371,7 +369,12 @@ input:focus {
     display: block;
 }
 
-.scadenza-badge-item, .appuntamento-item {
+.btn-ocr:hover {
+    background-color: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+.scadenza-badge-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -379,8 +382,6 @@ input:focus {
     border-radius: 8px;
     margin-bottom: 8px;
     font-size: 0.95rem;
-    background-color: #f8fafc;
-    border-left: 4px solid #3b82f6;
 }
 
 .status-red { background-color: #fef2f2; color: #991b1b; border-left: 4px solid #ef4444; }
