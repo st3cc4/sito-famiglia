@@ -45,7 +45,7 @@
     <!-- SEZIONE APP PRINCIPALE -->
     <div id="app-container" class="layout-wrapper" style="display: none;">
         
-        <!-- MENU LATERALE (SIDEBAR COLLAPSABILE) -->
+        <!-- MENU LATERALE -->
         <aside id="sidebar" class="sidebar">
             <button id="toggle-sidebar" class="sidebar-toggle-btn" title="Espandi/Riduci menu">☰</button>
             <nav class="sidebar-nav">
@@ -53,21 +53,26 @@
                     <span class="icon">🏠</span>
                     <span class="text">Home</span>
                 </button>
-                <button class="nav-btn" data-target="sec-scadenze">
+                <button class="nav-btn" data-target="sec-scadenze" id="menu-scadenze">
                     <span class="icon">📅</span>
                     <span class="text">Scadenze</span>
                 </button>
-                <button class="nav-btn" data-target="sec-appuntamenti">
+                <button class="nav-btn" data-target="sec-appuntamenti" id="menu-appuntamenti">
                     <span class="icon">📌</span>
                     <span class="text">Appuntamenti</span>
                 </button>
-                <button class="nav-btn" data-target="sec-media">
+                <button class="nav-btn" data-target="sec-media" id="menu-media">
                     <span class="icon">🖼️</span>
                     <span class="text">Media</span>
                 </button>
-                <button class="nav-btn" data-target="sec-ricette">
+                <button class="nav-btn" data-target="sec-ricette" id="menu-ricette">
                     <span class="icon">🍳</span>
                     <span class="text">Ricette</span>
+                </button>
+                <!-- Visibile solo se admin -->
+                <button class="nav-btn" data-target="sec-utenti" id="menu-utenti" style="display: none;">
+                    <span class="icon">⚙️</span>
+                    <span class="text">Gestione Utenti</span>
                 </button>
             </nav>
         </aside>
@@ -81,25 +86,20 @@
                 <button id="btn-logout" class="btn-logout">Esci</button>
             </header>
 
-            <!-- SCHERMATA 1: HOME (DASHBOARD) -->
+            <!-- SCHERMATA 1: HOME -->
             <section id="sec-home" class="page-section active">
                 <div class="dashboard-grid">
-                    
-                    <!-- Card Scadenze -->
-                    <div class="card card-summary">
+                    <div class="card card-summary" id="card-sec-scadenze">
                         <div class="card-header">
                             <h2>📅 Scadenze</h2>
                             <button class="link-goto" data-target="sec-scadenze">Vai a Scadenze ➔</button>
                         </div>
-                        <div id="home-summary-scadenze" class="summary-content">
-                            <!-- Caricato dinamicamente -->
-                        </div>
+                        <div id="home-summary-scadenze" class="summary-content"></div>
                     </div>
 
-                    <!-- Card Appuntamenti -->
-                    <div class="card card-summary">
+                    <div class="card card-summary" id="card-sec-appuntamenti">
                         <div class="card-header">
-                            <h2>📌 Appuntamenti Settimana</h2>
+                            <h2>📌 Appuntamenti</h2>
                             <button class="link-goto" data-target="sec-appuntamenti">Vai ad Appuntamenti ➔</button>
                         </div>
                         <div id="home-summary-appuntamenti" class="summary-content">
@@ -107,28 +107,25 @@
                         </div>
                     </div>
 
-                    <!-- Card Media -->
-                    <div class="card card-summary">
+                    <div class="card card-summary" id="card-sec-media">
                         <div class="card-header">
-                            <h2>🖼️ Ultimi Media Caricati</h2>
+                            <h2>🖼️ Media</h2>
                             <button class="link-goto" data-target="sec-media">Vai a Media ➔</button>
                         </div>
                         <div id="home-summary-media" class="summary-content">
-                            <p class="text-muted">Nessun foto/video caricato di recente.</p>
+                            <p class="text-muted">Nessun media recente.</p>
                         </div>
                     </div>
 
-                    <!-- Card Ricette -->
-                    <div class="card card-summary">
+                    <div class="card card-summary" id="card-sec-ricette">
                         <div class="card-header">
-                            <h2>🍳 Ricette Più Apprezzate</h2>
+                            <h2>🍳 Ricette</h2>
                             <button class="link-goto" data-target="sec-ricette">Vai a Ricette ➔</button>
                         </div>
                         <div id="home-summary-ricette" class="summary-content">
                             <p class="text-muted">Nessuna ricetta inserita.</p>
                         </div>
                     </div>
-
                 </div>
             </section>
 
@@ -141,26 +138,21 @@
                             <label for="titolo">Titolo (es. Bolletta Luce, Bollo Auto)</label>
                             <input type="text" id="titolo" required placeholder="Inserisci il nome...">
                         </div>
-                        
                         <div class="form-group">
                             <label for="data">Data di Scadenza</label>
                             <input type="date" id="data" required>
                         </div>
-
                         <div class="form-group">
                             <label for="importo">Importo (€)</label>
                             <input type="number" step="0.01" id="importo" required placeholder="0.00">
                         </div>
-
                         <button type="submit" class="btn">Salva Scadenza</button>
                     </form>
                 </div>
-
                 <div class="card">
                     <h2>Tutte le Scadenze</h2>
                     <ul id="lista-scadenze" class="lista"></ul>
                 </div>
-
                 <div class="footer-home-nav">
                     <button class="btn-back-home" data-target="sec-home">🏠 Torna alla Home</button>
                 </div>
@@ -194,6 +186,44 @@
                     <h2>Ricettario di Famiglia</h2>
                     <p class="text-muted">Sezione in arrivo...</p>
                 </div>
+                <div class="footer-home-nav">
+                    <button class="btn-back-home" data-target="sec-home">🏠 Torna alla Home</button>
+                </div>
+            </section>
+
+            <!-- SCHERMATA 6: GESTIONE UTENTI (SOLO ADMIN) -->
+            <section id="sec-utenti" class="page-section">
+                <div class="card">
+                    <h2>⚙️ Gestione Utenti e Permessi</h2>
+                    <p class="subtitle">Configura i nomi e cosa possono visualizzare i membri della famiglia.</p>
+                    
+                    <form id="utente-form">
+                        <div class="form-group">
+                            <label for="user-email-input">Email Utente (registrata su Firebase)</label>
+                            <input type="email" id="user-email-input" required placeholder="es. elena@gmail.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="user-name-input">Nome personalizzato (es. Stecca, Elena)</label>
+                            <input type="text" id="user-name-input" required placeholder="Nome visibile...">
+                        </div>
+                        <div class="form-group">
+                            <label>Permessi di visualizzazione sezioni:</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" id="perm-scadenze" checked> Scadenze</label>
+                                <label><input type="checkbox" id="perm-appuntamenti" checked> Appuntamenti</label>
+                                <label><input type="checkbox" id="perm-media" checked> Media</label>
+                                <label><input type="checkbox" id="perm-ricette" checked> Ricette</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">Salva / Aggiorna Utente</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>Utenti Configurati</h2>
+                    <ul id="lista-utenti" class="lista"></ul>
+                </div>
+
                 <div class="footer-home-nav">
                     <button class="btn-back-home" data-target="sec-home">🏠 Torna alla Home</button>
                 </div>
