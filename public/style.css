@@ -90,12 +90,19 @@ input:focus {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+/* Stile per allineare il checkbox a sinistra e il pulsante accedi a destra */
+.login-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    margin-bottom: 15px;
+}
+
 .remember-me {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 20px;
-    text-align: left;
 }
 
 .remember-me input {
@@ -107,8 +114,24 @@ input:focus {
 .remember-me label {
     margin-bottom: 0;
     cursor: pointer;
-    font-size: 0.85rem;
-    color: #64748b;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+.btn-inline {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-inline:hover {
+    background-color: #2563eb;
 }
 
 .btn {
@@ -143,19 +166,17 @@ input:focus {
     background-color: #dc2626;
 }
 
-.auth-switch {
+.auth-links {
     margin-top: 15px;
     font-size: 0.9rem;
-    color: #64748b;
 }
 
-.auth-switch a {
+.auth-links a {
     color: #3b82f6;
     text-decoration: none;
-    font-weight: bold;
 }
 
-.auth-switch a:hover {
+.auth-links a:hover {
     text-decoration: underline;
 }
 
