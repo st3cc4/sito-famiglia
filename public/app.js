@@ -18,6 +18,7 @@ import {
     deleteDoc, 
     doc, 
     setDoc,
+    updateDoc,
     getDoc,
     query, 
     orderBy 
@@ -39,6 +40,8 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const ADMIN_EMAIL = "stpa79@gmail.com"; 
+
+let nomeUtenteCorrente = "Utente";
 
 const authContainer = document.getElementById('auth-container');
 const appContainer = document.getElementById('app-container');
@@ -78,7 +81,9 @@ const ocrProgress = document.getElementById('ocr-progress');
 const btnApriModalAppuntamento = document.getElementById('btn-apri-modal-appuntamento');
 const btnChiudiModalAppuntamento = document.getElementById('btn-chiudi-modal-appuntamento');
 const modalAppuntamento = document.getElementById('modal-appuntamento');
+const modalAppuntamentoTitle = document.getElementById('modal-appuntamento-title');
 const appuntamentoForm = document.getElementById('appuntamento-form');
+const appIdInput = document.getElementById('app-id');
 const appTitolo = document.getElementById('app-titolo');
 const appData = document.getElementById('app-data');
 const appOraInizio = document.getElementById('app-ora-inizio');
@@ -128,7 +133,10 @@ btnChiudiModal.addEventListener('click', () => {
 
 // Modale Appuntamenti Eventi
 btnApriModalAppuntamento.addEventListener('click', () => {
+    modalAppuntamentoTitle.textContent = "Nuovo Appuntamento";
     appuntamentoForm.reset();
+    appIdInput.value = "";
+    appCreatore.value = nomeUtenteCorrente;
     modalAppuntamento.style.display = 'flex';
 });
 
@@ -181,17 +189,15 @@ onAuthStateChanged(auth, async (user) => {
             const userDoc = await getDoc(doc(db, "utenti", user.email));
             if (userDoc.exists()) {
                 const data = userDoc.data();
-                if (data.nome) {
-                    nomeVisualizzato = data.nome;
-                    if (!appCreatore.value) appCreatore.value = data.nome; // Pre-compila creatore
-                }
+                if (data.nome) nomeVisualizzato = data.nome;
                 if (data.permessi) permessi = data.permessi;
             }
         } catch (err) {
             console.error("Errore lettura profilo utente", err);
         }
 
-        greetingTitle.textContent = `Ciao, ${nomeVisualizzato}`;
+        nomeUtenteCorrente = formatCapitalize(nomeVisualizzato);
+        greetingTitle.textContent = `Ciao, ${nomeUtenteCorrente}`;
 
         gestisciVisibilitaSezione('sec-scadenze', 'menu-scadenze', 'card-sec-scadenze', permessi.scadenze);
         gestisciVisibilitaSezione('sec-appuntamenti', 'menu-appuntamenti', 'card-sec-appuntamenti', permessi.appuntamenti);
@@ -235,21 +241,34 @@ function formatCapitalize(str) {
 // --- LOGICA APPUNTAMENTI ---
 appuntamentoForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const id = appIdInput.value;
     const titolo = formatCapitalize(appTitolo.value);
     const data = appData.value;
     const oraInizio = appOraInizio.value;
     const oraFine = appOraFine.value;
-    const creatore = formatCapitalize(appCreatore.value);
+    const creatore = appCreatore.value;
 
     try {
-        await addDoc(collection(db, "appuntamenti"), {
-            titolo,
-            data,
-            oraInizio,
-            oraFine,
-            creatore,
-            creatoIl: new Date()
-        });
+        if (id) {
+            // Modifica
+            await updateDoc(doc(db, "appuntamenti", id), {
+                titolo,
+                data,
+                oraInizio,
+                oraFine
+            });
+            alert("Appuntamento aggiornato con successo!");
+        } else {
+            // Nuovo
+            await addDoc(collection(db, "appuntamenti"), {
+                titolo,
+                data,
+                oraInizio,
+                oraFine,
+                creatore,
+                creatoIl: new Date()
+            });
+        }
         appuntamentoForm.reset();
         modalAppuntamento.style.display = 'none';
         caricaAppuntamenti();
@@ -274,7 +293,6 @@ async function caricaAppuntamenti() {
             items.push({ id: docSnap.id, ...data, diffGiorni });
         });
 
-        // Ordina per data crescente
         items.sort((a, b) => new Date(a.data) - new Date(b.data));
 
         listaAppuntamenti.innerHTML = '';
@@ -289,24 +307,39 @@ async function caricaAppuntamenti() {
             li.className = 'elemento-lista';
             li.innerHTML = `
                 <div>
-                    <strong>${app.titolo}</strong>
-                    <p style="font-size: 0.85rem; margin-top: 2px; color: #475569;">
-                        📅 ${app.data} | ⏰ ${app.oraInizio} - ${app.oraFine} | 👤 Creato da: <strong>${app.creatore}</strong>
+                    <strong style="font-size: 1.05rem; color: #1e293b;">${app.titolo}</strong>
+                    <p style="font-size: 0.9rem; margin-top: 4px; color: #334155; font-weight: 500;">
+                        📅 <strong>${app.data}</strong> | ⏰ <strong>${app.oraInizio} - ${app.oraFine}</strong> | 👤 Creato da: <strong>${app.creatore || 'Famiglia'}</strong>
                     </p>
                 </div>
-                <button class="btn-elimina" data-id="${app.id}">Elimina</button>
+                <div class="azioni-utente">
+                    <button class="btn-modifica" data-id="${app.id}">Modifica</button>
+                    <button class="btn-elimina" data-id="${app.id}">Elimina</button>
+                </div>
             `;
+
+            li.querySelector('.btn-modifica').addEventListener('click', () => {
+                modalAppuntamentoTitle.textContent = "Modifica Appuntamento";
+                appIdInput.value = app.id;
+                appTitolo.value = app.titolo;
+                appData.value = app.data;
+                appOraInizio.value = app.oraInizio;
+                appOraFine.value = app.oraFine;
+                appCreatore.value = app.creatore || nomeUtenteCorrente;
+                modalAppuntamento.style.display = 'flex';
+            });
+
             li.querySelector('.btn-elimina').addEventListener('click', () => eliminaAppuntamento(app.id));
             listaAppuntamenti.appendChild(li);
         });
 
-        // Mostra il primo appuntamento imminente nella card Home
+        // Mostra il prossimo appuntamento in grassetto nella Home
         const prossimo = items.find(i => i.diffGiorni >= 0) || items[0];
         summaryAppuntamenti.innerHTML = `
-            <div style="padding: 10px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #3b82f6;">
-                <strong>${prossimo.titolo}</strong>
-                <p style="font-size: 0.85rem; margin-top: 4px; color: #475569;">📅 ${prossimo.data} (${prossimo.oraInizio} - ${prossimo.oraFine})</p>
-                <p style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">Creato da: ${prossimo.creatore}</p>
+            <div style="padding: 12px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #3b82f6;">
+                <strong style="font-size: 1rem; color: #1e293b;">${prossimo.titolo}</strong>
+                <p style="font-size: 0.9rem; margin-top: 4px; color: #334155; font-weight: 600;">📅 ${prossimo.data} (${prossimo.oraInizio} - ${prossimo.oraFine})</p>
+                <p style="font-size: 0.85rem; color: #475569; margin-top: 2px;">Creato da: <strong>${prossimo.creatore || 'Famiglia'}</strong></p>
             </div>
         `;
 
