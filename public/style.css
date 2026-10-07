@@ -197,6 +197,8 @@ input:focus {
     padding: 20px;
     max-width: 800px;
     margin: 0 auto;
+    position: relative;
+    padding-bottom: 50px;
 }
 
 .app-header {
@@ -253,9 +255,14 @@ input:focus {
 
 .text-muted { color: #94a3b8; font-size: 0.9rem; }
 
-/* SCADENZE SECTION STYLES */
+/* STILI SCADENZE E TOTALI */
 .scadenze-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .btn-nuova-scadenza {
@@ -272,6 +279,33 @@ input:focus {
 
 .btn-nuova-scadenza:hover {
     background-color: #2563eb;
+}
+
+.totale-badge-box {
+    background-color: #1e293b;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+.home-totale-riga {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px dashed #cbd5e1;
+    text-align: right;
+    font-size: 0.95rem;
+    color: #1e293b;
+}
+
+/* FIRMA IN BASSO A DESTRA */
+.app-signature {
+    text-align: right;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-top: 30px;
+    font-style: italic;
 }
 
 /* MODAL POPUP */
@@ -319,7 +353,6 @@ input:focus {
     color: #64748b;
 }
 
-/* OCR BUTTONS */
 .ocr-buttons-container {
     display: flex;
     gap: 10px;
