@@ -52,7 +52,7 @@ const inputData = document.getElementById('data');
 const inputImporto = document.getElementById('importo');
 const listaScadenze = document.getElementById('lista-scadenze');
 
-// Gestione del Login (senza registrazione libera)
+// Gestione del Login
 authForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = authEmailInput.value;
@@ -68,7 +68,7 @@ authForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Funzione per il recupero/cambio password tramite email
+// Funzione per il recupero password tramite email
 forgotPasswordBtn.addEventListener('click', async (e) => {
     e.preventDefault();
     const email = authEmailInput.value;
