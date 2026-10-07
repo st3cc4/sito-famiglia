@@ -22,6 +22,15 @@ h1 {
     font-size: 1.5rem;
 }
 
+/* Titolo specifico per la card di autenticazione senza bordi o linee strane */
+.auth-title {
+    color: #1e3a8a;
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
 .subtitle {
     color: #64748b;
     font-size: 0.95rem;
@@ -90,7 +99,7 @@ input:focus {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Stile per allineare il checkbox a sinistra e il pulsante accedi a destra */
+/* Allineamento corretto: Ricordami a sinistra, Accedi a destra */
 .login-actions {
     display: flex;
     justify-content: space-between;
