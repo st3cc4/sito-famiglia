@@ -69,6 +69,7 @@ const inputData = document.getElementById('data');
 const inputImporto = document.getElementById('importo');
 const listaScadenze = document.getElementById('lista-scadenze');
 const summaryScadenze = document.getElementById('home-summary-scadenze');
+const totaleGeneraleScadenze = document.getElementById('totale-generale-scadenze');
 
 const inputScattaFoto = document.getElementById('input-scatta-foto');
 const inputCaricaFoto = document.getElementById('input-carica-foto');
@@ -197,14 +198,12 @@ function gestisciVisibilitaSezione(secId, menuId, cardId, autorizzato) {
     }
 }
 
-// Funzione per formattare il testo con la prima lettera maiuscola e il resto minuscolo
 function formatCapitalize(str) {
     if (!str) return '';
     const trimmed = str.trim();
     return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 }
 
-// OCR CON GOOGLE GEMINI AI
 async function elaboraImmagineConOCR(file) {
     ocrLoading.style.display = 'block';
     try {
@@ -260,7 +259,6 @@ inputCaricaFoto.addEventListener('change', (e) => {
     if (e.target.files[0]) elaboraImmagineConOCR(e.target.files[0]);
 });
 
-// GESTIONE UTENTI (ADMIN)
 utenteForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = userEmailInput.value.trim().toLowerCase();
@@ -343,7 +341,7 @@ async function eliminaUtente(email) {
     }
 }
 
-// LOGICA SCADENZE
+// LOGICA SCADENZE E TOTALI
 async function caricaScadenze() {
     listaScadenze.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
     summaryScadenze.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
@@ -353,12 +351,20 @@ async function caricaScadenze() {
         const oggi = new Date();
         oggi.setHours(0,0,0,0);
 
+        let sommaTotaleGenerale = 0;
         const items = [];
+        
         querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
             const diffGiorni = Math.ceil((new Date(data.data) - oggi) / (1000 * 60 * 60 * 24));
-            items.push({ id: docSnap.id, ...data, diffGiorni });
+            const importoNum = Number(data.importo) || 0;
+            
+            sommaTotaleGenerale += importoNum;
+            items.push({ id: docSnap.id, ...data, diffGiorni, importoNum });
         });
+
+        // Aggiorna il totale generale nella schermata Scadenze
+        totaleGeneraleScadenze.textContent = `Totale da pagare: € ${sommaTotaleGenerale.toFixed(2)}`;
 
         items.sort((a, b) => a.diffGiorni - b.diffGiorni);
 
@@ -382,7 +388,7 @@ async function caricaScadenze() {
                     <p style="font-size: 0.85rem; margin-top: 2px;">📅 Scadenza: ${scadenza.data} (${scadenza.diffGiorni <= 0 ? 'Scaduta!' : scadenza.diffGiorni + ' giorni'})</p>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <strong>💶 € ${Number(scadenza.importo).toFixed(2)}</strong>
+                    <strong>💶 € ${scadenza.importoNum.toFixed(2)}</strong>
                     <button class="btn-elimina" data-id="${scadenza.id}">Fatto</button>
                 </div>
             `;
@@ -398,26 +404,52 @@ async function caricaScadenze() {
 }
 
 function elaboraRiassuntoHome(items) {
+    let gruppoSelezionato = [];
+    let cssTrovato = 'status-green';
+
     const rosse = items.filter(i => i.diffGiorni <= 7);
-    if (rosse.length > 0) { renderSummaryItems(rosse, 'status-red'); return; }
+    if (rosse.length > 0) {
+        gruppoSelezionato = rosse;
+        cssTrovato = 'status-red';
+    } else {
+        const arancioni = items.filter(i => i.diffGiorni > 7 && i.diffGiorni <= 14);
+        if (arancioni.length > 0) {
+            gruppoSelezionato = arancioni;
+            cssTrovato = 'status-orange';
+        } else {
+            const verdi = items.filter(i => i.diffGiorni > 14);
+            if (verdi.length > 0) {
+                gruppoSelezionato = verdi;
+                cssTrovato = 'status-green';
+            }
+        }
+    }
 
-    const arancioni = items.filter(i => i.diffGiorni > 7 && i.diffGiorni <= 14);
-    if (arancioni.length > 0) { renderSummaryItems(arancioni, 'status-orange'); return; }
+    if (gruppoSelezionato.length === 0) {
+        summaryScadenze.innerHTML = '<p class="text-muted">Tutto in regola!</p>';
+        return;
+    }
 
-    const verdi = items.filter(i => i.diffGiorni > 14);
-    if (verdi.length > 0) { renderSummaryItems(verdi, 'status-green'); return; }
-
-    summaryScadenze.innerHTML = '<p class="text-muted">Tutto in regola!</p>';
+    renderSummaryItems(gruppoSelezionato, cssTrovato);
 }
 
 function renderSummaryItems(lista, cssClass) {
     summaryScadenze.innerHTML = '';
+    let sommaParziale = 0;
+
     lista.forEach(item => {
+        sommaParziale += item.importoNum;
         const div = document.createElement('div');
         div.className = `scadenza-badge-item ${cssClass}`;
-        div.innerHTML = `<span><strong>${item.titolo}</strong> (${item.data})</span><strong>€ ${Number(item.importo).toFixed(2)}</strong>`;
+        div.innerHTML = `<span><strong>${item.titolo}</strong> (${item.data})</span><strong>€ ${item.importoNum.toFixed(2)}</strong>`;
         summaryScadenze.appendChild(div);
     });
+
+    // Riga con il totale delle sole bollette mostrate in questa card
+    const divTotale = document.createElement('div');
+    divTotale.className = 'home-totale-riga';
+    divTotale.innerHTML = `Totale visualizzato: <strong>€ ${sommaParziale.toFixed(2)}</strong>`;
+    summaryScadenze.appendChild(divTotale);
 }
 
 scadenzaForm.addEventListener('submit', async (e) => {
