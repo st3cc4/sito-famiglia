@@ -58,7 +58,8 @@ input[type="email"],
 input[type="password"],
 input[type="date"],
 input[type="time"],
-input[type="number"] {
+input[type="number"],
+input[type="color"] {
     width: 100%;
     padding: 10px;
     border: 1px solid #cbd5e1;
@@ -112,7 +113,7 @@ input:focus {
 }
 
 .btn-accedi, .btn {
-    background-color: #3b82f6;
+    background-color: var(--user-primary, #3b82f6);
     color: white;
     border: none;
     padding: 10px 20px;
@@ -247,7 +248,7 @@ input:focus {
 .link-goto {
     background: none;
     border: none;
-    color: #3b82f6;
+    color: var(--user-primary, #3b82f6);
     font-weight: bold;
     cursor: pointer;
     font-size: 0.85rem;
@@ -265,7 +266,7 @@ input:focus {
 }
 
 .btn-nuova-scadenza {
-    background-color: #3b82f6;
+    background-color: var(--user-primary, #3b82f6);
     color: white;
     border: none;
     padding: 12px 24px;
@@ -277,7 +278,7 @@ input:focus {
 }
 
 .btn-nuova-scadenza:hover {
-    background-color: #2563eb;
+    opacity: 0.9;
 }
 
 .totale-badge-box {
@@ -396,6 +397,15 @@ input:focus {
     align-items: center;
     padding: 12px;
     border-bottom: 1px solid #f1f5f9;
+}
+
+.badge-utente {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
 }
 
 .azioni-utente { display: flex; gap: 6px; }
