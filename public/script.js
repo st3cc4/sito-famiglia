@@ -43,7 +43,7 @@ const ADMIN_EMAIL = "stpa79@gmail.com";
 
 let nomeUtenteCorrente = "Utente";
 let coloreUtenteCorrente = "#3b82f6";
-let mappaColoriUtenti = {}; // Memorizza i colori di tutti gli utenti per le liste
+let mappaColoriUtenti = {}; 
 
 const authContainer = document.getElementById('auth-container');
 const appContainer = document.getElementById('app-container');
@@ -123,6 +123,14 @@ document.querySelectorAll('.link-goto, .btn-back-home').forEach(btn => {
     btn.addEventListener('click', () => mostraSezione(btn.dataset.target));
 });
 
+// Funzione utile per formattare la data da ISO (YYYY-MM-DD) a Europea (DD/MM/YYYY)
+function formatoDataEuropeo(dataIso) {
+    if (!dataIso) return '';
+    const parti = dataIso.split('-');
+    if (parti.length !== 3) return dataIso;
+    return `${parti[2]}/${parti[1]}/${parti[0]}`;
+}
+
 // Modale Scadenze Eventi
 btnApriModal.addEventListener('click', () => {
     modalTitle.textContent = "Nuova Scadenza";
@@ -147,6 +155,7 @@ btnChiudiModalAppuntamento.addEventListener('click', () => {
     modalAppuntamento.style.display = 'none';
 });
 
+// Autenticazione
 authForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = authEmailInput.value;
@@ -190,7 +199,6 @@ onAuthStateChanged(auth, async (user) => {
         let permessi = { scadenze: true, appuntamenti: true, media: true, ricette: true };
 
         try {
-            // Carica tutti gli utenti per mappare i colori
             const utentiSnapshot = await getDocs(collection(db, "utenti"));
             utentiSnapshot.forEach(docSnap => {
                 const uData = docSnap.data();
@@ -213,7 +221,6 @@ onAuthStateChanged(auth, async (user) => {
         nomeUtenteCorrente = formatCapitalize(nomeVisualizzato);
         coloreUtenteCorrente = coloreUtente;
         
-        // Applica il colore personalizzato dell'utente come variabile CSS
         document.documentElement.style.setProperty('--user-primary', coloreUtenteCorrente);
         greetingTitle.textContent = `Ciao, ${nomeUtenteCorrente}`;
 
@@ -255,6 +262,19 @@ function formatCapitalize(str) {
     const trimmed = str.trim();
     return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 }
+
+// --- LOGICA AUTOMATICA ORARIO FINE (+1 ORA) ---
+appOraInizio.addEventListener('change', () => {
+    const inizio = appOraInizio.value;
+    if (inizio) {
+        const [ore, minuti] = inizio.split(':').map(Number);
+        let nuoveOre = ore + 1;
+        if (nuoveOre >= 24) nuoveOre = 23; // Evita overflow oltre mezzanotte
+        const oreStr = String(nuoveOre).padStart(2, '0');
+        const minStr = String(minuti).padStart(2, '0');
+        appOraFine.value = `${oreStr}:${minStr}`;
+    }
+});
 
 // --- LOGICA APPUNTAMENTI ---
 appuntamentoForm.addEventListener('submit', async (e) => {
@@ -309,7 +329,12 @@ async function caricaAppuntamenti() {
             items.push({ id: docSnap.id, ...data, diffGiorni });
         });
 
-        items.sort((a, b) => new Date(a.data) - new Date(b.data));
+        // ORDINAMENTO CORRETTO: In base alla data e all'orario di inizio (cronologico)
+        items.sort((a, b) => {
+            const dataOraA = new Date(`${a.data}T${a.oraInizio || '00:00'}`);
+            const dataOraB = new Date(`${b.data}T${b.oraInizio || '00:00'}`);
+            return dataOraA - dataOraB;
+        });
 
         listaAppuntamenti.innerHTML = '';
         if (items.length === 0) {
@@ -321,14 +346,15 @@ async function caricaAppuntamenti() {
         items.forEach((app) => {
             const creatoreNome = app.creatore || 'Famiglia';
             const coloreCreatore = mappaColoriUtenti[creatoreNome] || '#3b82f6';
+            const dataEur = formatoDataEuropeo(app.data);
 
             const li = document.createElement('li');
             li.className = 'elemento-lista';
             li.innerHTML = `
                 <div>
-                    <strong style="font-size: 1.05rem; color: #1e293b;">${app.titolo}</strong>
+                    <strong style="font-size: 1.05rem; color: ${coloreCreatore};">${app.titolo}</strong>
                     <p style="font-size: 0.9rem; margin-top: 4px; color: #334155; font-weight: 500;">
-                        📅 <strong>${app.data}</strong> | ⏰ <strong>${app.oraInizio} - ${app.oraFine}</strong> | 
+                        📅 <strong>${dataEur}</strong> | ⏰ <strong>${app.oraInizio} - ${app.oraFine}</strong> | 
                         <span class="badge-utente" style="background-color: ${coloreCreatore};"></span> Creato da: <strong>${creatoreNome}</strong>
                     </p>
                 </div>
@@ -353,13 +379,15 @@ async function caricaAppuntamenti() {
             listaAppuntamenti.appendChild(li);
         });
 
-        // Mostra il prossimo appuntamento in grassetto nella Home
+        // Mostra il prossimo appuntamento nella Home
         const prossimo = items.find(i => i.diffGiorni >= 0) || items[0];
         const coloreProssimo = mappaColoriUtenti[prossimo.creatore] || '#3b82f6';
+        const dataProssimaEur = formatoDataEuropeo(prossimo.data);
+
         summaryAppuntamenti.innerHTML = `
             <div style="padding: 12px; background: #f8fafc; border-radius: 8px; border-left: 4px solid ${coloreProssimo};">
-                <strong style="font-size: 1rem; color: #1e293b;">${prossimo.titolo}</strong>
-                <p style="font-size: 0.9rem; margin-top: 4px; color: #334155; font-weight: 600;">📅 ${prossimo.data} (${prossimo.oraInizio} - ${prossimo.oraFine})</p>
+                <strong style="font-size: 1rem; color: ${coloreProssimo};">${prossimo.titolo}</strong>
+                <p style="font-size: 0.9rem; margin-top: 4px; color: #334155; font-weight: 600;">📅 ${dataProssimaEur} (${prossimo.oraInizio} - ${prossimo.oraFine})</p>
                 <p style="font-size: 0.85rem; color: #475569; margin-top: 2px;"><span class="badge-utente" style="background-color: ${coloreProssimo};"></span> Creato da: <strong>${prossimo.creatore || 'Famiglia'}</strong></p>
             </div>
         `;
@@ -532,14 +560,15 @@ async function caricaScadenze() {
 
             const creatoreScad = scadenza.creatore || 'Famiglia';
             const coloreScad = mappaColoriUtenti[creatoreScad] || '#3b82f6';
+            const dataEur = formatoDataEuropeo(scadenza.data);
 
             const li = document.createElement('li');
             li.className = `elemento-lista scadenza-badge-item ${cssClass}`;
             li.innerHTML = `
                 <div>
-                    <strong>${scadenza.titolo}</strong>
+                    <strong style="color: ${coloreScad};">${scadenza.titolo}</strong>
                     <p style="font-size: 0.85rem; margin-top: 2px;">
-                        📅 Scadenza: ${scadenza.data} (${scadenza.diffGiorni <= 0 ? 'Scaduta!' : scadenza.diffGiorni + ' giorni'}) | 
+                        📅 Scadenza: ${dataEur} (${scadenza.diffGiorni <= 0 ? 'Scaduta!' : scadenza.diffGiorni + ' giorni'}) | 
                         <span class="badge-utente" style="background-color: ${coloreScad};"></span> ${creatoreScad}
                     </p>
                 </div>
@@ -597,10 +626,11 @@ function renderSummaryItems(lista, cssClass) {
         sommaParziale += item.importoNum;
         const creatoreItem = item.creatore || 'Famiglia';
         const coloreItem = mappaColoriUtenti[creatoreItem] || '#3b82f6';
+        const dataEur = formatoDataEuropeo(item.data);
 
         const div = document.createElement('div');
         div.className = `scadenza-badge-item ${cssClass}`;
-        div.innerHTML = `<span><span class="badge-utente" style="background-color: ${coloreItem};"></span><strong>${item.titolo}</strong> (${item.data})</span><strong>€ ${item.importoNum.toFixed(2)}</strong>`;
+        div.innerHTML = `<span><span class="badge-utente" style="background-color: ${coloreItem};"></span><strong style="color: ${coloreItem};">${item.titolo}</strong> (${dataEur})</span><strong>€ ${item.importoNum.toFixed(2)}</strong>`;
         summaryScadenze.appendChild(div);
     });
 
