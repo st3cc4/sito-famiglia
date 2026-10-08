@@ -42,7 +42,7 @@ const ADMIN_EMAIL = "stpa79@gmail.com";
 let nomeUtenteCorrente = "Utente";
 let coloreUtenteCorrente = "#3b82f6";
 let mappaColoriUtenti = {}; 
-let dataInizioSettimanaCorrente = getLunedisettimana(new Date());
+let dataInizioSettimanaCorrente = getInizioSettimana(new Date());
 
 const authContainer = document.getElementById('auth-container');
 const appContainer = document.getElementById('app-container');
@@ -78,7 +78,7 @@ const inputCaricaFoto = document.getElementById('input-carica-foto');
 const ocrLoading = document.getElementById('ocr-loading');
 const ocrProgress = document.getElementById('ocr-progress');
 
-// Modale Appuntamenti & Tabella Settimanale
+// Modale Appuntamenti & Calendario Settimanale
 const btnApriModalAppuntamento = document.getElementById('btn-apri-modal-appuntamento');
 const btnChiudiModalAppuntamento = document.getElementById('btn-chiudi-modal-appuntamento');
 const modalAppuntamento = document.getElementById('modal-appuntamento');
@@ -132,23 +132,20 @@ function formatoDataEuropeo(dataIso) {
     return `${parti[2]}/${parti[1]}/${parti[0]}`;
 }
 
-// CALCOLO LUNEDI SETTIMANA
-function getLunedisettimana(d) {
-    const date = new Date(d);
-    const day = date.getDay();
-    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-    const lunedi = new Date(date.setDate(diff));
-    lunedi.setHours(0,0,0,0);
-    return lunedi;
-}
-
 function formatCapitalize(str) {
     if (!str) return '';
     const trimmed = str.trim();
     return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 }
 
-// CONTROLLI NAVIGAZIONE SETTIMANALE
+function getInizioSettimana(d) {
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Lunedì come inizio settimana
+    return new Date(date.setDate(diff));
+}
+
+// Navigazione Settimane Calendario
 btnPrevWeek.addEventListener('click', () => {
     dataInizioSettimanaCorrente.setDate(dataInizioSettimanaCorrente.getDate() - 7);
     caricaAppuntamenti();
@@ -159,10 +156,11 @@ btnNextWeek.addEventListener('click', () => {
     caricaAppuntamenti();
 });
 
-// Modali Eventi
+// Modali ed Eventi Form
 btnApriModal.addEventListener('click', () => {
     modalTitle.textContent = "Nuova Scadenza";
     scadenzaForm.reset();
+    delete scadenzaForm.dataset.editId;
     modalScadenza.style.display = 'flex';
 });
 
@@ -251,11 +249,6 @@ onAuthStateChanged(auth, async (user) => {
         document.documentElement.style.setProperty('--user-primary', coloreUtenteCorrente);
         greetingTitle.textContent = `Ciao, ${nomeUtenteCorrente}`;
 
-        gestisciVisibilitaSezione('sec-scadenze', 'menu-scadenze', 'card-sec-scadenze', permessi.scadenze);
-        gestisciVisibilitaSezione('sec-appuntamenti', 'menu-appuntamenti', 'card-sec-appuntamenti', permessi.appuntamenti);
-        gestisciVisibilitaSezione('sec-media', 'menu-media', 'card-sec-media', permessi.media);
-        gestisciVisibilitaSezione('sec-ricette', 'menu-ricette', 'card-sec-ricette', permessi.ricette);
-
         if (user.email === ADMIN_EMAIL) {
             menuUtenti.style.display = 'flex';
             caricaListaUtenti();
@@ -272,18 +265,6 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-function gestisciVisibilitaSezione(secId, menuId, cardId, autorizzato) {
-    const menuBtn = document.getElementById(menuId);
-    const cardHome = document.getElementById(cardId);
-    if (!autorizzato) {
-        if (menuBtn) menuBtn.style.display = 'none';
-        if (cardHome) cardHome.style.display = 'none';
-    } else {
-        if (menuBtn) menuBtn.style.display = 'flex';
-        if (cardHome) cardHome.style.display = 'block';
-    }
-}
-
 appOraInizio.addEventListener('change', () => {
     const inizio = appOraInizio.value;
     if (inizio) {
@@ -296,220 +277,295 @@ appOraInizio.addEventListener('change', () => {
     }
 });
 
-// SUBMIT APPUNTAMENTO
-appuntamentoForm.addEventListener('submit', async (e) => {
+// --- GESTIONE SCADENZE & OCR ---
+scadenzaForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const id = appIdInput.value;
-    const titolo = formatCapitalize(appTitolo.value);
-    const data = appData.value;
-    const oraInizio = appOraInizio.value;
-    const oraFine = appOraFine.value;
+    const titolo = inputTitolo.value.trim();
+    const data = inputData.value;
+    const importo = parseFloat(inputImporto.value);
+    const editId = scadenzaForm.dataset.editId;
 
     try {
-        if (id) {
-            await updateDoc(doc(db, "appuntamenti", id), {
-                titolo,
-                data,
-                oraInizio,
-                oraFine
-            });
-            alert("Appuntamento aggiornato con successo!");
+        if (editId) {
+            await updateDoc(doc(db, "scadenze", editId), { titolo, data, importo });
         } else {
-            await addDoc(collection(db, "appuntamenti"), {
-                titolo,
-                data,
-                oraInizio,
-                oraFine,
-                creatore: nomeUtenteCorrente,
-                creatoIl: new Date()
-            });
+            await addDoc(collection(db, "scadenze"), { titolo, data, importo, creatore: nomeUtenteCorrente });
         }
-        appuntamentoForm.reset();
-        modalAppuntamento.style.display = 'none';
-        caricaAppuntamenti();
-    } catch (error) {
-        alert("Errore nel salvataggio appuntamento: " + error.message);
+        modalScadenza.style.display = 'none';
+        scadenzaForm.reset();
+        delete scadenzaForm.dataset.editId;
+        caricaScadenze();
+    } catch (err) {
+        alert("Errore nel salvataggio della scadenza.");
     }
 });
 
-// CARICAMENTO ED ELABORAZIONE TABELLA APPUNTAMENTI SETTIMANALE
-async function caricaAppuntamenti() {
-    gridSettimanale.innerHTML = '<p class="text-muted" style="grid-column: 1 / -1; padding: 20px;">Caricamento tabella impegni...</p>';
-    summaryAppuntamenti.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
-
+async function caricaScadenze() {
+    listaScadenze.innerHTML = `<p class="text-muted">Caricamento in corso...</p>`;
+    summaryScadenze.innerHTML = `<p class="text-muted">Caricamento in corso...</p>`;
+    
     try {
-        const querySnapshot = await getDocs(collection(db, "appuntamenti"));
-        const tuttiAppuntamenti = [];
-        
-        querySnapshot.forEach((docSnap) => {
-            tuttiAppuntamenti.push({ id: docSnap.id, ...docSnap.data() });
+        const querySnapshot = await getDocs(collection(db, "scadenze"));
+        let scadenze = [];
+        querySnapshot.forEach(docSnap => {
+            scadenze.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        // Ordinamento JS per data e orario inizio
-        tuttiAppuntamenti.sort((a, b) => {
-            const dataOraA = new Date(`${a.data}T${a.oraInizio || '00:00'}`);
-            const dataOraB = new Date(`${b.data}T${b.oraInizio || '00:00'}`);
-            return dataOraA - dataOraB;
-        });
+        scadenze.sort((a, b) => new Date(a.data) - new Date(b.data));
 
-        // 1. Render Tabella Settimanale
-        renderTabellaSettimanale(tuttiAppuntamenti);
+        let htmlScadenze = "";
+        let htmlHomeSummary = "";
+        let totaleComplessivo = 0;
+        const oggiStr = new Date().toISOString().split('T')[0];
 
-        // 2. Render Riassunto Prossimo Appuntamento in Home
-        const oggi = new Date();
-        oggi.setHours(0,0,0,0);
-        const prossimi = tuttiAppuntamenti.filter(a => new Date(a.data) >= oggi);
-        
-        if (prossimi.length > 0) {
-            const prossimo = prossimi[0];
-            const coloreProssimo = mappaColoriUtenti[prossimo.creatore] || '#3b82f6';
-            const dataProssimaEur = formatoDataEuropeo(prossimo.data);
-
-            summaryAppuntamenti.innerHTML = `
-                <div style="padding: 12px; background: #f8fafc; border-radius: 8px; border-left: 4px solid ${coloreProssimo};">
-                    <strong style="font-size: 1rem; color: ${coloreProssimo};">${prossimo.titolo}</strong>
-                    <p style="font-size: 0.9rem; margin-top: 4px; color: #334155; font-weight: 600;">📅 ${dataProssimaEur} (${prossimo.oraInizio} - ${prossimo.oraFine})</p>
-                    <p style="font-size: 0.85rem; color: #475569; margin-top: 2px;">Creato da: <strong>${prossimo.creatore || 'Famiglia'}</strong></p>
-                </div>
-            `;
-        } else {
-            summaryAppuntamenti.innerHTML = '<p class="text-muted">Nessun prossimo appuntamento.</p>';
+        if (scadenze.length === 0) {
+            listaScadenze.innerHTML = `<p class="text-muted">Nessuna scadenza inserita.</p>`;
+            summaryScadenze.innerHTML = `<p class="text-muted">Nessuna scadenza in arrivo.</p>`;
+            totaleGeneraleScadenze.textContent = `Totale da pagare: € 0.00`;
+            return;
         }
 
-    } catch (error) {
-        console.error("Errore caricamento appuntamenti:", error);
-        gridSettimanale.innerHTML = '<p class="text-muted" style="grid-column: 1 / -1; padding: 20px;">Errore nel caricamento impegni.</p>';
-        summaryAppuntamenti.innerHTML = '<p class="text-muted">Errore nel caricamento.</p>';
-    }
-}
+        scadenze.forEach(s => {
+            totaleComplessivo += Number(s.importo || 0);
+            let statusClass = "status-green";
+            if (s.data < oggiStr) statusClass = "status-red";
+            else if (s.data === oggiStr) statusClass = "status-orange";
 
-function renderTabellaSettimanale(appuntamenti) {
-    gridSettimanale.innerHTML = '';
-
-    const nomiGiorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
-    const oggi = new Date();
-    oggi.setHours(0,0,0,0);
-
-    // Calcolo date della settimana
-    const dateSettimana = [];
-    for (let i = 0; i < 7; i++) {
-        const d = new Date(dataInizioSettimanaCorrente);
-        d.setDate(d.getDate() + i);
-        dateSettimana.push(d);
-    }
-
-    const dataInizioStr = formatoDataEuropeo(dateSettimana[0].toISOString().split('T')[0]);
-    const dataFineStr = formatoDataEuropeo(dateSettimana[6].toISOString().split('T')[0]);
-    settimanaLabel.textContent = `${dataInizioStr} - ${dataFineStr}`;
-
-    dateSettimana.forEach((d, index) => {
-        const isoDate = d.toISOString().split('T')[0];
-        const giornoNum = d.getDate();
-        const isOggi = d.getTime() === oggi.getTime();
-
-        const colonna = document.createElement('div');
-        colonna.className = 'colonna-giorno';
-
-        const header = document.createElement('div');
-        header.className = `header-giorno ${isOggi ? 'oggi' : ''}`;
-        header.innerHTML = `
-            <div class="nome-giorno">${nomiGiorni[index]}</div>
-            <div class="numero-giorno">${giornoNum}</div>
-        `;
-        colonna.appendChild(header);
-
-        const corpo = document.createElement('div');
-        corpo.className = 'corpo-giorno';
-
-        // Filtra impegni per il giorno corrente
-        const impegniGiorno = appuntamenti.filter(a => a.data === isoDate);
-
-        impegniGiorno.forEach(app => {
-            const creatoreNome = app.creatore || 'Famiglia';
-
-            const card = document.createElement('div');
-            card.className = 'card-impegno';
-            card.innerHTML = `
-                <div class="card-impegno-titolo">${app.titolo}</div>
-                <div class="card-impegno-orario">${app.oraInizio} – ${app.oraFine}</div>
-                <div class="card-impegno-creatore">Creato da: ${creatoreNome}</div>
-                <div class="card-impegno-azioni">
-                    <button class="btn-mini btn-mini-edit">✏️</button>
-                    <button class="btn-mini btn-mini-del">🗑️</button>
-                </div>
-            `;
-
-            card.querySelector('.btn-mini-edit').addEventListener('click', () => {
-                modalAppuntamentoTitle.textContent = "Modifica Appuntamento";
-                appIdInput.value = app.id;
-                appTitolo.value = app.titolo;
-                appData.value = app.data;
-                appOraInizio.value = app.oraInizio;
-                appOraFine.value = app.oraFine;
-                appCreatore.value = creatoreNome;
-                modalAppuntamento.style.display = 'flex';
-            });
-
-            card.querySelector('.btn-mini-del').addEventListener('click', () => eliminaAppuntamento(app.id));
-
-            corpo.appendChild(card);
+            const rigaHtml = `
+                <li class="scadenza-badge-item ${statusClass}">
+                    <div>
+                        <strong>${s.titolo}</strong> - Scad: ${formatoDataEuropeo(s.data)} - <strong>€ ${Number(s.importo).toFixed(2)}</strong>
+                    </div>
+                    <div class="azioni-utente">
+                        <button class="btn-modifica" onclick="modificaScadenza('${s.id}', '${s.titolo}', '${s.data}', '${s.importo}')">Mod.</button>
+                        <button class="btn-elimina" onclick="eliminaScadenza('${s.id}')">Elimina</button>
+                    </div>
+                </li>`;
+            htmlScadenze += rigaHtml;
         });
 
-        colonna.appendChild(corpo);
-        gridSettimanale.appendChild(colonna);
-    });
-}
+        // Mostra le prime 3 scadenze in Home
+        let scadenzeHome = scadenze.slice(0, 3);
+        scadenzeHome.forEach(s => {
+            htmlHomeSummary += `
+                <div style="padding: 8px 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between;">
+                    <span><strong>${s.titolo}</strong> (${formatoDataEuropeo(s.data)})</span>
+                    <span style="color: #1e293b; font-weight: bold;">€ ${Number(s.importo).toFixed(2)}</span>
+                </div>`;
+        });
 
-async function eliminaAppuntamento(id) {
-    if (confirm("Vuoi eliminare questo appuntamento?")) {
-        try {
-            await deleteDoc(doc(db, "appuntamenti", id));
-            caricaAppuntamenti();
-        } catch (error) {
-            alert("Errore durante l'eliminazione: " + error.message);
-        }
+        listaScadenze.innerHTML = htmlScadenze;
+        summaryScadenze.innerHTML = htmlHomeSummary || `<p class="text-muted">Nessuna scadenza in arrivo.</p>`;
+        totaleGeneraleScadenze.textContent = `Totale da pagare: € ${totaleComplessivo.toFixed(2)}`;
+
+    } catch (err) {
+        listaScadenze.innerHTML = `<p class="text-muted">Errore nel caricamento delle scadenze.</p>`;
+        summaryScadenze.innerHTML = `<p class="text-muted">Errore caricamento.</p>`;
     }
 }
 
-// LOGICA OCR SCADENZE
-async function elaboraImmagineConTesseract(file) {
-    if (typeof Tesseract === 'undefined') {
-        alert("Libreria OCR non caricata correttamente.");
-        return;
+window.eliminaScadenza = async function(id) {
+    if (confirm("Vuoi eliminare questa scadenza?")) {
+        await deleteDoc(doc(db, "scadenze", id));
+        caricaScadenze();
     }
+}
+
+window.modificaScadenza = function(id, titolo, data, importo) {
+    modalTitle.textContent = "Modifica Scadenza";
+    inputTitolo.value = titolo;
+    inputData.value = data;
+    inputImporto.value = importo;
+    scadenzaForm.dataset.editId = id;
+    modalScadenza.style.display = 'flex';
+}
+
+// Funzione OCR con Tesseract.js
+async function elaboraImmagineOCR(file) {
     ocrLoading.style.display = 'block';
     ocrProgress.textContent = '0%';
     try {
         const result = await Tesseract.recognize(file, 'ita', {
             logger: m => {
                 if (m.status === 'recognizing text') {
-                    ocrProgress.textContent = Math.round(m.progress * 100) + '%';
+                    const prog = Math.round(m.progress * 100);
+                    ocrProgress.textContent = `${prog}%`;
                 }
             }
         });
-        const testo = result.data.text.toLowerCase();
-        if (testo.includes("enel")) inputTitolo.value = "Enel";
-        else if (testo.includes("dolomiti")) inputTitolo.value = "Dolomiti Energia";
-    } catch (error) {
-        console.error(error);
+        const testo = result.data.text;
+        
+        // Estrazione importo (cerca pattern tipo € 45,50 o 45.50)
+        const matchImporto = testo.match(/(?:[€E]?\s*)(\d+[\.,]\d{2})/);
+        if (matchImporto) {
+            inputImporto.value = matchImporto[1].replace(',', '.');
+        }
+
+        // Estrazione data (cerca pattern GG/MM/AAAA)
+        const matchData = testo.match(/(\d{2})[\/\-](\d{2})[\/\-](\d{4})/);
+        if (matchData) {
+            inputData.value = `${matchData[3]}-${matchData[2]}-${matchData[1]}`;
+        }
+
+        // Titolo automatico se possibile
+        if (testo.toLowerCase().includes('enel')) inputTitolo.value = "Enel Energia";
+        else if (testo.toLowerCase().includes('telecom') || testo.toLowerCase().includes('tim')) inputTitolo.value = "TIM / Telefono";
+        else if (testo.toLowerCase().includes('acqua')) inputTitolo.value = "Bolletta Acqua";
+
+    } catch (err) {
+        alert("Errore durante la lettura OCR dell'immagine.");
     } finally {
         ocrLoading.style.display = 'none';
     }
 }
 
 inputScattaFoto.addEventListener('change', (e) => {
-    if (e.target.files[0]) elaboraImmagineConTesseract(e.target.files[0]);
+    if (e.target.files[0]) elaboraImmagineOCR(e.target.files[0]);
 });
-
 inputCaricaFoto.addEventListener('change', (e) => {
-    if (e.target.files[0]) elaboraImmagineConTesseract(e.target.files[0]);
+    if (e.target.files[0]) elaboraImmagineOCR(e.target.files[0]);
 });
 
-// GESTIONE UTENTI (ADMIN)
+// --- GESTIONE APPUNTAMENTI & CALENDARIO SETTIMANALE ---
+appuntamentoForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const titolo = appTitoo ? appTitolo.value.trim() : appTitolo.value.trim();
+    const data = appData.value;
+    const oraInizio = appOraInizio.value;
+    const oraFine = appOraFine.value;
+    const editId = appIdInput.value;
+
+    const datiAppuntamento = {
+        titolo,
+        data,
+        oraInizio,
+        oraFine,
+        creatore: nomeUtenteCorrente
+    };
+
+    try {
+        if (editId) {
+            await updateDoc(doc(db, "appuntamenti", editId), datiAppuntamento);
+        } else {
+            await addDoc(collection(db, "appuntamenti"), datiAppuntamento);
+        }
+        modalAppuntamento.style.display = 'none';
+        appuntamentoForm.reset();
+        caricaAppuntamenti();
+    } catch (err) {
+        alert("Errore nel salvataggio dell'appuntamento.");
+    }
+});
+
+async function caricaAppuntamenti() {
+    gridSettimanale.innerHTML = `<p class="text-muted" style="padding: 20px;">Caricamento calendario...</p>`;
+    summaryAppuntamenti.innerHTML = `<p class="text-muted">Caricamento in corso...</p>`;
+
+    try {
+        const querySnapshot = await getDocs(collection(db, "appuntamenti"));
+        let appuntamenti = [];
+        querySnapshot.forEach(docSnap => {
+            appuntamenti.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        // Calcola i giorni della settimana corrente (da Lunedì a Domenica)
+        let giorniSettimana = [];
+        let curr = new Date(dataInizioSettimanaCorrente);
+        for (let i = 0; i < 7; i++) {
+            giorniSettimana.push(new Date(curr));
+            curr.setDate(curr.getDate() + 1);
+        }
+
+        const dataInizioStr = giorniSettimana[0].toISOString().split('T')[0];
+        const dataFineStr = giorniSettimana[6].toISOString().split('T')[0];
+
+        settimanaLabel.textContent = `${formatoDataEuropeo(dataInizioStr)} - ${formatoDataEuropeo(dataFineStr)}`;
+
+        const giorniNomi = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+        const oggiIso = new Date().toISOString().split('T')[0];
+
+        let htmlGriglia = "";
+        giorniSettimana.forEach((giornoDate, index) => {
+            const isoDate = giornoDate.toISOString().split('T')[0];
+            const isOggi = isoDate === oggiIso;
+            const nomeGiorno = giorniNomi[index];
+            const numGiorno = giornoDate.getDate();
+
+            let appuntamentiGiorno = appuntamenti.filter(a => a.data === isoDate);
+            appuntamentiGiorno.sort((a, b) => a.oraInizio.localeCompare(b.oraInizio));
+
+            let htmlImpegni = "";
+            appuntamentiGiorno.forEach(app => {
+                const coloreCreatore = mappaColoriUtenti[app.creatore] || '#3b82f6';
+                htmlImpegni += `
+                    <div class="card-impegno-google" style="border-left-color: ${coloreCreatore};">
+                        <div class="card-impegno-titolo">${app.titolo}</div>
+                        <div class="card-impegno-orario">${app.oraInizio} - ${app.oraFine}</div>
+                        <div class="card-impegno-creatore">Creato da: ${app.creatore}</div>
+                        <div class="card-impegno-azioni">
+                            <button class="btn-mini btn-mini-edit" onclick="modificaAppuntamento('${app.id}', '${app.titolo}', '${app.data}', '${app.oraInizio}', '${app.oraFine}')">Mod</button>
+                            <button class="btn-mini btn-mini-del" onclick="eliminaAppuntamento('${app.id}')">Del</button>
+                        </div>
+                    </div>`;
+            });
+
+            htmlGriglia += `
+                <div class="colonna-giorno">
+                    <div class="header-giorno-moderno ${isOggi ? 'oggi' : ''}">
+                        <div class="nome-giorno">${nomeGiorno}</div>
+                        <div class="numero-giorno">${numGiorno}</div>
+                    </div>
+                    <div class="corpo-giorno-moderno">
+                        ${htmlImpegni || '<span class="text-muted" style="font-size: 0.8rem;">Nessun impegno</span>'}
+                    </div>
+                </div>`;
+        });
+
+        gridSettimanale.innerHTML = htmlGriglia;
+
+        // Riassunto Home Appuntamenti futuri
+        let appFuturi = appuntamenti.filter(a => a.data >= oggiIso);
+        appFuturi.sort((a, b) => a.data.localeCompare(b.data) || a.oraInizio.localeCompare(b.oraInizio));
+        
+        let htmlHomeApp = "";
+        appFuturi.slice(0, 3).forEach(app => {
+            htmlHomeApp += `
+                <div style="padding: 8px 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between;">
+                    <span><strong>${app.titolo}</strong> (${formatoDataEuropeo(app.data)} ${app.oraInizio})</span>
+                    <span style="font-size: 0.85rem; color: #64748b;">${app.creatore}</span>
+                </div>`;
+        });
+        summaryAppuntamenti.innerHTML = htmlHomeApp || `<p class="text-muted">Nessun appuntamento in programma.</p>`;
+
+    } catch (err) {
+        gridSettimanale.innerHTML = `<p class="text-muted" style="padding: 20px;">Errore nel caricamento del calendario.</p>`;
+        summaryAppuntamenti.innerHTML = `<p class="text-muted">Errore caricamento.</p>`;
+    }
+}
+
+window.eliminaAppuntamento = async function(id) {
+    if (confirm("Vuoi eliminare questo appuntamento?")) {
+        await deleteDoc(doc(db, "appuntamenti", id));
+        caricaAppuntamenti();
+    }
+}
+
+window.modificaAppuntamento = function(id, titolo, data, oraInizio, oraFine) {
+    modalAppuntamentoTitle.textContent = "Modifica Appuntamento";
+    appIdInput.value = id;
+    appTitolo.value = titolo;
+    appData.value = data;
+    appOraInizio.value = oraInizio;
+    appOraFine.value = oraFine;
+    appCreatore.value = nomeUtenteCorrente;
+    modalAppuntamento.style.display = 'flex';
+}
+
+// --- GESTIONE UTENTI (ADMIN) ---
 utenteForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = userEmailInput.value.trim().toLowerCase();
-    const nome = formatCapitalize(userNameInput.value);
+    const nome = userNameInput.value.trim();
     const colore = userColorInput.value;
     const permessi = {
         scadenze: permScadenze.checked,
@@ -520,213 +576,42 @@ utenteForm.addEventListener('submit', async (e) => {
 
     try {
         await setDoc(doc(db, "utenti", email), { email, nome, colore, permessi });
-        alert(`Utente ${nome} salvato con successo!`);
+        alert("Utente configurato con successo!");
         utenteForm.reset();
         userColorInput.value = "#3b82f6";
-        userEmailInput.removeAttribute('readonly');
         caricaListaUtenti();
-    } catch (error) {
-        alert("Errore nel salvataggio utente: " + error.message);
+    } catch (err) {
+        alert("Errore nel salvataggio dell'utente.");
     }
 });
 
 async function caricaListaUtenti() {
-    listaUtenti.innerHTML = '<p class="text-muted">Caricamento...</p>';
+    listaUtenti.innerHTML = `<p class="text-muted">Caricamento utenti...</p>`;
     try {
         const querySnapshot = await getDocs(collection(db, "utenti"));
-        listaUtenti.innerHTML = '';
-        if (querySnapshot.empty) {
-            listaUtenti.innerHTML = '<p class="text-muted">Nessun utente configurato.</p>';
-            return;
-        }
-
-        querySnapshot.forEach((docSnap) => {
+        let html = "";
+        querySnapshot.forEach(docSnap => {
             const u = docSnap.data();
-            const p = u.permessi || {};
-            const coloreU = u.colore || '#3b82f6';
-
-            const li = document.createElement('li');
-            li.className = 'elemento-lista';
-            li.innerHTML = `
-                <div>
-                    <span class="badge-utente" style="background-color: ${coloreU}; width: 12px; height: 12px;"></span>
-                    <strong>${u.nome}</strong> <span class="text-muted">(${u.email})</span>
-                </div>
-                <div class="azioni-utente">
-                    <button class="btn-modifica">Modifica</button>
-                    <button class="btn-elimina">Elimina</button>
-                </div>
-            `;
-
-            li.querySelector('.btn-modifica').addEventListener('click', () => {
-                userEmailInput.value = u.email;
-                userEmailInput.setAttribute('readonly', true);
-                userNameInput.value = u.nome;
-                userColorInput.value = u.colore || '#3b82f6';
-                permScadenze.checked = !!p.scadenze;
-                permAppuntamenti.checked = !!p.appuntamenti;
-                permMedia.checked = !!p.media;
-                permRicette.checked = !!p.ricette;
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            });
-
-            li.querySelector('.btn-elimina').addEventListener('click', () => eliminaUtente(u.email));
-            listaUtenti.appendChild(li);
+            html += `
+                <li class="elemento-lista">
+                    <div>
+                        <span class="badge-utente" style="background-color: ${u.colore};"></span>
+                        <strong>${u.nome}</strong> (${u.email})
+                    </div>
+                    <div>
+                        <button class="btn-elimina" onclick="eliminaUtente('${docSnap.id}')">Elimina</button>
+                    </div>
+                </li>`;
         });
-    } catch (error) { console.error(error); }
-}
-
-async function eliminaUtente(email) {
-    if (confirm(`Vuoi rimuovere la configurazione per ${email}?`)) {
-        try {
-            await deleteDoc(doc(db, "utenti", email));
-            userEmailInput.removeAttribute('readonly');
-            utenteForm.reset();
-            caricaListaUtenti();
-        } catch (error) { alert("Errore durante l'eliminazione: " + error.message); }
+        listaUtenti.innerHTML = html || `<p class="text-muted">Nessun utente configurato.</p>`;
+    } catch (err) {
+        listaUtenti.innerHTML = `<p class="text-muted">Errore caricamento utenti.</p>`;
     }
 }
 
-// LOGICA SCADENZE
-async function caricaScadenze() {
-    listaScadenze.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
-    summaryScadenze.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
-    
-    try {
-        const querySnapshot = await getDocs(collection(db, "scadenze"));
-        const oggi = new Date();
-        oggi.setHours(0,0,0,0);
-
-        let sommaTotaleGenerale = 0;
-        const items = [];
-        
-        querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const diffGiorni = Math.ceil((new Date(data.data) - oggi) / (1000 * 60 * 60 * 24));
-            const importoNum = Number(data.importo) || 0;
-            
-            sommaTotaleGenerale += importoNum;
-            items.push({ id: docSnap.id, ...data, diffGiorni, importoNum });
-        });
-
-        totaleGeneraleScadenze.textContent = `Totale da pagare: € ${sommaTotaleGenerale.toFixed(2)}`;
-        items.sort((a, b) => a.diffGiorni - b.diffGiorni);
-
-        listaScadenze.innerHTML = '';
-        if (items.length === 0) {
-            listaScadenze.innerHTML = '<p class="text-muted">Nessuna scadenza inserita.</p>';
-            summaryScadenze.innerHTML = '<p class="text-muted">Tutto in regola!</p>';
-            return;
-        }
-
-        items.forEach((scadenza) => {
-            let cssClass = 'status-green';
-            if (scadenza.diffGiorni <= 7) cssClass = 'status-red';
-            else if (scadenza.diffGiorni <= 14) cssClass = 'status-orange';
-
-            const creatoreScad = scadenza.creatore || 'Famiglia';
-            const coloreScad = mappaColoriUtenti[creatoreScad] || '#3b82f6';
-            const dataEur = formatoDataEuropeo(scadenza.data);
-
-            const li = document.createElement('li');
-            li.className = `elemento-lista scadenza-badge-item ${cssClass}`;
-            li.innerHTML = `
-                <div>
-                    <strong style="color: ${coloreScad};">${scadenza.titolo}</strong>
-                    <p style="font-size: 0.85rem; margin-top: 2px;">
-                        📅 Scadenza: ${dataEur} (${scadenza.diffGiorni <= 0 ? 'Scaduta!' : scadenza.diffGiorni + ' giorni'}) | 
-                        <span class="badge-utente" style="background-color: ${coloreScad};"></span> ${creatoreScad}
-                    </p>
-                </div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <strong>💶 € ${scadenza.importoNum.toFixed(2)}</strong>
-                    <button class="btn-elimina" data-id="${scadenza.id}">Fatto</button>
-                </div>
-            `;
-            li.querySelector('.btn-elimina').addEventListener('click', () => eliminaScadenza(scadenza.id));
-            listaScadenze.appendChild(li);
-        });
-
-        elaboraRiassuntoHome(items);
-    } catch (error) {
-        console.error(error);
-        summaryScadenze.innerHTML = '<p class="text-muted">Errore nel caricamento.</p>';
+window.eliminaUtente = async function(emailId) {
+    if (confirm(`Vuoi rimuovere i permessi/configurazione per ${emailId}?`)) {
+        await deleteDoc(doc(db, "utenti", emailId));
+        caricaListaUtenti();
     }
-}
-
-function elaboraRiassuntoHome(items) {
-    let gruppoSelezionato = [];
-    let cssTrovato = 'status-green';
-
-    const rosse = items.filter(i => i.diffGiorni <= 7);
-    if (rosse.length > 0) {
-        gruppoSelezionato = rosse;
-        cssTrovato = 'status-red';
-    } else {
-        const arancioni = items.filter(i => i.diffGiorni > 7 && i.diffGiorni <= 14);
-        if (arancioni.length > 0) {
-            gruppoSelezionato = arancioni;
-            cssTrovato = 'status-orange';
-        } else {
-            const verdi = items.filter(i => i.diffGiorni > 14);
-            if (verdi.length > 0) {
-                gruppoSelezionato = verdi;
-                cssTrovato = 'status-green';
-            }
-        }
-    }
-
-    if (gruppoSelezionato.length === 0) {
-        summaryScadenze.innerHTML = '<p class="text-muted">Tutto in regola!</p>';
-        return;
-    }
-
-    renderSummaryItems(gruppoSelezionato, cssTrovato);
-}
-
-function renderSummaryItems(lista, cssClass) {
-    summaryScadenze.innerHTML = '';
-    let sommaParziale = 0;
-
-    lista.forEach(item => {
-        sommaParziale += item.importoNum;
-        const creatoreItem = item.creatore || 'Famiglia';
-        const coloreItem = mappaColoriUtenti[creatoreItem] || '#3b82f6';
-        const dataEur = formatoDataEuropeo(item.data);
-
-        const div = document.createElement('div');
-        div.className = `scadenza-badge-item ${cssClass}`;
-        div.innerHTML = `<span><span class="badge-utente" style="background-color: ${coloreItem};"></span><strong style="color: ${coloreItem};">${item.titolo}</strong> (${dataEur})</span><strong>€ ${item.importoNum.toFixed(2)}</strong>`;
-        summaryScadenze.appendChild(div);
-    });
-
-    const divTotale = document.createElement('div');
-    divTotale.className = 'home-totale-riga';
-    divTotale.innerHTML = `Totale visualizzato: <strong>€ ${sommaParziale.toFixed(2)}</strong>`;
-    summaryScadenze.appendChild(divTotale);
-}
-
-scadenzaForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const titoloFormattato = formatCapitalize(inputTitolo.value);
-
-    try {
-        await addDoc(collection(db, "scadenze"), {
-            titolo: titoloFormattato,
-            data: inputData.value,
-            importo: parseFloat(inputImporto.value),
-            creatore: nomeUtenteCorrente,
-            creatoIl: new Date()
-        });
-        scadenzaForm.reset();
-        modalScadenza.style.display = 'none';
-        caricaScadenze();
-    } catch (error) { alert("Errore: " + error.message); }
-});
-
-async function eliminaScadenza(id) {
-    try {
-        await deleteDoc(doc(db, "scadenze", id));
-        caricaScadenze();
-    } catch (error) { alert("Errore durante l'eliminazione: " + error.message); }
 }
