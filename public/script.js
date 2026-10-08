@@ -19,9 +19,7 @@ import {
     doc, 
     setDoc,
     updateDoc,
-    getDoc,
-    query, 
-    orderBy 
+    getDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -44,6 +42,7 @@ const ADMIN_EMAIL = "stpa79@gmail.com";
 let nomeUtenteCorrente = "Utente";
 let coloreUtenteCorrente = "#3b82f6";
 let mappaColoriUtenti = {}; 
+let dataInizioSettimanaCorrente = getLunedisettimana(new Date());
 
 const authContainer = document.getElementById('auth-container');
 const appContainer = document.getElementById('app-container');
@@ -79,7 +78,7 @@ const inputCaricaFoto = document.getElementById('input-carica-foto');
 const ocrLoading = document.getElementById('ocr-loading');
 const ocrProgress = document.getElementById('ocr-progress');
 
-// Modale Appuntamenti
+// Modale Appuntamenti & Tabella Settimanale
 const btnApriModalAppuntamento = document.getElementById('btn-apri-modal-appuntamento');
 const btnChiudiModalAppuntamento = document.getElementById('btn-chiudi-modal-appuntamento');
 const modalAppuntamento = document.getElementById('modal-appuntamento');
@@ -91,8 +90,11 @@ const appData = document.getElementById('app-data');
 const appOraInizio = document.getElementById('app-ora-inizio');
 const appOraFine = document.getElementById('app-ora-fine');
 const appCreatore = document.getElementById('app-creatore');
-const listaAppuntamenti = document.getElementById('lista-appuntamenti');
 const summaryAppuntamenti = document.getElementById('home-summary-appuntamenti');
+const gridSettimanale = document.getElementById('grid-settimanale');
+const btnPrevWeek = document.getElementById('btn-prev-week');
+const btnNextWeek = document.getElementById('btn-next-week');
+const settimanaLabel = document.getElementById('settimana-label');
 
 // Gestione Utenti
 const utenteForm = document.getElementById('utente-form');
@@ -123,7 +125,6 @@ document.querySelectorAll('.link-goto, .btn-back-home').forEach(btn => {
     btn.addEventListener('click', () => mostraSezione(btn.dataset.target));
 });
 
-// Funzione utile per formattare la data da ISO (YYYY-MM-DD) a Europea (DD/MM/YYYY)
 function formatoDataEuropeo(dataIso) {
     if (!dataIso) return '';
     const parti = dataIso.split('-');
@@ -131,7 +132,34 @@ function formatoDataEuropeo(dataIso) {
     return `${parti[2]}/${parti[1]}/${parti[0]}`;
 }
 
-// Modale Scadenze Eventi
+// CALCOLO LUNEDI SETTIMANA
+function getLunedisettimana(d) {
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    const lunedi = new Date(date.setDate(diff));
+    lunedi.setHours(0,0,0,0);
+    return lunedi;
+}
+
+function formatCapitalize(str) {
+    if (!str) return '';
+    const trimmed = str.trim();
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+}
+
+// CONTROLLI NAVIGAZIONE SETTIMANALE
+btnPrevWeek.addEventListener('click', () => {
+    dataInizioSettimanaCorrente.setDate(dataInizioSettimanaCorrente.getDate() - 7);
+    caricaAppuntamenti();
+});
+
+btnNextWeek.addEventListener('click', () => {
+    dataInizioSettimanaCorrente.setDate(dataInizioSettimanaCorrente.getDate() + 7);
+    caricaAppuntamenti();
+});
+
+// Modali Eventi
 btnApriModal.addEventListener('click', () => {
     modalTitle.textContent = "Nuova Scadenza";
     scadenzaForm.reset();
@@ -142,7 +170,6 @@ btnChiudiModal.addEventListener('click', () => {
     modalScadenza.style.display = 'none';
 });
 
-// Modale Appuntamenti Eventi
 btnApriModalAppuntamento.addEventListener('click', () => {
     modalAppuntamentoTitle.textContent = "Nuovo Appuntamento";
     appuntamentoForm.reset();
@@ -257,13 +284,6 @@ function gestisciVisibilitaSezione(secId, menuId, cardId, autorizzato) {
     }
 }
 
-function formatCapitalize(str) {
-    if (!str) return '';
-    const trimmed = str.trim();
-    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
-}
-
-// --- LOGICA AUTOMATICA ORARIO FINE (+1 ORA) ---
 appOraInizio.addEventListener('change', () => {
     const inizio = appOraInizio.value;
     if (inizio) {
@@ -276,7 +296,7 @@ appOraInizio.addEventListener('change', () => {
     }
 });
 
-// --- LOGICA APPUNTAMENTI ---
+// SUBMIT APPUNTAMENTO
 appuntamentoForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = appIdInput.value;
@@ -284,7 +304,6 @@ appuntamentoForm.addEventListener('submit', async (e) => {
     const data = appData.value;
     const oraInizio = appOraInizio.value;
     const oraFine = appOraFine.value;
-    const creatore = nomeUtenteCorrente;
 
     try {
         if (id) {
@@ -301,7 +320,7 @@ appuntamentoForm.addEventListener('submit', async (e) => {
                 data,
                 oraInizio,
                 oraFine,
-                creatore,
+                creatore: nomeUtenteCorrente,
                 creatoIl: new Date()
             });
         }
@@ -313,57 +332,114 @@ appuntamentoForm.addEventListener('submit', async (e) => {
     }
 });
 
+// CARICAMENTO ED ELABORAZIONE TABELLA APPUNTAMENTI SETTIMANALE
 async function caricaAppuntamenti() {
-    listaAppuntamenti.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
+    gridSettimanale.innerHTML = '<p class="text-muted" style="grid-column: 1 / -1; padding: 20px;">Caricamento tabella impegni...</p>';
     summaryAppuntamenti.innerHTML = '<p class="text-muted">Caricamento in corso...</p>';
 
     try {
         const querySnapshot = await getDocs(collection(db, "appuntamenti"));
-        const oggi = new Date();
-        oggi.setHours(0,0,0,0);
-
-        const items = [];
+        const tuttiAppuntamenti = [];
+        
         querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const diffGiorni = Math.ceil((new Date(data.data) - oggi) / (1000 * 60 * 60 * 24));
-            items.push({ id: docSnap.id, ...data, diffGiorni });
+            tuttiAppuntamenti.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        // Ordinamento cronologico per data e orario di inizio
-        items.sort((a, b) => {
+        // Ordinamento JS per data e orario inizio
+        tuttiAppuntamenti.sort((a, b) => {
             const dataOraA = new Date(`${a.data}T${a.oraInizio || '00:00'}`);
             const dataOraB = new Date(`${b.data}T${b.oraInizio || '00:00'}`);
             return dataOraA - dataOraB;
         });
 
-        listaAppuntamenti.innerHTML = '';
-        if (items.length === 0) {
-            listaAppuntamenti.innerHTML = '<p class="text-muted">Nessun appuntamento inserito.</p>';
-            summaryAppuntamenti.innerHTML = '<p class="text-muted">Nessun appuntamento recente.</p>';
-            return;
+        // 1. Render Tabella Settimanale
+        renderTabellaSettimanale(tuttiAppuntamenti);
+
+        // 2. Render Riassunto Prossimo Appuntamento in Home
+        const oggi = new Date();
+        oggi.setHours(0,0,0,0);
+        const prossimi = tuttiAppuntamenti.filter(a => new Date(a.data) >= oggi);
+        
+        if (prossimi.length > 0) {
+            const prossimo = prossimi[0];
+            const coloreProssimo = mappaColoriUtenti[prossimo.creatore] || '#3b82f6';
+            const dataProssimaEur = formatoDataEuropeo(prossimo.data);
+
+            summaryAppuntamenti.innerHTML = `
+                <div style="padding: 12px; background: #f8fafc; border-radius: 8px; border-left: 4px solid ${coloreProssimo};">
+                    <strong style="font-size: 1rem; color: ${coloreProssimo};">${prossimo.titolo}</strong>
+                    <p style="font-size: 0.9rem; margin-top: 4px; color: #334155; font-weight: 600;">📅 ${dataProssimaEur} (${prossimo.oraInizio} - ${prossimo.oraFine})</p>
+                    <p style="font-size: 0.85rem; color: #475569; margin-top: 2px;">Creato da: <strong>${prossimo.creatore || 'Famiglia'}</strong></p>
+                </div>
+            `;
+        } else {
+            summaryAppuntamenti.innerHTML = '<p class="text-muted">Nessun prossimo appuntamento.</p>';
         }
 
-        items.forEach((app) => {
-            const creatoreNome = app.creatore || 'Famiglia';
-            const coloreCreatore = mappaColoriUtenti[creatoreNome] || '#3b82f6';
-            const dataEur = formatoDataEuropeo(app.data);
+    } catch (error) {
+        console.error("Errore caricamento appuntamenti:", error);
+        gridSettimanale.innerHTML = '<p class="text-muted" style="grid-column: 1 / -1; padding: 20px;">Errore nel caricamento impegni.</p>';
+        summaryAppuntamenti.innerHTML = '<p class="text-muted">Errore nel caricamento.</p>';
+    }
+}
 
-            const li = document.createElement('li');
-            li.className = 'elemento-lista';
-            li.innerHTML = `
-                <div>
-                    <strong style="font-size: 1.05rem; color: ${coloreCreatore};">${app.titolo}</strong>
-                    <p style="font-size: 0.9rem; margin-top: 4px; color: #334155; font-weight: 500;">
-                        📅 <strong>${dataEur}</strong> | ⏰ <strong>${app.oraInizio} - ${app.oraFine}</strong> | Creato da: <strong>${creatoreNome}</strong>
-                    </p>
-                </div>
-                <div class="azioni-utente">
-                    <button class="btn-modifica" data-id="${app.id}">Modifica</button>
-                    <button class="btn-elimina" data-id="${app.id}">Elimina</button>
+function renderTabellaSettimanale(appuntamenti) {
+    gridSettimanale.innerHTML = '';
+
+    const nomiGiorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+    const oggi = new Date();
+    oggi.setHours(0,0,0,0);
+
+    // Calcolo date della settimana
+    const dateSettimana = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(dataInizioSettimanaCorrente);
+        d.setDate(d.getDate() + i);
+        dateSettimana.push(d);
+    }
+
+    const dataInizioStr = formatoDataEuropeo(dateSettimana[0].toISOString().split('T')[0]);
+    const dataFineStr = formatoDataEuropeo(dateSettimana[6].toISOString().split('T')[0]);
+    settimanaLabel.textContent = `${dataInizioStr} - ${dataFineStr}`;
+
+    dateSettimana.forEach((d, index) => {
+        const isoDate = d.toISOString().split('T')[0];
+        const giornoNum = d.getDate();
+        const isOggi = d.getTime() === oggi.getTime();
+
+        const colonna = document.createElement('div');
+        colonna.className = 'colonna-giorno';
+
+        const header = document.createElement('div');
+        header.className = `header-giorno ${isOggi ? 'oggi' : ''}`;
+        header.innerHTML = `
+            <div class="nome-giorno">${nomiGiorni[index]}</div>
+            <div class="numero-giorno">${giornoNum}</div>
+        `;
+        colonna.appendChild(header);
+
+        const corpo = document.createElement('div');
+        corpo.className = 'corpo-giorno';
+
+        // Filtra impegni per il giorno corrente
+        const impegniGiorno = appuntamenti.filter(a => a.data === isoDate);
+
+        impegniGiorno.forEach(app => {
+            const creatoreNome = app.creatore || 'Famiglia';
+
+            const card = document.createElement('div');
+            card.className = 'card-impegno';
+            card.innerHTML = `
+                <div class="card-impegno-titolo">${app.titolo}</div>
+                <div class="card-impegno-orario">${app.oraInizio} – ${app.oraFine}</div>
+                <div class="card-impegno-creatore">Creato da: ${creatoreNome}</div>
+                <div class="card-impegno-azioni">
+                    <button class="btn-mini btn-mini-edit">✏️</button>
+                    <button class="btn-mini btn-mini-del">🗑️</button>
                 </div>
             `;
 
-            li.querySelector('.btn-modifica').addEventListener('click', () => {
+            card.querySelector('.btn-mini-edit').addEventListener('click', () => {
                 modalAppuntamentoTitle.textContent = "Modifica Appuntamento";
                 appIdInput.value = app.id;
                 appTitolo.value = app.titolo;
@@ -374,27 +450,14 @@ async function caricaAppuntamenti() {
                 modalAppuntamento.style.display = 'flex';
             });
 
-            li.querySelector('.btn-elimina').addEventListener('click', () => eliminaAppuntamento(app.id));
-            listaAppuntamenti.appendChild(li);
+            card.querySelector('.btn-mini-del').addEventListener('click', () => eliminaAppuntamento(app.id));
+
+            corpo.appendChild(card);
         });
 
-        // Mostra il prossimo appuntamento nella Home
-        const prossimo = items.find(i => i.diffGiorni >= 0) || items[0];
-        const coloreProssimo = mappaColoriUtenti[prossimo.creatore] || '#3b82f6';
-        const dataProssimaEur = formatoDataEuropeo(prossimo.data);
-
-        summaryAppuntamenti.innerHTML = `
-            <div style="padding: 12px; background: #f8fafc; border-radius: 8px; border-left: 4px solid ${coloreProssimo};">
-                <strong style="font-size: 1rem; color: ${coloreProssimo};">${prossimo.titolo}</strong>
-                <p style="font-size: 0.9rem; margin-top: 4px; color: #334155; font-weight: 600;">📅 ${dataProssimaEur} (${prossimo.oraInizio} - ${prossimo.oraFine})</p>
-                <p style="font-size: 0.85rem; color: #475569; margin-top: 2px;">Creato da: <strong>${prossimo.creatore || 'Famiglia'}</strong></p>
-            </div>
-        `;
-
-    } catch (error) {
-        console.error(error);
-        summaryAppuntamenti.innerHTML = '<p class="text-muted">Errore nel caricamento.</p>';
-    }
+        colonna.appendChild(corpo);
+        gridSettimanale.appendChild(colonna);
+    });
 }
 
 async function eliminaAppuntamento(id) {
@@ -408,8 +471,12 @@ async function eliminaAppuntamento(id) {
     }
 }
 
-// --- OCR ORIGINALE SCADENZE ---
+// LOGICA OCR SCADENZE
 async function elaboraImmagineConTesseract(file) {
+    if (typeof Tesseract === 'undefined') {
+        alert("Libreria OCR non caricata correttamente.");
+        return;
+    }
     ocrLoading.style.display = 'block';
     ocrProgress.textContent = '0%';
     try {
