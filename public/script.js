@@ -42,6 +42,8 @@ const db = getFirestore(app);
 const ADMIN_EMAIL = "stpa79@gmail.com"; 
 
 let nomeUtenteCorrente = "Utente";
+let coloreUtenteCorrente = "#3b82f6";
+let mappaColoriUtenti = {}; // Memorizza i colori di tutti gli utenti per le liste
 
 const authContainer = document.getElementById('auth-container');
 const appContainer = document.getElementById('app-container');
@@ -96,6 +98,7 @@ const summaryAppuntamenti = document.getElementById('home-summary-appuntamenti')
 const utenteForm = document.getElementById('utente-form');
 const userEmailInput = document.getElementById('user-email-input');
 const userNameInput = document.getElementById('user-name-input');
+const userColorInput = document.getElementById('user-color-input');
 const permScadenze = document.getElementById('perm-scadenze');
 const permAppuntamenti = document.getElementById('perm-appuntamenti');
 const permMedia = document.getElementById('perm-media');
@@ -183,13 +186,24 @@ onAuthStateChanged(auth, async (user) => {
         appContainer.style.display = 'flex';
 
         let nomeVisualizzato = user.email.split('@')[0];
+        let coloreUtente = "#3b82f6";
         let permessi = { scadenze: true, appuntamenti: true, media: true, ricette: true };
 
         try {
+            // Carica tutti gli utenti per mappare i colori
+            const utentiSnapshot = await getDocs(collection(db, "utenti"));
+            utentiSnapshot.forEach(docSnap => {
+                const uData = docSnap.data();
+                if (uData.nome && uData.colore) {
+                    mappaColoriUtenti[uData.nome] = uData.colore;
+                }
+            });
+
             const userDoc = await getDoc(doc(db, "utenti", user.email));
             if (userDoc.exists()) {
                 const data = userDoc.data();
                 if (data.nome) nomeVisualizzato = data.nome;
+                if (data.colore) coloreUtente = data.colore;
                 if (data.permessi) permessi = data.permessi;
             }
         } catch (err) {
@@ -197,6 +211,10 @@ onAuthStateChanged(auth, async (user) => {
         }
 
         nomeUtenteCorrente = formatCapitalize(nomeVisualizzato);
+        coloreUtenteCorrente = coloreUtente;
+        
+        // Applica il colore personalizzato dell'utente come variabile CSS
+        document.documentElement.style.setProperty('--user-primary', coloreUtenteCorrente);
         greetingTitle.textContent = `Ciao, ${nomeUtenteCorrente}`;
 
         gestisciVisibilitaSezione('sec-scadenze', 'menu-scadenze', 'card-sec-scadenze', permessi.scadenze);
@@ -246,11 +264,10 @@ appuntamentoForm.addEventListener('submit', async (e) => {
     const data = appData.value;
     const oraInizio = appOraInizio.value;
     const oraFine = appOraFine.value;
-    const creatore = appCreatore.value;
+    const creatore = nomeUtenteCorrente;
 
     try {
         if (id) {
-            // Modifica
             await updateDoc(doc(db, "appuntamenti", id), {
                 titolo,
                 data,
@@ -259,7 +276,6 @@ appuntamentoForm.addEventListener('submit', async (e) => {
             });
             alert("Appuntamento aggiornato con successo!");
         } else {
-            // Nuovo
             await addDoc(collection(db, "appuntamenti"), {
                 titolo,
                 data,
@@ -303,13 +319,17 @@ async function caricaAppuntamenti() {
         }
 
         items.forEach((app) => {
+            const creatoreNome = app.creatore || 'Famiglia';
+            const coloreCreatore = mappaColoriUtenti[creatoreNome] || '#3b82f6';
+
             const li = document.createElement('li');
             li.className = 'elemento-lista';
             li.innerHTML = `
                 <div>
                     <strong style="font-size: 1.05rem; color: #1e293b;">${app.titolo}</strong>
                     <p style="font-size: 0.9rem; margin-top: 4px; color: #334155; font-weight: 500;">
-                        📅 <strong>${app.data}</strong> | ⏰ <strong>${app.oraInizio} - ${app.oraFine}</strong> | 👤 Creato da: <strong>${app.creatore || 'Famiglia'}</strong>
+                        📅 <strong>${app.data}</strong> | ⏰ <strong>${app.oraInizio} - ${app.oraFine}</strong> | 
+                        <span class="badge-utente" style="background-color: ${coloreCreatore};"></span> Creato da: <strong>${creatoreNome}</strong>
                     </p>
                 </div>
                 <div class="azioni-utente">
@@ -325,7 +345,7 @@ async function caricaAppuntamenti() {
                 appData.value = app.data;
                 appOraInizio.value = app.oraInizio;
                 appOraFine.value = app.oraFine;
-                appCreatore.value = app.creatore || nomeUtenteCorrente;
+                appCreatore.value = creatoreNome;
                 modalAppuntamento.style.display = 'flex';
             });
 
@@ -335,11 +355,12 @@ async function caricaAppuntamenti() {
 
         // Mostra il prossimo appuntamento in grassetto nella Home
         const prossimo = items.find(i => i.diffGiorni >= 0) || items[0];
+        const coloreProssimo = mappaColoriUtenti[prossimo.creatore] || '#3b82f6';
         summaryAppuntamenti.innerHTML = `
-            <div style="padding: 12px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #3b82f6;">
+            <div style="padding: 12px; background: #f8fafc; border-radius: 8px; border-left: 4px solid ${coloreProssimo};">
                 <strong style="font-size: 1rem; color: #1e293b;">${prossimo.titolo}</strong>
                 <p style="font-size: 0.9rem; margin-top: 4px; color: #334155; font-weight: 600;">📅 ${prossimo.data} (${prossimo.oraInizio} - ${prossimo.oraFine})</p>
-                <p style="font-size: 0.85rem; color: #475569; margin-top: 2px;">Creato da: <strong>${prossimo.creatore || 'Famiglia'}</strong></p>
+                <p style="font-size: 0.85rem; color: #475569; margin-top: 2px;"><span class="badge-utente" style="background-color: ${coloreProssimo};"></span> Creato da: <strong>${prossimo.creatore || 'Famiglia'}</strong></p>
             </div>
         `;
 
@@ -395,6 +416,7 @@ utenteForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = userEmailInput.value.trim().toLowerCase();
     const nome = formatCapitalize(userNameInput.value);
+    const colore = userColorInput.value;
     const permessi = {
         scadenze: permScadenze.checked,
         appuntamenti: permAppuntamenti.checked,
@@ -403,9 +425,10 @@ utenteForm.addEventListener('submit', async (e) => {
     };
 
     try {
-        await setDoc(doc(db, "utenti", email), { email, nome, permessi });
+        await setDoc(doc(db, "utenti", email), { email, nome, colore, permessi });
         alert(`Utente ${nome} salvato con successo!`);
         utenteForm.reset();
+        userColorInput.value = "#3b82f6";
         userEmailInput.removeAttribute('readonly');
         caricaListaUtenti();
     } catch (error) {
@@ -426,11 +449,13 @@ async function caricaListaUtenti() {
         querySnapshot.forEach((docSnap) => {
             const u = docSnap.data();
             const p = u.permessi || {};
+            const coloreU = u.colore || '#3b82f6';
 
             const li = document.createElement('li');
             li.className = 'elemento-lista';
             li.innerHTML = `
                 <div>
+                    <span class="badge-utente" style="background-color: ${coloreU}; width: 12px; height: 12px;"></span>
                     <strong>${u.nome}</strong> <span class="text-muted">(${u.email})</span>
                 </div>
                 <div class="azioni-utente">
@@ -443,6 +468,7 @@ async function caricaListaUtenti() {
                 userEmailInput.value = u.email;
                 userEmailInput.setAttribute('readonly', true);
                 userNameInput.value = u.nome;
+                userColorInput.value = u.colore || '#3b82f6';
                 permScadenze.checked = !!p.scadenze;
                 permAppuntamenti.checked = !!p.appuntamenti;
                 permMedia.checked = !!p.media;
@@ -504,12 +530,18 @@ async function caricaScadenze() {
             if (scadenza.diffGiorni <= 7) cssClass = 'status-red';
             else if (scadenza.diffGiorni <= 14) cssClass = 'status-orange';
 
+            const creatoreScad = scadenza.creatore || 'Famiglia';
+            const coloreScad = mappaColoriUtenti[creatoreScad] || '#3b82f6';
+
             const li = document.createElement('li');
             li.className = `elemento-lista scadenza-badge-item ${cssClass}`;
             li.innerHTML = `
                 <div>
                     <strong>${scadenza.titolo}</strong>
-                    <p style="font-size: 0.85rem; margin-top: 2px;">📅 Scadenza: ${scadenza.data} (${scadenza.diffGiorni <= 0 ? 'Scaduta!' : scadenza.diffGiorni + ' giorni'})</p>
+                    <p style="font-size: 0.85rem; margin-top: 2px;">
+                        📅 Scadenza: ${scadenza.data} (${scadenza.diffGiorni <= 0 ? 'Scaduta!' : scadenza.diffGiorni + ' giorni'}) | 
+                        <span class="badge-utente" style="background-color: ${coloreScad};"></span> ${creatoreScad}
+                    </p>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <strong>💶 € ${scadenza.importoNum.toFixed(2)}</strong>
@@ -563,9 +595,12 @@ function renderSummaryItems(lista, cssClass) {
 
     lista.forEach(item => {
         sommaParziale += item.importoNum;
+        const creatoreItem = item.creatore || 'Famiglia';
+        const coloreItem = mappaColoriUtenti[creatoreItem] || '#3b82f6';
+
         const div = document.createElement('div');
         div.className = `scadenza-badge-item ${cssClass}`;
-        div.innerHTML = `<span><strong>${item.titolo}</strong> (${item.data})</span><strong>€ ${item.importoNum.toFixed(2)}</strong>`;
+        div.innerHTML = `<span><span class="badge-utente" style="background-color: ${coloreItem};"></span><strong>${item.titolo}</strong> (${item.data})</span><strong>€ ${item.importoNum.toFixed(2)}</strong>`;
         summaryScadenze.appendChild(div);
     });
 
@@ -584,6 +619,7 @@ scadenzaForm.addEventListener('submit', async (e) => {
             titolo: titoloFormattato,
             data: inputData.value,
             importo: parseFloat(inputImporto.value),
+            creatore: nomeUtenteCorrente,
             creatoIl: new Date()
         });
         scadenzaForm.reset();
