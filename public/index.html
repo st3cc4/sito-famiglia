@@ -139,20 +139,22 @@
                 </div>
             </section>
 
-            <!-- 3. SEZIONE APPUNTAMENTI (CALENDARIO 4 RIGHE) -->
+            <!-- 3. SEZIONE APPUNTAMENTI (VISTA SETTIMANALE STILE GOOGLE CALENDAR) -->
             <section id="sec-appuntamenti" class="page-section">
+                <!-- Barra superiore: Navigazione a sinistra, Pulsante Nuovo appuntamento a destra -->
                 <div class="scadenze-top-bar calendar-top-bar">
-                    <div class="mesi-controls">
-                        <button id="btn-prev-month" class="btn-mese">&laquo; Mese prec.</button>
-                        <span id="mese-label" class="mese-label">Mese Corrente</span>
-                        <button id="btn-next-month" class="btn-mese">Mese succ. &raquo;</button>
+                    <div class="settimana-controls">
+                        <button id="btn-prev-week" class="btn-settimana">&laquo; Prec.</button>
+                        <span id="settimana-label" class="settimana-label">Settimana corrente</span>
+                        <button id="btn-next-week" class="btn-settimana">Succ. &raquo;</button>
                     </div>
                     <button id="btn-apri-modal-appuntamento" class="btn-nuova-scadenza">Nuovo appuntamento</button>
                 </div>
 
+                <!-- GRIGLIA SETTIMANALE MODERNA -->
                 <div class="card calendar-card-wrapper">
                     <div class="table-responsive">
-                        <div id="grid-mensile" class="grid-mensile-4-righe">
+                        <div id="grid-settimanale" class="grid-settimanale-moderna">
                             <!-- Popolato dinamicamente da JavaScript -->
                         </div>
                     </div>
@@ -286,6 +288,7 @@
                     <label for="app-data">Data</label>
                     <input type="date" id="app-data" required>
                 </div>
+                <!-- Orario inizio e fine sulla stessa riga -->
                 <div class="form-row-inline">
                     <div class="form-group">
                         <label for="app-ora-inizio">Ora Inizio</label>
