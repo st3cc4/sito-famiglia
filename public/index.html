@@ -139,17 +139,25 @@
                 </div>
             </section>
 
-            <!-- 3. SEZIONE APPUNTAMENTI -->
+            <!-- 3. SEZIONE APPUNTAMENTI (VISTA TABELLA SETTIMANALE) -->
             <section id="sec-appuntamenti" class="page-section">
                 <div class="scadenze-top-bar">
                     <button id="btn-apri-modal-appuntamento" class="btn-nuova-scadenza">+ Nuovo Appuntamento</button>
+                    <div class="settimana-controls">
+                        <button id="btn-prev-week" class="btn-settimana">&laquo; Settimana prec.</button>
+                        <span id="settimana-label" class="settimana-label">Settimana corrente</span>
+                        <button id="btn-next-week" class="btn-settimana">Settimana succ. &raquo;</button>
+                    </div>
                 </div>
 
-                <div class="card">
-                    <h2 style="margin-bottom: 15px; font-size: 1.1rem; color: #1e293b;">Calendario Appuntamenti</h2>
-                    <ul id="lista-appuntamenti" class="lista">
-                        <p class="text-muted">Caricamento in corso...</p>
-                    </ul>
+                <!-- TABELLA SETTIMANALE IMPEGNI -->
+                <div class="card calendar-card-wrapper">
+                    <h2 style="margin-bottom: 15px; font-size: 1.1rem; color: #1e293b;">Tabella Settimanale Impegni</h2>
+                    <div class="table-responsive">
+                        <div id="grid-settimanale" class="grid-settimanale">
+                            <!-- Popolato dinamicamente da JavaScript -->
+                        </div>
+                    </div>
                 </div>
                 <div class="footer-home-nav">
                     <button class="btn-back-home" data-target="sec-home">&larr; Torna alla Home</button>
