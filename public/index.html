@@ -139,22 +139,22 @@
                 </div>
             </section>
 
-            <!-- 3. SEZIONE APPUNTAMENTI (VISTA TABELLA SETTIMANALE) -->
+            <!-- 3. SEZIONE APPUNTAMENTI (VISTA CALENDARIO MENSILE) -->
             <section id="sec-appuntamenti" class="page-section">
-                <div class="scadenze-top-bar">
-                    <button id="btn-apri-modal-appuntamento" class="btn-nuova-scadenza">+ Nuovo Appuntamento</button>
-                    <div class="settimana-controls">
-                        <button id="btn-prev-week" class="btn-settimana">&laquo; Settimana prec.</button>
-                        <span id="settimana-label" class="settimana-label">Settimana corrente</span>
-                        <button id="btn-next-week" class="btn-settimana">Settimana succ. &raquo;</button>
+                <!-- Barra superiore con pulsanti di navigazione mesi a sinistra e Nuovo appuntamento a destra -->
+                <div class="scadenze-top-bar calendar-top-bar">
+                    <div class="mesi-controls">
+                        <button id="btn-prev-month" class="btn-mese">&laquo; Mese prec.</button>
+                        <span id="mese-label" class="mese-label">Mese Corrente</span>
+                        <button id="btn-next-month" class="btn-mese">Mese succ. &raquo;</button>
                     </div>
+                    <button id="btn-apri-modal-appuntamento" class="btn-nuova-scadenza">Nuovo appuntamento</button>
                 </div>
 
-                <!-- TABELLA SETTIMANALE IMPEGNI -->
+                <!-- GRIGLIA CALENDARIO MENSILE -->
                 <div class="card calendar-card-wrapper">
-                    <h2 style="margin-bottom: 15px; font-size: 1.1rem; color: #1e293b;">Tabella Settimanale Impegni</h2>
                     <div class="table-responsive">
-                        <div id="grid-settimanale" class="grid-settimanale">
+                        <div id="grid-mensile" class="grid-mensile">
                             <!-- Popolato dinamicamente da JavaScript -->
                         </div>
                     </div>
@@ -289,13 +289,16 @@
                     <label for="app-data">Data</label>
                     <input type="date" id="app-data" required>
                 </div>
-                <div class="form-group">
-                    <label for="app-ora-inizio">Ora Inizio</label>
-                    <input type="time" id="app-ora-inizio" required>
-                </div>
-                <div class="form-group">
-                    <label for="app-ora-fine">Ora Fine</label>
-                    <input type="time" id="app-ora-fine" required>
+                <!-- Orario di inizio e fine affiancati sulla stessa riga -->
+                <div class="form-row-inline">
+                    <div class="form-group">
+                        <label for="app-ora-inizio">Ora Inizio</label>
+                        <input type="time" id="app-ora-inizio" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="app-ora-fine">Ora Fine</label>
+                        <input type="time" id="app-ora-fine" required>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="app-creatore">Creatore</label>
