@@ -139,9 +139,8 @@
                 </div>
             </section>
 
-            <!-- 3. SEZIONE APPUNTAMENTI (VISTA CALENDARIO MENSILE) -->
+            <!-- 3. SEZIONE APPUNTAMENTI (CALENDARIO 4 RIGHE) -->
             <section id="sec-appuntamenti" class="page-section">
-                <!-- Barra superiore con pulsanti di navigazione mesi a sinistra e Nuovo appuntamento a destra -->
                 <div class="scadenze-top-bar calendar-top-bar">
                     <div class="mesi-controls">
                         <button id="btn-prev-month" class="btn-mese">&laquo; Mese prec.</button>
@@ -151,10 +150,9 @@
                     <button id="btn-apri-modal-appuntamento" class="btn-nuova-scadenza">Nuovo appuntamento</button>
                 </div>
 
-                <!-- GRIGLIA CALENDARIO MENSILE -->
                 <div class="card calendar-card-wrapper">
                     <div class="table-responsive">
-                        <div id="grid-mensile" class="grid-mensile">
+                        <div id="grid-mensile" class="grid-mensile-4-righe">
                             <!-- Popolato dinamicamente da JavaScript -->
                         </div>
                     </div>
@@ -239,7 +237,6 @@
                 <button id="btn-chiudi-modal" class="btn-chiudi">&times;</button>
             </div>
             
-            <!-- Pulsanti OCR / Fotocamera -->
             <div class="ocr-buttons-container">
                 <label class="btn-ocr">
                     📷 Scatta Bolletta
@@ -289,7 +286,6 @@
                     <label for="app-data">Data</label>
                     <input type="date" id="app-data" required>
                 </div>
-                <!-- Orario di inizio e fine affiancati sulla stessa riga -->
                 <div class="form-row-inline">
                     <div class="form-group">
                         <label for="app-ora-inizio">Ora Inizio</label>
@@ -309,7 +305,6 @@
         </div>
     </div>
 
-    <!-- Script principale dell'applicazione -->
     <script type="module" src="script.js"></script>
 </body>
 </html>
