@@ -4,233 +4,297 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portale Famiglia</title>
-    <!-- Libreria Tesseract.js per la scansione OCR delle bollette -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
-            margin: 0;
-            padding: 20px;
-            color: #333;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        select, input {
-            width: 100%;
-            padding: 10px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            width: 100%;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-        #status {
-            margin-top: 10px;
-            font-style: italic;
-            color: #e67e22;
-        }
-        /* Stile dinamico per le card degli elementi inseriti */
-        .item-card {
-            margin-top: 15px;
-            padding: 15px;
-            border-radius: 6px;
-            border-left: 6px solid #ccc; /* Il bordo sinistro prenderà il colore dell'utente */
-            background-color: #fafafa;
-        }
-    </style>
+    <!-- Fogli di stile -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Libreria Tesseract.js per l'OCR delle bollette -->
+    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
 </head>
 <body>
 
-<div class="container">
-    <h1>Portale Famiglia</h1>
-    
-    <!-- Selezione dell'utente (Chi sta inserendo l'elemento) -->
-    <div class="form-group">
-        <label for="utente-select">Chi sta inserendo?</label>
-        <select id="utente-select">
-            <option value="Stecca">Stecca</option>
-            <option value="Elena">Elena</option>
-            <option value="Sara">Sara</option>
-            <option value="Giulia">Giulia</option>
-            <option value="Leonardo">Leonardo</option>
-            <option value="Samuele">Samuele</option>
-            <option value="Carlo">Carlo</option>
-        </select>
+    <!-- CONTENITORE AUTENTICAZIONE (LOGIN) -->
+    <div id="auth-container" class="container auth-card">
+        <h1 class="auth-title">Portale Famiglia</h1>
+        <p class="subtitle">Accedi per gestire scadenze e appuntamenti</p>
+        
+        <div class="card">
+            <form id="auth-form">
+                <div class="form-group">
+                    <label for="auth-email">Email</label>
+                    <input type="email" id="auth-email" required placeholder="Inserisci la tua email">
+                </div>
+                <div class="form-group">
+                    <label for="auth-password">Password</label>
+                    <input type="password" id="auth-password" required placeholder="Inserisci la password">
+                </div>
+                <div class="login-row">
+                    <label class="remember-me">
+                        <input type="checkbox" id="remember-check"> Ricordami
+                    </label>
+                    <a href="#" id="forgot-password-btn" class="auth-links">Password dimenticata?</a>
+                </div>
+                <button type="submit" class="btn btn-accedi">Accedi</button>
+            </form>
+        </div>
     </div>
 
-    <!-- Sezione Scansione Bolletta / Scadenza -->
-    <div class="form-group">
-        <label>Scatta o carica foto bolletta (OCR automatico)</label>
-        <input type="file" id="bolletta-file-input" accept="image/*">
-        <div id="status"></div>
+    <!-- CONTENITORE PRINCIPALE DELL'APPLICAZIONE -->
+    <div id="app-container" class="layout-wrapper" style="display: none;">
+        
+        <!-- SIDEBAR DI NAVIGAZIONE -->
+        <aside id="sidebar" class="sidebar">
+            <button id="toggle-sidebar" class="sidebar-toggle-btn">☰</button>
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" data-target="sec-home">
+                    <span class="icon">🏠</span><span class="text">Home</span>
+                </button>
+                <button class="nav-btn" id="menu-scadenze" data-target="sec-scadenze">
+                    <span class="icon">💶</span><span class="text">Scadenze</span>
+                </button>
+                <button class="nav-btn" id="menu-appuntamenti" data-target="sec-appuntamenti">
+                    <span class="icon">📅</span><span class="text">Appuntamenti</span>
+                </button>
+                <button class="nav-btn" id="menu-media" data-target="sec-media">
+                    <span class="icon">📷</span><span class="text">Media</span>
+                </button>
+                <button class="nav-btn" id="menu-ricette" data-target="sec-ricette">
+                    <span class="icon">🍳</span><span class="text">Ricette</span>
+                </button>
+                <button class="nav-btn" id="menu-utenti" data-target="sec-utenti" style="display: none;">
+                    <span class="icon">⚙️</span><span class="text">Gestione Utenti</span>
+                </button>
+            </nav>
+        </aside>
+
+        <!-- CONTENUTO PRINCIPALE -->
+        <main class="main-content">
+            <!-- Header dell'applicazione -->
+            <header class="app-header">
+                <h2 id="greeting-title" style="font-size: 1.2rem; color: #1e293b;">Benvenuto</h2>
+                <button id="btn-logout" class="btn-logout">Esci</button>
+            </header>
+
+            <!-- 1. SEZIONE HOME (DASHBOARD) -->
+            <section id="sec-home" class="page-section active">
+                <div class="dashboard-grid">
+                    
+                    <!-- Card Riassunto Scadenze -->
+                    <div id="card-sec-scadenze" class="card card-summary">
+                        <div class="card-header">
+                            <h2>Scadenze in arrivo</h2>
+                            <button class="link-goto" data-target="sec-scadenze">Vedi tutte &rarr;</button>
+                        </div>
+                        <div id="home-summary-scadenze">
+                            <p class="text-muted">Caricamento in corso...</p>
+                        </div>
+                    </div>
+
+                    <!-- Card Riassunto Appuntamenti -->
+                    <div id="card-sec-appuntamenti" class="card card-summary">
+                        <div class="card-header">
+                            <h2>Prossimi Appuntamenti</h2>
+                            <button class="link-goto" data-target="sec-appuntamenti">Vedi tutti &rarr;</button>
+                        </div>
+                        <div id="home-summary-appuntamenti">
+                            <p class="text-muted">Caricamento in corso...</p>
+                        </div>
+                    </div>
+
+                    <!-- Card Media -->
+                    <div id="card-sec-media" class="card card-summary">
+                        <div class="card-header">
+                            <h2>Galleria Media</h2>
+                            <button class="link-goto" data-target="sec-media">Apri &rarr;</button>
+                        </div>
+                        <p class="text-muted">Foto e video condivisi dalla famiglia.</p>
+                    </div>
+
+                    <!-- Card Ricette -->
+                    <div id="card-sec-ricette" class="card card-summary">
+                        <div class="card-header">
+                            <h2>Ricettario</h2>
+                            <button class="link-goto" data-target="sec-ricette">Apri &rarr;</button>
+                        </div>
+                        <p class="text-muted">I segreti in cucina e i dolci della famiglia.</p>
+                    </div>
+
+                </div>
+                <div class="app-signature">Portale Famiglia - Stecca</div>
+            </section>
+
+            <!-- 2. SEZIONE SCADENZE -->
+            <section id="sec-scadenze" class="page-section">
+                <div class="scadenze-top-bar">
+                    <button id="btn-apri-modal" class="btn-nuova-scadenza">+ Nuova Scadenza</button>
+                    <div id="totale-generale-scadenze" class="totale-badge-box">Totale da pagare: € 0.00</div>
+                </div>
+                
+                <div class="card">
+                    <h2 style="margin-bottom: 15px; font-size: 1.1rem; color: #1e293b;">Elenco Scadenze</h2>
+                    <ul id="lista-scadenze" class="lista">
+                        <p class="text-muted">Caricamento in corso...</p>
+                    </ul>
+                </div>
+                <div class="footer-home-nav">
+                    <button class="btn-back-home" data-target="sec-home">&larr; Torna alla Home</button>
+                </div>
+            </section>
+
+            <!-- 3. SEZIONE APPUNTAMENTI -->
+            <section id="sec-appuntamenti" class="page-section">
+                <div class="scadenze-top-bar">
+                    <button id="btn-apri-modal-appuntamento" class="btn-nuova-scadenza">+ Nuovo Appuntamento</button>
+                </div>
+
+                <div class="card">
+                    <h2 style="margin-bottom: 15px; font-size: 1.1rem; color: #1e293b;">Calendario Appuntamenti</h2>
+                    <ul id="lista-appuntamenti" class="lista">
+                        <p class="text-muted">Caricamento in corso...</p>
+                    </ul>
+                </div>
+                <div class="footer-home-nav">
+                    <button class="btn-back-home" data-target="sec-home">&larr; Torna alla Home</button>
+                </div>
+            </section>
+
+            <!-- 4. SEZIONE MEDIA -->
+            <section id="sec-media" class="page-section">
+                <div class="card">
+                    <h2 style="margin-bottom: 10px; font-size: 1.1rem; color: #1e293b;">Galleria Foto e Video</h2>
+                    <p class="text-muted">Sezione dedicata ai ricordi di famiglia.</p>
+                </div>
+                <div class="footer-home-nav">
+                    <button class="btn-back-home" data-target="sec-home">&larr; Torna alla Home</button>
+                </div>
+            </section>
+
+            <!-- 5. SEZIONE RICETTE -->
+            <section id="sec-ricette" class="page-section">
+                <div class="card">
+                    <h2 style="margin-bottom: 10px; font-size: 1.1rem; color: #1e293b;">Ricettario di Famiglia</h2>
+                    <p class="text-muted">I dolci, i frollini e tutte le ricette salvate.</p>
+                </div>
+                <div class="footer-home-nav">
+                    <button class="btn-back-home" data-target="sec-home">&larr; Torna alla Home</button>
+                </div>
+            </section>
+
+            <!-- 6. SEZIONE GESTIONE UTENTI (ADMIN) -->
+            <section id="sec-utenti" class="page-section">
+                <div class="card">
+                    <h2 style="margin-bottom: 15px; font-size: 1.1rem; color: #1e293b;">Configura Utenti e Permessi</h2>
+                    <form id="utente-form">
+                        <div class="form-group">
+                            <label for="user-email-input">Email Utente</label>
+                            <input type="email" id="user-email-input" required placeholder="es. nome@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="user-name-input">Nome Visualizzato</label>
+                            <input type="text" id="user-name-input" required placeholder="es. Elena">
+                        </div>
+                        <div class="form-group">
+                            <label>Permessi Sezioni</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" id="perm-scadenze" checked> Scadenze</label>
+                                <label><input type="checkbox" id="perm-appuntamenti" checked> Appuntamenti</label>
+                                <label><input type="checkbox" id="perm-media" checked> Media</label>
+                                <label><input type="checkbox" id="perm-ricette" checked> Ricette</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">Salva Utente</button>
+                    </form>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <h2 style="margin-bottom: 15px; font-size: 1.1rem; color: #1e293b;">Utenti Configurati</h2>
+                    <ul id="lista-utenti" class="lista">
+                        <p class="text-muted">Caricamento...</p>
+                    </ul>
+                </div>
+
+                <div class="footer-home-nav">
+                    <button class="btn-back-home" data-target="sec-home">&larr; Torna alla Home</button>
+                </div>
+            </section>
+
+        </main>
     </div>
 
-    <div class="form-group">
-        <label for="ente-input">Ente / Fornitore</label>
-        <input type="text" id="ente-input" placeholder="Es. Enel, Eni...">
+    <!-- MODALE INSERIMENTO / MODIFICA SCADENZA -->
+    <div id="modal-scadenza" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="modal-title">Nuova Scadenza</h2>
+                <button id="btn-chiudi-modal" class="btn-chiudi">&times;</button>
+            </div>
+            
+            <!-- Pulsanti OCR / Fotocamera -->
+            <div class="ocr-buttons-container">
+                <label class="btn-ocr">
+                    📷 Scatta Bolletta
+                    <input type="file" id="input-scatta-foto" accept="image/*" capture="environment" style="display: none;">
+                </label>
+                <label class="btn-ocr">
+                    📁 Carica Immagine
+                    <input type="file" id="input-carica-foto" accept="image/*" style="display: none;">
+                </label>
+            </div>
+            <div id="ocr-loading" style="display: none; text-align: center; margin-bottom: 15px; font-size: 0.9rem; color: #3b82f6;">
+                Lettura bolletta in corso... <span id="ocr-progress">0%</span>
+            </div>
+
+            <form id="scadenza-form">
+                <div class="form-group">
+                    <label for="titolo">Titolo / Servizio</label>
+                    <input type="text" id="titolo" required placeholder="Es. Enel, Affitto, Bollo...">
+                </div>
+                <div class="form-group">
+                    <label for="data">Data di Scadenza</label>
+                    <input type="date" id="data" required>
+                </div>
+                <div class="form-group">
+                    <label for="importo">Importo (€)</label>
+                    <input type="number" id="importo" step="0.01" required placeholder="0.00">
+                </div>
+                <button type="submit" class="btn" style="margin-top: 10px;">Salva Scadenza</button>
+            </form>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label for="scadenza-input">Data Scadenza</label>
-        <input type="text" id="scadenza-input" placeholder="gg/mm/aaaa">
+    <!-- MODALE INSERIMENTO / MODIFICA APPUNTAMENTO -->
+    <div id="modal-appuntamento" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="modal-appuntamento-title">Nuovo Appuntamento</h2>
+                <button id="btn-chiudi-modal-appuntamento" class="btn-chiudi">&times;</button>
+            </div>
+            <form id="appuntamento-form">
+                <input type="hidden" id="app-id">
+                <div class="form-group">
+                    <label for="app-titolo">Titolo Appuntamento</label>
+                    <input type="text" id="app-titolo" required placeholder="Es. Visita medica, Riunione...">
+                </div>
+                <div class="form-group">
+                    <label for="app-data">Data</label>
+                    <input type="date" id="app-data" required>
+                </div>
+                <div class="form-group">
+                    <label for="app-ora-inizio">Ora Inizio</label>
+                    <input type="time" id="app-ora-inizio" required>
+                </div>
+                <div class="form-group">
+                    <label for="app-ora-fine">Ora Fine</label>
+                    <input type="time" id="app-ora-fine" required>
+                </div>
+                <div class="form-group">
+                    <label for="app-creatore">Creatore</label>
+                    <input type="text" id="app-creatore" readonly style="background-color: #f8fafc;">
+                </div>
+                <button type="submit" class="btn" style="margin-top: 10px;">Salva Appuntamento</button>
+            </form>
+        </div>
     </div>
 
-    <div class="form-group">
-        <label for="importo-input">Importo (€)</label>
-        <input type="text" id="importo-input" placeholder="0.00">
-    </div>
-
-    <button id="salva-btn">Salva Attività / Scadenza</button>
-
-    <!-- Area dove compariranno gli elementi salvati -->
-    <div id="lista-elementi" style="margin-top: 20px;"></div>
-</div>
-
-<script>
-    // Mappa dei colori associati a ciascun utente
-    const coloriUtenti = {
-        "Stecca": "#3498db",   // Blu
-        "Elena": "#e74c3c",    // Rosso
-        "Sara": "#9b59b6",     // Viola
-        "Giulia": "#e67e22",   // Arancione
-        "Leonardo": "#2ecc71", // Verde
-        "Samuele": "#1abc9c",  // Turchese
-        "Carlo": "#34495e"     // Grigio scuro / Antracite
-    };
-
-    // Gestione dell'evento di caricamento della foto e OCR con Tesseract.js
-    const fileInput = document.getElementById('bolletta-file-input');
-    if (fileInput) {
-        fileInput.addEventListener('change', async (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const statusEl = document.getElementById('status');
-            statusEl.innerText = "Analisi OCR della bolletta in corso...";
-
-            try {
-                const worker = await Tesseract.createWorker('ita');
-                const ret = await worker.recognize(file);
-                await worker.terminate();
-
-                const testoEstratto = ret.data.text;
-                const datiEstratti = analizzaTestoBolletta(testoEstratto);
-
-                // Riempimento automatico dei campi
-                document.getElementById('ente-input').value = datiEstratti.ente;
-                document.getElementById('scadenza-input').value = datiEstratti.scadenza;
-                document.getElementById('importo-input').value = datiEstratti.importo;
-
-                statusEl.innerText = "Scansione completata con successo!";
-            } catch (error) {
-                console.error("Errore OCR:", error);
-                statusEl.innerText = "Impossibile leggere automaticamente la foto. Inserisci i dati a mano.";
-            }
-        });
-    }
-
-    // Funzione di supporto per estrarre Ente, Scadenza e Importo
-    function analizzaTestoBolletta(testo) {
-        let ente = "";
-        let scadenza = "";
-        let importo = "";
-
-        const entiComuni = ["Enel", "Eni", "Servizio Elettrico Nazionale", "A2A", "Edison", "Acea", "Hera", "Iren", "Fastweb", "TIM", "Vodafone", "WindTre"];
-        for (const nome of entiComuni) {
-            if (new RegExp(`\\b${nome}\\b`, 'i').test(testo)) {
-                ente = nome;
-                break;
-            }
-        }
-
-        const matchScadenza = testo.match(/(?:scadenza|entro il|scade il|pagamento entro)[:\s]*(\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{2,4})/i);
-        if (matchScadenza) {
-            scadenza = matchScadenza[1];
-        }
-
-        const matchImporto = testo.match(/(?:totale|importo|da pagare|euro|eur)[:\s]*[€]?\s*(\d+[\.,]\d{2})/i);
-        if (matchImporto) {
-            importo = matchImporto[1].replace(',', '.');
-        }
-
-        return { ente, scadenza, importo };
-    }
-
-    // Salvataggio e creazione visiva dell'elemento con il colore dell'utente
-    document.getElementById('salva-btn').addEventListener('click', () => {
-        const utenteSelezionato = document.getElementById('utente-select').value;
-        const ente = document.getElementById('ente-input').value || "Generico";
-        const scadenza = document.getElementById('scadenza-input').value || "N/D";
-        const importo = document.getElementById('importo-input').value || "0.00";
-
-        // Recupera il colore associato all'utente (di default grigio se non trovato)
-        const coloreUtente = coloriUtenti[utenteSelezionato] || "#7f8c8d";
-
-        // Crea il blocco visivo dell'elemento
-        const listaElementi = document.getElementById('lista-elementi');
-        const nuovaCard = document.createElement('div');
-        nuovaCard.className = 'item-card';
-        // Applica il colore dell'utente come bordo sinistro e un leggero sfondo colorato trasparente
-        nuovaCard.style.borderLeftColor = coloreUtente;
-        nuovaCard.style.backgroundColor = hexToRgba(coloreUtente, 0.08);
-
-        nuovaCard.innerHTML = `
-            <strong>Inserito da: <span style="color: ${coloreUtente};">${utenteSelezionato}</span></strong><br>
-            <strong>Ente:</strong> ${ente}<br>
-            <strong>Scadenza:</strong> ${scadenza}<br>
-            <strong>Importo:</strong> € ${importo}
-        `;
-
-        listaElementi.prepend(nuovaCard);
-
-        // Pulisce i campi input dopo il salvataggio
-        document.getElementById('ente-input').value = "";
-        document.getElementById('scadenza-input').value = "";
-        document.getElementById('importo-input').value = "";
-        document.getElementById('bolletta-file-input').value = "";
-        document.getElementById('status').innerText = "";
-    });
-
-    // Funzione di utilità per convertire il colore HEX in RGBA per lo sfondo sfumato
-    function hexToRgba(hex, alpha) {
-        let c = hex.replace('#', '');
-        if (c.length === 3) {
-            c = c.split('').map(x => x + x).join('');
-        }
-        const num = parseInt(c, 16);
-        return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
-    }
-</script>
-
+    <!-- Script principale dell'applicazione -->
+    <script type="module" src="script.js"></script>
 </body>
 </html>
