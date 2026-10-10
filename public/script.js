@@ -141,7 +141,7 @@ function formatCapitalize(str) {
 function getInizioSettimana(d) {
     const date = new Date(d);
     const day = date.getDay();
-    const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Lunedì come inizio settimana
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(date.setDate(diff));
 }
 
@@ -316,7 +316,11 @@ async function caricaScadenze() {
         let htmlScadenze = "";
         let htmlHomeSummary = "";
         let totaleComplessivo = 0;
-        const oggiStr = new Date().toISOString().split('T')[0];
+        
+        // Data di oggi normalizzata a mezzanotte per il calcolo dei giorni esatti
+        const oggi = new Date();
+        oggi.setHours(0, 0, 0, 0);
+        const oggiStr = oggi.toISOString().split('T')[0];
 
         if (scadenze.length === 0) {
             listaScadenze.innerHTML = `<p class="text-muted">Nessuna scadenza inserita.</p>`;
@@ -327,14 +331,36 @@ async function caricaScadenze() {
 
         scadenze.forEach(s => {
             totaleComplessivo += Number(s.importo || 0);
+            
+            // Calcolo giorni mancanti
+            const dataScadObj = new Date(s.data);
+            dataScadObj.setHours(0, 0, 0, 0);
+            const diffTempo = dataScadObj - oggi;
+            const diffGiorni = Math.round(diffTempo / (1000 * 60 * 60 * 24));
+
+            let stringaGiorni = "";
             let statusClass = "status-green";
-            if (s.data < oggiStr) statusClass = "status-red";
-            else if (s.data === oggiStr) statusClass = "status-orange";
+
+            if (diffGiorni < 0) {
+                statusClass = "status-red";
+                const giorniPassati = Math.abs(diffGiorni);
+                stringaGiorni = `Scaduta da ${giorniPassati} ${giorniPassati === 1 ? 'giorno' : 'giorni'}`;
+            } else if (diffGiorni === 0) {
+                statusClass = "status-orange";
+                stringaGiorni = `Scade oggi!`;
+            } else if (diffGiorni === 1) {
+                statusClass = "status-orange";
+                stringaGiorni = `Manca 1 giorno`;
+            } else {
+                stringaGiorni = `Mancano ${diffGiorni} giorni`;
+            }
+
+            const creatoreScadenza = s.creatore ? s.creatore : "Famiglia";
 
             const rigaHtml = `
                 <li class="scadenza-badge-item ${statusClass}">
                     <div>
-                        <strong>${s.titolo}</strong> - Scad: ${formatoDataEuropeo(s.data)} - <strong>€ ${Number(s.importo).toFixed(2)}</strong>
+                        <strong>${s.titolo}</strong> - Scad: ${formatoDataEuropeo(s.data)} (${stringaGiorni}) - <strong>€ ${Number(s.importo).toFixed(2)}</strong> <span style="font-size: 0.9rem; font-weight: normal; color: #475569; margin-left: 10px;">[Inserita da: ${creatoreScadenza}]</span>
                     </div>
                     <div class="azioni-utente">
                         <button class="btn-modifica" onclick="modificaScadenza('${s.id}', '${s.titolo}', '${s.data}', '${s.importo}')">Mod.</button>
@@ -395,19 +421,16 @@ async function elaboraImmagineOCR(file) {
         });
         const testo = result.data.text;
         
-        // Estrazione importo (cerca pattern tipo € 45,50 o 45.50)
         const matchImporto = testo.match(/(?:[€E]?\s*)(\d+[\.,]\d{2})/);
         if (matchImporto) {
             inputImporto.value = matchImporto[1].replace(',', '.');
         }
 
-        // Estrazione data (cerca pattern GG/MM/AAAA)
         const matchData = testo.match(/(\d{2})[\/\-](\d{2})[\/\-](\d{4})/);
         if (matchData) {
             inputData.value = `${matchData[3]}-${matchData[2]}-${matchData[1]}`;
         }
 
-        // Titolo automatico se possibile
         if (testo.toLowerCase().includes('enel')) inputTitolo.value = "Enel Energia";
         else if (testo.toLowerCase().includes('telecom') || testo.toLowerCase().includes('tim')) inputTitolo.value = "TIM / Telefono";
         else if (testo.toLowerCase().includes('acqua')) inputTitolo.value = "Bolletta Acqua";
@@ -429,7 +452,7 @@ inputCaricaFoto.addEventListener('change', (e) => {
 // --- GESTIONE APPUNTAMENTI & CALENDARIO SETTIMANALE ---
 appuntamentoForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const titolo = appTitoo ? appTitolo.value.trim() : appTitolo.value.trim();
+    const titolo = appTitolo.value.trim();
     const data = appData.value;
     const oraInizio = appOraInizio.value;
     const oraFine = appOraFine.value;
@@ -468,7 +491,6 @@ async function caricaAppuntamenti() {
             appuntamenti.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        // Calcola i giorni della settimana corrente (da Lunedì a Domenica)
         let giorniSettimana = [];
         let curr = new Date(dataInizioSettimanaCorrente);
         for (let i = 0; i < 7; i++) {
@@ -523,7 +545,6 @@ async function caricaAppuntamenti() {
 
         gridSettimanale.innerHTML = htmlGriglia;
 
-        // Riassunto Home Appuntamenti futuri
         let appFuturi = appuntamenti.filter(a => a.data >= oggiIso);
         appFuturi.sort((a, b) => a.data.localeCompare(b.data) || a.oraInizio.localeCompare(b.oraInizio));
         
