@@ -1,4 +1,4 @@
-* {
+- {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -398,7 +398,19 @@ input:focus {
     border-radius: 8px;
     margin-bottom: 10px;
     font-size: 1.05rem; 
-    font-weight: bold;   
+    font-weight: bold;    
+}
+
+/* Badge compatto colorato per il riepilogo nella Home */
+.scadenza-summary-badge {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    font-weight: bold;
 }
 
 .status-red { background-color: #fef2f2; color: #991b1b; border-left: 6px solid #ef4444; }
