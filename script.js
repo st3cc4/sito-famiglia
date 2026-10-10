@@ -369,10 +369,34 @@ async function caricaScadenze() {
 
         let scadenzeHome = scadenze.slice(0, 3);
         scadenzeHome.forEach(s => {
+            const dataScadObj = new Date(s.data);
+            dataScadObj.setHours(0, 0, 0, 0);
+            const diffTempo = dataScadObj - oggi;
+            const diffGiorni = Math.round(diffTempo / (1000 * 60 * 60 * 24));
+
+            let stringaGiorni = "";
+            let statusClass = "status-green";
+
+            if (diffGiorni < 0) {
+                statusClass = "status-red";
+                const giorniPassati = Math.abs(diffGiorni);
+                stringaGiorni = `Scaduta da ${giorniPassati} ${giorniPassati === 1 ? 'giorno' : 'giorni'}`;
+            } else if (diffGiorni === 0) {
+                statusClass = "status-orange";
+                stringaGiorni = `Scade oggi!`;
+            } else if (diffGiorni === 1) {
+                statusClass = "status-orange";
+                stringaGiorni = `Manca 1 giorno`;
+            } else {
+                stringaGiorni = `Mancano ${diffGiorni} giorni`;
+            }
+
             htmlHomeSummary += `
-                <div style="padding: 8px 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between;">
-                    <span><strong>${s.titolo}</strong> (${formatoDataEuropeo(s.data)})</span>
-                    <span style="color: #1e293b; font-weight: bold;">€ ${Number(s.importo).toFixed(2)}</span>
+                <div class="scadenza-summary-badge ${statusClass}">
+                    <div>
+                        <strong>${s.titolo}</strong> (${formatoDataEuropeo(s.data)}) - <span style="font-size: 0.85rem; font-weight: normal;">${stringaGiorni}</span>
+                    </div>
+                    <div style="font-weight: bold;">€ ${Number(s.importo).toFixed(2)}</div>
                 </div>`;
         });
 
