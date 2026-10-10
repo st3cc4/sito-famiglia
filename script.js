@@ -317,10 +317,8 @@ async function caricaScadenze() {
         let htmlHomeSummary = "";
         let totaleComplessivo = 0;
         
-        // Data di oggi normalizzata a mezzanotte per il calcolo dei giorni esatti
         const oggi = new Date();
         oggi.setHours(0, 0, 0, 0);
-        const oggiStr = oggi.toISOString().split('T')[0];
 
         if (scadenze.length === 0) {
             listaScadenze.innerHTML = `<p class="text-muted">Nessuna scadenza inserita.</p>`;
@@ -332,7 +330,6 @@ async function caricaScadenze() {
         scadenze.forEach(s => {
             totaleComplessivo += Number(s.importo || 0);
             
-            // Calcolo giorni mancanti
             const dataScadObj = new Date(s.data);
             dataScadObj.setHours(0, 0, 0, 0);
             const diffTempo = dataScadObj - oggi;
@@ -370,7 +367,6 @@ async function caricaScadenze() {
             htmlScadenze += rigaHtml;
         });
 
-        // Mostra le prime 3 scadenze in Home
         let scadenzeHome = scadenze.slice(0, 3);
         scadenzeHome.forEach(s => {
             htmlHomeSummary += `
