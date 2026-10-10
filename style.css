@@ -389,7 +389,7 @@ input:focus {
     border-color: #94a3b8;
 }
 
-/* SCADENZE: Testi ingranditi e in grassetto */
+/* SCADENZE: Testi impostati a 1.05rem e in grassetto */
 .scadenza-badge-item {
     display: flex;
     justify-content: space-between;
@@ -397,8 +397,8 @@ input:focus {
     padding: 14px 16px;
     border-radius: 8px;
     margin-bottom: 10px;
-    font-size: 1.15rem; /* Ingrandito */
-    font-weight: bold;   /* In grassetto */
+    font-size: 1.05rem; 
+    font-weight: bold;   
 }
 
 .status-red { background-color: #fef2f2; color: #991b1b; border-left: 6px solid #ef4444; }
