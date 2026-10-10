@@ -343,12 +343,16 @@ async function caricaScadenze() {
                 const giorniPassati = Math.abs(diffGiorni);
                 stringaGiorni = `Scaduta da ${giorniPassati} ${giorniPassati === 1 ? 'giorno' : 'giorni'}`;
             } else if (diffGiorni === 0) {
-                statusClass = "status-orange";
+                statusClass = "status-red";
                 stringaGiorni = `Scade oggi!`;
-            } else if (diffGiorni === 1) {
+            } else if (diffGiorni <= 7) {
+                statusClass = "status-red";
+                stringaGiorni = `Mancano ${diffGiorni} giorni`;
+            } else if (diffGiorni <= 14) {
                 statusClass = "status-orange";
-                stringaGiorni = `Manca 1 giorno`;
+                stringaGiorni = `Mancano ${diffGiorni} giorni`;
             } else {
+                statusClass = "status-green";
                 stringaGiorni = `Mancano ${diffGiorni} giorni`;
             }
 
@@ -357,7 +361,7 @@ async function caricaScadenze() {
             const rigaHtml = `
                 <li class="scadenza-badge-item ${statusClass}">
                     <div>
-                        <strong>${s.titolo}</strong> - Scad: ${formatoDataEuropeo(s.data)} (${stringaGiorni}) - <strong>€ ${Number(s.importo).toFixed(2)}</strong> <span style="font-size: 0.9rem; font-weight: normal; color: #475569; margin-left: 10px;">[Inserita da: ${creatoreScadenza}]</span>
+                        <strong>${s.titolo}</strong> - Scad: ${formatoDataEuropeo(s.data)} (${stringaGiorni}) - <strong>€ ${Number(s.importo).toFixed(2)}</strong> <span style="font-size: 0.85rem; font-weight: normal; color: #475569; margin-left: 6px;">[${creatoreScadenza}]</span>
                     </div>
                     <div class="azioni-utente">
                         <button class="btn-modifica" onclick="modificaScadenza('${s.id}', '${s.titolo}', '${s.data}', '${s.importo}')">Mod.</button>
@@ -382,19 +386,23 @@ async function caricaScadenze() {
                 const giorniPassati = Math.abs(diffGiorni);
                 stringaGiorni = `Scaduta da ${giorniPassati} ${giorniPassati === 1 ? 'giorno' : 'giorni'}`;
             } else if (diffGiorni === 0) {
-                statusClass = "status-orange";
+                statusClass = "status-red";
                 stringaGiorni = `Scade oggi!`;
-            } else if (diffGiorni === 1) {
+            } else if (diffGiorni <= 7) {
+                statusClass = "status-red";
+                stringaGiorni = `Mancano ${diffGiorni} giorni`;
+            } else if (diffGiorni <= 14) {
                 statusClass = "status-orange";
-                stringaGiorni = `Manca 1 giorno`;
+                stringaGiorni = `Mancano ${diffGiorni} giorni`;
             } else {
+                statusClass = "status-green";
                 stringaGiorni = `Mancano ${diffGiorni} giorni`;
             }
 
             htmlHomeSummary += `
                 <div class="scadenza-summary-badge ${statusClass}">
                     <div>
-                        <strong>${s.titolo}</strong> (${formatoDataEuropeo(s.data)}) - <span style="font-size: 0.85rem; font-weight: normal;">${stringaGiorni}</span>
+                        <strong>${s.titolo}</strong> (${formatoDataEuropeo(s.data)}) - <span style="font-size: 0.8rem; font-weight: normal;">${stringaGiorni}</span>
                     </div>
                     <div style="font-weight: bold;">€ ${Number(s.importo).toFixed(2)}</div>
                 </div>`;
