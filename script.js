@@ -314,7 +314,6 @@ async function caricaScadenze() {
         scadenze.sort((a, b) => new Date(a.data) - new Date(b.data));
 
         let htmlScadenze = "";
-        let htmlHomeSummary = "";
         let totaleComplessivo = 0;
         
         const oggi = new Date();
@@ -327,7 +326,8 @@ async function caricaScadenze() {
             return;
         }
 
-        scadenze.forEach(s => {
+        // Mappatura calcolo giorni e status per tutte le scadenze
+        let scadenzeCalcolate = scadenze.map(s => {
             totaleComplessivo += Number(s.importo || 0);
             
             const dataScadObj = new Date(s.data);
@@ -356,60 +356,51 @@ async function caricaScadenze() {
                 stringaGiorni = `Mancano ${diffGiorni} giorni`;
             }
 
-            const creatoreScadenza = s.creatore ? s.creatore : "Famiglia";
+            return { ...s, diffGiorni, stringaGiorni, statusClass };
+        });
 
-            const rigaHtml = `
-                <li class="scadenza-badge-item ${statusClass}">
+        // Generazione lista completa per la scheda Scadenze
+        scadenzeCalcolate.forEach(s => {
+            const creatoreScadenza = s.creatore ? s.creatore : "Famiglia";
+            htmlScadenze += `
+                <li class="scadenza-badge-item ${s.statusClass}">
                     <div>
-                        <strong>${s.titolo}</strong> - Scad: ${formatoDataEuropeo(s.data)} (${stringaGiorni}) - <strong>€ ${Number(s.importo).toFixed(2)}</strong> <span style="font-size: 0.85rem; font-weight: normal; color: #475569; margin-left: 6px;">[${creatoreScadenza}]</span>
+                        <strong>${s.titolo}</strong> - Scad: ${formatoDataEuropeo(s.data)} (${s.stringaGiorni}) - <strong>€ ${Number(s.importo).toFixed(2)}</strong> <span style="font-size: 0.85rem; font-weight: normal; color: #475569; margin-left: 6px;">[${creatoreScadenza}]</span>
                     </div>
                     <div class="azioni-utente">
                         <button class="btn-modifica" onclick="modificaScadenza('${s.id}', '${s.titolo}', '${s.data}', '${s.importo}')">Mod.</button>
                         <button class="btn-elimina" onclick="eliminaScadenza('${s.id}')">Elimina</button>
                     </div>
                 </li>`;
-            htmlScadenze += rigaHtml;
         });
 
-        let scadenzeHome = scadenze.slice(0, 3);
-        scadenzeHome.forEach(s => {
-            const dataScadObj = new Date(s.data);
-            dataScadObj.setHours(0, 0, 0, 0);
-            const diffTempo = dataScadObj - oggi;
-            const diffGiorni = Math.round(diffTempo / (1000 * 60 * 60 * 24));
+        // FILTRO HOME: Mostra solo rosse; se non ce ne sono, solo arancioni; se non ce ne sono, solo verdi
+        const scadenzeRosse = scadenzeCalcolate.filter(s => s.statusClass === 'status-red');
+        const scadenzeArancioni = scadenzeCalcolate.filter(s => s.statusClass === 'status-orange');
+        const scadenzeVerdi = scadenzeCalcolate.filter(s => s.statusClass === 'status-green');
 
-            let stringaGiorni = "";
-            let statusClass = "status-green";
+        let scadenzeDaMostrareInHome = [];
+        if (scadenzeRosse.length > 0) {
+            scadenzeDaMostrareInHome = scadenzeRosse;
+        } else if (scadenzeArancioni.length > 0) {
+            scadenzeDaMostrareInHome = scadenzeArancioni;
+        } else {
+            scadenzeDaMostrareInHome = scadenzeVerdi;
+        }
 
-            if (diffGiorni < 0) {
-                statusClass = "status-red";
-                const giorniPassati = Math.abs(diffGiorni);
-                stringaGiorni = `Scaduta da ${giorniPassati} ${giorniPassati === 1 ? 'giorno' : 'giorni'}`;
-            } else if (diffGiorni === 0) {
-                statusClass = "status-red";
-                stringaGiorni = `Scade oggi!`;
-            } else if (diffGiorni <= 7) {
-                statusClass = "status-red";
-                stringaGiorni = `Mancano ${diffGiorni} giorni`;
-            } else if (diffGiorni <= 14) {
-                statusClass = "status-orange";
-                stringaGiorni = `Mancano ${diffGiorni} giorni`;
-            } else {
-                statusClass = "status-green";
-                stringaGiorni = `Mancano ${diffGiorni} giorni`;
-            }
-
+        let htmlHomeSummary = "";
+        scadenzeDaMostrareInHome.forEach(s => {
             htmlHomeSummary += `
-                <div class="scadenza-summary-badge ${statusClass}">
+                <div class="scadenza-summary-badge ${s.statusClass}">
                     <div>
-                        <strong>${s.titolo}</strong> (${formatoDataEuropeo(s.data)}) - <span style="font-size: 0.8rem; font-weight: normal;">${stringaGiorni}</span>
+                        <strong>${s.titolo}</strong> (${formatoDataEuropeo(s.data)}) - <span style="font-size: 0.8rem; font-weight: normal;">${s.stringaGiorni}</span>
                     </div>
                     <div style="font-weight: bold;">€ ${Number(s.importo).toFixed(2)}</div>
                 </div>`;
         });
 
         listaScadenze.innerHTML = htmlScadenze;
-        summaryScadenze.innerHTML = htmlHomeSummary || `<p class="text-muted">Nessuna scadenza in arrivo.</p>`;
+        summaryScadenze.innerHTML = htmlHomeSummary || `<p class="text-muted">Nessuna scadenza in programma.</p>`;
         totaleGeneraleScadenze.textContent = `Totale da pagare: € ${totaleComplessivo.toFixed(2)}`;
 
     } catch (err) {
@@ -573,18 +564,44 @@ async function caricaAppuntamenti() {
 
         gridSettimanale.innerHTML = htmlGriglia;
 
+        // HOME APPUNTAMENTI: Raggruppamento per almeno 3 giorni distinti con colori dedicati per data
         let appFuturi = appuntamenti.filter(a => a.data >= oggiIso);
         appFuturi.sort((a, b) => a.data.localeCompare(b.data) || a.oraInizio.localeCompare(b.oraInizio));
         
+        // Estrazione delle prime 3 date distinte
+        const dateDistinte = [...new Set(appFuturi.map(a => a.data))].slice(0, 3);
+        const stiliColoriGiorni = [
+            { bg: '#eff6ff', border: '#3b82f6', text: '#1e40af' }, // Blu soft
+            { bg: '#f0fdf4', border: '#22c55e', text: '#166534' }, // Verde soft
+            { bg: '#faf5ff', border: '#a855f7', text: '#6b21a8' }  // Viola soft
+        ];
+
         let htmlHomeApp = "";
-        appFuturi.slice(0, 3).forEach(app => {
-            htmlHomeApp += `
-                <div style="padding: 8px 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between;">
-                    <span><strong>${app.titolo}</strong> (${formatoDataEuropeo(app.data)} ${app.oraInizio})</span>
-                    <span style="font-size: 0.85rem; color: #64748b;">${app.creatore}</span>
-                </div>`;
-        });
-        summaryAppuntamenti.innerHTML = htmlHomeApp || `<p class="text-muted">Nessun appuntamento in programma.</p>`;
+        if (dateDistinte.length === 0) {
+            summaryAppuntamenti.innerHTML = `<p class="text-muted">Nessun appuntamento in programma.</p>`;
+        } else {
+            dateDistinte.forEach((dataIso, idx) => {
+                const stile = stiliColoriGiorni[idx % stiliColoriGiorni.length];
+                const appDelGiorno = appFuturi.filter(a => a.data === dataIso);
+
+                htmlHomeApp += `
+                    <div style="background-color: ${stile.bg}; border-left: 4px solid ${stile.border}; padding: 8px 12px; border-radius: 6px; margin-bottom: 10px;">
+                        <div style="font-weight: bold; color: ${stile.text}; font-size: 0.85rem; margin-bottom: 6px;">
+                            📅 ${formatoDataEuropeo(dataIso)}
+                        </div>`;
+
+                appDelGiorno.forEach(app => {
+                    htmlHomeApp += `
+                        <div style="padding: 4px 0; border-top: 1px dashed rgba(0,0,0,0.1); display: flex; justify-content: space-between; font-size: 0.9rem;">
+                            <span><strong>${app.titolo}</strong> (${app.oraInizio})</span>
+                            <span style="font-size: 0.8rem; color: #64748b;">${app.creatore}</span>
+                        </div>`;
+                });
+
+                htmlHomeApp += `</div>`;
+            });
+            summaryAppuntamenti.innerHTML = htmlHomeApp;
+        }
 
     } catch (err) {
         gridSettimanale.innerHTML = `<p class="text-muted" style="padding: 20px;">Errore nel caricamento del calendario.</p>`;
