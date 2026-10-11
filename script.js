@@ -60,7 +60,6 @@ const navButtons = document.querySelectorAll('.nav-btn');
 const pageSections = document.querySelectorAll('.page-section');
 const menuUtenti = document.getElementById('menu-utenti');
 
-// Gestione Card Cliccabili nella Home
 document.querySelectorAll('.card-cliccabile').forEach(card => {
     card.addEventListener('click', () => {
         const targetId = card.dataset.target;
@@ -70,7 +69,6 @@ document.querySelectorAll('.card-cliccabile').forEach(card => {
     });
 });
 
-// Modale Scadenze
 const btnApriModal = document.getElementById('btn-apri-modal');
 const btnChiudiModal = document.getElementById('btn-chiudi-modal');
 const modalScadenza = document.getElementById('modal-scadenza');
@@ -88,7 +86,6 @@ const inputCaricaFoto = document.getElementById('input-carica-foto');
 const ocrLoading = document.getElementById('ocr-loading');
 const ocrProgress = document.getElementById('ocr-progress');
 
-// Modale Appuntamenti & Calendario Settimanale
 const btnApriModalAppuntamento = document.getElementById('btn-apri-modal-appuntamento');
 const btnChiudiModalAppuntamento = document.getElementById('btn-chiudi-modal-appuntamento');
 const modalAppuntamento = document.getElementById('modal-appuntamento');
@@ -106,7 +103,6 @@ const btnPrevWeek = document.getElementById('btn-prev-week');
 const btnNextWeek = document.getElementById('btn-next-week');
 const settimanaLabel = document.getElementById('settimana-label');
 
-// Gestione Ricette
 const btnApriModalRicetta = document.getElementById('btn-apri-modal-ricetta');
 const btnChiudiModalRicetta = document.getElementById('btn-chiudi-modal-ricetta');
 const modalRicetta = document.getElementById('modal-ricetta');
@@ -129,7 +125,6 @@ const contenutoRicettaCasuale = document.getElementById('contenuto-ricetta-casua
 const btnAltraRicettaCasuale = document.getElementById('btn-altra-ricetta-casuale');
 const titoloRicettaCasuale = document.getElementById('titolo-ricetta-casuale');
 
-// Gestione Utenti
 const utenteForm = document.getElementById('utente-form');
 const userEmailInput = document.getElementById('user-email-input');
 const userNameInput = document.getElementById('user-name-input');
@@ -213,7 +208,6 @@ btnChiudiModalAppuntamento.addEventListener('click', () => {
     modalAppuntamento.style.display = 'none';
 });
 
-// Modale Ricette
 btnApriModalRicetta.addEventListener('click', () => {
     modalRicettaTitle.textContent = "Nuova Ricetta";
     ricettaForm.reset();
@@ -268,7 +262,6 @@ function aggiornaNumeriPassi() {
 btnAggiungiIngrediente.addEventListener('click', () => aggiungiRigaIngrediente());
 btnAggiungiPasso.addEventListener('click', () => aggiungiRigaPasso());
 
-// Modale Ricetta Casuale
 btnRicettaCasuale.addEventListener('click', estraiRicettaCasuale);
 btnAltraRicettaCasuale.addEventListener('click', estraiRicettaCasuale);
 btnChiudiModalCasuale.addEventListener('click', () => {
@@ -747,23 +740,23 @@ window.modificaAppuntamento = function(id, titolo, data, oraInizio, oraFine) {
     modalAppuntamento.style.display = 'flex';
 }
 
-// --- GESTIONE RICETTE ---
+// --- GESTIONE RICETTE (con formattazione Capitalize) ---
 ricettaForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const nome = ricettaNomeInput.value.trim();
+    const nome = formatCapitalize(ricettaNomeInput.value);
     const editId = ricettaIdInput.value;
 
     const ingredienti = [];
     containerIngredienti.querySelectorAll('.input-ingrediente').forEach(input => {
-        if (input.value.trim()) ingredienti.push(input.value.trim());
+        if (input.value.trim()) ingredienti.push(formatCapitalize(input.value));
     });
 
     const procedimento = [];
     containerProcedimento.querySelectorAll('.input-passo').forEach(input => {
-        if (input.value.trim()) procedimento.push(input.value.trim());
+        if (input.value.trim()) procedimento.push(formatCapitalize(input.value));
     });
 
-    const note = ricettaNoteInput.value.trim();
+    const note = formatCapitalize(ricettaNoteInput.value);
 
     const datiRicetta = {
         nome,
@@ -912,7 +905,7 @@ window.modificaRicetta = async function(id) {
 utenteForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = userEmailInput.value.trim().toLowerCase();
-    const nome = userNameInput.value.trim();
+    const nome = formatCapitalize(userNameInput.value);
     const colore = userColorInput.value;
     const permessi = {
         scadenze: permScadenze.checked,
