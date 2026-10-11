@@ -1,4 +1,4 @@
-- {
+* {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -275,12 +275,6 @@ input:focus, textarea:focus {
     background-color: #fafbfc;
 }
 
-.arrow-goto {
-    color: var(--user-primary, #3b82f6);
-    font-weight: bold;
-    font-size: 1.1rem;
-}
-
 .card-summary .card-header {
     display: flex;
     justify-content: space-between;
@@ -412,7 +406,6 @@ input:focus, textarea:focus {
     border-color: #94a3b8;
 }
 
-/* SCADENZE: Testi a 0.95rem in grassetto, disposti in colonna con allineamento a sinistra */
 .scadenza-badge-item {
     display: flex;
     flex-direction: column;
@@ -425,7 +418,6 @@ input:focus, textarea:focus {
     gap: 12px;
 }
 
-/* Badge compatto colorato per il riepilogo nella Home */
 .scadenza-summary-badge {
     display: flex;
     justify-content: space-between;
