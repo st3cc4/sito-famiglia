@@ -67,7 +67,7 @@ input[type="color"] {
     font-size: 1rem;
 }
 
-input:focus {
+input:focus, textarea:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
@@ -133,6 +133,20 @@ input:focus {
 }
 
 .btn { width: 100%; padding: 12px; }
+
+.btn-piccolo {
+    background-color: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-piccolo:hover {
+    background-color: #e2e8f0;
+}
 
 .auth-links { margin-top: 15px; font-size: 0.9rem; }
 .auth-links a { color: #3b82f6; text-decoration: none; }
@@ -436,7 +450,6 @@ input:focus {
     vertical-align: middle;
 }
 
-/* Pulsanti disposti in basso orizzontalmente, sotto le scritte */
 .azioni-utente { 
     display: flex; 
     gap: 10px; 
@@ -485,145 +498,71 @@ input:focus {
     cursor: pointer;
 }
 
-/* --- STILI CALENDARIO SETTIMANALE MODERNO --- */
-.settimana-controls {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.btn-settimana {
-    background-color: #ffffff;
-    color: #334155;
-    border: 1px solid #cbd5e1;
-    padding: 8px 14px;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.btn-settimana:hover {
-    background-color: #f1f5f9;
-}
-
-.settimana-label {
-    font-weight: bold;
-    color: #1e293b;
-    font-size: 1rem;
-    min-width: 180px;
-    text-align: center;
-}
-
-.calendar-card-wrapper {
-    padding: 10px;
-    background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-
-.table-responsive {
-    width: 100%;
-    overflow-x: auto;
-}
-
-.grid-settimanale-moderna {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(130px, 1fr));
-    gap: 1px;
-    background-color: #e2e8f0;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    overflow: hidden;
-    min-width: 900px;
-}
-
-.colonna-giorno {
-    background-color: #ffffff;
+/* --- STILI PER LA SEZIONE RICETTE --- */
+.ricette-grid-container {
     display: flex;
     flex-direction: column;
-    min-height: 350px;
+    gap: 15px;
 }
 
-.header-giorno-moderno {
-    background-color: #f8fafc;
-    text-align: center;
-    padding: 12px 6px;
-    border-bottom: 1px solid #e2e8f0;
+.ricetta-card-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 5px solid #ec4899;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.header-giorno-moderno.oggi {
-    background-color: #e0f2fe;
+.ricetta-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.nome-giorno {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-}
-
-.numero-giorno {
+.ricetta-titolo {
     font-size: 1.1rem;
     font-weight: bold;
     color: #1e293b;
-    margin-top: 4px;
 }
 
-.corpo-giorno-moderno {
-    padding: 8px;
+.ricetta-corpo {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    flex-grow: 1;
-    background-color: #ffffff;
+    font-size: 0.95rem;
+    color: #334155;
 }
 
-.card-impegno-google {
-    background-color: #f8fafc;
-    border-left: 4px solid #3b82f6;
-    border-radius: 6px;
-    padding: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.card-impegno-titolo {
-    font-weight: bold;
-    font-size: 0.9rem;
-    color: #1e293b;
-}
-
-.card-impegno-orario {
-    font-size: 0.8rem;
+.ricetta-sezione-titolo {
+    font-weight: 600;
     color: #475569;
-}
-
-.card-impegno-creatore {
-    font-size: 0.75rem;
-    color: #64748b;
-    font-style: italic;
-}
-
-.card-impegno-azioni {
-    display: flex;
-    justify-content: flex-end;
-    gap: 6px;
+    font-size: 0.9rem;
     margin-top: 4px;
-    padding-top: 4px;
-    border-top: 1px solid #e2e8f0;
 }
 
-.btn-mini {
-    padding: 2px 6px;
-    font-size: 0.75rem;
-    border-radius: 4px;
+.ricetta-lista-elementi {
+    padding-left: 20px;
+    margin: 0;
+}
+
+.ricetta-lista-elementi li {
+    margin-bottom: 3px;
+}
+
+.dynamic-row-input {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn-rimuovi-riga {
+    background: none;
     border: none;
+    color: #ef4444;
+    font-size: 1.2rem;
     cursor: pointer;
-    color: white;
+    padding: 0 6px;
 }
-
-.btn-mini-edit { background-color: #3b82f6; }
-.btn-mini-del { background-color: #ef4444; }
