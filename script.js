@@ -829,7 +829,6 @@ async function caricaRicette() {
                 <div class="ricetta-card-item" id="ricetta-card-${r.id}">
                     <div class="ricetta-header-row" onclick="toggleRicettaAccordion('${r.id}')">
                         <div class="ricetta-titolo">${r.nome}</div>
-                        <div style="font-size: 0.9rem; color: #64748b;">▼</div>
                     </div>
                     <div class="ricetta-corpo">
                         <div class="ricetta-sezione-titolo">Ingredienti:</div>
@@ -869,10 +868,6 @@ window.toggleRicettaAccordion = function(id) {
     const card = document.getElementById(`ricetta-card-${id}`);
     if (card) {
         card.classList.toggle('aperta');
-        const freccia = card.querySelector('.ricetta-header-row div:last-child');
-        if (freccia) {
-            freccia.textContent = card.classList.contains('aperta') ? '▲' : '▼';
-        }
     }
 }
 
