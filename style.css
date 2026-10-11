@@ -263,6 +263,24 @@ input:focus, textarea:focus {
     gap: 20px;
 }
 
+/* Card interamente cliccabili nella Home */
+.card-cliccabile {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.card-cliccabile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    background-color: #fafbfc;
+}
+
+.arrow-goto {
+    color: var(--user-primary, #3b82f6);
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
 .card-summary .card-header {
     display: flex;
     justify-content: space-between;
@@ -275,15 +293,6 @@ input:focus, textarea:focus {
 .card-summary h2 {
     font-size: 1.1rem;
     color: #1e293b;
-}
-
-.link-goto {
-    background: none;
-    border: none;
-    color: var(--user-primary, #3b82f6);
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 0.85rem;
 }
 
 .text-muted { color: #94a3b8; font-size: 0.9rem; }
