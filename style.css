@@ -263,7 +263,6 @@ input:focus, textarea:focus {
     gap: 20px;
 }
 
-/* Card interamente cliccabili nella Home */
 .card-cliccabile {
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
@@ -554,7 +553,8 @@ input:focus, textarea:focus {
 }
 
 .ricetta-lista-elementi {
-    padding-left: 20px;
+    list-style-type: none;
+    padding-left: 0;
     margin: 0;
     font-size: 0.95rem;
     color: #334155;
