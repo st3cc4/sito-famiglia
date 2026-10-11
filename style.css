@@ -546,10 +546,12 @@ input:focus, textarea:focus {
 }
 
 .ricetta-sezione-titolo {
-    font-weight: 600;
-    color: #475569;
-    font-size: 0.9rem;
-    margin-top: 8px;
+    font-weight: bold;
+    color: #1e293b;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    margin-top: 12px;
+    margin-bottom: 4px;
 }
 
 .ricetta-lista-elementi {
