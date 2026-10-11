@@ -42,7 +42,7 @@ const ADMIN_EMAIL = "stpa79@gmail.com";
 let nomeUtenteCorrente = "Utente";
 let coloreUtenteCorrente = "#3b82f6";
 let mappaColoriUtenti = {}; 
-let elListaRicetteGlobal = []; // Per l'estrazione della ricetta casuale
+let elListaRicetteGlobal = [];
 
 const authContainer = document.getElementById('auth-container');
 const appContainer = document.getElementById('app-container');
@@ -59,6 +59,16 @@ const toggleSidebarBtn = document.getElementById('toggle-sidebar');
 const navButtons = document.querySelectorAll('.nav-btn');
 const pageSections = document.querySelectorAll('.page-section');
 const menuUtenti = document.getElementById('menu-utenti');
+
+// Gestione Card Cliccabili nella Home
+document.querySelectorAll('.card-cliccabile').forEach(card => {
+    card.addEventListener('click', () => {
+        const targetId = card.dataset.target;
+        if (targetId) {
+            mostraSezione(targetId);
+        }
+    });
+});
 
 // Modale Scadenze
 const btnApriModal = document.getElementById('btn-apri-modal');
@@ -144,7 +154,7 @@ function mostraSezione(targetId) {
 }
 
 navButtons.forEach(btn => btn.addEventListener('click', () => mostraSezione(btn.dataset.target)));
-document.querySelectorAll('.link-goto, .btn-back-home').forEach(btn => {
+document.querySelectorAll('.btn-back-home').forEach(btn => {
     btn.addEventListener('click', () => mostraSezione(btn.dataset.target));
 });
 
@@ -789,7 +799,7 @@ async function caricaRicette() {
         });
 
         ricette.sort((a, b) => a.nome.localeCompare(b.nome));
-        elListaRicetteGlobal = ricette; // Salviamo per l'estrazione casuale
+        elListaRicetteGlobal = ricette;
 
         if (ricette.length === 0) {
             listaRicette.innerHTML = `<p class="text-muted">Nessuna ricetta inserita nel ricettario.</p>`;
@@ -840,7 +850,6 @@ async function caricaRicette() {
 
         listaRicette.innerHTML = htmlGrigliaRicette;
 
-        // HOME: Semplice elenco di tutti i nomi delle ricette
         let htmlHomeRicette = "";
         ricette.forEach(r => {
             htmlHomeRicette += `
