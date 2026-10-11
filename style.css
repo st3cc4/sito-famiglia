@@ -389,16 +389,17 @@ input:focus {
     border-color: #94a3b8;
 }
 
-/* SCADENZE: Testi ridotti a 0.95rem (prima erano a 1.05rem) e in grassetto */
+/* SCADENZE: Testi a 0.95rem in grassetto, disposti in colonna con allineamento a sinistra */
 .scadenza-badge-item {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 14px;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px 16px;
     border-radius: 8px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     font-size: 0.95rem; 
     font-weight: bold;    
+    gap: 12px;
 }
 
 /* Badge compatto colorato per il riepilogo nella Home */
@@ -435,19 +436,21 @@ input:focus {
     vertical-align: middle;
 }
 
-/* Pulsanti disposti in colonna: Modifica sopra, Elimina sotto */
+/* Pulsanti disposti in basso orizzontalmente, sotto le scritte */
 .azioni-utente { 
     display: flex; 
-    flex-direction: column; 
-    gap: 6px; 
-    min-width: 75px;
+    gap: 10px; 
+    width: 100%;
+    justify-content: flex-start;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    padding-top: 10px;
 }
 
 .btn-elimina {
     background-color: #ef4444;
     color: white;
     border: none;
-    padding: 6px 10px;
+    padding: 6px 14px;
     border-radius: 6px;
     cursor: pointer;
     font-size: 0.85rem;
@@ -458,7 +461,7 @@ input:focus {
     background-color: #3b82f6;
     color: white;
     border: none;
-    padding: 6px 10px;
+    padding: 6px 14px;
     border-radius: 6px;
     cursor: pointer;
     font-size: 0.85rem;
