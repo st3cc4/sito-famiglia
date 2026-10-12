@@ -40,7 +40,7 @@
     <!-- CONTENITORE PRINCIPALE DELL'APPLICAZIONE -->
     <div id="app-container" class="layout-wrapper" style="display: none;">
         
-        <!-- SIDEBAR DI NAVIGAZIONE (Partenza chiusa con 'collapsed') -->
+        <!-- SIDEBAR DI NAVIGAZIONE -->
         <aside id="sidebar" class="sidebar collapsed">
             <button id="toggle-sidebar" class="sidebar-toggle-btn">☰</button>
             <nav class="sidebar-nav">
@@ -116,7 +116,7 @@
                     </div>
 
                 </div>
-                <div class="app-signature">Portale Famiglia - Stecca</div>
+                <div class="app-signature">Created by STECCA</div>
             </section>
 
             <!-- 2. SEZIONE SCADENZE -->
@@ -148,11 +148,9 @@
                     <button id="btn-apri-modal-appuntamento" class="btn-nuova-scadenza">Nuovo appuntamento</button>
                 </div>
 
-                <div class="card calendar-card-wrapper">
-                    <div class="table-responsive">
-                        <div id="grid-settimanale" class="grid-settimanale-moderna">
-                            <!-- Popolato dinamicamente da JavaScript -->
-                        </div>
+                <div class="calendar-card-wrapper">
+                    <div id="grid-settimanale" class="grid-settimanale-moderna">
+                        <!-- Popolato dinamicamente da JavaScript -->
                     </div>
                 </div>
                 <div class="footer-home-nav">
@@ -233,7 +231,7 @@
         </main>
     </div>
 
-    <!-- MODALE INSERIMENTO / MODIFICA SCADENZA -->
+    <!-- MODALI -->
     <div id="modal-scadenza" class="modal-overlay" style="display: none;">
         <div class="modal-card">
             <div class="modal-header">
@@ -273,7 +271,6 @@
         </div>
     </div>
 
-    <!-- MODALE INSERIMENTO / MODIFICA APPUNTAMENTO -->
     <div id="modal-appuntamento" class="modal-overlay" style="display: none;">
         <div class="modal-card">
             <div class="modal-header">
@@ -309,7 +306,6 @@
         </div>
     </div>
 
-    <!-- MODALE INSERIMENTO / MODIFICA RICETTA -->
     <div id="modal-ricetta" class="modal-overlay" style="display: none;">
         <div class="modal-card" style="max-width: 600px;">
             <div class="modal-header">
@@ -323,21 +319,15 @@
                     <input type="text" id="ricetta-nome" required placeholder="Es. Torta di mele di famiglia">
                 </div>
 
-                <!-- Sezione Ingredienti Dinamici -->
                 <div class="form-group">
                     <label>Ingredienti</label>
-                    <div id="container-ingredienti" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
-                        <!-- Dinamico -->
-                    </div>
+                    <div id="container-ingredienti" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;"></div>
                     <button type="button" id="btn-aggiungi-ingrediente" class="btn-piccolo">Aggiungi Ingrediente</button>
                 </div>
 
-                <!-- Sezione Procedimento Dinamico -->
                 <div class="form-group" style="margin-top: 15px;">
                     <label>Procedimento</label>
-                    <div id="container-procedimento" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
-                        <!-- Dinamico -->
-                    </div>
+                    <div id="container-procedimento" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;"></div>
                     <button type="button" id="btn-aggiungi-passo" class="btn-piccolo">Aggiungi Passo</button>
                 </div>
 
@@ -351,16 +341,13 @@
         </div>
     </div>
 
-    <!-- MODALE VISUALIZZAZIONE RICETTA CASUALE -->
     <div id="modal-ricetta-casuale" class="modal-overlay" style="display: none;">
         <div class="modal-card" style="max-width: 600px;">
             <div class="modal-header">
                 <h2 id="titolo-ricetta-casuale">Consiglio dello Chef 🍳</h2>
                 <button id="btn-chiudi-modal-casuale" class="btn-chiudi">&times;</button>
             </div>
-            <div id="contenuto-ricetta-casuale" style="display: flex; flex-direction: column; gap: 10px; font-size: 0.95rem; color: #334155;">
-                <!-- Popolato da JS -->
-            </div>
+            <div id="contenuto-ricetta-casuale" style="display: flex; flex-direction: column; gap: 10px; font-size: 0.95rem; color: #334155;"></div>
             <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
                 <button type="button" id="btn-altra-ricetta-casuale" class="btn" style="width: auto; background-color: #10b981;">Estrai un'altra ricetta</button>
             </div>
