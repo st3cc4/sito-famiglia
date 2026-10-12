@@ -197,12 +197,19 @@ btnChiudiModal.addEventListener('click', () => {
 });
 
 btnApriModalAppuntamento.addEventListener('click', () => {
+    apriModalNuovoAppuntamento();
+});
+
+function apriModalNuovoAppuntamento(dataSelezionata = "") {
     modalAppuntamentoTitle.textContent = "Nuovo Appuntamento";
     appuntamentoForm.reset();
     appIdInput.value = "";
     appCreatore.value = nomeUtenteCorrente;
+    if (dataSelezionata) {
+        appData.value = dataSelezionata;
+    }
     modalAppuntamento.style.display = 'flex';
-});
+}
 
 btnChiudiModalAppuntamento.addEventListener('click', () => {
     modalAppuntamento.style.display = 'none';
@@ -391,7 +398,7 @@ appOraInizio.addEventListener('change', () => {
     if (inizio) {
         const [ore, minuti] = inizio.split(':').map(Number);
         let nuoveOre = ore + 1;
-        if (nuoveOre >= 24) nuoveOre = 23; 
+        if (nuoveOre >= 24) neueOre = 23; 
         const oreStr = String(nuoveOre).padStart(2, '0');
         const minStr = String(minuti).padStart(2, '0');
         appOraFine.value = `${oreStr}:${minStr}`;
@@ -666,13 +673,13 @@ async function caricaAppuntamenti() {
             });
 
             htmlGriglia += `
-                <div class="colonna-giorno-scheda">
+                <div class="colonna-giorno-scheda card-cliccabile" onclick="apriModalNuovoAppuntamento('${isoDate}')" title="Clicca per aggiungere un impegno in questo giorno">
                     <div class="header-giorno-moderno ${isOggi ? 'oggi' : ''}">
                         <div class="nome-giorno">${nomeGiorno}</div>
                         <div class="numero-giorno">${numGiorno}</div>
                     </div>
                     <div class="corpo-giorno-moderno">
-                        ${htmlImpegni || '<span class="text-muted" style="font-size: 0.85rem;">Nessun impegno</span>'}
+                        ${htmlImpegni || '<span class="text-muted" style="font-size: 0.85rem;">Nessun impegno (Clicca per aggiungere)</span>'}
                     </div>
                 </div>`;
         });
@@ -860,7 +867,7 @@ async function caricaRicette() {
 }
 
 window.toggleRicettaAccordion = function(id) {
-    const card = document.getElementById(`ricetta-card-${id}`);
+    card = document.getElementById(`ricetta-card-${id}`);
     if (card) {
         card.classList.toggle('aperta');
     }
