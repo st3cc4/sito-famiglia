@@ -1,4 +1,469 @@
-/* Stili per i Pollici di Valutazione Ricette */
+:root {
+    --user-primary: #3b82f6;
+    --bg-main: #f8fafc;
+    --card-bg: #ffffff;
+    --text-color: #1e293b;
+    --sidebar-width: 250px;
+    --sidebar-collapsed: 70px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-color);
+    min-height: 100vh;
+}
+
+/* AUTH / LOGIN BOX */
+.auth-box {
+    max-width: 400px;
+    margin: 80px auto;
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.auth-box h2 {
+    margin-bottom: 5px;
+    color: var(--text-color);
+}
+
+/* LAYOUT PRINCIPALE APP */
+#app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: #1e293b;
+    color: #ffffff;
+    transition: width 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar.collapsed {
+    width: var(--sidebar-collapsed);
+}
+
+.sidebar-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #334155;
+}
+
+.sidebar.collapsed .logo-text {
+    display: none;
+}
+
+.btn-toggle {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0;
+}
+
+.nav-btn {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 1rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.nav-btn:hover, .nav-btn.active {
+    background-color: #334155;
+    color: #ffffff;
+    border-left: 4px solid var(--user-primary);
+}
+
+.sidebar.collapsed .nav-btn span {
+    display: none;
+}
+
+.nav-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+/* MAIN CONTENT AREA */
+.main-content {
+    flex: 1;
+    padding: 25px;
+    overflow-y: auto;
+}
+
+/* HEADER SUPERIORE */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card-bg);
+    padding: 15px 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    margin-bottom: 25px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-icon {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#header-color-picker {
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    background: transparent;
+}
+
+/* FORM E INPUTS GENERALE */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+
+.btn-primary {
+    background-color: var(--user-primary);
+    color: #ffffff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: opacity 0.2s ease;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+}
+
+.btn-secondary {
+    background-color: #e2e8f0;
+    color: #334155;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.text-muted {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+/* SEZIONI E NAVIGAZIONE */
+.page-section {
+    display: none;
+}
+
+.page-section.active {
+    display: block;
+}
+
+.section-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.btn-back-home {
+    background-color: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+/* HOME GRID LAYOUT */
+.home-grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+.home-cards-column {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.card-cliccabile {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.card-cliccabile:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+.card-cliccabile img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+}
+
+.card-cliccabile span {
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+
+.home-summary-column {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.summary-box {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.summary-box h3 {
+    font-size: 1rem;
+    color: #475569;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 5px;
+}
+
+/* MODALE GENERALE */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    width: 90%;
+    max-width: 450px;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* SCADENZE BADGE */
+.lista-badge {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.scadenza-badge-item {
+    background: var(--card-bg);
+    padding: 12px 18px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    border-left: 5px solid #cbd5e1;
+}
+
+.status-green { border-left-color: #22c55e; }
+.status-orange { border-left-color: #f97316; }
+.status-red { border-left-color: #ef4444; }
+
+.totale-badge {
+    margin-top: 20px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-align: right;
+    color: var(--user-primary);
+}
+
+/* CALENDARIO SETTIMANALE */
+.controlli-settimana {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.grid-settimana-container {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+}
+
+.colonna-giorno-scheda {
+    background: var(--card-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    display: flex;
+    flex-direction: column;
+}
+
+.header-giorno-moderno {
+    background: #f1f5f9;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.header-giorno-moderno.oggi {
+    background: var(--user-primary);
+    color: #ffffff;
+}
+
+.corpo-giorno-moderno {
+    padding: 10px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.card-impegno-google {
+    background: #f8fafc;
+    border-left: 3px solid var(--user-primary);
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+/* RICETTARIO E ACCORDION */
+.ricette-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ricetta-card-item {
+    background: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    overflow: hidden;
+}
+
+.ricetta-header-row {
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    background: #ffffff;
+    transition: background 0.2s ease;
+}
+
+.ricetta-header-row:hover {
+    background: #f8fafc;
+}
+
+.ricetta-corpo {
+    display: none;
+    padding: 15px 18px;
+    border-top: 1px solid #f1f5f9;
+    background: #fafafa;
+}
+
+.ricetta-card-item.aperta .ricetta-corpo {
+    display: block;
+}
+
+.dynamic-row-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.btn-rimuovi-riga {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+/* POLLICI DI VALUTAZIONE RICETTE */
 .ricetta-voti-container {
     display: flex;
     align-items: center;
