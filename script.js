@@ -327,12 +327,39 @@ function estraiRicettaCasuale() {
     modalRicettaCasuale.style.display = 'flex';
 }
 
+// --- GESTIONE LOGIN / LOGOUT AUTOMATICO ED INIZIALIZZAZIONE ---
 authForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const nomeInserito = formatCapitalize(authUsernameInput.value);
     const passwordInserita = authPasswordInput.value.trim();
 
     try {
+        const utentiSnapshot = await getDocs(collection(db, "utenti"));
+        
+        // Se il database degli utenti è totalmente vuoto, crea l'utente Admin principale (Paolo)
+        if (utentiSnapshot.empty) {
+            const adminData = {
+                nome: ADMIN_NAME,
+                password: passwordInserita || "sv058753",
+                colore: "#3b82f6",
+                permessi: { scadenze: true, appuntamenti: true, media: true, ricette: true }
+            };
+            await setDoc(doc(db, "utenti", ADMIN_NAME), adminData);
+
+            nomeUtenteCorrente = ADMIN_NAME;
+            coloreUtenteCorrente = adminData.colore;
+
+            if (rememberCheck.checked) {
+                localStorage.setItem("portale_famiglia_utente", nomeUtenteCorrente);
+            } else {
+                sessionStorage.setItem("portale_famiglia_utente", nomeUtenteCorrente);
+            }
+
+            avviaApplicazione();
+            return;
+        }
+
+        // Cerca l'utente normalmente
         const userDocRef = doc(db, "utenti", nomeInserito);
         const userDoc = await getDoc(userDocRef);
 
