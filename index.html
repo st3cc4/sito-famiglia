@@ -77,42 +77,56 @@
 
             <!-- SEZIONE HOME -->
             <section id="sec-home" class="page-section active">
-                <div class="home-grid-layout">
-                    <!-- Colonna Sinistra (Carte Cliccabili) -->
-                    <div class="home-cards-column">
-                        <div class="card-cliccabile" data-target="sec-scadenze">
+                <div class="home-grid-layout" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                    
+                    <!-- Scheda Scadenze -->
+                    <div class="card-cliccabile card-home-unita" data-target="sec-scadenze">
+                        <div class="card-home-header">
                             <img src="icon/icona-scadenze.png" alt="Scadenze">
                             <span>Scadenze</span>
                         </div>
-                        <div class="card-cliccabile" data-target="sec-appuntamenti">
-                            <img src="icon/icona-impegni.png" alt="Appuntamenti">
-                            <span>Appuntamenti</span>
-                        </div>
-                        <div class="card-cliccabile" data-target="sec-media">
-                            <img src="icon/icona-media.png" alt="Media">
-                            <span>Media</span>
-                        </div>
-                        <div class="card-cliccabile" data-target="sec-ricette">
-                            <img src="icon/icona-ricette.png" alt="Ricette">
-                            <span>Ricette</span>
-                        </div>
-                    </div>
-
-                    <!-- Colonna Destra (Sommari) -->
-                    <div class="home-summary-column">
-                        <div class="summary-box">
+                        <div class="summary-box summary-interno">
                             <h3>Scadenze in arrivo</h3>
                             <div id="home-summary-scadenze">Caricamento...</div>
                         </div>
-                        <div class="summary-box">
+                    </div>
+
+                    <!-- Scheda Appuntamenti -->
+                    <div class="card-cliccabile card-home-unita" data-target="sec-appuntamenti">
+                        <div class="card-home-header">
+                            <img src="icon/icona-impegni.png" alt="Appuntamenti">
+                            <span>Appuntamenti</span>
+                        </div>
+                        <div class="summary-box summary-interno">
                             <h3>Prossimi Appuntamenti</h3>
                             <div id="home-summary-appuntamenti">Caricamento...</div>
                         </div>
-                        <div class="summary-box">
+                    </div>
+
+                    <!-- Scheda Media -->
+                    <div class="card-cliccabile card-home-unita" data-target="sec-media">
+                        <div class="card-home-header">
+                            <img src="icon/icona-media.png" alt="Media">
+                            <span>Media</span>
+                        </div>
+                        <div class="summary-box summary-interno">
+                            <h3>Galleria Media</h3>
+                            <p class="text-muted" style="margin: 0; font-size: 0.9rem;">Foto e documenti condivisi.</p>
+                        </div>
+                    </div>
+
+                    <!-- Scheda Ricette -->
+                    <div class="card-cliccabile card-home-unita" data-target="sec-ricette">
+                        <div class="card-home-header">
+                            <img src="icon/icona-ricette.png" alt="Ricette">
+                            <span>Ricette</span>
+                        </div>
+                        <div class="summary-box summary-interno">
                             <h3>Ricette</h3>
                             <div id="home-summary-ricette">Caricamento...</div>
                         </div>
                     </div>
+
                 </div>
             </section>
 
