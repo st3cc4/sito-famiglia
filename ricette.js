@@ -230,17 +230,24 @@ export async function caricaRicette() {
 
         listaRicette.innerHTML = htmlGrigliaRicette;
 
+        // Limita la visualizzazione in Home alle prime 5 ricette
         let htmlHomeRicette = "";
-        ricette.forEach(r => {
+        const ricettePerHome = ricette.slice(0, 5);
+        ricettePerHome.forEach(r => {
             htmlHomeRicette += `
                 <div style="padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.95rem; font-weight: 600; color: #1e293b;">
                     ${r.nome}
                 </div>`;
         });
+        
+        if (ricette.length > 5) {
+            htmlHomeRicette += `<div style="padding-top: 6px; font-size: 0.85rem; color: #64748b; text-align: center;">E altre ${ricette.length - 5} ricette...</div>`;
+        }
+
         summaryRicette.innerHTML = htmlHomeRicette;
 
     } catch (err) {
-        listaRicette.innerHTML = `<p class="text-muted">Errore nel caricamento delle ricette.</p>`;
+        listaRicettelistaRicette.innerHTML = `<p class="text-muted">Errore nel caricamento delle ricette.</p>`;
         summaryRicette.innerHTML = `<p class="text-muted">Errore caricamento.</p>`;
     }
 }
