@@ -126,7 +126,7 @@ body {
     width: calc(100% - var(--sidebar-collapsed));
 }
 
-/* HEADER SUPERIORE */
+/* HEADER SUPERIORE (Centrato con Saluto + Colore) */
 .app-header {
     display: flex;
     justify-content: space-between;
@@ -148,6 +148,12 @@ body {
     width: 28px;
     height: 28px;
     object-fit: contain;
+}
+
+.header-center {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .header-right {
@@ -240,11 +246,13 @@ body {
     font-size: 0.85rem;
 }
 
-/* HOME GRID LAYOUT E SCHEDE UNITE */
-.home-grid-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 25px;
+/* HOME VERTICAL LAYOUT (Disposizione in colonna 1 sotto l'altra) */
+.home-vertical-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 .card-cliccabile {
@@ -257,11 +265,10 @@ body {
 }
 
 .card-cliccabile:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
 }
 
-/* Stili specifici per le schede unite della Home */
 .card-home-unita {
     align-items: stretch !important;
     text-align: left !important;
