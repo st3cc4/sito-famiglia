@@ -289,7 +289,6 @@ window.votaRicetta = async function(id, tipoVoto) {
             const data = docSnap.data();
             const voti = data.voti || {};
 
-            // Se l'utente clicca sullo stesso voto, lo rimuove, altrimenti lo aggiorna
             if (voti[nomeUtenteCorrente] === tipoVoto) {
                 delete voti[nomeUtenteCorrente];
             } else {
