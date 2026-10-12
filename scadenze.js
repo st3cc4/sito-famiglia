@@ -68,20 +68,23 @@ export async function caricaScadenze() {
             let stringaGiorni = "";
             let statusClass = "status-green";
 
-            if (diffGiorni < 0) {
+            if (diffGiorni <= 7) {
+                // Rosso: < 0 (scaduta), 0 (oggi), fino a 7 giorni
                 statusClass = "status-red";
-                const giorniPassati = Math.abs(diffGiorni);
-                stringaGiorni = `Scaduta da ${giorniPassati} ${giorniPassati === 1 ? 'giorno' : 'giorni'}`;
-            } else if (diffGiorni === 0) {
-                statusClass = "status-red";
-                stringaGiorni = `Scade oggi!`;
-            } else if (diffGiorni <= 7) {
-                statusClass = "status-red";
-                stringaGiorni = `Mancano ${diffGiorni} giorni`;
-            } else if (diffGiorni <= 14) {
+                if (diffGiorni < 0) {
+                    const giorniPassati = Math.abs(diffGiorni);
+                    stringaGiorni = `Scaduta da ${giorniPassati} ${giorniPassati === 1 ? 'giorno' : 'giorni'}`;
+                } else if (diffGiorni === 0) {
+                    stringaGiorni = `Scade oggi!`;
+                } else {
+                    stringaGiorni = `Mancano ${diffGiorni} giorni`;
+                }
+            } else if (diffGiorni >= 8 && diffGiorni <= 14) {
+                // Arancione: da 8 a 14 giorni compresi
                 statusClass = "status-orange";
                 stringaGiorni = `Mancano ${diffGiorni} giorni`;
             } else {
+                // Verde: da 15 giorni in su
                 statusClass = "status-green";
                 stringaGiorni = `Mancano ${diffGiorni} giorni`;
             }
@@ -89,6 +92,7 @@ export async function caricaScadenze() {
             return { ...s, diffGiorni, stringaGiorni, statusClass };
         });
 
+        // Generazione lista nella sezione Scadenze
         scadenzeCalcolate.forEach(s => {
             const creatoreScadenza = s.creatore ? s.creatore : "Famiglia";
             htmlScadenze += `
@@ -103,6 +107,7 @@ export async function caricaScadenze() {
                 </li>`;
         });
 
+        // Selezione per la Home: priorità a Rosse, poi Arancioni, poi Verdi
         const scadenzeRosse = scadenzeCalcolate.filter(s => s.statusClass === 'status-red');
         const scadenzeArancioni = scadenzeCalcolate.filter(s => s.statusClass === 'status-orange');
         const scadenzeVerdi = scadenzeCalcolate.filter(s => s.statusClass === 'status-green');
@@ -116,14 +121,15 @@ export async function caricaScadenze() {
             scadenzeDaMostrareInHome = scadenzeVerdi;
         }
 
+        // Generazione lista visibile nel box Home
         let htmlHomeSummary = "";
         scadenzeDaMostrareInHome.forEach(s => {
             htmlHomeSummary += `
-                <div class="scadenza-summary-badge ${s.statusClass}">
+                <div class="scadenza-summary-item ${s.statusClass}">
                     <div>
-                        <strong>${s.titolo}</strong> (${formatoDataEuropeo(s.data)}) - <span style="font-size: 0.8rem; font-weight: normal;">${s.stringaGiorni}</span>
+                        <strong>${s.titolo}</strong> (${formatoDataEuropeo(s.data)}) - <span style="font-size: 0.85rem; font-weight: normal;">${s.stringaGiorni}</span>
                     </div>
-                    <div style="font-weight: bold;">€ ${Number(s.importo).toFixed(2)}</div>
+                    <div style="font-weight: bold; font-size: 0.95rem;">€ ${Number(s.importo).toFixed(2)}</div>
                 </div>`;
         });
 
