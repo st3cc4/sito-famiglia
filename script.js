@@ -1,16 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 import { 
-    getAuth, 
-    signInWithEmailAndPassword, 
-    signOut, 
-    onAuthStateChanged,
-    setPersistence,
-    browserLocalPersistence,
-    browserSessionPersistence,
-    sendPasswordResetEmail
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { 
     getFirestore, 
     collection, 
     addDoc, 
@@ -34,12 +24,11 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
-const auth = getAuth(app);
 const db = getFirestore(app);
 
-const ADMIN_EMAIL = "stpa79@gmail.com"; 
+const ADMIN_NAME = "Paolo"; 
 
-let nomeUtenteCorrente = "Utente";
+let nomeUtenteCorrente = "";
 let coloreUtenteCorrente = "#3b82f6";
 let mappaColoriUtenti = {}; 
 let elListaRicetteGlobal = [];
@@ -47,7 +36,7 @@ let elListaRicetteGlobal = [];
 const authContainer = document.getElementById('auth-container');
 const appContainer = document.getElementById('app-container');
 const authForm = document.getElementById('auth-form');
-const authEmailInput = document.getElementById('auth-email');
+const authUsernameInput = document.getElementById('auth-username');
 const authPasswordInput = document.getElementById('auth-password');
 const rememberCheck = document.getElementById('remember-check');
 const forgotPasswordBtn = document.getElementById('forgot-password-btn');
@@ -130,8 +119,8 @@ const btnAltraRicettaCasuale = document.getElementById('btn-altra-ricetta-casual
 const titoloRicettaCasuale = document.getElementById('titolo-ricetta-casuale');
 
 const utenteForm = document.getElementById('utente-form');
-const userEmailInput = document.getElementById('user-email-input');
 const userNameInput = document.getElementById('user-name-input');
+const userPassInput = document.getElementById('user-pass-input');
 const userColorInput = document.getElementById('user-color-input');
 const permScadenze = document.getElementById('perm-scadenze');
 const permAppuntamenti = document.getElementById('perm-appuntamenti');
@@ -151,7 +140,6 @@ function mostraSezione(targetId) {
     const activeBtn = document.querySelector(`.nav-btn[data-target="${targetId}"]`);
     if(activeBtn) activeBtn.classList.add('active');
 
-    // Aggiorna dinamicamente l'header in base alla schermata
     if (targetId === 'sec-home') {
         headerIcon.innerHTML = '🏠';
         headerSectionName.textContent = 'Home';
@@ -339,90 +327,111 @@ function estraiRicettaCasuale() {
     modalRicettaCasuale.style.display = 'flex';
 }
 
+// --- GESTIONE LOGIN / LOGOUT PERSONALIZZATO ---
 authForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = authEmailInput.value;
-    const password = authPasswordInput.value;
-    const persistenceType = rememberCheck.checked ? browserLocalPersistence : browserSessionPersistence;
+    const nomeInserito = formatCapitalize(authUsernameInput.value);
+    const passwordInserita = authPasswordInput.value.trim();
 
     try {
-        await setPersistence(auth, persistenceType);
-        await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-        alert("Errore di accesso: controlla email o password.");
+        const userDocRef = doc(db, "utenti", nomeInserito);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+            const data = userDoc.data();
+            if (data.password === passwordInserita) {
+                nomeUtenteCorrente = nomeInserito;
+                coloreUtenteCorrente = data.colore || "#3b82f6";
+
+                if (rememberCheck.checked) {
+                    localStorage.setItem("portale_famiglia_utente", nomeUtenteCorrente);
+                } else {
+                    sessionStorage.setItem("portale_famiglia_utente", nomeUtenteCorrente);
+                }
+
+                avviaApplicazione();
+            } else {
+                alert("Password errata!");
+            }
+        } else {
+            alert("Utente non trovato!");
+        }
+    } catch (err) {
+        alert("Errore durante l'accesso.");
     }
 });
 
 forgotPasswordBtn.addEventListener('click', async (e) => {
     e.preventDefault();
-    const email = authEmailInput.value;
-    if (!email) {
-        alert("Inserisci prima la tua email nel campo apposito.");
+    const nomeInserito = formatCapitalize(authUsernameInput.value);
+    if (!nomeInserito) {
+        alert("Inserisci prima il tuo nome utente nel campo apposito.");
         return;
     }
     try {
-        await sendPasswordResetEmail(auth, email);
-        alert("Email per il recupero password inviata!");
-    } catch (error) {
-        alert("Errore: " + error.message);
+        const userDoc = await getDoc(doc(db, "utenti", nomeInserito));
+        if (userDoc.exists()) {
+            alert(`La password per ${nomeInserito} è: ${userDoc.data().password}`);
+        } else {
+            alert("Utente non registrato.");
+        }
+    } catch (err) {
+        alert("Errore nel recupero della password.");
     }
 });
 
-btnLogout.addEventListener('click', async () => {
-    try { await signOut(auth); } catch (error) { console.error(error); }
+btnLogout.addEventListener('click', () => {
+    localStorage.removeItem("portale_famiglia_utente");
+    sessionStorage.removeItem("portale_famiglia_utente");
+    location.reload();
 });
 
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        authContainer.style.display = 'none';
-        appContainer.style.display = 'flex';
-
-        let nomeVisualizzato = user.email.split('@')[0];
-        let coloreUtente = "#3b82f6";
-        let permessi = { scadenze: true, appuntamenti: true, media: true, ricette: true };
-
+window.addEventListener('DOMContentLoaded', async () => {
+    const utenteSalvato = localStorage.getItem("portale_famiglia_utente") || sessionStorage.getItem("portale_famiglia_utente");
+    if (utenteSalvato) {
         try {
-            const utentiSnapshot = await getDocs(collection(db, "utenti"));
-            utentiSnapshot.forEach(docSnap => {
-                const uData = docSnap.data();
-                if (uData.nome && uData.colore) {
-                    mappaColoriUtenti[uData.nome] = uData.colore;
-                }
-            });
-
-            const userDoc = await getDoc(doc(db, "utenti", user.email));
+            const userDoc = await getDoc(doc(db, "utenti", utenteSalvato));
             if (userDoc.exists()) {
-                const data = userDoc.data();
-                if (data.nome) nomeVisualizzato = data.nome;
-                if (data.colore) coloreUtente = data.colore;
-                if (data.permessi) permessi = data.permessi;
+                nomeUtenteCorrente = utenteSalvato;
+                coloreUtenteCorrente = userDoc.data().colore || "#3b82f6";
+                avviaApplicazione();
             }
         } catch (err) {
-            console.error("Errore lettura profilo utente", err);
+            console.error(err);
         }
-
-        nomeUtenteCorrente = formatCapitalize(nomeVisualizzato);
-        coloreUtenteCorrente = coloreUtente;
-        
-        document.documentElement.style.setProperty('--user-primary', coloreUtenteCorrente);
-        greetingTitle.textContent = `Ciao, ${nomeUtenteCorrente}`;
-
-        if (user.email === ADMIN_EMAIL) {
-            menuUtenti.style.display = 'flex';
-            caricaListaUtenti();
-        } else {
-            menuUtenti.style.display = 'none';
-        }
-
-        caricaScadenze();
-        caricaAppuntamenti();
-        caricaRicette();
-    } else {
-        authContainer.style.display = 'block';
-        appContainer.style.display = 'none';
-        authForm.reset();
     }
 });
+
+async function avviaApplicazione() {
+    authContainer.style.display = 'none';
+    appContainer.style.display = 'flex';
+
+    document.documentElement.style.setProperty('--user-primary', coloreUtenteCorrente);
+    greetingTitle.textContent = `Ciao, ${nomeUtenteCorrente}`;
+
+    try {
+        const utentiSnapshot = await getDocs(collection(db, "utenti"));
+        utentiSnapshot.forEach(docSnap => {
+            const uData = docSnap.data();
+            if (uData.nome && uData.colore) {
+                mappaColoriUtenti[uData.nome] = uData.colore;
+            }
+        });
+    } catch (err) {
+        console.error(err);
+    }
+
+    if (nomeUtenteCorrente === ADMIN_NAME) {
+        menuUtenti.style.display = 'flex';
+        caricaListaUtenti();
+    } else {
+        menuUtenti.style.display = 'none';
+    }
+
+    caricaScadenze();
+    caricaAppuntamenti();
+    caricaRicette();
+}
 
 appOraInizio.addEventListener('change', () => {
     const inizio = appOraInizio.value;
@@ -944,8 +953,8 @@ window.modificaRicetta = async function(id) {
 
 utenteForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = userEmailInput.value.trim().toLowerCase();
     const nome = formatCapitalize(userNameInput.value);
+    const password = userPassInput.value.trim();
     const colore = userColorInput.value;
     const permessi = {
         scadenze: permScadenze.checked,
@@ -955,7 +964,7 @@ utenteForm.addEventListener('submit', async (e) => {
     };
 
     try {
-        await setDoc(doc(db, "utenti", email), { email, nome, colore, permessi });
+        await setDoc(doc(db, "utenti", nome), { nome, password, colore, permessi });
         alert("Utente configurato con successo!");
         utenteForm.reset();
         userColorInput.value = "#3b82f6";
@@ -975,8 +984,8 @@ async function caricaListaUtenti() {
             html += `
                 <li class="elemento-lista">
                     <div>
-                        <span class="badge-utente" style="background-color: ${u.colore};"></span>
-                        <strong>${u.nome}</strong> (${u.email})
+                        <span class="badge-utente" style="background-color: ${u.colore || '#3b82f6'};"></span>
+                        <strong>${u.nome}</strong> (Password: ${u.password})
                     </div>
                     <div>
                         <button class="btn-elimina" onclick="eliminaUtente('${docSnap.id}')">Elimina</button>
@@ -990,7 +999,7 @@ async function caricaListaUtenti() {
 }
 
 window.eliminaUtente = async function(emailId) {
-    if (confirm(`Vuoi rimuovere i permessi/configurazione per ${emailId}?`)) {
+    if (confirm(`Vuoi rimuovere l'utente ${emailId}?`)) {
         await deleteDoc(doc(db, "utenti", emailId));
         caricaListaUtenti();
     }
