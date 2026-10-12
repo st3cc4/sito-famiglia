@@ -586,7 +586,7 @@ inputCaricaFoto.addEventListener('change', (e) => {
 
 appuntamentoForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const titolo = appTitolo.value.trim();
+    const titolo = formatCapitalize(appTitolo.value);
     const data = appData.value;
     const oraInizio = appOraInizio.value;
     const oraFine = appOraFine.value;
@@ -666,13 +666,13 @@ async function caricaAppuntamenti() {
             });
 
             htmlGriglia += `
-                <div class="colonna-giorno">
+                <div class="colonna-giorno-scheda">
                     <div class="header-giorno-moderno ${isOggi ? 'oggi' : ''}">
                         <div class="nome-giorno">${nomeGiorno}</div>
                         <div class="numero-giorno">${numGiorno}</div>
                     </div>
                     <div class="corpo-giorno-moderno">
-                        ${htmlImpegni || '<span class="text-muted" style="font-size: 0.8rem;">Nessun impegno</span>'}
+                        ${htmlImpegni || '<span class="text-muted" style="font-size: 0.85rem;">Nessun impegno</span>'}
                     </div>
                 </div>`;
         });
@@ -740,7 +740,7 @@ window.modificaAppuntamento = function(id, titolo, data, oraInizio, oraFine) {
     modalAppuntamento.style.display = 'flex';
 }
 
-// --- GESTIONE RICETTE (con formattazione Capitalize) ---
+// --- GESTIONE RICETTE ---
 ricettaForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const nome = formatCapitalize(ricettaNomeInput.value);
@@ -817,11 +817,13 @@ async function caricaRicette() {
             }
 
             let htmlNote = r.note ? `<div style="margin-top: 6px; font-size: 0.9rem; color: #475569;"><strong>Note:</strong> ${r.note}</div>` : '';
+            const creatoreRicetta = r.creatore ? r.creatore : "Famiglia";
 
             htmlGrigliaRicette += `
                 <div class="ricetta-card-item" id="ricetta-card-${r.id}">
                     <div class="ricetta-header-row" onclick="toggleRicettaAccordion('${r.id}')">
                         <div class="ricetta-titolo">${r.nome}</div>
+                        <span class="ricetta-creatore-tag">${creatoreRicetta}</span>
                     </div>
                     <div class="ricetta-corpo">
                         <div class="ricetta-sezione-titolo">Ingredienti:</div>
