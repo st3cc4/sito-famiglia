@@ -327,7 +327,6 @@ function estraiRicettaCasuale() {
     modalRicettaCasuale.style.display = 'flex';
 }
 
-// --- GESTIONE LOGIN / LOGOUT PERSONALIZZATO ---
 authForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const nomeInserito = formatCapitalize(authUsernameInput.value);
