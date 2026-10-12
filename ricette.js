@@ -156,7 +156,6 @@ ricettaForm.addEventListener('submit', async (e) => {
         if (editId) {
             await updateDoc(doc(db, "ricette", editId), datiRicetta);
         } else {
-            datiRicetta.voti = {};
             await addDoc(collection(db, "ricette"), datiRicetta);
         }
         modalRicetta.style.display = 'none';
@@ -206,21 +205,6 @@ export async function caricaRicette() {
             let htmlNote = r.note ? `<div style="margin-top: 6px; font-size: 0.9rem; color: #475569;"><strong>Note:</strong> ${r.note}</div>` : '';
             const creatoreRicetta = r.creatore ? r.creatore : "Famiglia";
 
-            // Conteggio voti
-            const voti = r.voti || {};
-            let numSu = 0;
-            let numGiu = 0;
-            let votoUtenteCorrente = null;
-
-            Object.entries(voti).forEach(([utente, voto]) => {
-                if (voto === 'su') numSu++;
-                if (voto === 'giu') numGiu++;
-                if (utente === nomeUtenteCorrente) votoUtenteCorrente = voto;
-            });
-
-            const classeSu = votoUtenteCorrente === 'su' ? 'attivo-su' : '';
-            const classeGiu = votoUtenteCorrente === 'giu' ? 'attivo-giu' : '';
-
             htmlGrigliaRicette += `
                 <div class="ricetta-card-item" id="ricetta-card-${r.id}">
                     <div class="ricetta-header-row" onclick="toggleRicettaAccordion('${r.id}')">
@@ -236,17 +220,6 @@ export async function caricaRicette() {
 
                         ${htmlNote}
 
-                        <!-- Sezione Pollici di Valutazione -->
-                        <div class="ricetta-voti-container">
-                            <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">Ti è piaciuta?</span>
-                            <button class="btn-voto-pollice ${classeSu}" onclick="votaRicetta('${r.id}', 'su')">
-                                👍 <span>${numSu}</span>
-                            </button>
-                            <button class="btn-voto-pollice ${classeGiu}" onclick="votaRicetta('${r.id}', 'giu')">
-                                👎 <span>${numGiu}</span>
-                            </button>
-                        </div>
-
                         <div class="azioni-utente" style="margin-top: 10px;">
                             <button class="btn-modifica" onclick="modificaRicetta('${r.id}')">Mod.</button>
                             <button class="btn-elimina" onclick="eliminaRicetta('${r.id}')">Elimina</button>
@@ -257,49 +230,18 @@ export async function caricaRicette() {
 
         listaRicette.innerHTML = htmlGrigliaRicette;
 
-        // Limita la Home alle prime 5 ricette
         let htmlHomeRicette = "";
-        const ricettePerHome = ricette.slice(0, 5);
-        ricettePerHome.forEach(r => {
+        ricette.forEach(r => {
             htmlHomeRicette += `
                 <div style="padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.95rem; font-weight: 600; color: #1e293b;">
                     ${r.nome}
                 </div>`;
         });
-        
-        if (ricette.length > 5) {
-            htmlHomeRicette += `<div style="padding-top: 6px; font-size: 0.85rem; color: #64748b; text-align: center;">E altre ${ricette.length - 5} ricette...</div>`;
-        }
-
         summaryRicette.innerHTML = htmlHomeRicette;
 
     } catch (err) {
         listaRicette.innerHTML = `<p class="text-muted">Errore nel caricamento delle ricette.</p>`;
         summaryRicette.innerHTML = `<p class="text-muted">Errore caricamento.</p>`;
-    }
-}
-
-// Funzione per votare col pollice
-window.votaRicetta = async function(id, tipoVoto) {
-    try {
-        const ricettaRef = doc(db, "ricette", id);
-        const docSnap = await getDoc(ricettaRef);
-
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            const voti = data.voti || {};
-
-            if (voti[nomeUtenteCorrente] === tipoVoto) {
-                delete voti[nomeUtenteCorrente];
-            } else {
-                voti[nomeUtenteCorrente] = tipoVoto;
-            }
-
-            await updateDoc(ricettaRef, { voti: voti });
-            caricaRicette();
-        }
-    } catch (err) {
-        alert("Errore durante il salvataggio della valutazione.");
     }
 }
 
