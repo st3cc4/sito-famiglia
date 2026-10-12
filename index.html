@@ -1,50 +1,372 @@
-<!-- SEZIONE HOME -->
-            <section id="sec-home" class="page-section active">
-                <div class="home-grid-layout" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-                    
-                    <!-- Scheda Scadenze -->
-                    <div class="card-cliccabile" data-target="sec-scadenze" style="align-items: stretch; text-align: left;">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px; cursor: pointer;">
-                            <img src="icon/icona-scadenze.png" alt="Scadenze" style="width: 48px; height: 48px;">
-                            <span style="font-size: 1.2rem;">Scadenze</span>
-                        </div>
-                        <div class="summary-box" style="box-shadow: none; background: #f8fafc; padding: 10px; border-radius: 6px;">
-                            <div id="home-summary-scadenze">Caricamento...</div>
-                        </div>
-                    </div>
+index.html
 
-                    <!-- Scheda Appuntamenti -->
-                    <div class="card-cliccabile" data-target="sec-appuntamenti" style="align-items: stretch; text-align: left;">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px; cursor: pointer;">
-                            <img src="icon/icona-impegni.png" alt="Appuntamenti" style="width: 48px; height: 48px;">
-                            <span style="font-size: 1.2rem;">Appuntamenti</span>
-                        </div>
-                        <div class="summary-box" style="box-shadow: none; background: #f8fafc; padding: 10px; border-radius: 6px;">
-                            <div id="home-summary-appuntamenti">Caricamento...</div>
-                        </div>
-                    </div>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portale Famiglia</title>
+    <!-- Fogli di stile -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Libreria Tesseract.js per l'OCR delle bollette -->
+    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+</head>
+<body>
 
-                    <!-- Scheda Media -->
-                    <div class="card-cliccabile" data-target="sec-media" style="align-items: stretch; text-align: left;">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px; cursor: pointer;">
-                            <img src="icon/icona-media.png" alt="Media" style="width: 48px; height: 48px;">
-                            <span style="font-size: 1.2rem;">Media</span>
-                        </div>
-                        <div class="summary-box" style="box-shadow: none; background: #f8fafc; padding: 10px; border-radius: 6px;">
-                            <p class="text-muted" style="margin: 0;">Galleria foto e documenti condivisi.</p>
-                        </div>
-                    </div>
+    <!-- CONTENITORE AUTENTICAZIONE (LOGIN) -->
+    <div id="auth-container" class="container auth-card">
+        <h1 class="auth-title">Portale Famiglia</h1>
+        <p class="subtitle">Accedi inserendo il tuo nome utente e password</p>
+        
+        <div class="card">
+            <form id="auth-form">
+                <div class="form-group">
+                    <label for="auth-username">Nome Utente</label>
+                    <input type="text" id="auth-username" required placeholder="Inserisci il tuo nome">
+                </div>
+                <div class="form-group">
+                    <label for="auth-password">Password</label>
+                    <input type="password" id="auth-password" required placeholder="Inserisci la password">
+                </div>
+                <div class="login-row">
+                    <label class="remember-me">
+                        <input type="checkbox" id="remember-check"> Ricordami
+                    </label>
+                    <a href="#" id="forgot-password-btn" class="auth-links">Password dimenticata?</a>
+                </div>
+                <button type="submit" class="btn btn-accedi">Accedi</button>
+            </form>
+        </div>
+    </div>
 
-                    <!-- Scheda Ricette -->
-                    <div class="card-cliccabile" data-target="sec-ricette" style="align-items: stretch; text-align: left;">
-                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px; cursor: pointer;">
-                            <img src="icon/icona-ricette.png" alt="Ricette" style="width: 48px; height: 48px;">
-                            <span style="font-size: 1.2rem;">Ricette</span>
-                        </div>
-                        <div class="summary-box" style="box-shadow: none; background: #f8fafc; padding: 10px; border-radius: 6px;">
-                            <div id="home-summary-ricette">Caricamento...</div>
-                        </div>
-                    </div>
+    <!-- CONTENITORE PRINCIPALE DELL'APPLICAZIONE -->
+    <div id="app-container" class="layout-wrapper" style="display: none;">
+        
+        <!-- SIDEBAR DI NAVIGAZIONE -->
+        <aside id="sidebar" class="sidebar collapsed">
+            <button id="toggle-sidebar" class="sidebar-toggle-btn">☰</button>
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" data-target="sec-home">
+                    <span class="icon">🏠</span><span class="text">Home</span>
+                </button>
+                <button class="nav-btn" id="menu-scadenze" data-target="sec-scadenze">
+                    <span class="icon"><img src="icon/icona-scadenze.png" alt="Scadenze" class="custom-nav-icon"></span><span class="text">Scadenze</span>
+                </button>
+                <button class="nav-btn" id="menu-appuntamenti" data-target="sec-appuntamenti">
+                    <span class="icon"><img src="icon/icona-impegni.png" alt="Appuntamenti" class="custom-nav-icon"></span><span class="text">Appuntamenti</span>
+                </button>
+                <button class="nav-btn" id="menu-media" data-target="sec-media">
+                    <span class="icon"><img src="icon/icona-media.png" alt="Media" class="custom-nav-icon"></span><span class="text">Media</span>
+                </button>
+                <button class="nav-btn" id="menu-ricette" data-target="sec-ricette">
+                    <span class="icon"><img src="icon/icona-ricette.png" alt="Ricette" class="custom-nav-icon"></span><span class="text">Ricette</span>
+                </button>
+                <button class="nav-btn" id="menu-utenti" data-target="sec-utenti" style="display: none;">
+                    <span class="icon">⚙️</span><span class="text">Gestione Utenti</span>
+                </button>
+            </nav>
+        </aside>
 
-                </div>
-            </section>
+        <!-- CONTENUTO PRINCIPALE -->
+        <main class="main-content">
+            <!-- Header dell'applicazione con selettore colore vicino al saluto -->
+            <header class="app-header-container">
+                <div class="app-header-top">
+                    <div class="header-section-title" id="header-section-title">
+                        <span class="header-icon" id="header-icon">🏠</span>
+                        <span id="header-section-name">Home</span>
+                    </div>
+                    <div class="header-greeting-box">
+                        <span id="greeting-title" class="header-greeting">Ciao, Utente</span>
+                        <input type="color" id="header-color-picker" title="Scegli il tuo colore personale" class="header-color-square">
+                    </div>
+                    <button id="btn-logout" class="btn-logout">Esci</button>
+                </div>
+                <div class="app-header-sub">
+                    <button class="btn-back-home-top btn-back-home" id="btn-top-back-home" data-target="sec-home" style="display: none;">
+                        &larr; Torna alla HOME
+                    </button>
+                </div>
+            </header>
+
+            <!-- 1. SEZIONE HOME (DASHBOARD) -->
+            <section id="sec-home" class="page-section active">
+                <div class="dashboard-grid">
+                    
+                    <!-- Card Riassunto Scadenze -->
+                    <div id="card-sec-scadenze" class="card card-summary card-cliccabile" data-target="sec-scadenze">
+                        <div class="card-header">
+                            <h2 class="section-title-with-icon">
+                                <img src="icon/icona-scadenze.png" alt="" class="section-header-icon"> Scadenze in arrivo
+                            </h2>
+                        </div>
+                        <div id="home-summary-scadenze">
+                            <p class="text-muted">Caricamento in corso...</p>
+                        </div>
+                    </div>
+
+                    <!-- Card Riassunto Appuntamenti -->
+                    <div id="card-sec-appuntamenti" class="card card-summary card-cliccabile" data-target="sec-appuntamenti">
+                        <div class="card-header">
+                            <h2 class="section-title-with-icon">
+                                <img src="icon/icona-impegni.png" alt="" class="section-header-icon"> Prossimi Appuntamenti
+                            </h2>
+                        </div>
+                        <div id="home-summary-appuntamenti">
+                            <p class="text-muted">Caricamento in corso...</p>
+                        </div>
+                    </div>
+
+                    <!-- Card Media -->
+                    <div id="card-sec-media" class="card card-summary card-cliccabile" data-target="sec-media">
+                        <div class="card-header">
+                            <h2 class="section-title-with-icon">
+                                <img src="icon/icona-media.png" alt="" class="section-header-icon"> Galleria Media
+                            </h2>
+                        </div>
+                        <p class="text-muted">Foto e video condivisi dalla famiglia.</p>
+                    </div>
+
+                    <!-- Card Ricette -->
+                    <div id="card-sec-ricette" class="card card-summary card-cliccabile" data-target="sec-ricette">
+                        <div class="card-header">
+                            <h2 class="section-title-with-icon">
+                                <img src="icon/icona-ricette.png" alt="" class="section-header-icon"> Ricette
+                            </h2>
+                        </div>
+                        <div id="home-summary-ricette">
+                            <p class="text-muted">Caricamento in corso...</p>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="app-signature">Created by STECCA</div>
+            </section>
+
+            <!-- 2. SEZIONE SCADENZE -->
+            <section id="sec-scadenze" class="page-section">
+                <div class="scadenze-top-bar">
+                    <button id="btn-apri-modal" class="btn-nuova-scadenza">Nuova Scadenza</button>
+                    <div id="totale-generale-scadenze" class="totale-badge-box">Totale da pagare: € 0.00</div>
+                </div>
+                
+                <div class="card">
+                    <h2 class="section-title-with-icon" style="margin-bottom: 15px; font-size: 1.1rem; color: #1e293b;">
+                        <img src="icon/icona-scadenze.png" alt="" class="section-header-icon"> Elenco Scadenze
+                    </h2>
+                    <ul id="lista-scadenze" class="lista">
+                        <p class="text-muted">Caricamento in corso...</p>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 3. SEZIONE APPUNTAMENTI -->
+            <section id="sec-appuntamenti" class="page-section">
+                <div class="scadenze-top-bar calendar-top-bar">
+                    <div class="settimana-controls">
+                        <button id="btn-prev-week" class="btn-settimana">&laquo; Prec.</button>
+                        <span id="settimana-label" class="settimana-label">Settimana corrente</span>
+                        <button id="btn-next-week" class="btn-settimana">Succ. &raquo;</button>
+                    </div>
+                    <button id="btn-apri-modal-appuntamento" class="btn-nuova-scadenza">Nuovo appuntamento</button>
+                </div>
+
+                <div class="calendar-card-wrapper">
+                    <div id="grid-settimanale" class="grid-settimanale-moderna">
+                        <!-- Popolato dinamicamente da JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. SEZIONE MEDIA -->
+            <section id="sec-media" class="page-section">
+                <div class="card">
+                    <h2 class="section-title-with-icon" style="margin-bottom: 10px; font-size: 1.1rem; color: #1e293b;">
+                        <img src="icon/icona-media.png" alt="" class="section-header-icon"> Galleria Foto e Video
+                    </h2>
+                    <p class="text-muted">Sezione dedicata ai ricordi di famiglia.</p>
+                </div>
+            </section>
+
+            <!-- 5. SEZIONE RICETTE -->
+            <section id="sec-ricette" class="page-section">
+                <div class="scadenze-top-bar" style="gap: 15px;">
+                    <button id="btn-ricetta-casuale" class="btn-nuova-scadenza" style="background-color: #10b981; font-size: 0.9rem; padding: 10px 18px;">Non sai cosa cucinare? Premi qui per una ricetta a caso</button>
+                    <button id="btn-apri-modal-ricetta" class="btn-nuova-scadenza">Nuova Ricetta</button>
+                </div>
+                <div class="card">
+                    <h2 class="section-title-with-icon" style="margin-bottom: 15px; font-size: 1.1rem; color: #1e293b;">
+                        <img src="icon/icona-ricette.png" alt="" class="section-header-icon"> Ricettario di Famiglia
+                    </h2>
+                    <div id="lista-ricette" class="ricette-grid-container">
+                        <p class="text-muted">Caricamento in corso...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. SEZIONE GESTIONE UTENTI (ADMIN) -->
+            <section id="sec-utenti" class="page-section">
+                <div class="card">
+                    <h2 style="margin-bottom: 15px; font-size: 1.1rem; color: #1e293b;">Configura Utenti e Permessi</h2>
+                    <form id="utente-form">
+                        <div class="user-form-top-row">
+                            <div class="form-group" style="flex-grow: 1;">
+                                <label for="user-name-input">Nome Utente</label>
+                                <input type="text" id="user-name-input" required placeholder="es. Paolo">
+                            </div>
+                            <div class="form-group" style="flex-grow: 1;">
+                                <label for="user-pass-input">Password</label>
+                                <input type="text" id="user-pass-input" required placeholder="es. mialink123">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 10px;">
+                            <label>Permessi Sezioni</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" id="perm-scadenze" checked> Scadenze</label>
+                                <label><input type="checkbox" id="perm-appuntamenti" checked> Appuntamenti</label>
+                                <label><input type="checkbox" id="perm-media" checked> Media</label>
+                                <label><input type="checkbox" id="perm-ricette" checked> Ricette</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn" style="margin-top: 10px;">Salva Utente</button>
+                    </form>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <h2 style="margin-bottom: 15px; font-size: 1.1rem; color: #1e293b;">Utenti Configurati</h2>
+                    <ul id="lista-utenti" class="lista">
+                        <p class="text-muted">Caricamento...</p>
+                    </ul>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODALI -->
+    <div id="modal-scadenza" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="modal-title">Nuova Scadenza</h2>
+                <button id="btn-chiudi-modal" class="btn-chiudi">&times;</button>
+            </div>
+            
+            <div class="ocr-buttons-container">
+                <label class="btn-ocr">
+                    📷 Scatta Bolletta
+                    <input type="file" id="input-scatta-foto" accept="image/*" capture="environment" style="display: none;">
+                </label>
+                <label class="btn-ocr">
+                    📁 Carica Immagine
+                    <input type="file" id="input-carica-foto" accept="image/*" style="display: none;">
+                </label>
+            </div>
+            <div id="ocr-loading" style="display: none; text-align: center; margin-bottom: 15px; font-size: 0.9rem; color: #3b82f6;">
+                Lettura bolletta in corso... <span id="ocr-progress">0%</span>
+            </div>
+
+            <form id="scadenza-form">
+                <div class="form-group">
+                    <label for="titolo">Titolo / Servizio</label>
+                    <input type="text" id="titolo" required placeholder="Es. Enel, Affitto, Bollo...">
+                </div>
+                <div class="form-group">
+                    <label for="data">Data di Scadenza</label>
+                    <input type="date" id="data" required>
+                </div>
+                <div class="form-group">
+                    <label for="importo">Importo (€)</label>
+                    <input type="number" id="importo" step="0.01" required placeholder="0.00">
+                </div>
+                <button type="submit" class="btn" style="margin-top: 10px;">Salva Scadenza</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-appuntamento" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="modal-appuntamento-title">Nuovo Appuntamento</h2>
+                <button id="btn-chiudi-modal-appuntamento" class="btn-chiudi">&times;</button>
+            </div>
+            <form id="appuntamento-form">
+                <input type="hidden" id="app-id">
+                <div class="form-group">
+                    <label for="app-titolo">Titolo Appuntamento</label>
+                    <input type="text" id="app-titolo" required placeholder="Es. Visita medica, Riunione...">
+                </div>
+                <div class="form-group">
+                    <label for="app-data">Data</label>
+                    <input type="date" id="app-data" required>
+                </div>
+                <div class="form-row-inline">
+                    <div class="form-group">
+                        <label for="app-ora-inizio">Ora Inizio</label>
+                        <input type="time" id="app-ora-inizio" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="app-ora-fine">Ora Fine</label>
+                        <input type="time" id="app-ora-fine" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="app-creatore">Creatore</label>
+                    <input type="text" id="app-creatore" readonly style="background-color: #f8fafc;">
+                </div>
+                <button type="submit" class="btn" style="margin-top: 10px;">Salva Appuntamento</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-ricetta" class="modal-overlay" style="display: none;">
+        <div class="modal-card" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2 id="modal-ricetta-title">Nuova Ricetta</h2>
+                <button id="btn-chiudi-modal-ricetta" class="btn-chiudi">&times;</button>
+            </div>
+            <form id="ricetta-form">
+                <input type="hidden" id="ricetta-id">
+                <div class="form-group">
+                    <label for="ricetta-nome">Nome della Ricetta</label>
+                    <input type="text" id="ricetta-nome" required placeholder="Es. Torta di mele di famiglia">
+                </div>
+
+                <div class="form-group">
+                    <label>Ingredienti</label>
+                    <div id="container-ingredienti" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;"></div>
+                    <button type="button" id="btn-aggiungi-ingrediente" class="btn-piccolo">Aggiungi Ingrediente</button>
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Procedimento</label>
+                    <div id="container-procedimento" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;"></div>
+                    <button type="button" id="btn-aggiungi-passo" class="btn-piccolo">Aggiungi Passo</button>
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="ricetta-note">Note</label>
+                    <textarea id="ricetta-note" rows="3" placeholder="Consigli, varianti o segreti..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1rem;"></textarea>
+                </div>
+
+                <button type="submit" class="btn" style="margin-top: 15px;">Salva Ricetta</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-ricetta-casuale" class="modal-overlay" style="display: none;">
+        <div class="modal-card" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2 id="titolo-ricetta-casuale">Consiglio dello Chef 🍳</h2>
+                <button id="btn-chiudi-modal-casuale" class="btn-chiudi">&times;</button>
+            </div>
+            <div id="contenuto-ricetta-casuale" style="display: flex; flex-direction: column; gap: 10px; font-size: 0.95rem; color: #334155;"></div>
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                <button type="button" id="btn-altra-ricetta-casuale" class="btn" style="width: auto; background-color: #10b981;">Estrai un'altra ricetta</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
