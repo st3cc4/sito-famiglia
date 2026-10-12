@@ -41,6 +41,7 @@ const authPasswordInput = document.getElementById('auth-password');
 const rememberCheck = document.getElementById('remember-check');
 const forgotPasswordBtn = document.getElementById('forgot-password-btn');
 const greetingTitle = document.getElementById('greeting-title');
+const headerColorPicker = document.getElementById('header-color-picker');
 const btnLogout = document.getElementById('btn-logout');
 
 const sidebar = document.getElementById('sidebar');
@@ -121,7 +122,6 @@ const titoloRicettaCasuale = document.getElementById('titolo-ricetta-casuale');
 const utenteForm = document.getElementById('utente-form');
 const userNameInput = document.getElementById('user-name-input');
 const userPassInput = document.getElementById('user-pass-input');
-const userColorInput = document.getElementById('user-color-input');
 const permScadenze = document.getElementById('perm-scadenze');
 const permAppuntamenti = document.getElementById('perm-appuntamenti');
 const permMedia = document.getElementById('perm-media');
@@ -327,7 +327,6 @@ function estraiRicettaCasuale() {
     modalRicettaCasuale.style.display = 'flex';
 }
 
-// --- GESTIONE LOGIN / LOGOUT AUTOMATICO ED INIZIALIZZAZIONE ---
 authForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const nomeInserito = formatCapitalize(authUsernameInput.value);
@@ -336,7 +335,6 @@ authForm.addEventListener('submit', async (e) => {
     try {
         const utentiSnapshot = await getDocs(collection(db, "utenti"));
         
-        // Se il database degli utenti è totalmente vuoto, crea l'utente Admin principale (Paolo)
         if (utentiSnapshot.empty) {
             const adminData = {
                 nome: ADMIN_NAME,
@@ -359,7 +357,6 @@ authForm.addEventListener('submit', async (e) => {
             return;
         }
 
-        // Cerca l'utente normalmente
         const userDocRef = doc(db, "utenti", nomeInserito);
         const userDoc = await getDoc(userDocRef);
 
@@ -434,6 +431,7 @@ async function avviaApplicazione() {
 
     document.documentElement.style.setProperty('--user-primary', coloreUtenteCorrente);
     greetingTitle.textContent = `Ciao, ${nomeUtenteCorrente}`;
+    headerColorPicker.value = coloreUtenteCorrente;
 
     try {
         const utentiSnapshot = await getDocs(collection(db, "utenti"));
@@ -458,6 +456,23 @@ async function avviaApplicazione() {
     caricaAppuntamenti();
     caricaRicette();
 }
+
+// Evento per aggiornare e salvare il colore scelto dall'utente direttamente dall'header
+headerColorPicker.addEventListener('input', async (e) => {
+    const nuovoColore = e.target.value;
+    coloreUtenteCorrente = nuovoColore;
+    document.documentElement.style.setProperty('--user-primary', nuovoColore);
+
+    if (nomeUtenteCorrente) {
+        try {
+            const userRef = doc(db, "utenti", nomeUtenteCorrente);
+            await updateDoc(userRef, { colore: nuovoColore });
+            mappaColoriUtenti[nomeUtenteCorrente] = nuovoColore;
+        } catch (err) {
+            console.error("Errore nel salvataggio del colore utente:", err);
+        }
+    }
+});
 
 appOraInizio.addEventListener('change', () => {
     const inizio = appOraInizio.value;
@@ -981,7 +996,8 @@ utenteForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const nome = formatCapitalize(userNameInput.value);
     const password = userPassInput.value.trim();
-    const colore = userColorInput.value;
+    // Colore predefinito iniziale per i nuovi utenti creati dall'admin
+    const colore = "#3b82f6";
     const permessi = {
         scadenze: permScadenze.checked,
         appuntamenti: permAppuntamenti.checked,
@@ -993,7 +1009,6 @@ utenteForm.addEventListener('submit', async (e) => {
         await setDoc(doc(db, "utenti", nome), { nome, password, colore, permessi });
         alert("Utente configurato con successo!");
         utenteForm.reset();
-        userColorInput.value = "#3b82f6";
         caricaListaUtenti();
     } catch (err) {
         alert("Errore nel salvataggio dell'utente.");
