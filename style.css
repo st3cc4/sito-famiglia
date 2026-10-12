@@ -66,26 +66,22 @@ input[type="number"] {
     font-size: 1rem;
 }
 
-input[type="color"] {
-    width: 42px;
-    height: 42px;
-    padding: 2px;
+/* Stile per il selettore colore quadrato nell'header */
+.header-color-square {
+    width: 32px;
+    height: 32px;
+    padding: 1px;
     border: 1px solid #cbd5e1;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     background-color: #fff;
+    vertical-align: middle;
 }
 
 .user-form-top-row {
     display: flex;
     gap: 15px;
     align-items: flex-end;
-}
-
-.color-picker-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 
 input:focus, textarea:focus {
@@ -291,12 +287,18 @@ input:focus, textarea:focus {
     justify-content: center;
 }
 
+.header-greeting-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-grow: 1;
+    justify-content: center;
+}
+
 .header-greeting {
     font-size: 1.1rem;
     font-weight: 600;
     color: #334155;
-    text-align: center;
-    flex-grow: 1;
 }
 
 .app-header-sub {
