@@ -246,7 +246,7 @@ body {
     font-size: 0.85rem;
 }
 
-/* HOME VERTICAL LAYOUT (Disposizione in colonna 1 sotto l'altra) */
+/* HOME VERTICAL LAYOUT */
 .home-vertical-layout {
     display: flex;
     flex-direction: column;
@@ -349,7 +349,7 @@ body {
     margin-top: 20px;
 }
 
-/* SCADENZE BADGE */
+/* SCADENZE BADGE E ITEM HOME */
 .lista-badge {
     list-style: none;
     display: flex;
@@ -368,9 +368,21 @@ body {
     border-left: 5px solid #cbd5e1;
 }
 
-.status-green { border-left-color: #22c55e; }
-.status-orange { border-left-color: #f97316; }
-.status-red { border-left-color: #ef4444; }
+.scadenza-summary-item {
+    background: #ffffff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid #cbd5e1;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.status-green { border-left-color: #22c55e !important; }
+.status-orange { border-left-color: #f97316 !important; }
+.status-red { border-left-color: #ef4444 !important; }
 
 .totale-badge {
     margin-top: 20px;
