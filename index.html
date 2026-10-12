@@ -14,13 +14,13 @@
     <!-- CONTENITORE AUTENTICAZIONE (LOGIN) -->
     <div id="auth-container" class="container auth-card">
         <h1 class="auth-title">Portale Famiglia</h1>
-        <p class="subtitle">Accedi per gestire scadenze e appuntamenti</p>
+        <p class="subtitle">Accedi inserendo il tuo nome utente e password</p>
         
         <div class="card">
             <form id="auth-form">
                 <div class="form-group">
-                    <label for="auth-email">Email</label>
-                    <input type="email" id="auth-email" required placeholder="Inserisci la tua email">
+                    <label for="auth-username">Nome Utente</label>
+                    <input type="text" id="auth-username" required placeholder="Inserisci il tuo nome">
                 </div>
                 <div class="form-group">
                     <label for="auth-password">Password</label>
@@ -67,7 +67,7 @@
 
         <!-- CONTENUTO PRINCIPALE -->
         <main class="main-content">
-            <!-- Header dell'applicazione Riorganizzato -->
+            <!-- Header dell'applicazione -->
             <header class="app-header-container">
                 <div class="app-header-top">
                     <div class="header-section-title" id="header-section-title">
@@ -204,19 +204,22 @@
                 <div class="card">
                     <h2 style="margin-bottom: 15px; font-size: 1.1rem; color: #1e293b;">Configura Utenti e Permessi</h2>
                     <form id="utente-form">
-                        <div class="form-group">
-                            <label for="user-email-input">Email Utente</label>
-                            <input type="email" id="user-email-input" required placeholder="es. nome@email.com">
+                        <div class="user-form-top-row">
+                            <div class="form-group" style="flex-grow: 1;">
+                                <label for="user-name-input">Nome Utente</label>
+                                <input type="text" id="user-name-input" required placeholder="es. Paolo">
+                            </div>
+                            <div class="form-group" style="flex-grow: 1;">
+                                <label for="user-pass-input">Password</label>
+                                <input type="text" id="user-pass-input" required placeholder="es. mialink123">
+                            </div>
+                            <div class="form-group color-picker-group">
+                                <label for="user-color-input">Colore</label>
+                                <input type="color" id="user-color-input" value="#3b82f6" title="Scegli colore utente">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="user-name-input">Nome Visualizzato</label>
-                            <input type="text" id="user-name-input" required placeholder="es. Elena">
-                        </div>
-                        <div class="form-group">
-                            <label for="user-color-input">Colore Personale Utente</label>
-                            <input type="color" id="user-color-input" value="#3b82f6" style="width: 100%; height: 40px; padding: 2px; cursor: pointer;">
-                        </div>
-                        <div class="form-group">
+
+                        <div class="form-group" style="margin-top: 10px;">
                             <label>Permessi Sezioni</label>
                             <div class="checkbox-group">
                                 <label><input type="checkbox" id="perm-scadenze" checked> Scadenze</label>
@@ -225,7 +228,7 @@
                                 <label><input type="checkbox" id="perm-ricette" checked> Ricette</label>
                             </div>
                         </div>
-                        <button type="submit" class="btn">Salva Utente</button>
+                        <button type="submit" class="btn" style="margin-top: 10px;">Salva Utente</button>
                     </form>
                 </div>
 
