@@ -68,18 +68,22 @@
                     <h1 id="header-section-name">Home</h1>
                     <button class="btn-back-home" id="btn-top-back-home" data-target="sec-home" style="display: none;">🏠 Torna alla Home</button>
                 </div>
-                <div class="header-right">
-                    <span id="greeting-title">Ciao, Utente</span>
+                <!-- CENTRO: Saluto e Colore -->
+                <div class="header-center" style="display: flex; align-items: center; gap: 10px;">
+                    <span id="greeting-title" style="font-weight: 600;">Ciao, Utente</span>
                     <input type="color" id="header-color-picker" title="Scegli il tuo colore personale">
+                </div>
+                <!-- DESTRA: Esci -->
+                <div class="header-right">
                     <button id="btn-logout" class="btn-secondary">Esci</button>
                 </div>
             </header>
 
-            <!-- SEZIONE HOME -->
+            <!-- SEZIONE HOME (Disposta in verticale nell'ordine richiesto) -->
             <section id="sec-home" class="page-section active">
-                <div class="home-grid-layout" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                <div class="home-vertical-layout">
                     
-                    <!-- Scheda Scadenze -->
+                    <!-- 1. Scheda Scadenze -->
                     <div class="card-cliccabile card-home-unita" data-target="sec-scadenze">
                         <div class="card-home-header">
                             <img src="icon/icona-scadenze.png" alt="Scadenze">
@@ -91,7 +95,7 @@
                         </div>
                     </div>
 
-                    <!-- Scheda Appuntamenti -->
+                    <!-- 2. Scheda Appuntamenti -->
                     <div class="card-cliccabile card-home-unita" data-target="sec-appuntamenti">
                         <div class="card-home-header">
                             <img src="icon/icona-impegni.png" alt="Appuntamenti">
@@ -103,7 +107,7 @@
                         </div>
                     </div>
 
-                    <!-- Scheda Media -->
+                    <!-- 3. Scheda Media -->
                     <div class="card-cliccabile card-home-unita" data-target="sec-media">
                         <div class="card-home-header">
                             <img src="icon/icona-media.png" alt="Media">
@@ -115,7 +119,7 @@
                         </div>
                     </div>
 
-                    <!-- Scheda Ricette -->
+                    <!-- 4. Scheda Ricette -->
                     <div class="card-cliccabile card-home-unita" data-target="sec-ricette">
                         <div class="card-home-header">
                             <img src="icon/icona-ricette.png" alt="Ricette">
