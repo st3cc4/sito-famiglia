@@ -1,3 +1,511 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    getDocs, 
+    deleteDoc, 
+    doc, 
+    setDoc,
+    updateDoc,
+    getDoc
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
+    authDomain: "sito-famiglia.firebaseapp.com",
+    projectId: "sito-famiglia",
+    storageBucket: "sito-famigliastorage.app",
+    messagingSenderId: "93216467751",
+    appId: "1:93216467751:web:9930052845521ca5ef895a",
+    measurementId: "G-NYRQJDTWM3"
+};
+
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const db = getFirestore(app);
+
+const ADMIN_NAME = "Paolo"; 
+
+let nomeUtenteCorrente = "";
+let coloreUtenteCorrente = "#3b82f6";
+let mappaColoriUtenti = {}; 
+let elListaRicetteGlobal = [];
+
+const authContainer = document.getElementById('auth-container');
+const appContainer = document.getElementById('app-container');
+const authForm = document.getElementById('auth-form');
+const authUsernameInput = document.getElementById('auth-username');
+const authPasswordInput = document.getElementById('auth-password');
+const rememberCheck = document.getElementById('remember-check');
+const forgotPasswordBtn = document.getElementById('forgot-password-btn');
+const greetingTitle = document.getElementById('greeting-title');
+const headerColorPicker = document.getElementById('header-color-picker');
+const btnLogout = document.getElementById('btn-logout');
+
+const sidebar = document.getElementById('sidebar');
+const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+const navButtons = document.querySelectorAll('.nav-btn');
+const pageSections = document.querySelectorAll('.page-section');
+const menuUtenti = document.getElementById('menu-utenti');
+
+const headerIcon = document.getElementById('header-icon');
+const headerSectionName = document.getElementById('header-section-name');
+const btnTopBackHome = document.getElementById('btn-top-back-home');
+
+document.querySelectorAll('.card-cliccabile').forEach(card => {
+    card.addEventListener('click', () => {
+        const targetId = card.dataset.target;
+        if (targetId) {
+            mostraSezione(targetId);
+        }
+    });
+});
+
+const btnApriModal = document.getElementById('btn-apri-modal');
+const btnChiudiModal = document.getElementById('btn-chiudi-modal');
+const modalScadenza = document.getElementById('modal-scadenza');
+const modalTitle = document.getElementById('modal-title');
+const scadenzaForm = document.getElementById('scadenza-form');
+const inputTitolo = document.getElementById('titolo');
+const inputData = document.getElementById('data');
+const inputImporto = document.getElementById('importo');
+const listaScadenze = document.getElementById('lista-scadenze');
+const summaryScadenze = document.getElementById('home-summary-scadenze');
+const totaleGeneraleScadenze = document.getElementById('totale-generale-scadenze');
+
+const inputScattaFoto = document.getElementById('input-scatta-foto');
+const inputCaricaFoto = document.getElementById('input-carica-foto');
+const ocrLoading = document.getElementById('ocr-loading');
+const ocrProgress = document.getElementById('ocr-progress');
+
+const btnApriModalAppuntamento = document.getElementById('btn-apri-modal-appuntamento');
+const btnChiudiModalAppuntamento = document.getElementById('btn-chiudi-modal-appuntamento');
+const modalAppuntamento = document.getElementById('modal-appuntamento');
+const modalAppuntamentoTitle = document.getElementById('modal-appuntamento-title');
+const appuntamentoForm = document.getElementById('appuntamento-form');
+const appIdInput = document.getElementById('app-id');
+const appTitolo = document.getElementById('app-titolo');
+const appData = document.getElementById('app-data');
+const appOraInizio = document.getElementById('app-ora-inizio');
+const appOraFine = document.getElementById('app-ora-fine');
+const appCreatore = document.getElementById('app-creatore');
+const summaryAppuntamenti = document.getElementById('home-summary-appuntamenti');
+const gridSettimanale = document.getElementById('grid-settimanale');
+const btnPrevWeek = document.getElementById('btn-prev-week');
+const btnNextWeek = document.getElementById('btn-next-week');
+const settimanaLabel = document.getElementById('settimana-label');
+
+const btnApriModalRicetta = document.getElementById('btn-apri-modal-ricetta');
+const btnChiudiModalRicetta = document.getElementById('btn-chiudi-modal-ricetta');
+const modalRicetta = document.getElementById('modal-ricetta');
+const modalRicettaTitle = document.getElementById('modal-ricetta-title');
+const ricettaForm = document.getElementById('ricetta-form');
+const ricettaIdInput = document.getElementById('ricetta-id');
+const ricettaNomeInput = document.getElementById('ricetta-nome');
+const containerIngredienti = document.getElementById('container-ingredienti');
+const btnAggiungiIngrediente = document.getElementById('btn-aggiungi-ingrediente');
+const containerProcedimento = document.getElementById('container-procedimento');
+const btnAggiungiPasso = document.getElementById('btn-aggiungi-passo');
+const ricettaNoteInput = document.getElementById('ricetta-note');
+const listaRicette = document.getElementById('lista-ricette');
+const summaryRicette = document.getElementById('home-summary-ricette');
+
+const btnRicettaCasuale = document.getElementById('btn-ricetta-casuale');
+const modalRicettaCasuale = document.getElementById('modal-ricetta-casuale');
+const btnChiudiModalCasuale = document.getElementById('btn-chiudi-modal-casuale');
+const contenutoRicettaCasuale = document.getElementById('contenuto-ricetta-casuale');
+const btnAltraRicettaCasuale = document.getElementById('btn-altra-ricetta-casuale');
+const titoloRicettaCasuale = document.getElementById('titolo-ricetta-casuale');
+
+const utenteForm = document.getElementById('utente-form');
+const userNameInput = document.getElementById('user-name-input');
+const userPassInput = document.getElementById('user-pass-input');
+const permScadenze = document.getElementById('perm-scadenze');
+const permAppuntamenti = document.getElementById('perm-appuntamenti');
+const permMedia = document.getElementById('perm-media');
+const permRicette = document.getElementById('perm-ricette');
+const listaUtenti = document.getElementById('lista-utenti');
+
+toggleSidebarBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+
+function mostraSezione(targetId) {
+    pageSections.forEach(sec => sec.classList.remove('active'));
+    navButtons.forEach(btn => btn.classList.remove('active'));
+
+    const activeSec = document.getElementById(targetId);
+    if(activeSec) activeSec.classList.add('active');
+
+    const activeBtn = document.querySelector(`.nav-btn[data-target="${targetId}"]`);
+    if(activeBtn) activeBtn.classList.add('active');
+
+    if (targetId === 'sec-home') {
+        headerIcon.innerHTML = '🏠';
+        headerSectionName.textContent = 'Home';
+        btnTopBackHome.style.display = 'none';
+    } else if (targetId === 'sec-scadenze') {
+        headerIcon.innerHTML = `<img src="icon/icona-scadenze.png" alt="Scadenze" class="header-icon">`;
+        headerSectionName.textContent = 'Scadenze';
+        btnTopBackHome.style.display = 'inline-block';
+    } else if (targetId === 'sec-appuntamenti') {
+        headerIcon.innerHTML = `<img src="icon/icona-impegni.png" alt="Appuntamenti" class="header-icon">`;
+        headerSectionName.textContent = 'Appuntamenti';
+        btnTopBackHome.style.display = 'inline-block';
+    } else if (targetId === 'sec-media') {
+        headerIcon.innerHTML = `<img src="icon/icona-media.png" alt="Media" class="header-icon">`;
+        headerSectionName.textContent = 'Media';
+        btnTopBackHome.style.display = 'inline-block';
+    } else if (targetId === 'sec-ricette') {
+        headerIcon.innerHTML = `<img src="icon/icona-ricette.png" alt="Ricette" class="header-icon">`;
+        headerSectionName.textContent = 'Ricette';
+        btnTopBackHome.style.display = 'inline-block';
+    } else if (targetId === 'sec-utenti') {
+        headerIcon.innerHTML = '⚙️';
+        headerSectionName.textContent = 'Gestione Utenti';
+        btnTopBackHome.style.display = 'inline-block';
+    }
+}
+
+navButtons.forEach(btn => btn.addEventListener('click', () => mostraSezione(btn.dataset.target)));
+document.querySelectorAll('.btn-back-home').forEach(btn => {
+    btn.addEventListener('click', () => mostraSezione(btn.dataset.target));
+});
+
+function formatoDataEuropeo(dataIso) {
+    if (!dataIso) return '';
+    const parti = dataIso.split('-');
+    if (parti.length !== 3) return dataIso;
+    return `${parti[2]}/${parti[1]}/${parti[0]}`;
+}
+
+function formatCapitalize(str) {
+    if (!str) return '';
+    const trimmed = str.trim();
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+}
+
+function getInizioSettimana(d) {
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(date.setDate(diff));
+}
+
+let dataInizioSettimanaCorrente = getInizioSettimana(new Date());
+
+btnPrevWeek.addEventListener('click', () => {
+    dataInizioSettimanaCorrente.setDate(dataInizioSettimanaCorrente.getDate() - 7);
+    caricaAppuntamenti();
+});
+
+btnNextWeek.addEventListener('click', () => {
+    dataInizioSettimanaCorrente.setDate(dataInizioSettimanaCorrente.getDate() + 7);
+    caricaAppuntamenti();
+});
+
+btnApriModal.addEventListener('click', () => {
+    modalTitle.textContent = "Nuova Scadenza";
+    scadenzaForm.reset();
+    delete scadenzaForm.dataset.editId;
+    modalScadenza.style.display = 'flex';
+});
+
+btnChiudiModal.addEventListener('click', () => {
+    modalScadenza.style.display = 'none';
+});
+
+btnApriModalAppuntamento.addEventListener('click', () => {
+    apriModalNuovoAppuntamento();
+});
+
+window.apriModalNuovoAppuntamento = function(dataSelezionata = "") {
+    modalAppuntamentoTitle.textContent = "Nuovo Appuntamento";
+    appuntamentoForm.reset();
+    appIdInput.value = "";
+    appCreatore.value = nomeUtenteCorrente;
+    if (dataSelezionata) {
+        appData.value = dataSelezionata;
+    }
+    modalAppuntamento.style.display = 'flex';
+}
+
+btnChiudiModalAppuntamento.addEventListener('click', () => {
+    modalAppuntamento.style.display = 'none';
+});
+
+btnApriModalRicetta.addEventListener('click', () => {
+    modalRicettaTitle.textContent = "Nuova Ricetta";
+    ricettaForm.reset();
+    ricettaIdInput.value = "";
+    containerIngredienti.innerHTML = "";
+    containerProcedimento.innerHTML = "";
+    aggiungiRigaIngrediente();
+    aggiungiRigaPasso();
+    modalRicetta.style.display = 'flex';
+});
+
+btnChiudiModalRicetta.addEventListener('click', () => {
+    modalRicetta.style.display = 'none';
+});
+
+function aggiungiRigaIngrediente(valore = "") {
+    const div = document.createElement('div');
+    div.className = 'dynamic-row-input';
+    div.innerHTML = `
+        <span style="font-weight: bold; color: #64748b;">•</span>
+        <input type="text" class="input-ingrediente" value="${valore}" placeholder="Es. 200g di farina" required>
+        <button type="button" class="btn-rimuovi-riga" onclick="this.parentElement.remove()">&times;</button>
+    `;
+    containerIngredienti.appendChild(div);
+}
+
+function aggiungiRigaPasso(valore = "") {
+    const numeroPassi = containerProcedimento.children.length + 1;
+    const div = document.createElement('div');
+    div.className = 'dynamic-row-input';
+    div.innerHTML = `
+        <span class="numero-passo-label" style="font-weight: bold; color: #3b82f6; min-width: 20px;">${numeroPassi}.</span>
+        <input type="text" class="input-passo" value="${valore}" placeholder="Es. Mescolare uova e zucchero" required>
+        <button type="button" class="btn-rimuovi-riga" onclick="rimuoviPasso(this)">&times;</button>
+    `;
+    containerProcedimento.appendChild(div);
+}
+
+window.rimuoviPasso = function(btn) {
+    btn.parentElement.remove();
+    aggiornaNumeriPassi();
+}
+
+function aggiornaNumeriPassi() {
+    const righe = containerProcedimento.querySelectorAll('.dynamic-row-input');
+    righe.forEach((riga, index) => {
+        const etichetta = riga.querySelector('.numero-passo-label');
+        if (etichetta) etichetta.textContent = `${index + 1}.`;
+    });
+}
+
+btnAggiungiIngrediente.addEventListener('click', () => aggiungiRigaIngrediente());
+btnAggiungiPasso.addEventListener('click', () => aggiungiRigaPasso());
+
+btnRicettaCasuale.addEventListener('click', estraiRicettaCasuale);
+btnAltraRicettaCasuale.addEventListener('click', estraiRicettaCasuale);
+btnChiudiModalCasuale.addEventListener('click', () => {
+    modalRicettaCasuale.style.display = 'none';
+});
+
+function estraiRicettaCasuale() {
+    if (elListaRicetteGlobal.length === 0) {
+        alert("Nessuna ricetta presente nel ricettario!");
+        return;
+    }
+    const randomIndex = Math.floor(Math.random() * elListaRicetteGlobal.length);
+    const r = elListaRicetteGlobal[randomIndex];
+
+    titoloRicettaCasuale.textContent = r.nome;
+
+    let htmlIng = "";
+    if (r.ingredienti && r.ingredienti.length > 0) {
+        r.ingredienti.forEach(ing => htmlIng += `<li>• ${ing}</li>`);
+    }
+
+    let htmlProc = "";
+    if (r.procedimento && r.procedimento.length > 0) {
+        r.procedimento.forEach((pas, idx) => htmlProc += `<li><strong>${idx + 1}.</strong> ${pas}</li>`);
+    }
+
+    let htmlNote = r.note ? `<div style="margin-top: 8px; font-size: 0.9rem; color: #475569;"><strong>Note:</strong> ${r.note}</div>` : '';
+
+    contenutoRicettaCasuale.innerHTML = `
+        <div class="ricetta-sezione-titolo">Ingredienti:</div>
+        <ul class="ricetta-lista-elementi">${htmlIng || '<li>Nessun ingrediente</li>'}</ul>
+        <div class="ricetta-sezione-titolo">Procedimento:</div>
+        <ul class="ricetta-lista-elementi" style="list-style-type: none; padding-left: 0;">${htmlProc || '<li>Nessun procedimento</li>'}</ul>
+        ${htmlNote}
+    `;
+
+    modalRicettaCasuale.style.display = 'flex';
+}
+
+authForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nomeInserito = formatCapitalize(authUsernameInput.value);
+    const passwordInserita = authPasswordInput.value.trim();
+
+    try {
+        const utentiSnapshot = await getDocs(collection(db, "utenti"));
+        
+        if (utentiSnapshot.empty) {
+            const adminData = {
+                nome: ADMIN_NAME,
+                password: passwordInserita || "sv058753",
+                colore: "#3b82f6",
+                permessi: { scadenze: true, appuntamenti: true, media: true, ricette: true }
+            };
+            await setDoc(doc(db, "utenti", ADMIN_NAME), adminData);
+
+            nomeUtenteCorrente = ADMIN_NAME;
+            coloreUtenteCorrente = adminData.colore;
+
+            if (rememberCheck.checked) {
+                localStorage.setItem("portale_famiglia_utente", nomeUtenteCorrente);
+            } else {
+                sessionStorage.setItem("portale_famiglia_utente", nomeUtenteCorrente);
+            }
+
+            avviaApplicazione();
+            return;
+        }
+
+        const userDocRef = doc(db, "utenti", nomeInserito);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+            const data = userDoc.data();
+            if (data.password === passwordInserita) {
+                nomeUtenteCorrente = nomeInserito;
+                coloreUtenteCorrente = data.colore || "#3b82f6";
+
+                if (rememberCheck.checked) {
+                    localStorage.setItem("portale_famiglia_utente", nomeUtenteCorrente);
+                } else {
+                    sessionStorage.setItem("portale_famiglia_utente", nomeUtenteCorrente);
+                }
+
+                avviaApplicazione();
+            } else {
+                alert("Password errata!");
+            }
+        } else {
+            alert("Utente non trovato!");
+        }
+    } catch (err) {
+        alert("Errore durante l'accesso.");
+    }
+});
+
+forgotPasswordBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const nomeInserito = formatCapitalize(authUsernameInput.value);
+    if (!nomeInserito) {
+        alert("Inserisci prima il tuo nome utente nel campo apposito.");
+        return;
+    }
+    try {
+        const userDoc = await getDoc(doc(db, "utenti", nomeInserito));
+        if (userDoc.exists()) {
+            alert(`La password per ${nomeInserito} è: ${userDoc.data().password}`);
+        } else {
+            alert("Utente non registrato.");
+        }
+    } catch (err) {
+        alert("Errore nel recupero della password.");
+    }
+});
+
+btnLogout.addEventListener('click', () => {
+    localStorage.removeItem("portale_famiglia_utente");
+    sessionStorage.removeItem("portale_famiglia_utente");
+    location.reload();
+});
+
+window.addEventListener('DOMContentLoaded', async () => {
+    const utenteSalvato = localStorage.getItem("portale_famiglia_utente") || sessionStorage.getItem("portale_famiglia_utente");
+    if (utenteSalvato) {
+        try {
+            const userDoc = await getDoc(doc(db, "utenti", utenteSalvato));
+            if (userDoc.exists()) {
+                nomeUtenteCorrente = utenteSalvato;
+                coloreUtenteCorrente = userDoc.data().colore || "#3b82f6";
+                avviaApplicazione();
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+});
+
+async function avviaApplicazione() {
+    authContainer.style.display = 'none';
+    appContainer.style.display = 'flex';
+
+    document.documentElement.style.setProperty('--user-primary', coloreUtenteCorrente);
+    greetingTitle.textContent = `Ciao, ${nomeUtenteCorrente}`;
+    headerColorPicker.value = coloreUtenteCorrente;
+
+    try {
+        const utentiSnapshot = await getDocs(collection(db, "utenti"));
+        utentiSnapshot.forEach(docSnap => {
+            const uData = docSnap.data();
+            if (uData.nome && uData.colore) {
+                mappaColoriUtenti[uData.nome] = uData.colore;
+            }
+        });
+    } catch (err) {
+        console.error(err);
+    }
+
+    if (nomeUtenteCorrente === ADMIN_NAME) {
+        menuUtenti.style.display = 'flex';
+        caricaListaUtenti();
+    } else {
+        menuUtenti.style.display = 'none';
+    }
+
+    caricaScadenze();
+    caricaAppuntamenti();
+    caricaRicette();
+}
+
+headerColorPicker.addEventListener('input', async (e) => {
+    const nuovoColore = e.target.value;
+    coloreUtenteCorrente = nuovoColore;
+    document.documentElement.style.setProperty('--user-primary', nuovoColore);
+
+    if (nomeUtenteCorrente) {
+        try {
+            const userRef = doc(db, "utenti", nomeUtenteCorrente);
+            await updateDoc(userRef, { colore: nuovoColore });
+            mappaColoriUtenti[nomeUtenteCorrente] = nuovoColore;
+        } catch (err) {
+            console.error("Errore nel salvataggio del colore utente:", err);
+        }
+    }
+});
+
+appOraInizio.addEventListener('change', () => {
+    const inizio = appOraInizio.value;
+    if (inizio) {
+        const [ore, minuti] = inizio.split(':').map(Number);
+        let nuoveOre = ore + 1;
+        if (nuoveOre >= 24) nuoveOre = 23; 
+        const oreStr = String(nuoveOre).padStart(2, '0');
+        const minStr = String(minuti).padStart(2, '0');
+        appOraFine.value = `${oreStr}:${minStr}`;
+    }
+});
+
+scadenzaForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const titolo = inputTitolo.value.trim();
+    const data = inputData.value;
+    const importo = parseFloat(inputImporto.value);
+    const editId = scadenzaForm.dataset.editId;
+
+    try {
+        if (editId) {
+            await updateDoc(doc(db, "scadenze", editId), { titolo, data, importo });
+        } else {
+            await addDoc(collection(db, "scadenze"), { titolo, data, importo, creatore: nomeUtenteCorrente });
+        }
+        modalScadenza.style.display = 'none';
+        scadenzaForm.reset();
+        delete scadenzaForm.dataset.editId;
+        caricaScadenze();
+    } catch (err) {
+        alert("Errore nel salvataggio della scadenza.");
+    }
+});
 async function caricaScadenze() {
     listaScadenze.innerHTML = `<p class="text-muted">Caricamento in corso...</p>`;
     summaryScadenze.innerHTML = `<p class="text-muted">Caricamento in corso...</p>`;
@@ -448,7 +956,7 @@ window.toggleRicettaAccordion = function(id) {
         card.classList.remove('aperta');
     });
 
-    // Se quella cliccata non era aperta, adesso la apre
+    // Se quella cliccata non era aperta, la apre
     if (!eraAperta) {
         cardSelezionata.classList.add('aperta');
     }
