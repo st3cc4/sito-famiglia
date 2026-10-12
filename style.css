@@ -58,13 +58,35 @@ input[type="email"],
 input[type="password"],
 input[type="date"],
 input[type="time"],
-input[type="number"],
-input[type="color"] {
+input[type="number"] {
     width: 100%;
     padding: 10px;
     border: 1px solid #cbd5e1;
     border-radius: 8px;
     font-size: 1rem;
+}
+
+/* Stile per il selettore colore quadrato */
+input[type="color"] {
+    width: 42px;
+    height: 42px;
+    padding: 2px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: #fff;
+}
+
+.user-form-top-row {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+}
+
+.color-picker-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 input:focus, textarea:focus {
@@ -234,7 +256,6 @@ input:focus, textarea:focus {
     padding-bottom: 50px;
 }
 
-/* --- NUOVI STILI HEADER SUPERIORE --- */
 .app-header-container {
     background: #ffffff;
     padding: 15px 20px;
