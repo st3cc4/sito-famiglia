@@ -549,11 +549,20 @@ input:focus, textarea:focus {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.header-giorno-moderno:hover {
+    background-color: #f1f5f9;
 }
 
 .header-giorno-moderno.oggi {
     background-color: #eff6ff;
     border-bottom-color: #bfdbfe;
+}
+.header-giorno-moderno.oggi:hover {
+    background-color: #dbeafe;
 }
 
 .nome-giorno {
