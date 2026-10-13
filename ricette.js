@@ -257,13 +257,18 @@ export async function caricaRicette() {
 
         listaRicette.innerHTML = htmlGrigliaRicette;
 
-        // Limita la visualizzazione in Home alle prime 5 ricette
+        // Visualizzazione in Home con stile a box colorati (prime 5 ricette)
         let htmlHomeRicette = "";
         const ricettePerHome = ricette.slice(0, 5);
+        
         ricettePerHome.forEach(r => {
+            const creatore = r.creatore || "Famiglia";
             htmlHomeRicette += `
-                <div style="padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.95rem; font-weight: 600; color: #1e293b;">
-                    ${r.nome}
+                <div class="ricetta-block-style">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 600; font-size: 0.95rem;">🍳 ${r.nome}</span>
+                        <span style="font-size: 0.8rem; opacity: 0.8;">${creatore}</span>
+                    </div>
                 </div>`;
         });
         
@@ -279,7 +284,6 @@ export async function caricaRicette() {
     }
 }
 
-// Funzione per votare col pollice
 window.votaRicetta = async function(id, tipoVoto) {
     try {
         const ricettaRef = doc(db, "ricette", id);
@@ -299,7 +303,7 @@ window.votaRicetta = async function(id, tipoVoto) {
             caricaRicette();
         }
     } catch (err) {
-        alert("Errore durante il salvataggio della valutazione.");
+        alert("Errore durante la valutazione.");
     }
 }
 
@@ -352,6 +356,6 @@ window.modificaRicetta = async function(id) {
             modalRicetta.style.display = 'flex';
         }
     } catch (err) {
-        alert("Errore nel recupero dei dati della ricetta.");
+        alert("Errore nel recupero della ricetta.");
     }
 }
