@@ -72,8 +72,13 @@
                 </button>
             </nav>
             <div class="sidebar-footer">
-                <span id="current-user-badge" class="user-badge">Utente</span>
-                <button id="btn-cambia-utente" class="btn-secondary" style="width: 100%; margin-top: 10px;">Cambia Utente</button>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Badge utente cliccabile per il colore -->
+                    <span id="current-user-badge" class="user-badge" title="Clicca per cambiare colore" style="cursor: pointer;">Utente</span>
+                    <input type="color" id="picker-colore-utente" style="display: none;">
+                </div>
+                <button id="btn-apri-modal-password" class="btn-secondary" style="width: 100%; margin-top: 8px; font-size: 0.85rem;">Cambia Password</button>
+                <button id="btn-cambia-utente" class="btn-secondary" style="width: 100%; margin-top: 6px;">ESCI</button>
             </div>
         </aside>
 
@@ -173,6 +178,27 @@
     </div>
 
     <!-- MODALI -->
+    <!-- Modal Cambio Password -->
+    <div id="modal-password" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Cambia Password</h3>
+            <form id="form-cambia-password">
+                <div class="form-group">
+                    <label>Password Attuale</label>
+                    <input type="password" id="pwd-attuale" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Nuova Password</label>
+                    <input type="password" id="pwd-nuova" class="form-control" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="btn-chiudi-modal-password" class="btn-secondary">Annulla</button>
+                    <button type="submit" class="btn-primary">Aggiorna Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal Appuntamento -->
     <div id="modal-appuntamento" class="modal" style="display: none;">
         <div class="modal-content">
