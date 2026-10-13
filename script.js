@@ -38,30 +38,41 @@ function mostraSezione(targetId) {
     const activeBtn = document.querySelector(`.nav-btn[data-target="${targetId}"]`);
     if (activeBtn) activeBtn.classList.add('active');
 
+    // Mantiene costante la struttura dell'header in qualsiasi pagina
     if (targetId === 'sec-home') {
+        headerIcon.style.display = 'inline-block';
         headerIcon.innerHTML = '🏠';
+        headerSectionName.style.display = 'inline-block';
         headerSectionName.textContent = 'Home';
         btnTopBackHome.style.display = 'none';
-    } else if (targetId === 'sec-scadenze') {
-        headerIcon.innerHTML = `<img src="icon/icona-scadenze.png" alt="Scadenze" class="header-icon">`;
-        headerSectionName.textContent = 'Scadenze';
+    } else {
         btnTopBackHome.style.display = 'inline-block';
-    } else if (targetId === 'sec-appuntamenti') {
-        headerIcon.innerHTML = `<img src="icon/icona-impegni.png" alt="Appuntamenti" class="header-icon">`;
-        headerSectionName.textContent = 'Appuntamenti';
-        btnTopBackHome.style.display = 'inline-block';
-    } else if (targetId === 'sec-media') {
-        headerIcon.innerHTML = `<img src="icon/icona-media.png" alt="Media" class="header-icon">`;
-        headerSectionName.textContent = 'Media';
-        btnTopBackHome.style.display = 'inline-block';
-    } else if (targetId === 'sec-ricette') {
-        headerIcon.innerHTML = `<img src="icon/icona-ricette.png" alt="Ricette" class="header-icon">`;
-        headerSectionName.textContent = 'Ricette';
-        btnTopBackHome.style.display = 'inline-block';
-    } else if (targetId === 'sec-utenti') {
-        headerIcon.innerHTML = '⚙️';
-        headerSectionName.textContent = 'Gestione Utenti';
-        btnTopBackHome.style.display = 'inline-block';
+        if (targetId === 'sec-scadenze') {
+            headerIcon.style.display = 'inline-block';
+            headerIcon.innerHTML = `<img src="icon/icona-scadenze.png" alt="Scadenze" class="header-icon">`;
+            headerSectionName.style.display = 'inline-block';
+            headerSectionName.textContent = 'Scadenze';
+        } else if (targetId === 'sec-appuntamenti') {
+            headerIcon.style.display = 'inline-block';
+            headerIcon.innerHTML = `<img src="icon/icona-impegni.png" alt="Appuntamenti" class="header-icon">`;
+            headerSectionName.style.display = 'inline-block';
+            headerSectionName.textContent = 'Appuntamenti';
+        } else if (targetId === 'sec-media') {
+            headerIcon.style.display = 'inline-block';
+            headerIcon.innerHTML = `<img src="icon/icona-media.png" alt="Media" class="header-icon">`;
+            headerSectionName.style.display = 'inline-block';
+            headerSectionName.textContent = 'Media';
+        } else if (targetId === 'sec-ricette') {
+            headerIcon.style.display = 'inline-block';
+            headerIcon.innerHTML = `<img src="icon/icona-ricette.png" alt="Ricette" class="header-icon">`;
+            headerSectionName.style.display = 'inline-block';
+            headerSectionName.textContent = 'Ricette';
+        } else if (targetId === 'sec-utenti') {
+            headerIcon.style.display = 'inline-block';
+            headerIcon.innerHTML = '⚙️';
+            headerSectionName.style.display = 'inline-block';
+            headerSectionName.textContent = 'Gestione Utenti';
+        }
     }
 }
 
