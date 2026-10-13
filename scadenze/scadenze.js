@@ -6,7 +6,7 @@ import {
     updateDoc, 
     getDoc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { db } from "./firebase-config.js";
+import { db } from "../firebase-config.js";
 
 const btnApriModal = document.getElementById('btn-apri-modal');
 const btnChiudiModal = document.getElementById('btn-chiudi-modal');
@@ -48,11 +48,10 @@ export async function caricaScadenze() {
         const oggi = new Date();
         oggi.setHours(0, 0, 0, 0);
 
-        // 1. Popolamento Home Summary con le tue regole di fasce
+        // 1. Popolamento Home Summary con le regole a fasce
         if (summaryScadenze) {
             const daPagare = scadenze.filter(s => !s.pagato);
 
-            // Fascia 1: <= 7 giorni (o già scadute)
             let fascia1 = daPagare.filter(s => {
                 const diffDias = Math.ceil((new Date(s.data) - oggi) / (1000 * 60 * 60 * 24));
                 return diffDias <= 7;
@@ -65,7 +64,6 @@ export async function caricaScadenze() {
             if (fascia1.length > 0) {
                 scadenzeDaMostrare = fascia1;
             } else {
-                // Fascia 2: tra 8 e 14 giorni
                 let fascia2 = daPagare.filter(s => {
                     const diffDias = Math.ceil((new Date(s.data) - oggi) / (1000 * 60 * 60 * 24));
                     return diffDias >= 8 && diffDias <= 14;
@@ -76,7 +74,6 @@ export async function caricaScadenze() {
                     coloreBordo = "#f59e0b"; // Arancione
                     coloreSfondo = "#fffbeb";
                 } else {
-                    // Fascia 3: superiori a 15 giorni
                     let fascia3 = daPagare.filter(s => {
                         const diffDias = Math.ceil((new Date(s.data) - oggi) / (1000 * 60 * 60 * 24));
                         return diffDias >= 15;
