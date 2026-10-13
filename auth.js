@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "./firebase-config.js";
 
 const authContainer = document.getElementById('auth-container');
@@ -12,6 +12,13 @@ const btnLogout = document.getElementById('btn-logout');
 const greetingTitle = document.getElementById('greeting-title');
 const headerColorPicker = document.getElementById('header-color-picker');
 const menuUtenti = document.getElementById('menu-utenti');
+
+// Modale Cambio Password
+const btnApriModalePassword = document.getElementById('btn-apri-modale-password');
+const modalCambiaPassword = document.getElementById('modal-cambia-password');
+const btnChiudiModalPassword = document.getElementById('btn-chiudi-modal-password');
+const formCambiaPassword = document.getElementById('form-cambia-password');
+const nuovaPasswordInput = document.getElementById('nuova-password-input');
 
 export let nomeUtenteCorrente = "";
 export let isAdminCorrente = false;
@@ -34,7 +41,7 @@ export function isAdminCorrenteExport() {
     return isAdminCorrente;
 }
 
-// Gestione pulsante Mostra/Nascondi password
+// Gestione pulsante Mostra/Nascondi password nel login
 if (togglePasswordBtn && authPasswordInput) {
     togglePasswordBtn.addEventListener('click', () => {
         if (authPasswordInput.type === 'password') {
@@ -43,6 +50,48 @@ if (togglePasswordBtn && authPasswordInput) {
         } else {
             authPasswordInput.type = 'password';
             togglePasswordBtn.textContent = 'Mostra';
+        }
+    });
+}
+
+// Apertura e chiusura modale cambio password
+if (btnApriModalePassword && modalCambiaPassword) {
+    btnApriModalePassword.addEventListener('click', () => {
+        nuovaPasswordInput.value = '';
+        modalCambiaPassword.style.display = 'flex';
+    });
+}
+
+if (btnChiudiModalPassword && modalCambiaPassword) {
+    btnChiudiModalPassword.addEventListener('click', () => {
+        modalCambiaPassword.style.display = 'none';
+    });
+}
+
+// Salvataggio nuova password
+if (formCambiaPassword) {
+    formCambiaPassword.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nuovaPassword = nuovaPasswordInput.value.trim();
+        if (!nuovaPassword) {
+            alert("Inserisci una password valida.");
+            return;
+        }
+
+        if (!nomeUtenteCorrente) {
+            alert("Nessun utente attualmente connesso.");
+            return;
+        }
+
+        try {
+            const userDocRef = doc(db, "utenti", nomeUtenteCorrente);
+            await updateDoc(userDocRef, { password: nuovaPassword });
+            alert("Password modificata con successo!");
+            modalCambiaPassword.style.display = 'none';
+            formCambiaPassword.reset();
+        } catch (err) {
+            console.error("Errore modifica password:", err);
+            alert("Errore durante il salvataggio della nuova password.");
         }
     });
 }
