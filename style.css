@@ -114,7 +114,7 @@ body {
     flex-shrink: 0;
 }
 
-/* MAIN CONTENT AREA - Ridotta larghezza orizzontale */
+/* MAIN CONTENT AREA */
 .main-content {
     flex: 1;
     padding: 20px 15px;
@@ -124,9 +124,8 @@ body {
     width: 100%;
 }
 
-/* HEADER SUPERIORE */
+/* HEADER SUPERIORE (Sistemato per evitare accavallamenti) */
 .app-header {
-    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -135,13 +134,15 @@ body {
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     margin-bottom: 20px;
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
 .header-left {
     display: flex;
     align-items: center;
     gap: 10px;
-    z-index: 1;
+    flex-wrap: wrap;
 }
 
 .header-icon {
@@ -151,20 +152,15 @@ body {
 }
 
 .header-center {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
     display: flex;
     align-items: center;
     gap: 10px;
-    z-index: 1;
 }
 
 .header-right {
     display: flex;
     align-items: center;
     gap: 12px;
-    z-index: 1;
 }
 
 #header-color-picker {
@@ -437,7 +433,6 @@ body {
     border-left: 5px solid #cbd5e1;
 }
 
-/* Sfondi colorati pagina Scadenze */
 .scadenza-badge-item.status-red {
     background-color: #fef2f2;
     border-left-color: #ef4444;
@@ -456,7 +451,6 @@ body {
     color: #166534;
 }
 
-/* Blocco Scadenze in Home */
 .scadenza-block-style {
     padding: 10px 14px;
     border-radius: 6px;
@@ -483,6 +477,14 @@ body {
     color: #166534;
 }
 
+.totale-badge {
+    margin-top: 20px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-align: right;
+    color: var(--user-primary);
+}
+
 /* CALENDARIO SETTIMANALE VERTICALE CON COLORI DI URGENZA */
 .controlli-settimana {
     display: flex;
@@ -493,7 +495,7 @@ body {
 
 .grid-settimana-container {
     display: grid;
-    grid-template-columns: 1fr; /* Disposizione verticale in colonna unica */
+    grid-template-columns: 1fr;
     gap: 12px;
 }
 
