@@ -349,7 +349,7 @@ body {
     margin-top: 20px;
 }
 
-/* SCADENZE BADGE E ITEM HOME */
+/* SCADENZE BADGE E RIEPILOGO STILE APPUNTAMENTI */
 .lista-badge {
     list-style: none;
     display: flex;
@@ -368,16 +368,31 @@ body {
     border-left: 5px solid #cbd5e1;
 }
 
-.scadenza-summary-item {
-    background: #ffffff;
-    padding: 8px 12px;
+/* Stile blocco scadenze identico agli appuntamenti */
+.scadenza-block-style {
+    padding: 10px 14px;
     border-radius: 6px;
     margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     border-left: 4px solid #cbd5e1;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    font-size: 0.9rem;
+}
+
+.scadenza-block-style.status-red {
+    background-color: #fef2f2;
+    border-left-color: #ef4444;
+    color: #991b1b;
+}
+
+.scadenza-block-style.status-orange {
+    background-color: #fff7ed;
+    border-left-color: #f97316;
+    color: #9a3412;
+}
+
+.scadenza-block-style.status-green {
+    background-color: #f0fdf4;
+    border-left-color: #22c55e;
+    color: #166534;
 }
 
 .status-green { border-left-color: #22c55e !important; }
