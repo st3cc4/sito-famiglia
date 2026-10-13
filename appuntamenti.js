@@ -133,6 +133,8 @@ export async function caricaAppuntamenti() {
         settimanaLabel.textContent = `${formatoDataEuropeo(formattaDataIso(giorniSettimana[0]))} - ${formatoDataEuropeo(formattaDataIso(dataFine))}`;
 
         const oggiStr = formattaDataIso(new Date());
+        const oggiObj = new Date();
+        oggiObj.setHours(0,0,0,0);
 
         let htmlGrigliaVerticale = "";
         const nomiGiorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
@@ -145,8 +147,6 @@ export async function caricaAppuntamenti() {
             // Calcolo urgenza/sfondo identico alle scadenze
             const dataGiornoObj = new Date(dataIso);
             dataGiornoObj.setHours(0,0,0,0);
-            const oggiObj = new Date();
-            oggiObj.setHours(0,0,0,0);
             
             const diffTempo = dataGiornoObj - oggiObj;
             const diffGiorni = Math.round(diffTempo / (1000 * 60 * 60 * 24));
@@ -186,7 +186,7 @@ export async function caricaAppuntamenti() {
                 <div class="colonna-giorno-scheda ${statusClass}" style="margin-bottom: 12px;">
                     <div class="header-giorno-moderno ${isOggi ? 'oggi' : ''}" onclick="apriModalNuovoAppuntamento('${dataIso}')" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; cursor: pointer;">
                         <span style="font-weight: bold; font-size: 1rem;">${nomeGiorno} (${formatoDataEuropeo(dataIso)})</span>
-                        <span style="font-size: 0.85rem; opacity: 0.8;">+ Aggiungi</span>
+                        <span style="font-size: 0.85rem; opacity: 0.8;">Aggiungi</span>
                     </div>
                     <div class="corpo-giorno-moderno" style="display: flex; flex-direction: column; gap: 8px; padding: 12px;">
                         ${htmlImpegni}
