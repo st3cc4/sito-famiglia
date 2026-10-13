@@ -12,21 +12,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. Caricamento iniziale di tutte le sezioni
     caricaTuttiIContenuti();
 
-    // 3. Gestione della Navigazione tra le tab
+    // 3. Gestione della Navigazione tra le tab (Sidebar)
     const navButtons = document.querySelectorAll('.nav-btn');
     const sections = document.querySelectorAll('.section');
+
+    function attivaSezione(targetId) {
+        navButtons.forEach(b => {
+            if (b.getAttribute('data-target') === targetId) {
+                b.classList.add('active');
+            } else {
+                b.classList.remove('active');
+            }
+        });
+
+        sections.forEach(s => {
+            if (s.id === targetId) {
+                s.classList.add('active');
+            } else {
+                s.classList.remove('active');
+            }
+        });
+    }
 
     navButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             const targetId = btn.getAttribute('data-target');
+            attivaSezione(targetId);
+        });
+    });
 
-            navButtons.forEach(b => b.classList.remove('active'));
-            sections.forEach(s => s.classList.remove('active'));
-
-            btn.classList.add('active');
-            const targetSection = document.getElementById(targetId);
-            if (targetSection) {
-                targetSection.classList.add('active');
+    // 4. Rendere cliccabili le schede nella Home
+    const clickableCards = document.querySelectorAll('.clickable-card');
+    clickableCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const targetId = card.getAttribute('data-target');
+            if (targetId) {
+                attivaSezione(targetId);
             }
         });
     });
