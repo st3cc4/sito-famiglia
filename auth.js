@@ -34,15 +34,15 @@ export function isAdminCorrenteExport() {
     return isAdminCorrente;
 }
 
-// Gestione Mostra/Nascondi Password con l'occhio
+// Gestione pulsante Mostra/Nascondi password
 if (togglePasswordBtn && authPasswordInput) {
     togglePasswordBtn.addEventListener('click', () => {
         if (authPasswordInput.type === 'password') {
             authPasswordInput.type = 'text';
-            togglePasswordBtn.textContent = '🔒';
+            togglePasswordBtn.textContent = 'Nascondi';
         } else {
             authPasswordInput.type = 'password';
-            togglePasswordBtn.textContent = '👁️';
+            togglePasswordBtn.textContent = 'Mostra';
         }
     });
 }
@@ -59,7 +59,6 @@ authForm.addEventListener('submit', async (e) => {
     }
 
     try {
-        // Prova prima con il nome formattato, poi esattamente come digitato
         let userDocRef = doc(db, "utenti", usernameFormatted);
         let userSnap = await getDoc(userDocRef);
 
