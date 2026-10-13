@@ -8,7 +8,7 @@ import {
     getDoc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "./firebase-config.js";
-import { nomeUtenteCorrente, formatCapitalize } from "./auth.js";
+import { nomeUtenteCorrente, formatCapitalize, isAdminCorrente } from "./auth.js";
 
 const btnApriModalRicetta = document.getElementById('btn-apri-modal-ricetta');
 const btnChiudiModalRicetta = document.getElementById('btn-chiudi-modal-ricetta');
@@ -17,61 +17,45 @@ const modalRicettaTitle = document.getElementById('modal-ricetta-title');
 const ricettaForm = document.getElementById('ricetta-form');
 const ricettaIdInput = document.getElementById('ricetta-id');
 const ricettaNomeInput = document.getElementById('ricetta-nome');
-const containerIngredienti = document.getElementById('container-ingredienti');
-const btnAggiungiIngrediente = document.getElementById('btn-aggiungi-ingrediente');
-const containerProcedimento = document.getElementById('container-procedimento');
-const btnAggiungiPasso = document.getElementById('btn-aggiungi-passo');
 const ricettaNoteInput = document.getElementById('ricetta-note');
+const containerIngredienti = document.getElementById('container-ingredienti');
+const containerProcedimento = document.getElementById('container-procedimento');
+const btnAggiungiIngrediente = document.getElementById('btn-aggiungi-ingrediente');
+const btnAggiungiPasso = document.getElementById('btn-aggiungi-passo');
 const listaRicette = document.getElementById('lista-ricette');
 const summaryRicette = document.getElementById('home-summary-ricette');
 
 const btnRicettaCasuale = document.getElementById('btn-ricetta-casuale');
 const modalRicettaCasuale = document.getElementById('modal-ricetta-casuale');
-const btnChiudiModalCasuale = document.getElementById('btn-chiudi-modal-casuale');
 const contenutoRicettaCasuale = document.getElementById('contenuto-ricetta-casuale');
 const btnAltraRicettaCasuale = document.getElementById('btn-altra-ricetta-casuale');
-const titoloRicettaCasuale = document.getElementById('titolo-ricetta-casuale');
+const btnChiudiModalCasuale = document.getElementById('btn-chiudi-modal-casuale');
 
-let elListaRicetteGlobal = [];
+// Testi aggiornati nei pulsanti principali
+if (btnRicettaCasuale) btnRicettaCasuale.textContent = "🎲 Ricetta Casuale";
 
-export function aggiungiRigaIngrediente(valore = "") {
+btnAggiungiIngrediente.addEventListener('click', () => aggiungiRigaIngrediente(''));
+btnAggiungiPasso.addEventListener('click', () => aggiungiRigaProcedimento(''));
+
+function aggiungiRigaIngrediente(valore = '') {
     const div = document.createElement('div');
     div.className = 'dynamic-row-input';
     div.innerHTML = `
-        <span style="font-weight: bold; color: #64748b;">•</span>
-        <input type="text" class="input-ingrediente" value="${valore}" placeholder="Es. 200g di farina" required>
+        <input type="text" class="ingrediente-item" value="${valore}" placeholder="Es. 200g Farina" required style="flex: 1;">
         <button type="button" class="btn-rimuovi-riga" onclick="this.parentElement.remove()">&times;</button>
     `;
     containerIngredienti.appendChild(div);
 }
 
-export function aggiungiRigaPasso(valore = "") {
-    const numeroPassi = containerProcedimento.children.length + 1;
+function aggiungiRigaProcedimento(valore = '') {
     const div = document.createElement('div');
     div.className = 'dynamic-row-input';
     div.innerHTML = `
-        <span class="numero-passo-label" style="font-weight: bold; color: #3b82f6; min-width: 20px;">${numeroPassi}.</span>
-        <input type="text" class="input-passo" value="${valore}" placeholder="Es. Mescolare uova e zucchero" required>
-        <button type="button" class="btn-rimuovi-riga" onclick="rimuoviPasso(this)">&times;</button>
+        <input type="text" class="procedimento-item" value="${valore}" placeholder="Es. Mescolare gli ingredienti" required style="flex: 1;">
+        <button type="button" class="btn-rimuovi-riga" onclick="this.parentElement.remove()">&times;</button>
     `;
     containerProcedimento.appendChild(div);
 }
-
-window.rimuoviPasso = function(btn) {
-    btn.parentElement.remove();
-    aggiornaNumeriPassi();
-}
-
-function aggiornaNumeriPassi() {
-    const righe = containerProcedimento.querySelectorAll('.dynamic-row-input');
-    righe.forEach((riga, index) => {
-        const etichetta = riga.querySelector('.numero-passo-label');
-        if (etichetta) etichetta.textContent = `${index + 1}.`;
-    });
-}
-
-btnAggiungiIngrediente.addEventListener('click', () => aggiungiRigaIngrediente());
-btnAggiungiPasso.addEventListener('click', () => aggiungiRigaPasso());
 
 btnApriModalRicetta.addEventListener('click', () => {
     modalRicettaTitle.textContent = "Nuova Ricetta";
@@ -80,7 +64,7 @@ btnApriModalRicetta.addEventListener('click', () => {
     containerIngredienti.innerHTML = "";
     containerProcedimento.innerHTML = "";
     aggiungiRigaIngrediente();
-    aggiungiRigaPasso();
+    aggiungiRigaProcedimento();
     modalRicetta.style.display = 'flex';
 });
 
@@ -88,75 +72,37 @@ btnChiudiModalRicetta.addEventListener('click', () => {
     modalRicetta.style.display = 'none';
 });
 
-btnRicettaCasuale.addEventListener('click', estraiRicettaCasuale);
-btnAltraRicettaCasuale.addEventListener('click', estraiRicettaCasuale);
-btnChiudiModalCasuale.addEventListener('click', () => {
-    modalRicettaCasuale.style.display = 'none';
-});
-
-function estraiRicettaCasuale() {
-    if (elListaRicetteGlobal.length === 0) {
-        alert("Nessuna ricetta presente nel ricettario!");
-        return;
-    }
-    const randomIndex = Math.floor(Math.random() * elListaRicetteGlobal.length);
-    const r = elListaRicetteGlobal[randomIndex];
-
-    titoloRicettaCasuale.textContent = r.nome;
-
-    let htmlIng = "";
-    if (r.ingredienti && r.ingredienti.length > 0) {
-        r.ingredienti.forEach(ing => htmlIng += `<li>• ${ing}</li>`);
-    }
-
-    let htmlProc = "";
-    if (r.procedimento && r.procedimento.length > 0) {
-        r.procedimento.forEach((pas, idx) => htmlProc += `<li><strong>${idx + 1}.</strong> ${pas}</li>`);
-    }
-
-    let htmlNote = r.note ? `<div style="margin-top: 8px; font-size: 0.9rem; color: #475569;"><strong>Note:</strong> ${r.note}</div>` : '';
-
-    contenutoRicettaCasuale.innerHTML = `
-        <div class="ricetta-sezione-titolo">Ingredienti:</div>
-        <ul class="ricetta-lista-elementi">${htmlIng || '<li>Nessun ingrediente</li>'}</ul>
-        <div class="ricetta-sezione-titolo">Procedimento:</div>
-        <ul class="ricetta-lista-elementi" style="list-style-type: none; padding-left: 0;">${htmlProc || '<li>Nessun procedimento</li>'}</ul>
-        ${htmlNote}
-    `;
-
-    modalRicettaCasuale.style.display = 'flex';
-}
-
 ricettaForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const nome = formatCapitalize(ricettaNomeInput.value);
+    const note = ricettaNoteInput.value;
     const editId = ricettaIdInput.value;
 
-    const ingredienti = [];
-    containerIngredienti.querySelectorAll('.input-ingrediente').forEach(input => {
-        if (input.value.trim()) ingredienti.push(formatCapitalize(input.value));
-    });
-
-    const procedimento = [];
-    containerProcedimento.querySelectorAll('.input-passo').forEach(input => {
-        if (input.value.trim()) procedimento.push(formatCapitalize(input.value));
-    });
-
-    const note = formatCapitalize(ricettaNoteInput.value);
+    const ingredienti = Array.from(document.querySelectorAll('.ingrediente-item')).map(input => input.value.trim()).filter(Boolean);
+    const procedimento = Array.from(document.querySelectorAll('.procedimento-item')).map(input => input.value.trim()).filter(Boolean);
 
     const datiRicetta = {
         nome,
         ingredienti,
         procedimento,
         note,
-        creatore: nomeUtenteCorrente
+        creatore: nomeUtenteCorrente,
+        votiSu: 0,
+        votiGiu: 0
     };
 
     try {
         if (editId) {
-            await updateDoc(doc(db, "ricette", editId), datiRicetta);
+            // Mantiene il creatore originario se modificata
+            const docRef = doc(db, "ricette", editId);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                datiRicetta.creatore = docSnap.data().creatore || nomeUtenteCorrente;
+                datiRicetta.votiSu = docSnap.data().votiSu || 0;
+                datiRicetta.votiGiu = docSnap.data().votiGiu || 0;
+            }
+            await updateDoc(docRef, datiRicetta);
         } else {
-            datiRicetta.voti = {};
             await addDoc(collection(db, "ricette"), datiRicetta);
         }
         modalRicetta.style.display = 'none';
@@ -168,165 +114,101 @@ ricettaForm.addEventListener('submit', async (e) => {
 });
 
 export async function caricaRicette() {
+    if (!listaRicette) return;
     listaRicette.innerHTML = `<p class="text-muted">Caricamento ricette...</p>`;
-    summaryRicette.innerHTML = `<p class="text-muted">Caricamento in corso...</p>`;
+    if (summaryRicette) summaryRicette.innerHTML = `<p class="text-muted">Caricamento in corso...</p>`;
 
     try {
+        // Recupera i colori degli utenti
+        const utentiSnap = await getDocs(collection(db, "utenti"));
+        const coloriUtenti = {};
+        utentiSnap.forEach(docSnap => {
+            const u = docSnap.data();
+            if (u.nome && u.colore) {
+                coloriUtenti[u.nome] = u.colore;
+            }
+        });
+
         const querySnapshot = await getDocs(collection(db, "ricette"));
         let ricette = [];
         querySnapshot.forEach(docSnap => {
             ricette.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        ricette.sort((a, b) => a.nome.localeCompare(b.nome));
-        elListaRicetteGlobal = ricette;
+        ricette.sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
 
-        if (ricette.length === 0) {
-            listaRicette.innerHTML = `<p class="text-muted">Nessuna ricetta inserita nel ricettario.</p>`;
-            summaryRicette.innerHTML = `<p class="text-muted">Nessuna ricetta salvata.</p>`;
-            return;
-        }
+        let htmlRicette = "";
+        const isAdmin = isAdminCorrente();
 
-        let htmlGrigliaRicette = "";
         ricette.forEach(r => {
-            let htmlIngredienti = "";
-            if (r.ingredienti && r.ingredienti.length > 0) {
-                r.ingredienti.forEach(ing => {
-                    htmlIngredienti += `<li>• ${ing}</li>`;
-                });
-            }
+            const creatore = r.creatore || "Famiglia";
+            const coloreCreatore = coloriUtenti[creatore] || "#3b82f6";
+            
+            // Verifica permessi: solo admin o il creatore stesso possono modificare/eliminare
+            const puoModificare = isAdmin || (creatore === nomeUtenteCorrente);
 
-            let htmlProcedimento = "";
-            if (r.procedimento && r.procedimento.length > 0) {
-                r.procedimento.forEach((pas, idx) => {
-                    htmlProcedimento += `<li><strong>${idx + 1}.</strong> ${pas}</li>`;
-                });
-            }
+            let ingredientiHtml = (r.ingredienti || []).map(i => `<li>${i}</li>`).join('');
+            let procedimentoHtml = (r.procedimento || []).map((p, idx) => `<li><strong>Passo ${idx + 1}:</strong> ${p}</li>`).join('');
 
-            let htmlNote = r.note ? `<div style="margin-top: 6px; font-size: 0.9rem; color: #475569;"><strong>Note:</strong> ${r.note}</div>` : '';
-            const creatoreRicetta = r.creatore ? r.creatore : "Famiglia";
-
-            // Conteggio voti
-            const voti = r.voti || {};
-            let numSu = 0;
-            let numGiu = 0;
-            let votoUtenteCorrente = null;
-
-            Object.entries(voti).forEach(([utente, voto]) => {
-                if (voto === 'su') numSu++;
-                if (voto === 'giu') numGiu++;
-                if (utente === nomeUtenteCorrente) votoUtenteCorrente = voto;
-            });
-
-            const classeSu = votoUtenteCorrente === 'su' ? 'attivo-su' : '';
-            const classeGiu = votoUtenteCorrente === 'giu' ? 'attivo-giu' : '';
-
-            htmlGrigliaRicette += `
-                <div class="ricetta-card-item" id="ricetta-card-${r.id}">
-                    <div class="ricetta-header-row" onclick="toggleRicettaAccordion('${r.id}')">
-                        <div class="ricetta-titolo">${r.nome}</div>
-                        <span class="ricetta-creatore-tag">${creatoreRicetta}</span>
+            htmlRicette += `
+                <div class="ricetta-card-item" style="border-left: 5px solid ${coloreCreatore};">
+                    <div class="ricetta-header-row" onclick="toggleRicetta(this)">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="font-weight: 600; font-size: 1.05rem;">${r.nome}</span>
+                            <span style="font-size: 0.8rem; color: ${coloreCreatore}; font-weight: bold;">[${creatore}]</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;" onclick="event.stopPropagation()">
+                            ${puoModificare ? `
+                                <button class="btn-modifica" onclick="modificaRicetta('${r.id}')">Mod.</button>
+                                <button class="btn-elimina" onclick="eliminaRicetta('${r.id}')">Elimina</button>
+                            ` : ''}
+                            <span style="font-size: 0.9rem; color: #64748b;">▼</span>
+                        </div>
                     </div>
                     <div class="ricetta-corpo">
-                        <div class="ricetta-sezione-titolo">Ingredienti:</div>
-                        <ul class="ricetta-lista-elementi">${htmlIngredienti || '<li>Nessun ingrediente</li>'}</ul>
-
-                        <div class="ricetta-sezione-titolo">Procedimento:</div>
-                        <ul class="ricetta-lista-elementi" style="list-style-type: none; padding-left: 0;">${htmlProcedimento || '<li>Nessun procedimento</li>'}</ul>
-
-                        ${htmlNote}
-
-                        <!-- Sezione Pollici di Valutazione -->
-                        <div class="ricetta-voti-container">
-                            <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">Ti è piaciuta?</span>
-                            <button class="btn-voto-pollice ${classeSu}" onclick="votaRicetta('${r.id}', 'su')">
-                                👍 <span>${numSu}</span>
-                            </button>
-                            <button class="btn-voto-pollice ${classeGiu}" onclick="votaRicetta('${r.id}', 'giu')">
-                                👎 <span>${numGiu}</span>
-                            </button>
+                        <div style="margin-bottom: 12px;">
+                            <h4 style="font-size: 1.1rem; color: #1e293b; margin-bottom: 6px; font-weight: 700;">Ingredienti</h4>
+                            <ul style="padding-left: 20px; font-size: 1rem; color: #334155; display: flex; flex-direction: column; gap: 4px;">
+                                ${ingredientiHtml}
+                            </ul>
                         </div>
-
-                        <div class="azioni-utente" style="margin-top: 10px;">
-                            <button class="btn-modifica" onclick="modificaRicetta('${r.id}')">Mod.</button>
-                            <button class="btn-elimina" onclick="eliminaRicetta('${r.id}')">Elimina</button>
+                        <div style="margin-bottom: 12px;">
+                            <h4 style="font-size: 1.1rem; color: #1e293b; margin-bottom: 6px; font-weight: 700;">Procedimento</h4>
+                            <ol style="padding-left: 20px; font-size: 1rem; color: #334155; display: flex; flex-direction: column; gap: 6px;">
+                                ${procedimentoHtml}
+                            </ol>
                         </div>
+                        ${r.note ? `<p style="font-size: 0.95rem; color: #64748b; margin-top: 8px;"><strong>Note:</strong> ${r.note}</p>` : ''}
                     </div>
                 </div>`;
         });
 
-        listaRicette.innerHTML = htmlGrigliaRicette;
+        listaRicette.innerHTML = htmlRicette || `<p class="text-muted">Nessuna ricetta inserita.</p>`;
 
-        // Visualizzazione in Home con stile a box colorati (prime 5 ricette)
-        let htmlHomeRicette = "";
-        const ricettePerHome = ricette.slice(0, 5);
-        
-        ricettePerHome.forEach(r => {
-            const creatore = r.creatore || "Famiglia";
-            htmlHomeRicette += `
-                <div class="ricetta-block-style">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 600; font-size: 0.95rem;">🍳 ${r.nome}</span>
-                        <span style="font-size: 0.8rem; opacity: 0.8;">${creatore}</span>
-                    </div>
-                </div>`;
-        });
-        
-        if (ricette.length > 5) {
-            htmlHomeRicette += `<div style="padding-top: 6px; font-size: 0.85rem; color: #64748b; text-align: center;">E altre ${ricette.length - 5} ricette...</div>`;
+        // Riepilogo in Home
+        if (summaryRicette) {
+            let htmlHomeRicette = "";
+            ricette.slice(0, 3).forEach(r => {
+                const colUser = coloriUtenti[r.creatore] || "#3b82f6";
+                htmlHomeRicette += `
+                    <div class="ricetta-block-style" style="border-left-color: ${colUser};">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong>${r.nome}</strong>
+                            <span style="font-size: 0.8rem; color: ${colUser}; font-weight: bold;">${r.creatore || ''}</span>
+                        </div>
+                    </div>`;
+            });
+            summaryRicette.innerHTML = htmlHomeRicette || `<p class="text-muted">Nessuna ricetta disponibile.</p>`;
         }
 
-        summaryRicette.innerHTML = htmlHomeRicette;
-
     } catch (err) {
-        listaRicette.innerHTML = `<p class="text-muted">Errore nel caricamento delle ricette.</p>`;
-        summaryRicette.innerHTML = `<p class="text-muted">Errore caricamento.</p>`;
+        listaRicette.innerHTML = `<p class="text-muted">Errore caricamento ricette.</p>`;
     }
 }
 
-window.votaRicetta = async function(id, tipoVoto) {
-    try {
-        const ricettaRef = doc(db, "ricette", id);
-        const docSnap = await getDoc(ricettaRef);
-
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            const voti = data.voti || {};
-
-            if (voti[nomeUtenteCorrente] === tipoVoto) {
-                delete voti[nomeUtenteCorrente];
-            } else {
-                voti[nomeUtenteCorrente] = tipoVoto;
-            }
-
-            await updateDoc(ricettaRef, { voti: voti });
-            caricaRicette();
-        }
-    } catch (err) {
-        alert("Errore durante la valutazione.");
-    }
-}
-
-window.toggleRicettaAccordion = function(id) {
-    const cardSelezionata = document.getElementById(`ricetta-card-${id}`);
-    if (!cardSelezionata) return;
-
-    const eraAperta = cardSelezionata.classList.contains('aperta');
-
-    document.querySelectorAll('.ricetta-card-item').forEach(card => {
-        card.classList.remove('aperta');
-    });
-
-    if (!eraAperta) {
-        cardSelezionata.classList.add('aperta');
-    }
-}
-
-window.eliminaRicetta = async function(id) {
-    if (confirm("Vuoi eliminare questa ricetta?")) {
-        await deleteDoc(doc(db, "ricette", id));
-        caricaRicette();
-    }
+window.toggleRicetta = function(headerElement) {
+    const cardItem = headerElement.closest('.ricetta-card-item');
+    cardItem.classList.toggle('aperta');
 }
 
 window.modificaRicetta = async function(id) {
@@ -340,22 +222,74 @@ window.modificaRicetta = async function(id) {
             ricettaNoteInput.value = r.note || "";
 
             containerIngredienti.innerHTML = "";
-            if (r.ingredienti && r.ingredienti.length > 0) {
-                r.ingredienti.forEach(ing => aggiungiRigaIngrediente(ing));
-            } else {
-                aggiungiRigaIngrediente();
-            }
+            (r.ingredienti || []).forEach(i => aggiungiRigaIngrediente(i));
 
             containerProcedimento.innerHTML = "";
-            if (r.procedimento && r.procedimento.length > 0) {
-                r.procedimento.forEach(pas => aggiungiRigaPasso(pas));
-            } else {
-                aggiungiRigaPasso();
-            }
+            (r.procedimento || []).forEach(p => aggiungiRigaProcedimento(p));
 
             modalRicetta.style.display = 'flex';
         }
     } catch (err) {
         alert("Errore nel recupero della ricetta.");
     }
+}
+
+window.eliminaRicetta = async function(id) {
+    if (confirm("Vuoi eliminare questa ricetta?")) {
+        await deleteDoc(doc(db, "ricette", id));
+        caricaRicette();
+    }
+}
+
+// Logica Ricetta Casuale
+if (btnRicettaCasuale) {
+    btnRicettaCasuale.addEventListener('click', async () => {
+        try {
+            const querySnapshot = await getDocs(collection(db, "ricette"));
+            let ricette = [];
+            querySnapshot.forEach(docSnap => ricette.push(docSnap.data()));
+
+            if (ricette.length === 0) {
+                alert("Nessuna ricetta disponibile nel ricettario!");
+                return;
+            }
+
+            const estratta = ricette[Math.floor(Math.random() * ricette.length)];
+            mostraModalRicettaCasuale(estratta);
+        } catch (err) {
+            alert("Errore nell'estrazione della ricetta casuale.");
+        }
+    });
+}
+
+function mostraModalRicettaCasuale(r) {
+    let ing = (r.ingredienti || []).map(i => `<li>${i}</li>`).join('');
+    let proc = (r.procedimento || []).map(p => `<li>${p}</li>`).join('');
+
+    contenutoRicettaCasuale.innerHTML = `
+        <h4 style="color: var(--user-primary); margin-bottom: 10px; font-size: 1.2rem;">${r.nome}</h4>
+        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px;">Caricata da: <strong>${r.creatore || 'Famiglia'}</strong></p>
+        <div style="margin-bottom: 10px;">
+            <strong style="font-size: 1rem;">Ingredienti:</strong>
+            <ul style="padding-left: 18px; font-size: 0.95rem;">${ing}</ul>
+        </div>
+        <div>
+            <strong style="font-size: 1rem;">Procedimento:</strong>
+            <ol style="padding-left: 18px; font-size: 0.95rem;">${proc}</ol>
+        </div>
+    `;
+    modalRicettaCasuale.style.display = 'flex';
+}
+
+if (btnAltraRicettaCasuale) {
+    btnAltraRicettaCasuale.addEventListener('click', async () => {
+        btnRicettaCasuale.click();
+        modalRicettaCasuale.style.display = 'none';
+    });
+}
+
+if (btnChiudiModalCasuale) {
+    btnChiudiModalCasuale.addEventListener('click', () => {
+        modalRicettaCasuale.style.display = 'none';
+    });
 }
