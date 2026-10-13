@@ -1,125 +1,45 @@
-import { controllaSessioneSalvata, impostaCallbackAvvio, attivaInterfacciaUtente } from "./auth.js";
-import { caricaScadenze } from "./scadenze.js";
-import { caricaAppuntamenti } from "./appuntamenti.js";
-import { caricaRicette } from "./ricette.js";
-import { caricaUtentiAdmin } from "./utenti.js";
+import { caricaAppuntamenti } from './impegni/impegni.js';
+import { caricaScadenze } from './scadenze/scadenze.js';
+import { caricaRicette } from './ricette/ricette.js';
+import { caricaMedia } from './media/media.js';
+import { caricaUtenti } from './utenti/utenti.js';
+import { inizializzaAuth, nomeUtenteCorrente, isAdminCorrente } from './auth.js';
 
-const navButtons = document.querySelectorAll('.nav-btn');
-const pageSections = document.querySelectorAll('.page-section');
-const headerSectionName = document.getElementById('header-section-name');
-const headerIcon = document.getElementById('header-icon');
-const btnTopBackHome = document.getElementById('btn-top-back-home');
-const sidebar = document.getElementById('sidebar');
-const toggleSidebarBtn = document.getElementById('toggle-sidebar');
-const cardCliccabili = document.querySelectorAll('.card-cliccabile');
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Inizializzazione Autenticazione e Profilo
+    await inizializzaAuth();
 
-const iconeSezioni = {
-    'sec-home': '🏠',
-    'sec-scadenze': 'icon/icona-scadenze.png',
-    'sec-appuntamenti': 'icon/icona-impegni.png',
-    'sec-media': 'icon/icona-media.png',
-    'sec-ricette': 'icon/icona-ricette.png',
-    'sec-utenti': '⚙️'
-};
+    // 2. Caricamento iniziale di tutte le sezioni
+    caricaTuttiIContenuti();
 
-const titoliSezioni = {
-    'sec-home': 'Home',
-    'sec-scadenze': 'Scadenze',
-    'sec-appuntamenti': 'Appuntamenti',
-    'sec-media': 'Media',
-    'sec-ricette': 'Ricette',
-    'sec-utenti': 'Gestione Utenti'
-};
-
-function attivaSezione(targetId) {
-    pageSections.forEach(section => {
-        section.classList.remove('active');
-    });
-
-    const targetSection = document.getElementById(targetId);
-    if (targetSection) {
-        targetSection.classList.add('active');
-    }
+    // 3. Gestione della Navigazione tra le tab
+    const navButtons = document.querySelectorAll('.nav-btn');
+    const sections = document.querySelectorAll('.section');
 
     navButtons.forEach(btn => {
-        if (btn.getAttribute('data-target') === targetId) {
+        btn.addEventListener('click', () => {
+            const targetId = btn.getAttribute('data-target');
+
+            navButtons.forEach(b => b.classList.remove('active'));
+            sections.forEach(s => s.classList.remove('active'));
+
             btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+        });
     });
+});
 
-    if (titoliSezioni[targetId]) {
-        headerSectionName.textContent = titoliSezioni[targetId];
-    }
-
-    const icona = iconeSezioni[targetId];
-    if (icona) {
-        if (icona.startsWith('icon/')) {
-            headerIcon.outerHTML = `<img src="${icona}" id="header-icon" class="header-icon">`;
-        } else {
-            headerIcon.outerHTML = `<span id="header-icon" style="font-size: 1.5rem;">${icona}</span>`;
-        }
-    }
-
-    if (btnTopBackHome) {
-        if (targetId === 'sec-home') {
-            btnTopBackHome.style.display = 'none';
-        } else {
-            btnTopBackHome.style.display = 'inline-flex';
-        }
-    }
-
-    if (targetId === 'sec-scadenze') {
-        caricaScadenze();
-    } else if (targetId === 'sec-appuntamenti') {
-        caricaAppuntamenti();
-    } else if (targetId === 'sec-ricette') {
-        caricaRicette();
-    } else if (targetId === 'sec-utenti') {
-        caricaUtentiAdmin();
-    } else if (targetId === 'sec-home') {
-        caricaScadenze();
-        caricaAppuntamenti();
-        caricaRicette();
+async function caricaTuttiIContenuti() {
+    try {
+        await caricaAppuntamenti();
+        await caricaScadenze();
+        await caricaRicette();
+        await caricaMedia();
+        await caricaUtenti();
+    } catch (err) {
+        console.error("Errore durante il caricamento dei dati:", err);
     }
 }
-
-navButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        const target = button.getAttribute('data-target');
-        if (target) {
-            attivaSezione(target);
-        }
-    });
-});
-
-if (btnTopBackHome) {
-    btnTopBackHome.addEventListener('click', () => {
-        attivaSezione('sec-home');
-    });
-}
-
-cardCliccabili.forEach(card => {
-    card.addEventListener('click', () => {
-        const target = card.getAttribute('data-target');
-        if (target) {
-            attivaSezione(target);
-        }
-    });
-});
-
-if (toggleSidebarBtn && sidebar) {
-    toggleSidebarBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('collapsed');
-    });
-}
-
-impostaCallbackAvvio(() => {
-    attivaSezione('sec-home');
-    attivaInterfacciaUtente(caricaUtentiAdmin);
-});
-
-window.addEventListener('DOMContentLoaded', () => {
-    controllaSessioneSalvata();
-});
