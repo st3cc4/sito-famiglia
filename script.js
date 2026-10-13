@@ -2,6 +2,7 @@ import { controllaSessioneSalvata, impostaCallbackAvvio, attivaInterfacciaUtente
 import { caricaScadenze } from "./scadenze.js";
 import { caricaAppuntamenti } from "./appuntamenti.js";
 import { caricaRicette } from "./ricette.js";
+import { caricaUtentiAdmin } from "./utenti.js";
 
 const navButtons = document.querySelectorAll('.nav-btn');
 const pageSections = document.querySelectorAll('.page-section');
@@ -75,6 +76,8 @@ function attivaSezione(targetId) {
         caricaAppuntamenti();
     } else if (targetId === 'sec-ricette') {
         caricaRicette();
+    } else if (targetId === 'sec-utenti') {
+        caricaUtentiAdmin();
     } else if (targetId === 'sec-home') {
         caricaScadenze();
         caricaAppuntamenti();
@@ -114,7 +117,7 @@ if (toggleSidebarBtn && sidebar) {
 
 impostaCallbackAvvio(() => {
     attivaSezione('sec-home');
-    attivaInterfacciaUtente(null);
+    attivaInterfacciaUtente(caricaUtentiAdmin);
 });
 
 window.addEventListener('DOMContentLoaded', () => {
