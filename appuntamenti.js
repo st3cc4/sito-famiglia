@@ -2,250 +2,222 @@ import {
     collection, 
     addDoc, 
     getDocs, 
-    deleteDoc, 
     doc, 
+    deleteDoc, 
     updateDoc, 
     getDoc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "./firebase-config.js";
-import { nomeUtenteCorrente, formatCapitalize } from "./auth.js";
+import { nomeUtenteCorrente, isAdminCorrente } from "./auth.js";
 
-const btnApriModalAppuntamento = document.getElementById('btn-apri-modal-appuntamento');
-const btnChiudiModalAppuntamento = document.getElementById('btn-chiudi-modal-appuntamento');
-const modalAppuntamento = document.getElementById('modal-appuntamento');
-const modalAppuntamentoTitle = document.getElementById('modal-appuntamento-title');
-const appuntamentoForm = document.getElementById('appuntamento-form');
+const btnApriModalApp = document.getElementById('btn-apri-modal-appuntamento');
+const btnChiudiModalApp = document.getElementById('btn-chiudi-modal-appuntamento');
+const modalApp = document.getElementById('modal-appuntamento');
+const modalAppTitle = document.getElementById('modal-appuntamento-title');
+const appForm = document.getElementById('appuntamento-form');
 const appIdInput = document.getElementById('app-id');
 const appTitoloInput = document.getElementById('app-titolo');
 const appDataInput = document.getElementById('app-data');
 const appOraInizioInput = document.getElementById('app-ora-inizio');
 const appOraFineInput = document.getElementById('app-ora-fine');
-const appCreatoreInput = document.getElementById('app-creatore');
-
 const gridSettimanale = document.getElementById('grid-settimanale');
 const settimanaLabel = document.getElementById('settimana-label');
 const btnPrevWeek = document.getElementById('btn-prev-week');
 const btnNextWeek = document.getElementById('btn-next-week');
 const summaryAppuntamenti = document.getElementById('home-summary-appuntamenti');
 
-let dataCorrenteInizioSettimana = getInizioSettimana(new Date());
+let dataCorrenteSettimana = new Date();
 
-function getInizioSettimana(d) {
-    const data = new Date(d);
-    const giorno = data.getDay();
-    const diff = data.getDate() - giorno + (giorno === 0 ? -6 : 1); // Lunedì come inizio
-    return new Date(data.setDate(diff));
+if (btnApriModalApp) {
+    btnApriModalApp.addEventListener('click', () => {
+        modalAppTitle.textContent = "Nuovo Impegno";
+        appForm.reset();
+        appIdInput.value = "";
+        modalApp.style.display = 'flex';
+    });
 }
 
-function formattaDataIso(data) {
-    return data.toISOString().split('T')[0];
+if (btnChiudiModalApp) {
+    btnChiudiModalApp.addEventListener('click', () => {
+        modalApp.style.display = 'none';
+    });
 }
 
-function formatoDataEuropeo(dataIso) {
-    if (!dataIso) return '';
-    const parti = dataIso.split('-');
-    if (parti.length !== 3) return dataIso;
-    return `${parti[2]}/${parti[1]}/${parti[0]}`;
-}
+if (appForm) {
+    appForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const titolo = appTitoloInput.value.trim();
+        const data = appDataInput.value;
+        const oraInizio = appOraInizioInput.value;
+        const oraFine = appOraFineInput.value;
+        const editId = appIdInput.value;
 
-btnApriModalAppuntamento.addEventListener('click', () => {
-    window.apriModalNuovoAppuntamento();
-});
+        const datiApp = {
+            titolo,
+            data,
+            oraInizio,
+            oraFine,
+            creatore: nomeUtenteCorrente || "Famiglia"
+        };
 
-window.apriModalNuovoAppuntamento = function(dataSelezionata = '') {
-    modalAppuntamentoTitle.textContent = "Nuovo Appuntamento";
-    appuntamentoForm.reset();
-    appIdInput.value = "";
-    appCreatoreInput.value = nomeUtenteCorrente;
-    if (dataSelezionata) {
-        appDataInput.value = dataSelezionata;
-    } else {
-        appDataInput.value = formattaDataIso(new Date());
-    }
-    modalAppuntamento.style.display = 'flex';
-}
-
-btnChiudiModalAppuntamento.addEventListener('click', () => {
-    modalAppuntamento.style.display = 'none';
-});
-
-appuntamentoForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const titolo = formatCapitalize(appTitoloInput.value);
-    const data = appDataInput.value;
-    const oraInizio = appOraInizioInput.value;
-    const oraFine = appOraFineInput.value;
-    const editId = appIdInput.value;
-
-    const datiImpegno = {
-        titolo,
-        data,
-        oraInizio,
-        oraFine,
-        creatore: nomeUtenteCorrente
-    };
-
-    try {
-        if (editId) {
-            await updateDoc(doc(db, "appuntamenti", editId), datiImpegno);
-        } else {
-            await addDoc(collection(db, "appuntamenti"), datiImpegno);
+        try {
+            if (editId) {
+                const docRef = doc(db, "appuntamenti", editId);
+                await updateDoc(docRef, datiApp);
+            } else {
+                await addDoc(collection(db, "appuntamenti"), datiApp);
+            }
+            modalApp.style.display = 'none';
+            appForm.reset();
+            caricaAppuntamenti();
+        } catch (err) {
+            console.error("Errore salvataggio impegno:", err);
+            alert("Errore nel salvataggio dell'impegno.");
         }
-        modalAppuntamento.style.display = 'none';
-        appuntamentoForm.reset();
-        caricaAppuntamenti();
-    } catch (err) {
-        alert("Errore nel salvataggio dell'appuntamento.");
-    }
-});
+    });
+}
 
 export async function caricaAppuntamenti() {
-    if (!gridSettimanale) return;
-    
-    gridSettimanale.innerHTML = `<p class="text-muted">Caricamento appuntamenti...</p>`;
-    if (summaryAppuntamenti) summaryAppuntamenti.innerHTML = `<p class="text-muted">Caricamento in corso...</p>`;
-
     try {
-        // Recupera utenti per associarne i colori
-        const utentiSnap = await getDocs(collection(db, "utenti"));
-        const coloriUtenti = {};
-        utentiSnap.forEach(docSnap => {
-            const u = docSnap.data();
-            if (u.nome && u.colore) {
-                coloriUtenti[u.nome] = u.colore;
-            }
-        });
-
         const querySnapshot = await getDocs(collection(db, "appuntamenti"));
         let appuntamenti = [];
         querySnapshot.forEach(docSnap => {
             appuntamenti.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        appuntamenti.sort((a, b) => {
-            if (a.data === b.data) {
-                return (a.oraInizio || "").localeCompare(b.oraInizio || "");
-            }
-            return new Date(a.data) - new Date(b.data);
-        });
+        // Cariciamo i colori degli utenti per mostrare i badge personalizzati
+        let mappaColoriUtenti = {};
+        try {
+            const utentiSnap = await getDocs(collection(db, "utenti"));
+            utentiSnap.forEach(uDoc => {
+                const uData = uDoc.data();
+                mappaColoriUtenti[uDoc.id.toLowerCase()] = uData.colore || '#3b82f6';
+            });
+        } catch(e) {}
 
-        // Calcolo giorni della settimana corrente (in verticale)
-        let giorniSettimana = [];
-        let tempDate = new Date(dataCorrenteInizioSettimana);
-        
-        for (let i = 0; i < 7; i++) {
-            giorniSettimana.push(new Date(tempDate));
-            tempDate.setDate(tempDate.getDate() + 1);
-        }
-
-        const dataFine = new Date(tempDate);
-        dataFine.setDate(dataFine.getDate() - 1);
-        settimanaLabel.textContent = `${formatoDataEuropeo(formattaDataIso(giorniSettimana[0]))} - ${formatoDataEuropeo(formattaDataIso(dataFine))}`;
-
-        const oggiStr = formattaDataIso(new Date());
-        const oggiObj = new Date();
-        oggiObj.setHours(0,0,0,0);
-
-        let htmlGrigliaVerticale = "";
-        const nomiGiorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
-        
-        // Sfondi specifici per ciascun giorno della settimana (Domenica = rosso)
-        const classiGiorni = [
-            'giorno-lunedi',   // Lunedì
-            'giorno-martedi',  // Martedì
-            'giorno-mercoledi',// Mercoledì
-            'giorno-giovedi',  // Giovedì
-            'giorno-venerdi',  // Venerdì
-            'giorno-sabato',   // Sabato
-            'giorno-domenica'  // Domenica (Rosso)
-        ];
-
-        giorniSettimana.forEach((giornoDate, index) => {
-            const dataIso = formattaDataIso(giornoDate);
-            const nomeGiorno = nomiGiorni[index];
-            const isOggi = (dataIso === oggiStr);
-            const classeGiornoColore = classiGiorni[index];
-
-            // Filtra impegni per questo giorno
-            const impegniGiorno = appuntamenti.filter(a => a.data === dataIso);
-
-            let htmlImpegni = "";
-            if (impegniGiorno.length === 0) {
-                htmlImpegni = `<p class="text-muted" style="font-size: 0.85rem; padding: 5px;">Nessun impegno</p>`;
-            } else {
-                impegniGiorno.forEach(imp => {
-                    const creatoreImp = imp.creatore || "Famiglia";
-                    const coloreCreatore = coloriUtenti[creatoreImp] || "#3b82f6"; // Colore utente o blu di default
-                    
-                    htmlImpegni += `
-                        <div class="card-impegno-google" style="border-left-color: ${coloreCreatore};">
-                            <div style="font-weight: 600;">${imp.titolo}</div>
-                            <div style="font-size: 0.8rem; color: #475569;">${imp.oraInizio || ''} - ${imp.oraFine || ''}</div>
-                            <div style="font-size: 0.75rem; color: ${coloreCreatore}; font-weight: bold; margin-top: 2px;">[${creatoreImp}]</div>
-                            <div style="margin-top: 6px; display: flex; gap: 5px;">
-                                <button class="btn-modifica" style="padding: 2px 8px; font-size: 0.75rem;" onclick="modificaAppuntamento('${imp.id}')">Mod.</button>
-                                <button class="btn-elimina" style="padding: 2px 8px; font-size: 0.75rem;" onclick="eliminaAppuntamento('${imp.id}')">Del</button>
-                            </div>
-                        </div>`;
-                });
-            }
-
-            htmlGrigliaVerticale += `
-                <div class="colonna-giorno-scheda ${classeGiornoColore}" style="margin-bottom: 12px;">
-                    <div class="header-giorno-moderno ${isOggi ? 'oggi' : ''}" onclick="apriModalNuovoAppuntamento('${dataIso}')" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; cursor: pointer;">
-                        <span style="font-weight: bold; font-size: 1rem;">${nomeGiorno} (${formatoDataEuropeo(dataIso)})</span>
-                        <span style="font-size: 0.85rem; opacity: 0.8;">Aggiungi</span>
-                    </div>
-                    <div class="corpo-giorno-moderno" style="display: flex; flex-direction: column; gap: 8px; padding: 12px;">
-                        ${htmlImpegni}
-                    </div>
-                </div>`;
-        });
-
-        gridSettimanale.innerHTML = htmlGrigliaVerticale;
-
-        // Riepilogo in Home (prossimi appuntamenti)
+        // 1. Apopolamento Scheda HOME (I prossimi impegni in lista)
         if (summaryAppuntamenti) {
-            let htmlHomeApp = "";
-            const impegniFuturi = appuntamenti.filter(a => new Date(a.data) >= oggiObj).slice(0, 4);
-            
-            if (impegniFuturi.length === 0) {
-                summaryAppuntamenti.innerHTML = `<p class="text-muted">Nessun appuntamento in programma.</p>`;
-            } else {
-                impegniFuturi.forEach(imp => {
-                    const colUser = coloriUtenti[imp.creatore] || "#3b82f6";
-                    htmlHomeApp += `
-                        <div class="scadenza-block-style" style="border-left-color: ${colUser}; background-color: #f8fafc;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div><strong>${imp.titolo}</strong> <span style="font-size: 0.85rem; opacity: 0.85;">(${formatoDataEuropeo(imp.data)} - ${imp.oraInizio || ''})</span></div>
-                                <div style="font-size: 0.85rem; color: ${colUser}; font-weight: bold;">${imp.creatore || ''}</div>
-                            </div>
-                        </div>`;
-                });
-                summaryAppuntamenti.innerHTML = htmlHomeApp;
-            }
+            const oggiStr = new Date().toISOString().split('T')[0];
+            const futuri = appuntamenti
+                .filter(a => a.data >= oggiStr)
+                .sort((a, b) => (a.data + a.oraInizio).localeCompare(b.data + b.oraInizio))
+                .slice(0, 4);
+
+            let htmlSummary = "";
+            futuri.forEach(a => {
+                const [yyyy, mm, dd] = a.data.split('-');
+                const dataFormattata = `${dd}/${mm}/${yyyy}`;
+                const creatore = a.creatore || 'Famiglia';
+                const coloreUser = mappaColoriUtenti[creatore.toLowerCase()] || '#3b82f6';
+
+                htmlSummary += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; background-color: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 5px solid ${coloreUser};">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <strong style="font-size: 1.05rem; color: #1e293b;">${a.titolo}</strong>
+                            <span style="font-size: 0.95rem; color: #475569; font-weight: 600;">(${dataFormattata} - ${a.oraInizio})</span>
+                        </div>
+                        <span style="font-size: 0.9rem; font-weight: 700; color: ${coloreUser}; background-color: #f1f5f9; padding: 4px 10px; border-radius: 6px;">${creatore}</span>
+                    </div>
+                `;
+            });
+
+            summaryAppuntamenti.innerHTML = htmlSummary || `<p class="text-muted">Nessun impegno in programma.</p>`;
         }
+
+        // 2. Popolamento Griglia Settimanale
+        aggiornaGrigliaSettimanale(appuntamenti, mappaColoriUtenti);
 
     } catch (err) {
-        gridSettimanale.innerHTML = `<p class="text-muted">Errore nel caricamento degli appuntamenti.</p>`;
+        console.error("Errore caricaAppuntamenti:", err);
+        if (summaryAppuntamenti) summaryAppuntamenti.innerHTML = `<p class="text-muted">Errore nel caricamento impegni.</p>`;
     }
 }
 
-btnPrevWeek.addEventListener('click', () => {
-    dataCorrenteInizioSettimana.setDate(dataCorrenteInizioSettimana.getDate() - 7);
-    caricaAppuntamenti();
-});
+function aggiornaGrigliaSettimanale(appuntamenti, mappaColori) {
+    if (!gridSettimanale) return;
 
-btnNextWeek.addEventListener('click', () => {
-    dataCorrenteInizioSettimana.setDate(dataCorrenteInizioSettimana.getDate() + 7);
-    caricaAppuntamenti();
-});
+    const startOfWeek = getStartOfWeek(dataCorrenteSettimana);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-window.eliminaAppuntamento = async function(id) {
-    if (confirm("Vuoi eliminare questo appuntamento?")) {
-        await deleteDoc(doc(db, "appuntamenti", id));
-        caricaAppuntamenti();
+    const formatDataShort = (d) => `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+    if (settimanaLabel) {
+        settimanaLabel.textContent = `Dal ${formatDataShort(startOfWeek)} al ${formatDataShort(endOfWeek)}`;
     }
+
+    gridSettimanale.innerHTML = "";
+    const giorniSettimana = ["Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica"];
+
+    for (let i = 0; i < 7; i++) {
+        const giornoCorrente = new Date(startOfWeek);
+        giornoCorrente.setDate(startOfWeek.getDate() + i);
+        const dataIso = giornoCorrente.toISOString().split('T')[0];
+
+        const impegniDelGiorno = appuntamenti
+            .filter(a => a.data === dataIso)
+            .sort((a, b) => a.oraInizio.localeCompare(b.oraInizio));
+
+        const col = document.createElement('div');
+        col.className = 'giorno-colonna';
+        col.innerHTML = `
+            <div class="giorno-header">
+                <strong>${giorniSettimana[i]}</strong>
+                <span style="font-size: 0.85rem; color: #64748b;">${formatDataShort(giornoCorrente)}</span>
+            </div>
+            <div class="giorno-eventi" id="giorno-${dataIso}"></div>
+        `;
+
+        const containerEventi = col.querySelector(`#giorno-${dataIso}`);
+        impegniDelGiorno.forEach(imp => {
+            const creatore = imp.creatore || 'Famiglia';
+            const colore = mappaColori[creatore.toLowerCase()] || '#3b82f6';
+            const isAdmin = isAdminCorrente;
+            const puoModificare = isAdmin || (creatore.toLowerCase() === (nomeUtenteCorrente || "").toLowerCase());
+
+            const ev = document.createElement('div');
+            ev.className = 'evento-card';
+            ev.style.borderLeft = `4px solid ${colore}`;
+            ev.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 6px;">
+                    <div>
+                        <strong style="font-size: 1rem; color: #0f172a; display: block;">${imp.titolo}</strong>
+                        <span style="font-size: 0.95rem; font-weight: 600; color: #475569;">${imp.oraInizio} - ${imp.oraFine}</span>
+                    </div>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: ${colore};">${creatore}</span>
+                </div>
+                ${puoModificare ? `
+                    <div style="margin-top: 6px; display: flex; gap: 6px; justify-content: flex-end;">
+                        <button class="btn-modifica" style="font-size: 0.75rem; padding: 2px 6px;" onclick="modificaAppuntamento('${imp.id}')">Mod.</button>
+                        <button class="btn-elimina" style="font-size: 0.75rem; padding: 2px 6px;" onclick="eliminaAppuntamento('${imp.id}')">&times;</button>
+                    </div>
+                ` : ''}
+            `;
+            containerEventi.appendChild(ev);
+        });
+
+        gridSettimanale.appendChild(col);
+    }
+}
+
+function getStartOfWeek(d) {
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(date.setDate(diff));
+}
+
+if (btnPrevWeek) {
+    btnPrevWeek.addEventListener('click', () => {
+        dataCorrenteSettimana.setDate(dataCorrenteSettimana.getDate() - 7);
+        caricaAppuntamenti();
+    });
+}
+
+if (btnNextWeek) {
+    btnNextWeek.addEventListener('click', () => {
+        dataCorrenteSettimana.setDate(dataCorrenteSettimana.getDate() + 7);
+        caricaAppuntamenti();
+    });
 }
 
 window.modificaAppuntamento = async function(id) {
@@ -253,16 +225,26 @@ window.modificaAppuntamento = async function(id) {
         const docSnap = await getDoc(doc(db, "appuntamenti", id));
         if (docSnap.exists()) {
             const a = docSnap.data();
-            modalAppuntamentoTitle.textContent = "Modifica Appuntamento";
+            modalAppTitle.textContent = "Modifica Impegno";
             appIdInput.value = id;
             appTitoloInput.value = a.titolo || "";
             appDataInput.value = a.data || "";
             appOraInizioInput.value = a.oraInizio || "";
             appOraFineInput.value = a.oraFine || "";
-            appCreatoreInput.value = a.creatore || nomeUtenteCorrente;
-            modalAppuntamento.style.display = 'flex';
+            modalApp.style.display = 'flex';
         }
     } catch (err) {
-        alert("Errore nel recupero dell'appuntamento.");
+        alert("Errore nel recupero dell'impegno.");
+    }
+}
+
+window.eliminaAppuntamento = async function(id) {
+    if (confirm("Vuoi eliminare questo impegno?")) {
+        try {
+            await deleteDoc(doc(db, "appuntamenti", id));
+            caricaAppuntamenti();
+        } catch (err) {
+            alert("Errore nell'eliminazione.");
+        }
     }
 }
