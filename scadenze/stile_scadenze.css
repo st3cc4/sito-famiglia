@@ -1,34 +1,156 @@
-/* Stili specifici per la sezione Scadenze */
+/* Stili della Sezione Scadenze */
 .lista-badge {
     list-style: none;
     padding: 0;
-    margin: 15px 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-.badge-item {
+.scadenza-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 16px;
-    background: #ffffff;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    padding: 16px 20px;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-left: 5px solid #cbd5e1;
+    background-color: #ffffff;
 }
 
-.badge-item.pagato {
-    opacity: 0.6;
-    background: #f8fafc;
+.scadenza-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Colori di sfondo dinamici in base ai giorni che mancano */
+.scadenza-item.scadenza-rossa {
+    background-color: #fef2f2;
+    border-left-color: #ef4444;
+}
+
+.scadenza-item.scadenza-arancione {
+    background-color: #fff7ed;
+    border-left-color: #f97316;
+}
+
+.scadenza-item.scadenza-verde {
+    background-color: #f0fdf4;
+    border-left-color: #22c55e;
+}
+
+.scadenza-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.scadenza-titolo {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #0f172a;
+}
+
+.scadenza-data {
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.scadenza-mancano {
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.scadenza-mancano.mancano-rosso {
+    color: #dc2626;
+}
+
+.scadenza-mancano.mancano-arancione {
+    color: #c2410c;
+}
+
+.scadenza-mancano.mancano-verde {
+    color: #15803d;
+}
+
+.scadenza-azioni {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.scadenza-importo {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #0f172a;
+    margin-right: 10px;
+}
+
+.btn-segna-pagata {
+    background-color: #e2e8f0;
+    color: #334155;
+    border: none;
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btn-segna-pagata:hover {
+    background-color: #cbd5e1;
+}
+
+/* Pulsante Modifica colorato di #0000ff */
+.btn-modifica-scadenza {
+    background-color: #0000ff;
+    color: #ffffff;
+    border: none;
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-modifica-scadenza:hover {
+    background-color: #0000cc;
+    transform: translateY(-1px);
+}
+
+/* Pulsante Elimina con icona del cestino */
+.btn-elimina-scadenza {
+    background-color: #ef4444;
+    color: #ffffff;
+    border: none;
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-elimina-scadenza:hover {
+    background-color: #dc2626;
+    transform: translateY(-1px);
 }
 
 .totale-badge {
-    background: #1e293b;
+    margin-top: 20px;
+    background-color: #1e293b;
     color: #ffffff;
-    padding: 12px 16px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 1.1rem;
+    padding: 16px;
+    border-radius: 10px;
     text-align: right;
-    margin-top: 15px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
