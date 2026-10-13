@@ -126,8 +126,9 @@ body {
     width: calc(100% - var(--sidebar-collapsed));
 }
 
-/* HEADER SUPERIORE (Centrato con Saluto + Colore) */
+/* HEADER SUPERIORE (Centratura Perfetta del Blocco Saluto/Colore) */
 .app-header {
+    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -142,6 +143,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+    z-index: 1;
 }
 
 .header-icon {
@@ -151,15 +153,20 @@ body {
 }
 
 .header-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     align-items: center;
     gap: 12px;
+    z-index: 1;
 }
 
 .header-right {
     display: flex;
     align-items: center;
     gap: 15px;
+    z-index: 1;
 }
 
 #header-color-picker {
