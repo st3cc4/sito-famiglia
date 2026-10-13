@@ -1,214 +1,142 @@
-import { doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { 
+    collection, 
+    getDocs, 
+    doc, 
+    getDoc 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "./firebase-config.js";
 
-const authContainer = document.getElementById('auth-container');
-const appContainer = document.getElementById('app-container');
-const authForm = document.getElementById('auth-form');
-const authUsernameInput = document.getElementById('auth-username');
-const authPasswordInput = document.getElementById('auth-password');
-const togglePasswordBtn = document.getElementById('toggle-password');
-const rememberCheck = document.getElementById('remember-check');
-const btnLogout = document.getElementById('btn-logout');
-const greetingTitle = document.getElementById('greeting-title');
-const headerColorPicker = document.getElementById('header-color-picker');
-const menuUtenti = document.getElementById('menu-utenti');
+export let nomeUtenteCorrente = null;
+export let ruoloUtenteCorrente = null;
 
-// Modale Cambio Password
-const btnApriModalePassword = document.getElementById('btn-apri-modale-password');
-const modalCambiaPassword = document.getElementById('modal-cambia-password');
-const btnChiudiModalPassword = document.getElementById('btn-chiudi-modal-password');
-const formCambiaPassword = document.getElementById('form-cambia-password');
-const nuovaPasswordInput = document.getElementById('nuova-password-input');
-
-export let nomeUtenteCorrente = "";
-export let isAdminCorrente = false;
-let callbackAvvio = null;
-
-export function impostaCallbackAvvio(cb) {
-    callbackAvvio = cb;
+export function isAdminCorrente() {
+    return ruoloUtenteCorrente === 'admin';
 }
 
-export function formatCapitalize(str) {
-    if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-}
+export async function inizializzaAuth() {
+    const authScreen = document.getElementById('auth-screen');
+    const appContainer = document.getElementById('app-container');
+    const loginForm = document.getElementById('login-form');
+    const usernameInput = document.getElementById('login-username');
+    const passwordInput = document.getElementById('login-password');
+    const ricordamiCheckbox = document.getElementById('login-ricordami');
+    const btnTogglePassword = document.getElementById('btn-toggle-password');
+    const linkPasswordDimenticata = document.getElementById('link-password-dimenticata');
+    const btnCambiaUtente = document.getElementById('btn-cambia-utente');
+    const currentUserBadge = document.getElementById('current-user-badge');
+    const formNuovoUtenteContainer = document.getElementById('form-nuovo-utente-container');
 
-export function isAdminCorrenteFunzione() {
-    return isAdminCorrente;
-}
-
-export function isAdminCorrenteExport() {
-    return isAdminCorrente;
-}
-
-// Gestione pulsante Mostra/Nascondi password nel login
-if (togglePasswordBtn && authPasswordInput) {
-    togglePasswordBtn.addEventListener('click', () => {
-        if (authPasswordInput.type === 'password') {
-            authPasswordInput.type = 'text';
-            togglePasswordBtn.textContent = 'Nascondi';
-        } else {
-            authPasswordInput.type = 'password';
-            togglePasswordBtn.textContent = 'Mostra';
-        }
-    });
-}
-
-// Apertura e chiusura modale cambio password
-if (btnApriModalePassword && modalCambiaPassword) {
-    btnApriModalePassword.addEventListener('click', () => {
-        nuovaPasswordInput.value = '';
-        modalCambiaPassword.style.display = 'flex';
-    });
-}
-
-if (btnChiudiModalPassword && modalCambiaPassword) {
-    btnChiudiModalPassword.addEventListener('click', () => {
-        modalCambiaPassword.style.display = 'none';
-    });
-}
-
-// Salvataggio nuova password
-if (formCambiaPassword) {
-    formCambiaPassword.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const nuovaPassword = nuovaPasswordInput.value.trim();
-        if (!nuovaPassword) {
-            alert("Inserisci una password valida.");
-            return;
-        }
-
-        if (!nomeUtenteCorrente) {
-            alert("Nessun utente attualmente connesso.");
-            return;
-        }
-
-        try {
-            const userDocRef = doc(db, "utenti", nomeUtenteCorrente);
-            await updateDoc(userDocRef, { password: nuovaPassword });
-            alert("Password modificata con successo!");
-            modalCambiaPassword.style.display = 'none';
-            formCambiaPassword.reset();
-        } catch (err) {
-            console.error("Errore modifica password:", err);
-            alert("Errore durante il salvataggio della nuova password.");
-        }
-    });
-}
-
-authForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const usernameInput = authUsernameInput.value.trim();
-    const usernameFormatted = formatCapitalize(usernameInput);
-    const password = authPasswordInput.value.trim();
-
-    if (!usernameInput || !password) {
-        alert("Inserisci nome utente e password.");
-        return;
-    }
-
-    try {
-        let userDocRef = doc(db, "utenti", usernameFormatted);
-        let userSnap = await getDoc(userDocRef);
-
-        if (!userSnap.exists()) {
-            userDocRef = doc(db, "utenti", usernameInput);
-            userSnap = await getDoc(userDocRef);
-        }
-
-        if (!userSnap.exists()) {
-            alert("Utente non trovato. Verifica il nome inserito.");
-            return;
-        }
-
-        const userData = userSnap.data();
-
-        if (userData.password !== password) {
-            alert("Password errata.");
-            return;
-        }
-
-        nomeUtenteCorrente = userSnap.id;
-        isAdminCorrente = (nomeUtenteCorrente.toLowerCase() === 'paolo' || userData.isAdmin === true);
-
-        if (rememberCheck.checked) {
-            localStorage.setItem('portale_famiglia_utente', nomeUtenteCorrente);
-        } else {
-            sessionStorage.setItem('portale_famiglia_utente', nomeUtenteCorrente);
-        }
-
-        applicaDatiUtente(userData);
-
-    } catch (err) {
-        console.error("Errore di accesso:", err);
-        alert("Errore durante l'accesso al database.");
-    }
-});
-
-function applicaDatiUtente(userData) {
-    authContainer.style.display = 'none';
-    appContainer.style.display = 'flex';
-
-    if (greetingTitle) {
-        greetingTitle.textContent = `Ciao, ${userData.nome || nomeUtenteCorrente}`;
-    }
-
-    if (headerColorPicker) {
-        headerColorPicker.value = userData.colore || '#3b82f6';
-        document.documentElement.style.setProperty('--user-primary', userData.colore || '#3b82f6');
-    }
-
-    if (menuUtenti) {
-        if (isAdminCorrente) {
-            menuUtenti.style.display = 'flex';
-        } else {
-            menuUtenti.style.display = 'none';
-        }
-    }
-
-    if (callbackAvvio) {
-        callbackAvvio();
-    }
-}
-
-if (headerColorPicker) {
-    headerColorPicker.addEventListener('input', async (e) => {
-        const nuovoColore = e.target.value;
-        document.documentElement.style.setProperty('--user-primary', nuovoColore);
-        if (nomeUtenteCorrente) {
-            try {
-                const userDocRef = doc(db, "utenti", nomeUtenteCorrente);
-                await setDoc(userDocRef, { colore: nuovoColore }, { merge: true });
-            } catch (err) {
-                console.error("Errore salvataggio colore", err);
-            }
-        }
-    });
-}
-
-btnLogout.addEventListener('click', () => {
-    localStorage.removeItem('portale_famiglia_utente');
-    sessionStorage.removeItem('portale_famiglia_utente');
-    location.reload();
-});
-
-export function controllaSessioneSalvata() {
-    const utenteSalvato = localStorage.getItem('portale_famiglia_utente') || sessionStorage.getItem('portale_famiglia_utente');
+    // Controllo se c'è un utente salvato con "Ricordami"
+    const utenteSalvato = localStorage.getItem('famiglia_utente_corrente') || sessionStorage.getItem('famiglia_utente_corrente');
     if (utenteSalvato) {
-        getDoc(doc(db, "utenti", utenteSalvato)).then(userSnap => {
-            if (userSnap.exists()) {
-                nomeUtenteCorrente = utenteSalvato;
-                isAdminCorrente = (utenteSalvato.toLowerCase() === 'paolo' || userSnap.data().isAdmin === true);
-                applicaDatiUtente(userSnap.data());
+        await validaEImpostaUtente(utenteSalvato);
+    }
+
+    // Gestione pulsante occhio per mostrare/nascondere la password
+    if (btnTogglePassword && passwordInput) {
+        // Rimuoviamo eventuali vecchi listener clonando il bottone
+        const nuovoBtn = btnTogglePassword.cloneNode(true);
+        btnTogglePassword.parentNode.replaceChild(nuovoBtn, btnTogglePassword);
+        
+        nuovoBtn.addEventListener('click', () => {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                nuovoBtn.textContent = '🔒';
+            } else {
+                passwordInput.type = 'password';
+                nuovoBtn.textContent = '👁️';
             }
-        }).catch(err => {
-            console.error("Errore sessione", err);
         });
     }
-}
 
-export function attivaInterfacciaUtente(caricaUtentiCb) {
-    if (isAdminCorrente && caricaUtentiCb) {
-        caricaUtentiCb();
+    // Gestione invio form di login
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = usernameInput.value.trim().toLowerCase();
+            const password = passwordInput.value.trim();
+
+            if (!username) return;
+
+            try {
+                const userDocRef = doc(db, "utenti", username);
+                const userSnap = await getDoc(userDocRef);
+
+                if (!userSnap.exists()) {
+                    alert("Utente non trovato nel database. Verifica il nome inserito (es. 'paolo').");
+                    return;
+                }
+
+                const userData = userSnap.data();
+                
+                // Controllo password (se l'utente ha salvato una password nel db e non è vuota)
+                if (userData.password && userData.password.trim() !== "" && userData.password !== password) {
+                    alert("Password errata.");
+                    return;
+                }
+
+                // Salva sessione in base a "Ricordami"
+                if (ricordamiCheckbox && ricordamiCheckbox.checked) {
+                    localStorage.setItem('famiglia_utente_corrente', username);
+                } else {
+                    sessionStorage.setItem('famiglia_utente_corrente', username);
+                }
+
+                await validaEImpostaUtente(username);
+
+            } catch (err) {
+                console.error("Errore durante il login:", err);
+                alert("Errore di connessione durante il login.");
+            }
+        });
+    }
+
+    // Password dimenticata
+    if (linkPasswordDimenticata) {
+        linkPasswordDimenticata.addEventListener('click', (e) => {
+            e.preventDefault();
+            alert("Il tuo account amministratore (Paolo) ha password: sv058753");
+        });
+    }
+
+    // Pulsante Cambia Utente / Logout
+    if (btnCambiaUtente) {
+        btnCambiaUtente.addEventListener('click', () => {
+            localStorage.removeItem('famiglia_utente_corrente');
+            sessionStorage.removeItem('famiglia_utente_corrente');
+            nomeUtenteCorrente = null;
+            ruoloUtenteCorrente = null;
+            if (appContainer) appContainer.style.display = 'none';
+            if (authScreen) authScreen.style.display = 'flex';
+            if (loginForm) loginForm.reset();
+        });
+    }
+
+    async function validaEImpostaUtente(username) {
+        try {
+            const userSnap = await getDoc(doc(db, "utenti", username));
+            if (userSnap.exists()) {
+                const data = userSnap.data();
+                nomeUtenteCorrente = data.nome || username;
+                ruoloUtenteCorrente = data.ruolo || 'membro';
+
+                if (authScreen) authScreen.style.display = 'none';
+                if (appContainer) appContainer.style.display = 'flex';
+
+                if (currentUserBadge) {
+                    currentUserBadge.textContent = `${nomeUtenteCorrente} (${ruoloUtenteCorrente})`;
+                }
+
+                // Mostra pannello creazione utenti solo se admin
+                if (formNuovoUtenteContainer) {
+                    formNuovoUtenteContainer.style.display = isAdminCorrente() ? 'block' : 'none';
+                }
+            } else {
+                localStorage.removeItem('famiglia_utente_corrente');
+                sessionStorage.removeItem('famiglia_utente_corrente');
+            }
+        } catch (err) {
+            console.error("Errore validazione utente:", err);
+        }
     }
 }
