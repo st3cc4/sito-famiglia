@@ -1,4 +1,4 @@
-/* Stili Globali e Layout Principale a Sidebar */
+/* Stili Globali e Layout Principale */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -41,12 +41,40 @@ body {
     margin-bottom: 20px;
 }
 
-/* Layout App con Sidebar a Sinistra Colorata */
+/* Layout App con Sidebar a scomparsa */
 .app-layout {
     display: flex;
     min-height: 100vh;
+    position: relative;
 }
 
+/* Pulsante Hamburger per aprire/chiudere la sidebar */
+.hamburger-btn {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 200;
+    background: #1e293b;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    width: 42px;
+    height: 42px;
+    font-size: 1.4rem;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.hamburger-btn:hover {
+    background: #334155;
+    transform: scale(1.05);
+}
+
+/* Sidebar a scomparsa (inizialmente chiusa a sinistra) */
 .sidebar {
     width: 260px;
     background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
@@ -59,8 +87,14 @@ body {
     top: 0;
     bottom: 0;
     left: 0;
-    z-index: 100;
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
+    z-index: 150;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Stato chiuso: nascosta fuori dallo schermo a sinistra */
+.sidebar.closed {
+    transform: translateX(-100%);
 }
 
 .sidebar-brand h2 {
@@ -68,6 +102,7 @@ body {
     color: #f8fafc;
     padding-bottom: 15px;
     border-bottom: 1px solid #334155;
+    margin-top: 40px; /* Spazio per non coprire il pulsante hamburger */
     margin-bottom: 20px;
     letter-spacing: 0.5px;
 }
@@ -183,12 +218,16 @@ body {
     transform: translateY(-1px);
 }
 
-/* Area Contenuti Principale */
+/* Area Contenuti Principale (Occupa tutto lo schermo quando la sidebar è chiusa) */
 .main-content-area {
-    margin-left: 260px;
-    padding: 40px;
+    margin-left: 0;
+    padding: 30px 20px;
+    padding-top: 70px; /* Spazio per il pulsante hamburger */
     flex: 1;
     max-width: 1200px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .section {
