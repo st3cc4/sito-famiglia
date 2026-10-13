@@ -214,18 +214,22 @@ export async function inizializzaAuth() {
             if (userSnap.exists()) {
                 const data = userSnap.data();
                 idUtenteCorrenteId = userSnap.id;
-                nomeUtenteCorrente = data.nome || username;
-                ruoloUtenteCorrente = (username.toLowerCase() === 'paolo' || data.ruolo === 'admin') ? 'admin' : 'membro';
+                
+                // Manteniamo il nome esatto salvato (es. Paolo, Elena, ecc.)
+                nomeUtenteCorrente = data.nome || userSnap.id;
+                ruoloUtenteCorrente = (userSnap.id.toLowerCase() === 'paolo' || data.ruolo === 'admin') ? 'admin' : 'membro';
 
                 if (authScreen) authScreen.style.display = 'none';
                 if (appContainer) appContainer.style.display = 'flex';
 
                 if (currentUserBadge) {
-                    currentUserBadge.textContent = `${nomeUtenteColrente} (${ruoloUtenteCorrente})`;
+                    // Mostriamo nome e ruolo esatti (es. Paolo (admin))
+                    currentUserBadge.textContent = `${nomeUtenteCorrente} (${ruoloUtenteCorrente})`;
                     
                     const coloreUtente = data.colore || '#3b82f6';
                     currentUserBadge.style.backgroundColor = coloreUtente;
                     currentUserBadge.style.color = isColorDark(coloreUtente) ? '#ffffff' : '#0f172a';
+                    
                     if (pickerColoreUtente) {
                         pickerColoreUtente.value = coloreUtente;
                     }
