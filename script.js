@@ -1,190 +1,132 @@
-import { 
-    collection, 
-    getDocs, 
-    deleteDoc, 
-    doc, 
-    setDoc 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { db } from "./firebase-config.js";
-import { 
-    impostaCallbackAvvio, 
-    controllaSessioneSalvata, 
-    attivaInterfacciaUtente, 
-    formatCapitalize 
-} from "./auth.js";
+import { controllaSessioneSalvata, impostaCallbackAvvio, attivaInterfacciaUtente } from "./auth.js";
 import { caricaScadenze } from "./scadenze.js";
 import { caricaAppuntamenti } from "./appuntamenti.js";
 import { caricaRicette } from "./ricette.js";
+import { caricaUtentiAdmin } from "./utenti.js";
 
-// --- GESTIONE INTERFACCIA E NAVIGAZIONE ---
-const sidebar = document.getElementById('sidebar');
-const toggleSidebarBtn = document.getElementById('toggle-sidebar');
 const navButtons = document.querySelectorAll('.nav-btn');
 const pageSections = document.querySelectorAll('.page-section');
-
-const headerIcon = document.getElementById('header-icon');
 const headerSectionName = document.getElementById('header-section-name');
+const headerIcon = document.getElementById('header-icon');
 const btnTopBackHome = document.getElementById('btn-top-back-home');
+const sidebar = document.getElementById('sidebar');
+const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+const cardCliccabili = document.querySelectorAll('.card-cliccabile');
 
-toggleSidebarBtn.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+// Icone delle sezioni
+const iconeSezioni = {
+    'sec-home': '🏠',
+    'sec-scadenze': 'icon/icona-scadenze.png',
+    'sec-appuntamenti': 'icon/icona-impegni.png',
+    'sec-media': 'icon/icona-media.png',
+    'sec-ricette': 'icon/icona-ricette.png',
+    'sec-utenti': '⚙️'
+};
 
-function mostraSezione(targetId) {
-    pageSections.forEach(sec => sec.classList.remove('active'));
-    navButtons.forEach(btn => btn.classList.remove('active'));
+const titoliSezioni = {
+    'sec-home': 'Home',
+    'sec-scadenze': 'Scadenze',
+    'sec-appuntamenti': 'Appuntamenti',
+    'sec-media': 'Media',
+    'sec-ricette': 'Ricette',
+    'sec-utenti': 'Gestione Utenti'
+};
 
-    const activeSec = document.getElementById(targetId);
-    if (activeSec) activeSec.classList.add('active');
+function attivaSezione(targetId) {
+    pageSections.forEach(section => {
+        section.classList.remove('active');
+    });
 
-    const activeBtn = document.querySelector(`.nav-btn[data-target="${targetId}"]`);
-    if (activeBtn) activeBtn.classList.add('active');
+    const targetSection = document.getElementById(targetId);
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
 
-    // Mantiene costante la struttura dell'header in qualsiasi pagina
-    if (targetId === 'sec-home') {
-        headerIcon.style.display = 'inline-block';
-        headerIcon.innerHTML = '🏠';
-        headerSectionName.style.display = 'inline-block';
-        headerSectionName.textContent = 'Home';
-        btnTopBackHome.style.display = 'none';
-    } else {
-        btnTopBackHome.style.display = 'inline-block';
-        if (targetId === 'sec-scadenze') {
-            headerIcon.style.display = 'inline-block';
-            headerIcon.innerHTML = `<img src="icon/icona-scadenze.png" alt="Scadenze" class="header-icon">`;
-            headerSectionName.style.display = 'inline-block';
-            headerSectionName.textContent = 'Scadenze';
-        } else if (targetId === 'sec-appuntamenti') {
-            headerIcon.style.display = 'inline-block';
-            headerIcon.innerHTML = `<img src="icon/icona-impegni.png" alt="Appuntamenti" class="header-icon">`;
-            headerSectionName.style.display = 'inline-block';
-            headerSectionName.textContent = 'Appuntamenti';
-        } else if (targetId === 'sec-media') {
-            headerIcon.style.display = 'inline-block';
-            headerIcon.innerHTML = `<img src="icon/icona-media.png" alt="Media" class="header-icon">`;
-            headerSectionName.style.display = 'inline-block';
-            headerSectionName.textContent = 'Media';
-        } else if (targetId === 'sec-ricette') {
-            headerIcon.style.display = 'inline-block';
-            headerIcon.innerHTML = `<img src="icon/icona-ricette.png" alt="Ricette" class="header-icon">`;
-            headerSectionName.style.display = 'inline-block';
-            headerSectionName.textContent = 'Ricette';
-        } else if (targetId === 'sec-utenti') {
-            headerIcon.style.display = 'inline-block';
-            headerIcon.innerHTML = '⚙️';
-            headerSectionName.style.display = 'inline-block';
-            headerSectionName.textContent = 'Gestione Utenti';
+    navButtons.forEach(btn => {
+        if (btn.getAttribute('data-target') === targetId) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
         }
+    });
+
+    if (titoliSezioni[targetId]) {
+        headerSectionName.textContent = titoliSezioni[targetId];
+    }
+
+    const icona = iconeSezioni[targetId];
+    if (icona) {
+        if (icona.startsWith('icon/')) {
+            headerIcon.outerHTML = `<img src="${icona}" id="header-icon" class="header-icon">`;
+        } else {
+            headerIcon.outerHTML = `<span id="header-icon" style="font-size: 1.5rem;">${icona}</span>`;
+        }
+    }
+
+    // Gestione visibilità pulsante "Torna alla Home"
+    if (btnTopBackHome) {
+        if (targetId === 'sec-home') {
+            btnTopBackHome.style.display = 'none';
+        } else {
+            btnTopBackHome.style.display = 'inline-flex';
+        }
+    }
+
+    // Caricamento dati specifici in base alla sezione
+    if (targetId === 'sec-scadenze') {
+        caricaScadenze();
+    } else if (targetId === 'sec-appuntamenti') {
+        caricaAppuntamenti();
+    } else if (targetId === 'sec-ricette') {
+        caricaRicette();
+    } else if (targetId === 'sec-home') {
+        caricaScadenze();
+        caricaAppuntamenti();
+        caricaRicette();
     }
 }
 
-navButtons.forEach(btn => btn.addEventListener('click', () => mostraSezione(btn.dataset.target)));
-document.querySelectorAll('.btn-back-home').forEach(btn => {
-    btn.addEventListener('click', () => mostraSezione(btn.dataset.target));
+// Click sui bottoni della sidebar
+navButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const target = button.getAttribute('data-target');
+        if (target) {
+            attivaSezione(target);
+        }
+    });
 });
 
-document.querySelectorAll('.card-cliccabile').forEach(card => {
+// Click sul pulsante Torna alla Home nell'header
+if (btnTopBackHome) {
+    btnTopBackHome.addEventListener('click', () => {
+        attivaSezione('sec-home');
+    });
+}
+
+// Click sulle schede cliccabili della Home
+cardCliccabili.forEach(card => {
     card.addEventListener('click', () => {
-        const targetId = card.dataset.target;
-        if (targetId) mostraSezione(targetId);
-    });
-});
-
-// --- CHIUSURA MODALI GENERALE ---
-document.getElementById('btn-chiudi-modal').addEventListener('click', () => {
-    document.getElementById('modal-scadenza').style.display = 'none';
-});
-
-document.getElementById('btn-chiudi-modal-appuntamento').addEventListener('click', () => {
-    document.getElementById('modal-appuntamento').style.display = 'none';
-});
-
-document.getElementById('btn-apri-modal').addEventListener('click', () => {
-    document.getElementById('modal-title').textContent = "Nuova Scadenza";
-    const scadenzaForm = document.getElementById('scadenza-form');
-    scadenzaForm.reset();
-    delete scadenzaForm.dataset.editId;
-    document.getElementById('modal-scadenza').style.display = 'flex';
-});
-
-document.getElementById('btn-apri-modal-appuntamento').addEventListener('click', () => {
-    window.apriModalNuovoAppuntamento();
-});
-
-// --- GESTIONE AMMINISTRAZIONE UTENTI ---
-const utenteForm = document.getElementById('utente-form');
-const userNameInput = document.getElementById('user-name-input');
-const userPassInput = document.getElementById('user-pass-input');
-const permScadenze = document.getElementById('perm-scadenze');
-const permAppuntamenti = document.getElementById('perm-appuntamenti');
-const permMedia = document.getElementById('perm-media');
-const permRicette = document.getElementById('perm-ricette');
-const listaUtenti = document.getElementById('lista-utenti');
-
-if (utenteForm) {
-    utenteForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const nome = formatCapitalize(userNameInput.value);
-        const password = userPassInput.value.trim();
-        const colore = "#3b82f6";
-        const permessi = {
-            scadenze: permScadenze.checked,
-            appuntamenti: permAppuntamenti.checked,
-            media: permMedia.checked,
-            ricette: permRicette.checked
-        };
-
-        try {
-            await setDoc(doc(db, "utenti", nome), { nome, password, colore, permessi });
-            alert("Utente configurato con successo!");
-            utenteForm.reset();
-            caricaListaUtenti();
-        } catch (err) {
-            alert("Errore nel salvataggio dell'utente.");
+        const target = card.getAttribute('data-target');
+        if (target) {
+            attivaSezione(target);
         }
     });
+});
+
+// Toggle Sidebar
+if (toggleSidebarBtn && sidebar) {
+    toggleSidebarBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+    });
 }
 
-async function caricaListaUtenti() {
-    if (!listaUtenti) return;
-    listaUtenti.innerHTML = `<p class="text-muted">Caricamento utenti...</p>`;
-    try {
-        const querySnapshot = await getDocs(collection(db, "utenti"));
-        let html = "";
-        querySnapshot.forEach(docSnap => {
-            const u = docSnap.data();
-            html += `
-                <li class="elemento-lista">
-                    <div>
-                        <span class="badge-utente" style="background-color: ${u.colore || '#3b82f6'};"></span>
-                        <strong>${u.nome}</strong> (Password: ${u.password})
-                    </div>
-                    <div>
-                        <button class="btn-elimina" onclick="eliminaUtente('${docSnap.id}')">Elimina</button>
-                    </div>
-                </li>`;
-        });
-        listaUtenti.innerHTML = html || `<p class="text-muted">Nessun utente configurato.</p>`;
-    } catch (err) {
-        listaUtenti.innerHTML = `<p class="text-muted">Errore caricamento utenti.</p>`;
-    }
-}
+// Callback eseguito al login avvenuto con successo
+impostaCallbackAvvio(() => {
+    attivaSezione('sec-home');
+    attivaInterfacciaUtente(caricaUtentiAdmin);
+});
 
-window.eliminaUtente = async function(emailId) {
-    if (confirm(`Vuoi rimuovere l'utente ${emailId}?`)) {
-        await deleteDoc(doc(db, "utenti", emailId));
-        caricaListaUtenti();
-    }
-}
-
-// --- AVVIO DELL'APPLICAZIONE ---
-function avviaApplicazione() {
-    attivaInterfacciaUtente(caricaListaUtenti);
-    caricaScadenze();
-    caricaAppuntamenti();
-    caricaRicette();
-}
-
-impostaCallbackAvvio(avviaApplicazione);
-
+// All'avvio controlla se c'è una sessione salvata
 window.addEventListener('DOMContentLoaded', () => {
     controllaSessioneSalvata();
 });
