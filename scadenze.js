@@ -69,7 +69,7 @@ export async function caricaScadenze() {
             let statusClass = "status-green";
 
             if (diffGiorni <= 7) {
-                // Rosso: < 0 (scaduta), 0 (oggi), fino a 7 giorni
+                // Rosso: scaduta o entro 7 giorni
                 statusClass = "status-red";
                 if (diffGiorni < 0) {
                     const giorniPassati = Math.abs(diffGiorni);
@@ -80,11 +80,11 @@ export async function caricaScadenze() {
                     stringaGiorni = `Mancano ${diffGiorni} giorni`;
                 }
             } else if (diffGiorni >= 8 && diffGiorni <= 14) {
-                // Arancione: da 8 a 14 giorni compresi
+                // Arancione: 8-14 giorni
                 statusClass = "status-orange";
                 stringaGiorni = `Mancano ${diffGiorni} giorni`;
             } else {
-                // Verde: da 15 giorni in su
+                // Verde: 15+ giorni
                 statusClass = "status-green";
                 stringaGiorni = `Mancano ${diffGiorni} giorni`;
             }
@@ -92,7 +92,7 @@ export async function caricaScadenze() {
             return { ...s, diffGiorni, stringaGiorni, statusClass };
         });
 
-        // Generazione lista nella sezione Scadenze
+        // Lista nella pagina Scadenze
         scadenzeCalcolate.forEach(s => {
             const creatoreScadenza = s.creatore ? s.creatore : "Famiglia";
             htmlScadenze += `
@@ -107,7 +107,7 @@ export async function caricaScadenze() {
                 </li>`;
         });
 
-        // Selezione per la Home: priorità a Rosse, poi Arancioni, poi Verdi
+        // Selezione per la Home
         const scadenzeRosse = scadenzeCalcolate.filter(s => s.statusClass === 'status-red');
         const scadenzeArancioni = scadenzeCalcolate.filter(s => s.statusClass === 'status-orange');
         const scadenzeVerdi = scadenzeCalcolate.filter(s => s.statusClass === 'status-green');
@@ -121,15 +121,17 @@ export async function caricaScadenze() {
             scadenzeDaMostrareInHome = scadenzeVerdi;
         }
 
-        // Generazione lista visibile nel box Home
+        // Layout stile "Appuntamenti" con blocco colorato
         let htmlHomeSummary = "";
         scadenzeDaMostrareInHome.forEach(s => {
             htmlHomeSummary += `
-                <div class="scadenza-summary-item ${s.statusClass}">
-                    <div>
-                        <strong>${s.titolo}</strong> (${formatoDataEuropeo(s.data)}) - <span style="font-size: 0.85rem; font-weight: normal;">${s.stringaGiorni}</span>
+                <div class="scadenza-block-style ${s.statusClass}">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${s.titolo}</strong> <span style="font-size: 0.85rem; opacity: 0.85;">(${formatoDataEuropeo(s.data)}) - ${s.stringaGiorni}</span>
+                        </div>
+                        <div style="font-weight: bold; font-size: 0.95rem;">€ ${Number(s.importo).toFixed(2)}</div>
                     </div>
-                    <div style="font-weight: bold; font-size: 0.95rem;">€ ${Number(s.importo).toFixed(2)}</div>
                 </div>`;
         });
 
