@@ -223,11 +223,11 @@ body {
     font-weight: 600;
 }
 
-/* PULSANTI PERSONALIZZATI (Modifica, Elimina, Esci, Torna alla Home) */
+/* PULSANTI PERSONALIZZATI (Modifica, Elimina, Esci) */
 .btn-modifica {
-    background-color: #eff6ff;
-    color: #1d4ed8;
-    border: 1px solid #bfdbfe;
+    background-color: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #93c5fd;
     padding: 6px 14px;
     border-radius: 6px;
     cursor: pointer;
@@ -238,13 +238,13 @@ body {
 }
 
 .btn-modifica:hover {
-    background-color: #dbeafe;
+    background-color: #bfdbfe;
 }
 
 .btn-elimina {
-    background-color: #fef2f2;
-    color: #dc2626;
-    border: 1px solid #fecaca;
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
     padding: 6px 14px;
     border-radius: 6px;
     cursor: pointer;
@@ -254,11 +254,11 @@ body {
 }
 
 .btn-elimina:hover {
-    background-color: #fee2e2;
+    background-color: #fecaca;
 }
 
 .btn-logout-custom {
-    background-color: #334155;
+    background-color: #475569;
     color: #ffffff;
     border: none;
     padding: 8px 16px;
@@ -269,26 +269,7 @@ body {
 }
 
 .btn-logout-custom:hover {
-    background-color: #1e293b;
-}
-
-/* PULSANTE TORNA ALLA HOME RINNOVATO (Grande, in grassetto, colore diverso) */
-.btn-back-home {
-    background-color: #4f46e5 !important;
-    color: #ffffff !important;
-    border: none !important;
-    padding: 8px 16px !important;
-    border-radius: 8px !important;
-    cursor: pointer !important;
-    font-size: 0.95rem !important;
-    font-weight: bold !important;
-    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
-    transition: background 0.2s ease, transform 0.1s ease;
-}
-
-.btn-back-home:hover {
-    background-color: #4338ca !important;
-    transform: translateY(-1px);
+    background-color: #334155;
 }
 
 .text-muted {
@@ -516,10 +497,6 @@ body {
     color: #9a3412;
     font-size: 0.9rem;
 }
-
-.status-green { border-left-color: #22c55e !important; }
-.status-orange { border-left-color: #f97316 !important; }
-.status-red { border-left-color: #ef4444 !important; }
 
 .totale-badge {
     margin-top: 20px;
