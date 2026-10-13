@@ -6,6 +6,7 @@ const appContainer = document.getElementById('app-container');
 const authForm = document.getElementById('auth-form');
 const authUsernameInput = document.getElementById('auth-username');
 const authPasswordInput = document.getElementById('auth-password');
+const togglePasswordBtn = document.getElementById('toggle-password');
 const rememberCheck = document.getElementById('remember-check');
 const btnLogout = document.getElementById('btn-logout');
 const greetingTitle = document.getElementById('greeting-title');
@@ -29,24 +30,43 @@ export function isAdminCorrenteFunzione() {
     return isAdminCorrente;
 }
 
-// Esporta anche come proprietà per compatibilità
 export function isAdminCorrenteExport() {
     return isAdminCorrente;
 }
 
+// Gestione Mostra/Nascondi Password con l'occhio
+if (togglePasswordBtn && authPasswordInput) {
+    togglePasswordBtn.addEventListener('click', () => {
+        if (authPasswordInput.type === 'password') {
+            authPasswordInput.type = 'text';
+            togglePasswordBtn.textContent = '🔒';
+        } else {
+            authPasswordInput.type = 'password';
+            togglePasswordBtn.textContent = '👁️';
+        }
+    });
+}
+
 authForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const username = formatCapitalize(authUsernameInput.value.trim());
+    const usernameInput = authUsernameInput.value.trim();
+    const usernameFormatted = formatCapitalize(usernameInput);
     const password = authPasswordInput.value.trim();
 
-    if (!username || !password) {
+    if (!usernameInput || !password) {
         alert("Inserisci nome utente e password.");
         return;
     }
 
     try {
-        const userDocRef = doc(db, "utenti", username);
-        const userSnap = await getDoc(userDocRef);
+        // Prova prima con il nome formattato, poi esattamente come digitato
+        let userDocRef = doc(db, "utenti", usernameFormatted);
+        let userSnap = await getDoc(userDocRef);
+
+        if (!userSnap.exists()) {
+            userDocRef = doc(db, "utenti", usernameInput);
+            userSnap = await getDoc(userDocRef);
+        }
 
         if (!userSnap.exists()) {
             alert("Utente non trovato. Verifica il nome inserito.");
@@ -60,15 +80,13 @@ authForm.addEventListener('submit', async (e) => {
             return;
         }
 
-        // Login riuscito
-        nomeUtenteCorrente = username;
-        // È admin se è Paolo o se specificato
-        isAdminCorrente = (username.toLowerCase() === 'paolo' || userData.isAdmin === true);
+        nomeUtenteCorrente = userSnap.id;
+        isAdminCorrente = (nomeUtenteCorrente.toLowerCase() === 'paolo' || userData.isAdmin === true);
 
         if (rememberCheck.checked) {
-            localStorage.setItem('portale_famiglia_utente', username);
+            localStorage.setItem('portale_famiglia_utente', nomeUtenteCorrente);
         } else {
-            sessionStorage.setItem('portale_famiglia_utente', username);
+            sessionStorage.setItem('portale_famiglia_utente', nomeUtenteCorrente);
         }
 
         applicaDatiUtente(userData);
@@ -84,7 +102,7 @@ function applicaDatiUtente(userData) {
     appContainer.style.display = 'flex';
 
     if (greetingTitle) {
-        greetingTitle.textContent = `Ciao, ${userData.nome}`;
+        greetingTitle.textContent = `Ciao, ${userData.nome || nomeUtenteCorrente}`;
     }
 
     if (headerColorPicker) {
@@ -92,7 +110,6 @@ function applicaDatiUtente(userData) {
         document.documentElement.style.setProperty('--user-primary', userData.colore || '#3b82f6');
     }
 
-    // Mostra gestione utenti solo se Admin (es. Paolo)
     if (menuUtenti) {
         if (isAdminCorrente) {
             menuUtenti.style.display = 'flex';
@@ -106,7 +123,6 @@ function applicaDatiUtente(userData) {
     }
 }
 
-// Salvataggio colore utente in tempo reale
 if (headerColorPicker) {
     headerColorPicker.addEventListener('input', async (e) => {
         const nuovoColore = e.target.value;
