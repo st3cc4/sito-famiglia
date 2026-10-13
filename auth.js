@@ -10,7 +10,7 @@ export let ruoloUtenteCorrente = null;
 export let idUtenteCorrenteId = null;
 
 export function isAdminCorrente() {
-    return ruoloUtenteCorrente === 'admin';
+    return ruoloUtenteCorrente === 'Admin';
 }
 
 export async function inizializzaAuth() {
@@ -215,15 +215,16 @@ export async function inizializzaAuth() {
                 const data = userSnap.data();
                 idUtenteCorrenteId = userSnap.id;
                 
-                // Manteniamo il nome esatto salvato (es. Paolo, Elena, ecc.)
                 nomeUtenteCorrente = data.nome || userSnap.id;
-                ruoloUtenteCorrente = (userSnap.id.toLowerCase() === 'paolo' || data.ruolo === 'admin') ? 'admin' : 'membro';
+                // Ruolo con la lettera maiuscola: Admin o Membro
+                const ruoloDb = (userSnap.id.toLowerCase() === 'paolo' || data.ruolo === 'admin') ? 'Admin' : 'Membro';
+                ruoloUtenteCorrente = ruoloDb;
 
                 if (authScreen) authScreen.style.display = 'none';
                 if (appContainer) appContainer.style.display = 'flex';
 
                 if (currentUserBadge) {
-                    // Mostriamo nome e ruolo esatti (es. Paolo (admin))
+                    // Mostrerà ad esempio: Paolo (Admin) o Elena (Membro)
                     currentUserBadge.textContent = `${nomeUtenteCorrente} (${ruoloUtenteCorrente})`;
                     
                     const coloreUtente = data.colore || '#3b82f6';
