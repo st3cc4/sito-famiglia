@@ -90,9 +90,7 @@ if (ricettaForm) {
             ingredienti,
             procedimento,
             note,
-            creatore: nomeUtenteCorrente,
-            votiSu: 0,
-            votiGiu: 0
+            creatore: nomeUtenteCorrente
         };
 
         try {
@@ -127,7 +125,7 @@ export async function caricaRicette() {
                 }
             });
         } catch (e) {
-            console.warn("Collezione utenti non raggiungibile, continuo con i default", e);
+            console.warn("Collezione utenti non raggiungibile", e);
         }
 
         const querySnapshot = await getDocs(collection(db, "ricette"));
@@ -167,18 +165,18 @@ export async function caricaRicette() {
                         </div>
                         <div class="ricetta-corpo">
                             <div style="margin-bottom: 12px;">
-                                <h4 style="font-size: 1.1rem; color: #1e293b; margin-bottom: 6px; font-weight: 700;">Ingredienti</h4>
-                                <ul style="padding-left: 20px; font-size: 1rem; color: #334155; display: flex; flex-direction: column; gap: 4px;">
+                                <h4 style="font-size: 1.15rem; color: #1e293b; margin-bottom: 6px; font-weight: 700;">Ingredienti</h4>
+                                <ul style="padding-left: 20px; font-size: 1.05rem; color: #334155; display: flex; flex-direction: column; gap: 6px;">
                                     ${ingredientiHtml}
                                 </ul>
                             </div>
                             <div style="margin-bottom: 12px;">
-                                <h4 style="font-size: 1.1rem; color: #1e293b; margin-bottom: 6px; font-weight: 700;">Procedimento</h4>
-                                <ol style="padding-left: 20px; font-size: 1rem; color: #334155; display: flex; flex-direction: column; gap: 6px;">
+                                <h4 style="font-size: 1.15rem; color: #1e293b; margin-bottom: 6px; font-weight: 700;">Procedimento</h4>
+                                <ol style="padding-left: 20px; font-size: 1.05rem; color: #334155; display: flex; flex-direction: column; gap: 8px;">
                                     ${procedimentoHtml}
                                 </ol>
                             </div>
-                            ${r.note ? `<p style="font-size: 0.95rem; color: #64748b; margin-top: 8px;"><strong>Note:</strong> ${r.note}</p>` : ''}
+                            ${r.note ? `<p style="font-size: 1rem; color: #64748b; margin-top: 8px;"><strong>Note:</strong> ${r.note}</p>` : ''}
                         </div>
                     </div>`;
             });
@@ -191,7 +189,7 @@ export async function caricaRicette() {
             ricette.slice(0, 3).forEach(r => {
                 const colUser = coloriUtenti[r.creatore] || "#3b82f6";
                 htmlHomeRicette += `
-                    <div class="ricetta-block-style" style="border-left: 4px solid ${colUser}; background-color: #fff7ed; padding: 10px 14px; border-radius: 6px; margin-bottom: 8px;">
+                    <div class="scadenza-block-style" style="border-left: 4px solid ${colUser}; background-color: #fff7ed; padding: 10px 14px; border-radius: 6px; margin-bottom: 8px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <strong>${r.nome}</strong>
                             <span style="font-size: 0.8rem; color: ${colUser}; font-weight: bold;">${r.creatore || ''}</span>
