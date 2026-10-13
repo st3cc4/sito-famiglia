@@ -115,19 +115,6 @@ if (ricettaForm) {
 
 export async function caricaRicette() {
     try {
-        const coloriUtenti = {};
-        try {
-            const utentiSnap = await getDocs(collection(db, "utenti"));
-            utentiSnap.forEach(docSnap => {
-                const u = docSnap.data();
-                if (u.nome && u.colore) {
-                    coloriUtenti[u.nome] = u.colore;
-                }
-            });
-        } catch (e) {
-            console.warn("Collezione utenti non raggiungibile", e);
-        }
-
         const querySnapshot = await getDocs(collection(db, "ricette"));
         let ricette = [];
         querySnapshot.forEach(docSnap => {
@@ -142,18 +129,17 @@ export async function caricaRicette() {
             let htmlRicette = "";
             ricette.forEach(r => {
                 const creatore = r.creatore || "Famiglia";
-                const coloreCreatore = coloriUtenti[creatore] || "#3b82f6";
-                const puoModificare = isAdmin || (creatore === nomeUtenteCorrente);
+                const puoModificare = isAdmin || (creatore.toLowerCase() === nomeUtenteCorrente.toLowerCase());
 
                 let ingredientiHtml = (r.ingredienti || []).map(i => `<li>${i}</li>`).join('');
                 let procedimentoHtml = (r.procedimento || []).map((p, idx) => `<li><strong>Passo ${idx + 1}:</strong> ${p}</li>`).join('');
 
                 htmlRicette += `
-                    <div class="ricetta-card-item" style="border-left: 5px solid ${coloreCreatore};">
+                    <div class="ricetta-card-item" style="border-left: 5px solid var(--user-primary);">
                         <div class="ricetta-header-row" onclick="toggleRicetta(this)">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <span style="font-weight: 600; font-size: 1.05rem;">${r.nome}</span>
-                                <span style="font-size: 0.8rem; color: ${coloreCreatore}; font-weight: bold;">[${creatore}]</span>
+                                <span style="font-size: 0.8rem; color: #64748b; font-weight: bold;">[${creatore}]</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px;" onclick="event.stopPropagation()">
                                 ${puoModificare ? `
@@ -187,12 +173,11 @@ export async function caricaRicette() {
         if (summaryRicette) {
             let htmlHomeRicette = "";
             ricette.slice(0, 3).forEach(r => {
-                const colUser = coloriUtenti[r.creatore] || "#3b82f6";
                 htmlHomeRicette += `
-                    <div class="scadenza-block-style" style="border-left: 4px solid ${colUser}; background-color: #fff7ed; padding: 10px 14px; border-radius: 6px; margin-bottom: 8px;">
+                    <div class="scadenza-block-style" style="border-left: 4px solid var(--user-primary); background-color: #fff7ed; padding: 10px 14px; border-radius: 6px; margin-bottom: 8px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <strong>${r.nome}</strong>
-                            <span style="font-size: 0.8rem; color: ${colUser}; font-weight: bold;">${r.creatore || ''}</span>
+                            <span style="font-size: 0.8rem; color: #64748b; font-weight: bold;">${r.creatore || ''}</span>
                         </div>
                     </div>`;
             });
