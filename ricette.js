@@ -90,16 +90,12 @@ if (ricettaForm) {
             ingredienti,
             procedimento,
             note,
-            creatore: nomeUtenteCorrente
+            creatore: nomeUtenteCorrente || "Famiglia"
         };
 
         try {
             if (editId) {
                 const docRef = doc(db, "ricette", editId);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    datiRicetta.creatore = docSnap.data().creatore || nomeUtenteCorrente;
-                }
                 await updateDoc(docRef, datiRicetta);
             } else {
                 await addDoc(collection(db, "ricette"), datiRicetta);
@@ -108,6 +104,7 @@ if (ricettaForm) {
             ricettaForm.reset();
             caricaRicette();
         } catch (err) {
+            console.error("Errore salvataggio ricetta:", err);
             alert("Errore nel salvataggio della ricetta.");
         }
     });
@@ -118,7 +115,8 @@ export async function caricaRicette() {
         const querySnapshot = await getDocs(collection(db, "ricette"));
         let ricette = [];
         querySnapshot.forEach(docSnap => {
-            ricette.push({ id: docSnap.id, ...docSnap.data() });
+            const data = docSnap.data();
+            ricette.push({ id: docSnap.id, ...data });
         });
 
         ricette.sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
@@ -128,8 +126,9 @@ export async function caricaRicette() {
         if (listaRicette) {
             let htmlRicette = "";
             ricette.forEach(r => {
+                const nomeRicetta = r.nome || "Senza nome";
                 const creatore = r.creatore || "Famiglia";
-                const puoModificare = isAdmin || (creatore.toLowerCase() === nomeUtenteCorrente.toLowerCase());
+                const puoModificare = isAdmin || (creatore.toLowerCase() === (nomeUtenteCorrente || "").toLowerCase());
 
                 let ingredientiHtml = (r.ingredienti || []).map(i => `<li>${i}</li>`).join('');
                 let procedimentoHtml = (r.procedimento || []).map((p, idx) => `<li><strong>Passo ${idx + 1}:</strong> ${p}</li>`).join('');
@@ -138,7 +137,7 @@ export async function caricaRicette() {
                     <div class="ricetta-card-item" style="border-left: 5px solid var(--user-primary);">
                         <div class="ricetta-header-row" onclick="toggleRicetta(this)">
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <span style="font-weight: 600; font-size: 1.05rem;">${r.nome}</span>
+                                <span style="font-weight: 600; font-size: 1.05rem;">${nomeRicetta}</span>
                                 <span style="font-size: 0.8rem; color: #64748b; font-weight: bold;">[${creatore}]</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px;" onclick="event.stopPropagation()">
@@ -153,13 +152,13 @@ export async function caricaRicette() {
                             <div style="margin-bottom: 12px;">
                                 <h4 style="font-size: 1.15rem; color: #1e293b; margin-bottom: 6px; font-weight: 700;">Ingredienti</h4>
                                 <ul style="padding-left: 20px; font-size: 1.05rem; color: #334155; display: flex; flex-direction: column; gap: 6px;">
-                                    ${ingredientiHtml}
+                                    ${ingredientiHtml || '<li>Nessun ingrediente inserito</li>'}
                                 </ul>
                             </div>
                             <div style="margin-bottom: 12px;">
                                 <h4 style="font-size: 1.15rem; color: #1e293b; margin-bottom: 6px; font-weight: 700;">Procedimento</h4>
                                 <ol style="padding-left: 20px; font-size: 1.05rem; color: #334155; display: flex; flex-direction: column; gap: 8px;">
-                                    ${procedimentoHtml}
+                                    ${procedimentoHtml || '<li>Nessun procedimento inserito</li>'}
                                 </ol>
                             </div>
                             ${r.note ? `<p style="font-size: 1rem; color: #64748b; margin-top: 8px;"><strong>Note:</strong> ${r.note}</p>` : ''}
@@ -176,7 +175,7 @@ export async function caricaRicette() {
                 htmlHomeRicette += `
                     <div class="scadenza-block-style" style="border-left: 4px solid var(--user-primary); background-color: #fff7ed; padding: 10px 14px; border-radius: 6px; margin-bottom: 8px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <strong>${r.nome}</strong>
+                            <strong>${r.nome || 'Senza nome'}</strong>
                             <span style="font-size: 0.8rem; color: #64748b; font-weight: bold;">${r.creatore || ''}</span>
                         </div>
                     </div>`;
@@ -185,7 +184,8 @@ export async function caricaRicette() {
         }
 
     } catch (err) {
-        if (listaRicette) listaRicette.innerHTML = `<p class="text-muted">Errore caricamento ricette.</p>`;
+        console.error("Errore critico in caricaRicette:", err);
+        if (listaRicette) listaRicette.innerHTML = `<p class="text-muted">Errore caricamento ricette: ${err.message}</p>`;
         if (summaryRicette) summaryRicette.innerHTML = `<p class="text-muted">Nessuna ricetta disponibile.</p>`;
     }
 }
@@ -220,8 +220,12 @@ window.modificaRicetta = async function(id) {
 
 window.eliminaRicetta = async function(id) {
     if (confirm("Vuoi eliminare questa ricetta?")) {
-        await deleteDoc(doc(db, "ricette", id));
-        caricaRicette();
+        try {
+            await deleteDoc(doc(db, "ricette", id));
+            caricaRicette();
+        } catch (err) {
+            alert("Errore durante l'eliminazione.");
+        }
     }
 }
 
@@ -250,7 +254,7 @@ function mostraModalRicettaCasuale(r) {
     let proc = (r.procedimento || []).map(p => `<li>${p}</li>`).join('');
 
     contenutoRicettaCasuale.innerHTML = `
-        <h4 style="color: var(--user-primary); margin-bottom: 10px; font-size: 1.2rem;">${r.nome}</h4>
+        <h4 style="color: var(--user-primary); margin-bottom: 10px; font-size: 1.2rem;">${r.nome || 'Senza nome'}</h4>
         <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px;">Caricata da: <strong>${r.creatore || 'Famiglia'}</strong></p>
         <div style="margin-bottom: 10px;">
             <strong style="font-size: 1rem;">Ingredienti:</strong>
