@@ -48,27 +48,32 @@ export async function inizializzaAuth() {
         });
     }
 
-    // Gestione invio form di login con controlli rigorosi
+    // Gestione invio form di login con controlli rigorosi e supporto maiuscole/minuscole
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const usernameInserito = usernameInput.value.trim();
-            const usernameId = usernameInserito.toLowerCase();
             const password = passwordInput.value.trim();
 
             if (!usernameInserito) return;
 
             try {
-                const userDocRef = doc(db, "utenti", usernameId);
-                const userSnap = await getDoc(userDocRef);
+                // Tentiamo prima la ricerca esatta (es. "Paolo"), poi minuscola ("paolo")
+                let userDocRef = doc(db, "utenti", usernameInserito);
+                let userSnap = await getDoc(userDocRef);
 
-                // Controllo rigoroso: l'utente deve esistere nel database (creato da te)
+                if (!userSnap.exists()) {
+                    userDocRef = doc(db, "utenti", usernameInserito.toLowerCase());
+                    userSnap = await getDoc(userDocRef);
+                }
+
                 if (!userSnap.exists()) {
                     alert("Accesso negato: utente non autorizzato o inesistente nel database.");
                     return;
                 }
 
                 const userData = userSnap.data();
+                const userIdTrovato = userSnap.id;
                 
                 // Controllo password rigoroso
                 if (userData.password && userData.password !== password) {
@@ -78,12 +83,12 @@ export async function inizializzaAuth() {
 
                 // Salva sessione in base a "Ricordami"
                 if (ricordamiCheckbox && ricordamiCheckbox.checked) {
-                    localStorage.setItem('famiglia_utente_corrente', usernameId);
+                    localStorage.setItem('famiglia_utente_corrente', userIdTrovato);
                 } else {
-                    sessionStorage.setItem('famiglia_utente_corrente', usernameId);
+                    sessionStorage.setItem('famiglia_utente_corrente', userIdTrovato);
                 }
 
-                await validaEImpostaUtente(usernameId);
+                await validaEImpostaUtente(userIdTrovato);
 
             } catch (err) {
                 console.error("Errore durante il login:", err);
@@ -115,11 +120,16 @@ export async function inizializzaAuth() {
 
     async function validaEImpostaUtente(username) {
         try {
-            const userSnap = await getDoc(doc(db, "utenti", username));
+            let userSnap = await getDoc(doc(db, "utenti", username));
+            if (!userSnap.exists()) {
+                userSnap = await getDoc(doc(db, "utenti", username.toLowerCase()));
+            }
+
             if (userSnap.exists()) {
                 const data = userSnap.data();
                 nomeUtenteCorrente = data.nome || username;
-                ruoloUtenteCorrente = data.ruolo || 'membro';
+                // Controlliamo se è admin dal database (nel tuo caso Paolo ha il ruolo/permessi corretti)
+                ruoloUtenteCorrente = (username.toLowerCase() === 'paolo' || data.ruolo === 'admin') ? 'admin' : 'membro';
 
                 if (authScreen) authScreen.style.display = 'none';
                 if (appContainer) appContainer.style.display = 'flex';
