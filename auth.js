@@ -1,13 +1,13 @@
 import { 
-    collection, 
-    getDocs, 
     doc, 
-    getDoc 
+    getDoc,
+    updateDoc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "./firebase-config.js";
 
 export let nomeUtenteCorrente = null;
 export let ruoloUtenteCorrente = null;
+export let idUtenteCorrenteId = null;
 
 export function isAdminCorrente() {
     return ruoloUtenteCorrente === 'admin';
@@ -24,9 +24,17 @@ export async function inizializzaAuth() {
     const linkPasswordDimenticata = document.getElementById('link-password-dimenticata');
     const btnCambiaUtente = document.getElementById('btn-cambia-utente');
     const currentUserBadge = document.getElementById('current-user-badge');
+    const pickerColoreUtente = document.getElementById('picker-colore-utente');
     const formNuovoUtenteContainer = document.getElementById('form-nuovo-utente-container');
+    
+    // Elementi modale cambio password
+    const modalPassword = document.getElementById('modal-password');
+    const btnApriModalPassword = document.getElementById('btn-apri-modal-password');
+    const btnChiudiModalPassword = document.getElementById('btn-chiudi-modal-password');
+    const formCambiaPassword = document.getElementById('form-cambia-password');
+    const pwdAttualeInput = document.getElementById('pwd-attuale');
+    const pwdNuovaInput = document.getElementById('pwd-nuova');
 
-    // Aggiorniamo il testo del pulsante in ESCI
     if (btnCambiaUtente) {
         btnCambiaUtente.textContent = "ESCI";
     }
@@ -37,7 +45,7 @@ export async function inizializzaAuth() {
         await validaEImpostaUtente(utenteSalvato);
     }
 
-    // Gestione pulsante occhio per mostrare/nascondere la password
+    // Gestione pulsante occhio per mostrare/nascondere la password nel login
     if (btnTogglePassword && passwordInput) {
         const nuovoBtn = btnTogglePassword.cloneNode(true);
         btnTogglePassword.parentNode.replaceChild(nuovoBtn, btnTogglePassword);
@@ -53,7 +61,7 @@ export async function inizializzaAuth() {
         });
     }
 
-    // Gestione invio form di login con controlli rigorosi e supporto maiuscole/minuscole
+    // Gestione invio form di login
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -99,6 +107,81 @@ export async function inizializzaAuth() {
         });
     }
 
+    // Cliccando sul badge del nome, apriamo il color picker per cambiare colore al volo
+    if (currentUserBadge && pickerColoreUtente) {
+        currentUserBadge.addEventListener('click', () => {
+            pickerColoreUtente.click();
+        });
+
+        pickerColoreUtente.addEventListener('change', async (e) => {
+            const nuovoColore = e.target.value;
+            if (!idUtenteCorrenteId) return;
+
+            try {
+                const userDocRef = doc(db, "utenti", idUtenteCorrenteId);
+                await updateDoc(userDocRef, { colore: nuovoColore });
+
+                // Aggiorniamo subito l'interfaccia
+                currentUserBadge.style.backgroundColor = nuovoColore;
+                currentUserBadge.style.color = isColorDark(nuovoColore) ? '#ffffff' : '#0f172a';
+            } catch (err) {
+                console.error("Errore durante l'aggiornamento del colore:", err);
+                alert("Errore durante il salvataggio del colore.");
+            }
+        });
+    }
+
+    // Gestione Modale Cambio Password
+    if (btnApriModalPassword && modalPassword) {
+        btnApriModalPassword.addEventListener('click', () => {
+            modalPassword.style.display = 'flex';
+            if (formCambiaPassword) formCambiaPassword.reset();
+        });
+    }
+
+    if (btnChiudiModalPassword && modalPassword) {
+        btnChiudiModalPassword.addEventListener('click', () => {
+            modalPassword.style.display = 'none';
+        });
+    }
+
+    if (formCambiaPassword) {
+        formCambiaPassword.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const pwdAttuale = pwdAttualeInput.value.trim();
+            const pwdNuova = pwdNuovaInput.value.trim();
+
+            if (!idUtenteCorrenteId) return;
+
+            try {
+                const userDocRef = doc(db, "utenti", idUtenteCorrenteId);
+                const userSnap = await getDoc(userDocRef);
+
+                if (!userSnap.exists()) {
+                    alert("Errore: utente non trovato.");
+                    return;
+                }
+
+                const userData = userSnap.data();
+
+                // Verifica password attuale
+                if (userData.password && userData.password !== pwdAttuale) {
+                    alert("La password attuale inserita non è corretta.");
+                    return;
+                }
+
+                // Aggiorna con la nuova password
+                await updateDoc(userDocRef, { password: pwdNuova });
+                alert("Password aggiornata con successo!");
+                modalPassword.style.display = 'none';
+
+            } catch (err) {
+                console.error("Errore durante il cambio password:", err);
+                alert("Errore di connessione durante il cambio password.");
+            }
+        });
+    }
+
     // Password dimenticata
     if (linkPasswordDimenticata) {
         linkPasswordDimenticata.addEventListener('click', (e) => {
@@ -114,6 +197,7 @@ export async function inizializzaAuth() {
             sessionStorage.removeItem('famiglia_utente_corrente');
             nomeUtenteCorrente = null;
             ruoloUtenteCorrente = null;
+            idUtenteCorrenteId = null;
             if (appContainer) appContainer.style.display = 'none';
             if (authScreen) authScreen.style.display = 'flex';
             if (loginForm) loginForm.reset();
@@ -129,6 +213,7 @@ export async function inizializzaAuth() {
 
             if (userSnap.exists()) {
                 const data = userSnap.data();
+                idUtenteCorrenteId = userSnap.id;
                 nomeUtenteCorrente = data.nome || username;
                 ruoloUtenteCorrente = (username.toLowerCase() === 'paolo' || data.ruolo === 'admin') ? 'admin' : 'membro';
 
@@ -136,16 +221,13 @@ export async function inizializzaAuth() {
                 if (appContainer) appContainer.style.display = 'flex';
 
                 if (currentUserBadge) {
-                    currentUserBadge.textContent = `${nomeUtenteCorrente} (${ruoloUtenteCorrente})`;
+                    currentUserBadge.textContent = `${nomeUtenteColrente} (${ruoloUtenteCorrente})`;
                     
-                    // Applichiamo il colore scelto dall'utente (se presente) come sfondo del badge
-                    if (data.colore) {
-                        currentUserBadge.style.backgroundColor = data.colore;
-                        // Scegliamo automaticamente il colore del testo (bianco o scuro) per garantire la massima leggibilità
-                        currentUserBadge.style.color = isColorDark(data.colore) ? '#ffffff' : '#0f172a';
-                    } else {
-                        currentUserBadge.style.backgroundColor = '#3b82f6';
-                        currentUserBadge.style.color = '#ffffff';
+                    const coloreUtente = data.colore || '#3b82f6';
+                    currentUserBadge.style.backgroundColor = coloreUtente;
+                    currentUserBadge.style.color = isColorDark(coloreUtente) ? '#ffffff' : '#0f172a';
+                    if (pickerColoreUtente) {
+                        pickerColoreUtente.value = coloreUtente;
                     }
                 }
 
@@ -162,7 +244,7 @@ export async function inizializzaAuth() {
     }
 }
 
-// Funzione di supporto per determinare se il colore di sfondo è scuro (per impostare il testo bianco)
+// Funzione di supporto per determinare se il colore di sfondo è scuro
 function isColorDark(hexColor) {
     let color = hexColor.replace('#', '');
     if (color.length === 3) {
