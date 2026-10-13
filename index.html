@@ -43,47 +43,74 @@
         </div>
     </div>
 
-    <!-- App Principale -->
-    <div id="app-container" class="app-container" style="display: none;">
-        <header class="main-header">
-            <div class="header-user-info">
-                <span id="current-user-badge" class="user-badge">Utente</span>
-                <button id="btn-cambia-utente" class="btn-secondary">Cambia Utente</button>
+    <!-- App Principale con Layout a Sidebar -->
+    <div id="app-container" class="app-layout" style="display: none;">
+        
+        <!-- Sidebar a Sinistra -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <h2>Famiglia App</h2>
             </div>
-            <h1>Famiglia App</h1>
-        </header>
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" data-target="home-section">
+                    🏠 HOME
+                </button>
+                <button class="nav-btn" data-target="scadenze-section">
+                    <img src="icone/icona-scadenze.png" alt="" class="nav-icon"> SCADENZE
+                </button>
+                <button class="nav-btn" data-target="impegni-section">
+                    <img src="icone/icona-impegni.png" alt="" class="nav-icon"> IMPEGNI
+                </button>
+                <button class="nav-btn" data-target="media-section">
+                    <img src="icone/icona-media.png" alt="" class="nav-icon"> FOTO e VIDEO
+                </button>
+                <button class="nav-btn" data-target="ricette-section">
+                    <img src="icone/icona-ricette.png" alt="" class="nav-icon"> RICETTE
+                </button>
+                <button class="nav-btn" data-target="utenti-section">
+                    👥 UTENTI
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <span id="current-user-badge" class="user-badge">Utente</span>
+                <button id="btn-cambia-utente" class="btn-secondary" style="width: 100%; margin-top: 10px;">Cambia Utente</button>
+            </div>
+        </aside>
 
-        <nav class="main-nav">
-            <button class="nav-btn active" data-target="home-section">Home</button>
-            <button class="nav-btn" data-target="impegni-section">Impegni</button>
-            <button class="nav-btn" data-target="scadenze-section">Scadenze</button>
-            <button class="nav-btn" data-target="ricette-section">Ricette</button>
-            <button class="nav-btn" data-target="media-section">Media</button>
-            <button class="nav-btn" data-target="utenti-section">Utenti</button>
-        </nav>
-
-        <main class="content-area">
+        <!-- Area Principale dei Contenuti -->
+        <main class="main-content-area">
+            
             <!-- SEZIONE HOME -->
             <section id="home-section" class="section active">
-                <h2>Riepilogo Famiglia</h2>
-                <div class="home-grid">
-                    <div class="card">
-                        <h3>Prossimi Impegni</h3>
-                        <div id="home-summary-appuntamenti"></div>
-                    </div>
-                    <div class="card">
-                        <h3>Scadenze in Arrivo</h3>
+                <h2>HOME</h2>
+                <div class="home-stack">
+                    <div class="card clickable-card" data-target="scadenze-section">
+                        <h3>SCADENZE</h3>
                         <div id="home-summary-scadenze"></div>
                     </div>
-                    <div class="card">
-                        <h3>Ultime Ricette</h3>
-                        <div id="home-summary-ricette"></div>
+                    <div class="card clickable-card" data-target="impegni-section">
+                        <h3>IMPEGNI</h3>
+                        <div id="home-summary-appuntamenti"></div>
                     </div>
-                    <div class="card">
-                        <h3>Media Recenti</h3>
+                    <div class="card clickable-card" data-target="media-section">
+                        <h3>FOTO e VIDEO</h3>
                         <div id="home-summary-media"></div>
                     </div>
+                    <div class="card clickable-card" data-target="ricette-section">
+                        <h3>RICETTE</h3>
+                        <div id="home-summary-ricette"></div>
+                    </div>
                 </div>
+            </section>
+
+            <!-- SEZIONE SCADENZE -->
+            <section id="scadenze-section" class="section">
+                <div class="section-header">
+                    <h2>Gestione Scadenze</h2>
+                    <button id="btn-apri-modal" class="btn-primary">+ Nuova Scadenza</button>
+                </div>
+                <ul id="lista-scadenze" class="lista-badge"></ul>
+                <div id="totale-generale-scadenze" class="totale-badge"></div>
             </section>
 
             <!-- SEZIONE IMPEGNI -->
@@ -100,14 +127,13 @@
                 <div id="grid-settimanale" class="grid-settimana-container"></div>
             </section>
 
-            <!-- SEZIONE SCADENZE -->
-            <section id="scadenze-section" class="section">
+            <!-- SEZIONE MEDIA (FOTO e VIDEO) -->
+            <section id="media-section" class="section">
                 <div class="section-header">
-                    <h2>Gestione Scadenze</h2>
-                    <button id="btn-apri-modal" class="btn-primary">+ Nuova Scadenza</button>
+                    <h2>Foto, Video, Film e Serie TV</h2>
+                    <button id="btn-apri-modal-media" class="btn-primary">+ Nuovo Elemento</button>
                 </div>
-                <ul id="lista-scadenze" class="lista-badge"></ul>
-                <div id="totale-generale-scadenze" class="totale-badge"></div>
+                <div id="lista-media" class="media-grid"></div>
             </section>
 
             <!-- SEZIONE RICETTE -->
@@ -117,15 +143,6 @@
                     <button id="btn-apri-modal-ricetta" class="btn-primary">+ Nuova Ricetta</button>
                 </div>
                 <div id="lista-ricette" class="ricette-grid"></div>
-            </section>
-
-            <!-- SEZIONE MEDIA -->
-            <section id="media-section" class="section">
-                <div class="section-header">
-                    <h2>Film, Libri e Serie TV</h2>
-                    <button id="btn-apri-modal-media" class="btn-primary">+ Nuovo Elemento</button>
-                </div>
-                <div id="lista-media" class="media-grid"></div>
             </section>
 
             <!-- SEZIONE UTENTI -->
@@ -244,7 +261,7 @@
     <!-- Modal Media -->
     <div id="modal-media" class="modal" style="display: none;">
         <div class="modal-content">
-            <h3 id="modal-media-title">Nuovo Elemento Media</h3>
+            <h3 id="modal-media-title">Nuovo Elemento</h3>
             <form id="media-form">
                 <input type="hidden" id="media-id">
                 <div class="form-group">
@@ -254,17 +271,18 @@
                 <div class="form-group">
                     <label>Tipo</label>
                     <select id="media-tipo" class="form-control">
+                        <option value="Foto/Video">Foto/Video</option>
                         <option value="Film">Film</option>
-                        <option value="Libro">Libro</option>
                         <option value="Serie TV">Serie TV</option>
+                        <option value="Libro">Libro</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Stato</label>
                     <select id="media-stato" class="form-control">
-                        <option value="Da vedere / leggere">Da vedere / leggere</option>
-                        <option value="In corso">In corso</option>
                         <option value="Completato">Completato</option>
+                        <option value="In corso">In corso</option>
+                        <option value="Da vedere">Da vedere</option>
                     </select>
                 </div>
                 <div class="form-group">
