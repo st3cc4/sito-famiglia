@@ -415,7 +415,7 @@ body {
     margin-top: 15px;
 }
 
-/* SCADENZE BADGE E SFONDI COLORATI INTERNI */
+/* SCADENZE BADGE E SFONDI COLORATI */
 .lista-badge {
     list-style: none;
     display: flex;
@@ -433,22 +433,22 @@ body {
     border-left: 5px solid #cbd5e1;
 }
 
-.scadenza-badge-item.status-red {
-    background-color: #fef2f2;
-    border-left-color: #ef4444;
-    color: #991b1b;
+.scadenza-badge-item.status-red, .scadenza-block-style.status-red {
+    background-color: #fef2f2 !important;
+    border-left-color: #ef4444 !important;
+    color: #991b1b !important;
 }
 
-.scadenza-badge-item.status-orange {
-    background-color: #fff7ed;
-    border-left-color: #f97316;
-    color: #9a3412;
+.scadenza-badge-item.status-orange, .scadenza-block-style.status-orange {
+    background-color: #fff7ed !important;
+    border-left-color: #f97316 !important;
+    color: #9a3412 !important;
 }
 
-.scadenza-badge-item.status-green {
-    background-color: #f0fdf4;
-    border-left-color: #22c55e;
-    color: #166534;
+.scadenza-badge-item.status-green, .scadenza-block-style.status-green {
+    background-color: #f0fdf4 !important;
+    border-left-color: #22c55e !important;
+    color: #166534 !important;
 }
 
 .scadenza-block-style {
@@ -467,7 +467,7 @@ body {
     color: var(--user-primary);
 }
 
-/* CALENDARIO SETTIMANALE VERTICALE CON SFONDI DIFFERENZIATI PER GIORNO */
+/* CALENDARIO SETTIMANALE VERTICALE */
 .controlli-settimana {
     display: flex;
     justify-content: space-between;
@@ -490,14 +490,13 @@ body {
     border-left: 5px solid #94a3b8;
 }
 
-/* Colori di sfondo personalizzati per ciascun giorno della settimana */
 .giorno-lunedi { background-color: #f8fafc; border-left-color: #3b82f6; }
 .giorno-martedi { background-color: #fdf4ff; border-left-color: #a855f7; }
 .giorno-mercoledi { background-color: #f0fdf4; border-left-color: #22c55e; }
 .giorno-giovedi { background-color: #fffbeb; border-left-color: #eab308; }
 .giorno-venerdi { background-color: #fdf2f8; border-left-color: #ec4899; }
 .giorno-sabato { background-color: #f0f9ff; border-left-color: #0ea5e9; }
-.giorno-domenica { background-color: #fef2f2; border-left-color: #ef4444; } /* Domenica sfondo rosso */
+.giorno-domenica { background-color: #fef2f2; border-left-color: #ef4444; }
 
 .header-giorno-moderno {
     background: rgba(255, 255, 255, 0.7);
@@ -579,7 +578,6 @@ body {
     cursor: pointer;
 }
 
-/* POLLICI DI VALUTAZIONE RICETTE */
 .ricetta-voti-container {
     display: flex;
     align-items: center;
@@ -604,18 +602,4 @@ body {
 
 .btn-voto-pollice:hover {
     background: #e2e8f0;
-}
-
-.btn-voto-pollice.attivo-su {
-    background-color: #dcfce7;
-    border-color: #22c55e;
-    color: #15803d;
-    font-weight: bold;
-}
-
-.btn-voto-pollice.attivo-giu {
-    background-color: #fee2e2;
-    border-color: #ef4444;
-    color: #b91c1c;
-    font-weight: bold;
 }
