@@ -43,11 +43,14 @@
         </div>
     </div>
 
-    <!-- App Principale con Layout a Sidebar -->
+    <!-- App Principale con Sidebar a scomparsa -->
     <div id="app-container" class="app-layout" style="display: none;">
         
-        <!-- Sidebar a Sinistra -->
-        <aside class="sidebar">
+        <!-- Pulsante Menu Hamburger per aprire/chiudere la sidebar -->
+        <button id="btn-toggle-sidebar" class="hamburger-btn" title="Apri/Chiudi Menu">☰</button>
+
+        <!-- Sidebar a Sinistra (inizialmente chiusa) -->
+        <aside class="sidebar closed" id="sidebar">
             <div class="sidebar-brand">
                 <h2>Famiglia App</h2>
             </div>
@@ -73,7 +76,7 @@
             </nav>
             <div class="sidebar-footer">
                 <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <!-- Badge utente cliccabile per cambiare colore direttamente -->
+                    <!-- Badge utente cliccabile per cambiare colore -->
                     <span id="current-user-badge" class="user-badge" title="Clicca per cambiare colore">Utente</span>
                     <input type="color" id="picker-colore-utente" style="display: none;">
                 </div>
@@ -83,7 +86,7 @@
         </aside>
 
         <!-- Area Principale dei Contenuti -->
-        <main class="main-content-area">
+        <main class="main-content-area" id="main-content">
             
             <!-- SEZIONE HOME -->
             <section id="home-section" class="section active">
