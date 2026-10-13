@@ -121,14 +121,15 @@ export async function caricaRicette() {
 
         ricette.sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
 
-        const isAdmin = isAdminCorrente();
+        // Gestione sicura del controllo admin (sia che sia booleano che funzione)
+        const userIsAdmin = typeof isAdminCorrente === 'function' ? isAdminCorrente() : Boolean(isAdminCorrente);
 
         if (listaRicette) {
             let htmlRicette = "";
             ricette.forEach(r => {
                 const nomeRicetta = r.nome || "Senza nome";
                 const creatore = r.creatore || "Famiglia";
-                const puoModificare = isAdmin || (creatore.toLowerCase() === (nomeUtenteCorrente || "").toLowerCase());
+                const puoModificare = userIsAdmin || (creatore.toLowerCase() === (nomeUtenteCorrente || "").toLowerCase());
 
                 let ingredientiHtml = (r.ingredienti || []).map(i => `<li>${i}</li>`).join('');
                 let procedimentoHtml = (r.procedimento || []).map((p, idx) => `<li><strong>Passo ${idx + 1}:</strong> ${p}</li>`).join('');
