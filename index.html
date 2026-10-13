@@ -21,7 +21,10 @@
             </div>
             <div class="form-group">
                 <label for="auth-password">Password</label>
-                <input type="password" id="auth-password" placeholder="Inserisci la password" required>
+                <div style="position: relative; display: flex; align-items: center;">
+                    <input type="password" id="auth-password" placeholder="Inserisci la password" required style="padding-right: 40px; width: 100%;">
+                    <button type="button" id="toggle-password" style="position: absolute; right: 10px; background: transparent; border: none; cursor: pointer; font-size: 1.1rem;" title="Mostra/Nascondi password">👁️</button>
+                </div>
             </div>
             <div class="form-group-inline" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <label><input type="checkbox" id="remember-check"> Ricordami</label>
@@ -66,7 +69,6 @@
                 <div class="header-left">
                     <span id="header-icon">🏠</span>
                     <h1 id="header-section-name">Home</h1>
-                    <!-- Pulsante Torna alla Home rimpicciolito con freccia a sinistra -->
                     <button class="btn-back-home" id="btn-top-back-home" data-target="sec-home" style="display: none; background-color: #e2e8f0; color: #334155; padding: 5px 10px; font-size: 0.85rem; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; align-items: center; gap: 4px;">&larr; Torna alla Home</button>
                 </div>
                 <!-- CENTRO: Saluto e Colore -->
