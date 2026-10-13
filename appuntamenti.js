@@ -43,40 +43,6 @@ if (btnChiudiModalApp) {
     });
 }
 
-if (appForm) {
-    appForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const titolo = appTitoloInput.value.trim();
-        const data = appDataInput.value;
-        const oraInizio = appOraInizioInput.value;
-        const oraFine = appOraFineInput.value;
-        const editId = appIdInput.value;
-
-        const datiApp = {
-            titolo,
-            data,
-            oraInizio,
-            oraFine,
-            creatore: nomeUtenteCorrente || "Famiglia"
-        };
-
-        try {
-            if (editId) {
-                const docRef = doc(db, "appuntamenti", editId);
-                await updateDoc(docRef, datiApp);
-            } else {
-                await addDoc(collection(db, "appuntamenti"), datiApp);
-            }
-            modalApp.style.display = 'none';
-            appForm.reset();
-            caricaAppuntamenti();
-        } catch (err) {
-            console.error("Errore salvataggio impegno:", err);
-            alert("Errore nel salvataggio dell'impegno.");
-        }
-    });
-}
-
 export async function caricaAppuntamenti() {
     try {
         const querySnapshot = await getDocs(collection(db, "appuntamenti"));
@@ -85,7 +51,6 @@ export async function caricaAppuntamenti() {
             appuntamenti.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        // Cariciamo i colori degli utenti per mostrare i badge personalizzati
         let mappaColoriUtenti = {};
         try {
             const utentiSnap = await getDocs(collection(db, "utenti"));
@@ -95,7 +60,7 @@ export async function caricaAppuntamenti() {
             });
         } catch(e) {}
 
-        // 1. Apopolamento Scheda HOME (I prossimi impegni in lista)
+        // 1. Popolamento Scheda HOME Impegni
         if (summaryAppuntamenti) {
             const oggiStr = new Date().toISOString().split('T')[0];
             const futuri = appuntamenti
@@ -112,11 +77,11 @@ export async function caricaAppuntamenti() {
 
                 htmlSummary += `
                     <div style="display: flex; justify-content: space-between; align-items: center; background-color: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 5px solid ${coloreUser};">
-                        <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
                             <strong style="font-size: 1.05rem; color: #1e293b;">${a.titolo}</strong>
-                            <span style="font-size: 0.95rem; color: #475569; font-weight: 600;">(${dataFormattata} - ${a.oraInizio})</span>
+                            <span style="font-size: 1.05rem; color: #334155; font-weight: 700;">(${dataFormattata} - ${a.oraInizio})</span>
                         </div>
-                        <span style="font-size: 0.9rem; font-weight: 700; color: ${coloreUser}; background-color: #f1f5f9; padding: 4px 10px; border-radius: 6px;">${creatore}</span>
+                        <span style="font-size: 0.9rem; font-weight: 700; color: #ffffff; background-color: ${coloreUser}; padding: 4px 12px; border-radius: 6px;">${creatore}</span>
                     </div>
                 `;
             });
@@ -124,12 +89,10 @@ export async function caricaAppuntamenti() {
             summaryAppuntamenti.innerHTML = htmlSummary || `<p class="text-muted">Nessun impegno in programma.</p>`;
         }
 
-        // 2. Popolamento Griglia Settimanale
         aggiornaGrigliaSettimanale(appuntamenti, mappaColoriUtenti);
 
     } catch (err) {
         console.error("Errore caricaAppuntamenti:", err);
-        if (summaryAppuntamenti) summaryAppuntamenti.innerHTML = `<p class="text-muted">Errore nel caricamento impegni.</p>`;
     }
 }
 
@@ -183,7 +146,7 @@ function aggiornaGrigliaSettimanale(appuntamenti, mappaColori) {
                         <strong style="font-size: 1rem; color: #0f172a; display: block;">${imp.titolo}</strong>
                         <span style="font-size: 0.95rem; font-weight: 600; color: #475569;">${imp.oraInizio} - ${imp.oraFine}</span>
                     </div>
-                    <span style="font-size: 0.8rem; font-weight: 700; color: ${colore};">${creatore}</span>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #ffffff; background-color: ${colore}; padding: 3px 8px; border-radius: 4px;">${creatore}</span>
                 </div>
                 ${puoModificare ? `
                     <div style="margin-top: 6px; display: flex; gap: 6px; justify-content: flex-end;">
@@ -221,30 +184,22 @@ if (btnNextWeek) {
 }
 
 window.modificaAppuntamento = async function(id) {
-    try {
-        const docSnap = await getDoc(doc(db, "appuntamenti", id));
-        if (docSnap.exists()) {
-            const a = docSnap.data();
-            modalAppTitle.textContent = "Modifica Impegno";
-            appIdInput.value = id;
-            appTitoloInput.value = a.titolo || "";
-            appDataInput.value = a.data || "";
-            appOraInizioInput.value = a.oraInizio || "";
-            appOraFineInput.value = a.oraFine || "";
-            modalApp.style.display = 'flex';
-        }
-    } catch (err) {
-        alert("Errore nel recupero dell'impegno.");
+    const docSnap = await getDoc(doc(db, "appuntamenti", id));
+    if (docSnap.exists()) {
+        const a = docSnap.data();
+        modalAppTitle.textContent = "Modifica Impegno";
+        appIdInput.value = id;
+        appTitoloInput.value = a.titolo || "";
+        appDataInput.value = a.data || "";
+        appOraInizioInput.value = a.oraInizio || "";
+        appOraFineInput.value = a.oraFine || "";
+        modalApp.style.display = 'flex';
     }
 }
 
 window.eliminaAppuntamento = async function(id) {
     if (confirm("Vuoi eliminare questo impegno?")) {
-        try {
-            await deleteDoc(doc(db, "appuntamenti", id));
-            caricaAppuntamenti();
-        } catch (err) {
-            alert("Errore nell'eliminazione.");
-        }
+        await deleteDoc(doc(db, "appuntamenti", id));
+        caricaAppuntamenti();
     }
 }
