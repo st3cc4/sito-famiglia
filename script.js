@@ -12,9 +12,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. Caricamento iniziale di tutte le sezioni
     caricaTuttiIContenuti();
 
-    // 3. Gestione della Navigazione tra le tab (Sidebar)
+    // 3. Gestione della Sidebar a scomparsa e Menu Hamburger
+    const sidebar = document.getElementById('sidebar');
+    const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
     const navButtons = document.querySelectorAll('.nav-btn');
     const sections = document.querySelectorAll('.section');
+
+    if (btnToggleSidebar && sidebar) {
+        btnToggleSidebar.addEventListener('click', () => {
+            sidebar.classList.toggle('closed');
+        });
+    }
 
     function attivaSezione(targetId) {
         navButtons.forEach(b => {
@@ -32,6 +40,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 s.classList.remove('active');
             }
         });
+
+        // Su smartphone, chiude automaticamente la sidebar dopo aver scelto una voce
+        if (sidebar && window.innerWidth <= 768) {
+            sidebar.classList.add('closed');
+        }
     }
 
     navButtons.forEach(btn => {
