@@ -15,14 +15,31 @@
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
-    <!-- Schermata di Login / Selezione Utente -->
+    <!-- Schermata di Login -->
     <div id="auth-screen" class="auth-container">
         <div class="auth-card">
             <h2>Benvenuto nella Family App</h2>
-            <p>Seleziona il tuo profilo per accedere:</p>
-            <div id="utenti-login-list" class="utenti-login-grid">
-                <!-- Generato dinamicamente -->
-            </div>
+            <p>Inserisci le tue credenziali per accedere:</p>
+            <form id="login-form" class="auth-form">
+                <div class="form-group" style="text-align: left;">
+                    <label>Nome Utente</label>
+                    <input type="text" id="login-username" class="form-control" placeholder="Il tuo nome" required>
+                </div>
+                <div class="form-group" style="text-align: left; position: relative;">
+                    <label>Password</label>
+                    <div style="position: relative;">
+                        <input type="password" id="login-password" class="form-control" placeholder="Password" required style="padding-right: 40px;">
+                        <button type="button" id="btn-toggle-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.1rem;" title="Mostra/Nascondi Password">👁️</button>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 0.9rem;">
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #475569;">
+                        <input type="checkbox" id="login-ricordami"> Ricordami
+                    </label>
+                    <a href="#" id="link-password-dimenticata" style="color: #3b82f6; text-decoration: none;">Password dimenticata?</a>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; padding: 12px;">Accedi</button>
+            </form>
         </div>
     </div>
 
@@ -214,7 +231,7 @@
                 <div class="form-group">
                     <label>Procedimento</label>
                     <div id="procedimenti-container"></div>
-                    <button type="button" id="btn-aggiungi-procedimento" class="btn-secondary" style="margin-top: 5px; font-size: 0.85rem;">+ Aggiungi Passo</button>
+                    <button type="button" id="btn-aggiungi-procedimento" class="btn-secondary" style="margin-top: 5px; font-size: 0.85rem;">+ Passo</button>
                 </div>
                 <div class="modal-actions">
                     <button type="button" id="btn-chiudi-modal-ricetta" class="btn-secondary">Annulla</button>
