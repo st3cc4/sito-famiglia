@@ -4,37 +4,75 @@ import {
     getDocs, 
     deleteDoc, 
     doc, 
-    updateDoc 
+    updateDoc, 
+    getDoc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "./firebase-config.js";
-import { nomeUtenteCorrente } from "./auth.js";
 
-const listaScadenze = document.getElementById('lista-scadenze');
-const summaryScadenze = document.getElementById('home-summary-scadenze');
-const totaleGeneraleScadenze = document.getElementById('totale-generale-scadenze');
+const btnApriModal = document.getElementById('btn-apri-modal');
+const btnChiudiModal = document.getElementById('btn-chiudi-modal');
 const modalScadenza = document.getElementById('modal-scadenza');
 const modalTitle = document.getElementById('modal-title');
 const scadenzaForm = document.getElementById('scadenza-form');
-const inputTitolo = document.getElementById('titolo');
-const inputData = document.getElementById('data');
-const inputImporto = document.getElementById('importo');
+const titoloInput = document.getElementById('titolo');
+const dataInput = document.getElementById('data');
+const importoInput = document.getElementById('importo');
+const listaScadenze = document.getElementById('lista-scadenze');
+const totaleGeneraleEl = document.getElementById('totale-generale-scadenze');
+const summaryScadenze = document.getElementById('home-summary-scadenze');
 
 const inputScattaFoto = document.getElementById('input-scatta-foto');
 const inputCaricaFoto = document.getElementById('input-carica-foto');
 const ocrLoading = document.getElementById('ocr-loading');
 const ocrProgress = document.getElementById('ocr-progress');
 
-function formatoDataEuropeo(dataIso) {
-    if (!dataIso) return '';
-    const parti = dataIso.split('-');
-    if (parti.length !== 3) return dataIso;
-    return `${parti[2]}/${parti[1]}/${parti[0]}`;
+let scadenzaInModificaId = null;
+
+if (btnApriModal) {
+    btnApriModal.addEventListener('click', () => {
+        modalTitle.textContent = "Nuova Scadenza";
+        scadenzaForm.reset();
+        scadenzaInModificaId = null;
+        modalScadenza.style.display = 'flex';
+    });
+}
+
+if (btnChiudiModal) {
+    btnChiudiModal.addEventListener('click', () => {
+        modalScadenza.style.display = 'none';
+    });
+}
+
+if (scadenzaForm) {
+    scadenzaForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const titolo = titoloInput.value.trim();
+        const data = dataInput.value;
+        const importo = parseFloat(importoInput.value);
+
+        try {
+            if (scadenzaInModificaId) {
+                const docRef = doc(db, "scadenze", scadenzaInModificaId);
+                await updateDoc(docRef, { titolo, data, importo });
+            } else {
+                await addDoc(collection(db, "scadenze"), {
+                    titolo,
+                    data,
+                    importo,
+                    pagato: false
+                });
+            }
+            modalScadenza.style.display = 'none';
+            scadenzaForm.reset();
+            caricaScadenze();
+        } catch (err) {
+            console.error("Errore salvataggio scadenza:", err);
+            alert("Errore nel salvataggio della scadenza.");
+        }
+    });
 }
 
 export async function caricaScadenze() {
-    listaScadenze.innerHTML = `<p class="text-muted">Caricamento in corso...</p>`;
-    summaryScadenze.innerHTML = `<p class="text-muted">Caricamento in corso...</p>`;
-    
     try {
         const querySnapshot = await getDocs(collection(db, "scadenze"));
         let scadenze = [];
@@ -42,185 +80,148 @@ export async function caricaScadenze() {
             scadenze.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        scadenze.sort((a, b) => new Date(a.data) - new Date(b.data));
+        const oggiStr = new Date().toISOString().split('T')[0];
 
-        let htmlScadenze = "";
-        let totaleComplessivo = 0;
-        
-        const oggi = new Date();
-        oggi.setHours(0, 0, 0, 0);
+        // 1. Popolamento Home Summary
+        if (summaryScadenze) {
+            const daPagareSummary = scadenze
+                .filter(s => !s.pagato)
+                .sort((a, b) => a.data.localeCompare(b.data))
+                .slice(0, 3);
 
-        if (scadenze.length === 0) {
-            listaScadenze.innerHTML = `<p class="text-muted">Nessuna scadenza inserita.</p>`;
-            summaryScadenze.innerHTML = `<p class="text-muted">Nessuna scadenza in arrivo.</p>`;
-            totaleGeneraleScadenze.textContent = `Totale da pagare: € 0.00`;
-            return;
-        }
+            let htmlSummary = "";
+            daPagareSummary.forEach(s => {
+                const [yyyy, mm, dd] = s.data.split('-');
+                const dataFormattata = `${dd}/${mm}/${yyyy}`;
+                
+                const diffGiorni = Math.ceil((new Date(s.data) - new Date(oggiStr)) / (1000 * 60 * 60 * 24));
+                let infoGiorni = "";
+                if (diffGiorni < 0) infoGiorni = `<span style="color: #ef4444; font-weight: bold;">Scaduta!</span>`;
+                else if (diffGiorni === 0) infoGiorni = `<span style="color: #f59e0b; font-weight: bold;">Scade Oggi!</span>`;
+                else infoGiorni = `<span style="color: #64748b;">Mancano ${diffGiorni} giorni</span>`;
 
-        let scadenzeCalcolate = scadenze.map(s => {
-            totaleComplessivo += Number(s.importo || 0);
-            
-            const dataScadObj = new Date(s.data);
-            dataScadObj.setHours(0, 0, 0, 0);
-            const diffTempo = dataScadObj - oggi;
-            const diffGiorni = Math.round(diffTempo / (1000 * 60 * 60 * 24));
-
-            let stringaGiorni = "";
-            let statusClass = "status-green";
-
-            if (diffGiorni <= 7) {
-                // Rosso: scaduta o entro 7 giorni
-                statusClass = "status-red";
-                if (diffGiorni < 0) {
-                    const giorniPassati = Math.abs(diffGiorni);
-                    stringaGiorni = `Scaduta da ${giorniPassati} ${giorniPassati === 1 ? 'giorno' : 'giorni'}`;
-                } else if (diffGiorni === 0) {
-                    stringaGiorni = `Scade oggi!`;
-                } else {
-                    stringaGiorni = `Mancano ${diffGiorni} giorni`;
-                }
-            } else if (diffGiorni >= 8 && diffGiorni <= 14) {
-                // Arancione: 8-14 giorni
-                statusClass = "status-orange";
-                stringaGiorni = `Mancano ${diffGiorni} giorni`;
-            } else {
-                // Verde: 15+ giorni
-                statusClass = "status-green";
-                stringaGiorni = `Mancano ${diffGiorni} giorni`;
-            }
-
-            return { ...s, diffGiorni, stringaGiorni, statusClass };
-        });
-
-        // Lista nella pagina Scadenze
-        scadenzeCalcolate.forEach(s => {
-            const creatoreScadenza = s.creatore ? s.creatore : "Famiglia";
-            htmlScadenze += `
-                <li class="scadenza-badge-item ${s.statusClass}">
-                    <div>
-                        <strong>${s.titolo}</strong> - Scad: ${formatoDataEuropeo(s.data)} (${s.stringaGiorni}) - <strong>€ ${Number(s.importo).toFixed(2)}</strong> <span style="font-size: 0.85rem; font-weight: normal; color: #475569; margin-left: 6px;">[${creatoreScadenza}]</span>
-                    </div>
-                    <div class="azioni-utente">
-                        <button class="btn-modifica" onclick="modificaScadenza('${s.id}', '${s.titolo}', '${s.data}', '${s.importo}')">Mod.</button>
-                        <button class="btn-elimina" onclick="eliminaScadenza('${s.id}')">Elimina</button>
-                    </div>
-                </li>`;
-        });
-
-        // Selezione per la Home
-        const scadenzeRosse = scadenzeCalcolate.filter(s => s.statusClass === 'status-red');
-        const scadenzeArancioni = scadenzeCalcolate.filter(s => s.statusClass === 'status-orange');
-        const scadenzeVerdi = scadenzeCalcolate.filter(s => s.statusClass === 'status-green');
-
-        let scadenzeDaMostrareInHome = [];
-        if (scadenzeRosse.length > 0) {
-            scadenzeDaMostrareInHome = scadenzeRosse;
-        } else if (scadenzeArancioni.length > 0) {
-            scadenzeDaMostrareInHome = scadenzeArancioni;
-        } else {
-            scadenzeDaMostrareInHome = scadenzeVerdi;
-        }
-
-        // Layout stile "Appuntamenti" con blocco colorato
-        let htmlHomeSummary = "";
-        scadenzeDaMostrareInHome.forEach(s => {
-            htmlHomeSummary += `
-                <div class="scadenza-block-style ${s.statusClass}">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                htmlSummary += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; background-color: #fef2f2; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 5px solid #ef4444;">
                         <div>
-                            <strong>${s.titolo}</strong> <span style="font-size: 0.85rem; opacity: 0.85;">(${formatoDataEuropeo(s.data)}) - ${s.stringaGiorni}</span>
+                            <strong style="font-size: 1.05rem; color: #991b1b;">${s.titolo}</strong>
+                            <span style="font-size: 0.95rem; color: #7f1d1d; margin-left: 8px;">(${dataFormattata}) - ${infoGiorni}</span>
                         </div>
-                        <div style="font-weight: bold; font-size: 0.95rem;">€ ${Number(s.importo).toFixed(2)}</div>
+                        <strong style="font-size: 1.1rem; color: #991b1b;">€ ${s.importo.toFixed(2)}</strong>
                     </div>
-                </div>`;
-        });
+                `;
+            });
 
-        listaScadenze.innerHTML = htmlScadenze;
-        summaryScadenze.innerHTML = htmlHomeSummary || `<p class="text-muted">Nessuna scadenza in programma.</p>`;
-        totaleGeneraleScadenze.textContent = `Totale da pagare: € ${totaleComplessivo.toFixed(2)}`;
+            summaryScadenze.innerHTML = htmlSummary || `<p class="text-muted">Nessuna scadenza in arrivo.</p>`;
+        }
+
+        // 2. Popolamento Sezione Scadenze
+        if (listaScadenze) {
+            let htmlScadenze = "";
+            let totaleDaPagare = 0;
+
+            scadenze.sort((a, b) => a.data.localeCompare(b.data));
+
+            scadenze.forEach(s => {
+                if (!s.pagato) totaleDaPagare += s.importo;
+
+                const [yyyy, mm, dd] = s.data.split('-');
+                const dataFormattata = `${dd}/${mm}/${yyyy}`;
+
+                htmlScadenze += `
+                    <li class="badge-item ${s.pagato ? 'pagato' : ''}" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; margin-bottom: 8px; border-radius: 8px; border-left: 5px solid ${s.pagato ? '#22c55e' : '#ef4444'};">
+                        <div>
+                            <strong style="font-size: 1.05rem;">${s.titolo}</strong>
+                            <span style="font-size: 0.9rem; color: #64748b; margin-left: 10px;">${dataFormattata}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <strong style="font-size: 1.1rem;">€ ${s.importo.toFixed(2)}</strong>
+                            <button class="btn-secondary" style="font-size: 0.8rem; padding: 4px 8px;" onclick="toggleStatoPagamento('${s.id}', ${s.pagato})">${s.pagato ? 'Segna Da Pagare' : 'Segna Pagata'}</button>
+                            <button class="btn-modifica" style="font-size: 0.8rem; padding: 4px 8px;" onclick="modificaScadenza('${s.id}')">Mod.</button>
+                            <button class="btn-elimina" style="font-size: 0.8rem; padding: 4px 8px;" onclick="eliminaScadenza('${s.id}')">&times;</button>
+                        </div>
+                    </li>
+                `;
+            });
+
+            listaScadenze.innerHTML = htmlScadenze || `<p class="text-muted">Nessuna scadenza inserita.</p>`;
+            if (totaleGeneraleEl) totaleGeneraleEl.textContent = `Totale da pagare: € ${totaleDaPagare.toFixed(2)}`;
+        }
 
     } catch (err) {
-        listaScadenze.innerHTML = `<p class="text-muted">Errore nel caricamento delle scadenze.</p>`;
-        summaryScadenze.innerHTML = `<p class="text-muted">Errore caricamento.</p>`;
+        console.error("Errore caricaScadenze:", err);
+        if (summaryScadenze) summaryScadenze.innerHTML = `<p class="text-muted">Errore caricamento scadenze.</p>`;
+    }
+}
+
+window.toggleStatoPagamento = async function(id, statoAttuale) {
+    try {
+        const docRef = doc(db, "scadenze", id);
+        await updateDoc(docRef, { pagato: !statoAttuale });
+        caricaScadenze();
+    } catch (err) {
+        alert("Errore nell'aggiornamento dello stato.");
+    }
+}
+
+window.modificaScadenza = async function(id) {
+    try {
+        const docSnap = await getDoc(doc(db, "scadenze", id));
+        if (docSnap.exists()) {
+            const s = docSnap.data();
+            modalTitle.textContent = "Modifica Scadenza";
+            scadenzaInModificaId = id;
+            titoloInput.value = s.titolo || "";
+            dataInput.value = s.data || "";
+            importoInput.value = s.importo || "";
+            modalScadenza.style.display = 'flex';
+        }
+    } catch (err) {
+        alert("Errore nel recupero della scadenza.");
     }
 }
 
 window.eliminaScadenza = async function(id) {
     if (confirm("Vuoi eliminare questa scadenza?")) {
-        await deleteDoc(doc(db, "scadenze", id));
-        caricaScadenze();
+        try {
+            await deleteDoc(doc(db, "scadenze", id));
+            caricaScadenze();
+        } catch (err) {
+            alert("Errore nell'eliminazione.");
+        }
     }
 }
 
-window.modificaScadenza = function(id, titolo, data, importo) {
-    modalTitle.textContent = "Modifica Scadenza";
-    inputTitolo.value = titolo;
-    inputData.value = data;
-    inputImporto.value = importo;
-    scadenzaForm.dataset.editId = id;
-    modalScadenza.style.display = 'flex';
-}
+// Gestione controllata OCR
+if (inputScattaFoto) inputScattaFoto.addEventListener('change', elaboraOCR);
+if (inputCaricaFoto) inputCaricaFoto.addEventListener('change', elaboraOCR);
 
-async function elaboraImmagineOCR(file) {
-    ocrLoading.style.display = 'block';
-    ocrProgress.textContent = '0%';
-    try {
-        const result = await Tesseract.recognize(file, 'ita', {
-            logger: m => {
-                if (m.status === 'recognizing text') {
-                    const prog = Math.round(m.progress * 100);
-                    ocrProgress.textContent = `${prog}%`;
-                }
-            }
-        });
-        const testo = result.data.text;
-        
-        const matchImporto = testo.match(/(?:[€E]?\s*)(\d+[\.,]\d{2})/);
-        if (matchImporto) {
-            inputImporto.value = matchImporto[1].replace(',', '.');
-        }
+async function elaboraOCR(e) {
+    const file = e.target.files[0];
+    if (!file) return;
 
-        const matchData = testo.match(/(\d{2})[\/\-](\d{2})[\/\-](\d{4})/);
-        if (matchData) {
-            inputData.value = `${matchData[3]}-${matchData[2]}-${matchData[1]}`;
-        }
-
-        if (testo.toLowerCase().includes('enel')) inputTitolo.value = "Enel Energia";
-        else if (testo.toLowerCase().includes('telecom') || testo.toLowerCase().includes('tim')) inputTitolo.value = "TIM / Telefono";
-        else if (testo.toLowerCase().includes('acqua')) inputTitolo.value = "Bolletta Acqua";
-
-    } catch (err) {
-        alert("Errore durante la lettura OCR dell'immagine.");
-    } finally {
-        ocrLoading.style.display = 'none';
-    }
-}
-
-inputScattaFoto.addEventListener('change', (e) => {
-    if (e.target.files[0]) elaboraImmagineOCR(e.target.files[0]);
-});
-inputCaricaFoto.addEventListener('change', (e) => {
-    if (e.target.files[0]) elaboraImmagineOCR(e.target.files[0]);
-});
-
-scadenzaForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const titolo = inputTitolo.value.trim();
-    const data = inputData.value;
-    const importo = parseFloat(inputImporto.value);
-    const editId = scadenzaForm.dataset.editId;
+    if (ocrLoading) ocrLoading.style.display = 'block';
+    if (ocrProgress) ocrProgress.textContent = '0%';
 
     try {
-        if (editId) {
-            await updateDoc(doc(db, "scadenze", editId), { titolo, data, importo });
-        } else {
-            await addDoc(collection(db, "scadenze"), { titolo, data, importo, creatore: nomeUtenteCorrente });
+        const worker = await Tesseract.createWorker('ita');
+        const ret = await worker.recognize(file);
+        const testo = ret.data.text;
+        await worker.terminate();
+
+        // Estrazione importo semplice
+        const matchImporto = testo.match(/(\d+[.,]\d{2})/);
+        if (matchImporto && importoInput) {
+            importoInput.value = matchImporto[1].replace(',', '.');
         }
-        modalScadenza.style.display = 'none';
-        scadenzaForm.reset();
-        delete scadenzaForm.dataset.editId;
-        caricaScadenze();
+
+        if (titoloInput) {
+            titoloInput.value = "Scadenza da Foto";
+        }
+
+        if (ocrLoading) ocrLoading.style.display = 'none';
     } catch (err) {
-        alert("Errore nel salvataggio della scadenza.");
+        console.error("Errore OCR:", err);
+        if (ocrLoading) ocrLoading.style.display = 'none';
+        alert("Errore durante la lettura della foto.");
     }
-});
+}
