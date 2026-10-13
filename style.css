@@ -41,40 +41,14 @@ body {
     margin-bottom: 20px;
 }
 
-/* Layout App con Sidebar a scomparsa */
+/* Layout App con Sidebar Retrattile (Icone vs Aperta) */
 .app-layout {
     display: flex;
     min-height: 100vh;
     position: relative;
 }
 
-/* Pulsante Hamburger per aprire/chiudere la sidebar */
-.hamburger-btn {
-    position: fixed;
-    top: 15px;
-    left: 15px;
-    z-index: 200;
-    background: #1e293b;
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    width: 42px;
-    height: 42px;
-    font-size: 1.4rem;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s ease, transform 0.1s ease;
-}
-
-.hamburger-btn:hover {
-    background: #334155;
-    transform: scale(1.05);
-}
-
-/* Sidebar a scomparsa (inizialmente chiusa a sinistra) */
+/* Sidebar: di default chiusa (mostra solo le icone, larghezza ridotta) */
 .sidebar {
     width: 260px;
     background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
@@ -82,29 +56,65 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 20px;
+    padding: 15px 12px;
     position: fixed;
     top: 0;
     bottom: 0;
     left: 0;
     z-index: 150;
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
-    transition: transform 0.3s ease-in-out;
+    transition: width 0.3s ease;
 }
 
-/* Stato chiuso: nascosta fuori dallo schermo a sinistra */
+/* Quando è chiusa, la sidebar si stringe mostrando solo le emoji/icone */
 .sidebar.closed {
-    transform: translateX(-100%);
+    width: 76px;
 }
 
-.sidebar-brand h2 {
-    font-size: 1.25rem;
-    color: #f8fafc;
+.sidebar-header-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     padding-bottom: 15px;
     border-bottom: 1px solid #334155;
-    margin-top: 40px; /* Spazio per non coprire il pulsante hamburger */
-    margin-bottom: 20px;
-    letter-spacing: 0.5px;
+    margin-bottom: 15px;
+}
+
+.hamburger-btn {
+    background: #334155;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    width: 42px;
+    height: 42px;
+    font-size: 1.3rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+}
+
+.hamburger-btn:hover {
+    background: #475569;
+}
+
+.sidebar-title {
+    font-size: 1.15rem;
+    color: #f8fafc;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: opacity 0.2s ease;
+}
+
+/* Se la sidebar è chiusa, nascondiamo i testi delle sezioni e il titolo dell'app */
+.sidebar.closed .sidebar-title,
+.sidebar.closed .nav-text,
+.sidebar.closed .user-badge,
+.sidebar.closed .btn-sidebar-azione,
+.sidebar.closed .btn-sidebar-esci {
+    display: none;
 }
 
 .sidebar-nav {
@@ -112,12 +122,13 @@ body {
     flex-direction: column;
     gap: 8px;
     flex: 1;
+    overflow-y: auto;
 }
 
 .sidebar-nav .nav-btn {
     background: transparent;
     border: none;
-    padding: 12px 16px;
+    padding: 10px 12px;
     border-radius: 8px;
     font-size: 0.95rem;
     font-weight: 600;
@@ -125,10 +136,11 @@ body {
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     transition: all 0.2s ease;
     text-align: left;
     width: 100%;
+    white-space: nowrap;
 }
 
 .sidebar-nav .nav-btn:hover {
@@ -142,21 +154,16 @@ body {
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-.nav-icon {
-    width: 22px;
-    height: 22px;
-    object-fit: contain;
-    filter: brightness(0) invert(1);
-    opacity: 0.8;
-}
-
-.sidebar-nav .nav-btn.active .nav-icon {
-    opacity: 1;
+.nav-emoji {
+    font-size: 1.25rem;
+    min-width: 24px;
+    text-align: center;
+    flex-shrink: 0;
 }
 
 .sidebar-footer {
     border-top: 1px solid #334155;
-    padding-top: 15px;
+    padding-top: 12px;
 }
 
 .user-badge {
@@ -170,6 +177,9 @@ body {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     transition: transform 0.1s ease, filter 0.2s ease;
     border: 1px solid rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .user-badge:hover {
@@ -218,16 +228,18 @@ body {
     transform: translateY(-1px);
 }
 
-/* Area Contenuti Principale (Occupa tutto lo schermo quando la sidebar è chiusa) */
+/* Area Contenuti Principale (Si adatta dinamicamente alla larghezza della sidebar) */
 .main-content-area {
-    margin-left: 0;
-    padding: 30px 20px;
-    padding-top: 70px; /* Spazio per il pulsante hamburger */
+    margin-left: 76px; /* Spazio quando la sidebar è chiusa a icone */
+    padding: 30px;
     flex: 1;
     max-width: 1200px;
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
+    transition: margin-left 0.3s ease;
+}
+
+/* Quando la sidebar è aperta, spingiamo leggermente i contenuti */
+.app-layout:not(:has(.sidebar.closed)) .main-content-area {
+    margin-left: 260px;
 }
 
 .section {
