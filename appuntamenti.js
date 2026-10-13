@@ -106,6 +106,16 @@ export async function caricaAppuntamenti() {
     if (summaryAppuntamenti) summaryAppuntamenti.innerHTML = `<p class="text-muted">Caricamento in corso...</p>`;
 
     try {
+        // Recupera utenti per associarne i colori
+        const utentiSnap = await getDocs(collection(db, "utenti"));
+        const coloriUtenti = {};
+        utentiSnap.forEach(docSnap => {
+            const u = docSnap.data();
+            if (u.nome && u.colore) {
+                coloriUtenti[u.nome] = u.colore;
+            }
+        });
+
         const querySnapshot = await getDocs(collection(db, "appuntamenti"));
         let appuntamenti = [];
         querySnapshot.forEach(docSnap => {
@@ -138,27 +148,23 @@ export async function caricaAppuntamenti() {
 
         let htmlGrigliaVerticale = "";
         const nomiGiorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+        
+        // Sfondi specifici per ciascun giorno della settimana (Domenica = rosso)
+        const classiGiorni = [
+            'giorno-lunedi',   // Lunedì
+            'giorno-martedi',  // Martedì
+            'giorno-mercoledi',// Mercoledì
+            'giorno-giovedi',  // Giovedì
+            'giorno-venerdi',  // Venerdì
+            'giorno-sabato',   // Sabato
+            'giorno-domenica'  // Domenica (Rosso)
+        ];
 
         giorniSettimana.forEach((giornoDate, index) => {
             const dataIso = formattaDataIso(giornoDate);
             const nomeGiorno = nomiGiorni[index];
             const isOggi = (dataIso === oggiStr);
-
-            // Calcolo urgenza/sfondo identico alle scadenze
-            const dataGiornoObj = new Date(dataIso);
-            dataGiornoObj.setHours(0,0,0,0);
-            
-            const diffTempo = dataGiornoObj - oggiObj;
-            const diffGiorni = Math.round(diffTempo / (1000 * 60 * 60 * 24));
-
-            let statusClass = "status-green";
-            if (diffGiorni <= 0) {
-                statusClass = "status-red"; // Passati o oggi
-            } else if (diffGiorni <= 3) {
-                statusClass = "status-orange"; // Nei prossimi 3 giorni
-            } else {
-                statusClass = "status-green"; // Più avanti
-            }
+            const classeGiornoColore = classiGiorni[index];
 
             // Filtra impegni per questo giorno
             const impegniGiorno = appuntamenti.filter(a => a.data === dataIso);
@@ -169,11 +175,13 @@ export async function caricaAppuntamenti() {
             } else {
                 impegniGiorno.forEach(imp => {
                     const creatoreImp = imp.creatore || "Famiglia";
+                    const coloreCreatore = coloriUtenti[creatoreImp] || "#3b82f6"; // Colore utente o blu di default
+                    
                     htmlImpegni += `
-                        <div class="card-impegno-google">
+                        <div class="card-impegno-google" style="border-left-color: ${coloreCreatore};">
                             <div style="font-weight: 600;">${imp.titolo}</div>
                             <div style="font-size: 0.8rem; color: #475569;">${imp.oraInizio || ''} - ${imp.oraFine || ''}</div>
-                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">[${creatoreImp}]</div>
+                            <div style="font-size: 0.75rem; color: ${coloreCreatore}; font-weight: bold; margin-top: 2px;">[${creatoreImp}]</div>
                             <div style="margin-top: 6px; display: flex; gap: 5px;">
                                 <button class="btn-modifica" style="padding: 2px 8px; font-size: 0.75rem;" onclick="modificaAppuntamento('${imp.id}')">Mod.</button>
                                 <button class="btn-elimina" style="padding: 2px 8px; font-size: 0.75rem;" onclick="eliminaAppuntamento('${imp.id}')">Del</button>
@@ -183,7 +191,7 @@ export async function caricaAppuntamenti() {
             }
 
             htmlGrigliaVerticale += `
-                <div class="colonna-giorno-scheda ${statusClass}" style="margin-bottom: 12px;">
+                <div class="colonna-giorno-scheda ${classeGiornoColore}" style="margin-bottom: 12px;">
                     <div class="header-giorno-moderno ${isOggi ? 'oggi' : ''}" onclick="apriModalNuovoAppuntamento('${dataIso}')" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; cursor: pointer;">
                         <span style="font-weight: bold; font-size: 1rem;">${nomeGiorno} (${formatoDataEuropeo(dataIso)})</span>
                         <span style="font-size: 0.85rem; opacity: 0.8;">Aggiungi</span>
@@ -205,11 +213,12 @@ export async function caricaAppuntamenti() {
                 summaryAppuntamenti.innerHTML = `<p class="text-muted">Nessun appuntamento in programma.</p>`;
             } else {
                 impegniFuturi.forEach(imp => {
+                    const colUser = coloriUtenti[imp.creatore] || "#3b82f6";
                     htmlHomeApp += `
-                        <div class="scadenza-block-style status-green">
+                        <div class="scadenza-block-style" style="border-left-color: ${colUser}; background-color: #f8fafc;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div><strong>${imp.titolo}</strong> <span style="font-size: 0.85rem; opacity: 0.85;">(${formatoDataEuropeo(imp.data)} - ${imp.oraInizio || ''})</span></div>
-                                <div style="font-size: 0.85rem;">${imp.creatore || ''}</div>
+                                <div style="font-size: 0.85rem; color: ${colUser}; font-weight: bold;">${imp.creatore || ''}</div>
                             </div>
                         </div>`;
                 });
