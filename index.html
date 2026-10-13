@@ -43,35 +43,33 @@
         </div>
     </div>
 
-    <!-- App Principale con Sidebar a scomparsa -->
+    <!-- App Principale con Sidebar a comparsa / riducibile a icone -->
     <div id="app-container" class="app-layout" style="display: none;">
         
-        <!-- Pulsante Menu Hamburger per aprire/chiudere la sidebar -->
-        <button id="btn-toggle-sidebar" class="hamburger-btn" title="Apri/Chiudi Menu">☰</button>
-
-        <!-- Sidebar a Sinistra (inizialmente chiusa) -->
+        <!-- Sidebar a Sinistra (parte chiusa a sole icone) -->
         <aside class="sidebar closed" id="sidebar">
-            <div class="sidebar-brand">
-                <h2>Famiglia App</h2>
+            <div class="sidebar-header-row">
+                <button id="btn-toggle-sidebar" class="hamburger-btn" title="Apri/Chiudi Menu">☰</button>
+                <h2 class="sidebar-title">Famiglia App</h2>
             </div>
             <nav class="sidebar-nav">
-                <button class="nav-btn active" data-target="home-section">
-                    🏠 HOME
+                <button class="nav-btn active" data-target="home-section" title="Home">
+                    <span class="nav-emoji">🏠</span> <span class="nav-text">HOME</span>
                 </button>
-                <button class="nav-btn" data-target="scadenze-section">
-                    <img src="icone/icona-scadenze.png" alt="" class="nav-icon"> SCADENZE
+                <button class="nav-btn" data-target="scadenze-section" title="Scadenze">
+                    <span class="nav-emoji">💶</span> <span class="nav-text">SCADENZE</span>
                 </button>
-                <button class="nav-btn" data-target="impegni-section">
-                    <img src="icone/icona-impegni.png" alt="" class="nav-icon"> IMPEGNI
+                <button class="nav-btn" data-target="impegni-section" title="Impegni">
+                    <span class="nav-emoji">📅</span> <span class="nav-text">IMPEGNI</span>
                 </button>
-                <button class="nav-btn" data-target="media-section">
-                    <img src="icone/icona-media.png" alt="" class="nav-icon"> FOTO e VIDEO
+                <button class="nav-btn" data-target="media-section" title="Foto e Video">
+                    <span class="nav-emoji">🎬</span> <span class="nav-text">FOTO e VIDEO</span>
                 </button>
-                <button class="nav-btn" data-target="ricette-section">
-                    <img src="icone/icona-ricette.png" alt="" class="nav-icon"> RICETTE
+                <button class="nav-btn" data-target="ricette-section" title="Ricette">
+                    <span class="nav-emoji">🍳</span> <span class="nav-text">RICETTE</span>
                 </button>
-                <button class="nav-btn" data-target="utenti-section">
-                    👥 UTENTI
+                <button class="nav-btn" data-target="utenti-section" title="Utenti">
+                    <span class="nav-emoji">👥</span> <span class="nav-text">UTENTI</span>
                 </button>
             </nav>
             <div class="sidebar-footer">
