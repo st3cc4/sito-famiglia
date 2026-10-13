@@ -26,6 +26,11 @@ export async function inizializzaAuth() {
     const currentUserBadge = document.getElementById('current-user-badge');
     const formNuovoUtenteContainer = document.getElementById('form-nuovo-utente-container');
 
+    // Aggiorniamo il testo del pulsante in ESCI
+    if (btnCambiaUtente) {
+        btnCambiaUtente.textContent = "ESCI";
+    }
+
     // Controllo se c'è un utente salvato con "Ricordami"
     const utenteSalvato = localStorage.getItem('famiglia_utente_corrente') || sessionStorage.getItem('famiglia_utente_corrente');
     if (utenteSalvato) {
@@ -58,7 +63,6 @@ export async function inizializzaAuth() {
             if (!usernameInserito) return;
 
             try {
-                // Tentiamo prima la ricerca esatta (es. "Paolo"), poi minuscola ("paolo")
                 let userDocRef = doc(db, "utenti", usernameInserito);
                 let userSnap = await getDoc(userDocRef);
 
@@ -75,13 +79,11 @@ export async function inizializzaAuth() {
                 const userData = userSnap.data();
                 const userIdTrovato = userSnap.id;
                 
-                // Controllo password rigoroso
                 if (userData.password && userData.password !== password) {
                     alert("Password errata.");
                     return;
                 }
 
-                // Salva sessione in base a "Ricordami"
                 if (ricordamiCheckbox && ricordamiCheckbox.checked) {
                     localStorage.setItem('famiglia_utente_corrente', userIdTrovato);
                 } else {
@@ -105,7 +107,7 @@ export async function inizializzaAuth() {
         });
     }
 
-    // Pulsante Cambia Utente / Logout
+    // Pulsante ESCI / Logout
     if (btnCambiaUtente) {
         btnCambiaUtente.addEventListener('click', () => {
             localStorage.removeItem('famiglia_utente_corrente');
@@ -128,7 +130,6 @@ export async function inizializzaAuth() {
             if (userSnap.exists()) {
                 const data = userSnap.data();
                 nomeUtenteCorrente = data.nome || username;
-                // Controlliamo se è admin dal database (nel tuo caso Paolo ha il ruolo/permessi corretti)
                 ruoloUtenteCorrente = (username.toLowerCase() === 'paolo' || data.ruolo === 'admin') ? 'admin' : 'membro';
 
                 if (authScreen) authScreen.style.display = 'none';
@@ -136,6 +137,16 @@ export async function inizializzaAuth() {
 
                 if (currentUserBadge) {
                     currentUserBadge.textContent = `${nomeUtenteCorrente} (${ruoloUtenteCorrente})`;
+                    
+                    // Applichiamo il colore scelto dall'utente (se presente) come sfondo del badge
+                    if (data.colore) {
+                        currentUserBadge.style.backgroundColor = data.colore;
+                        // Scegliamo automaticamente il colore del testo (bianco o scuro) per garantire la massima leggibilità
+                        currentUserBadge.style.color = isColorDark(data.colore) ? '#ffffff' : '#0f172a';
+                    } else {
+                        currentUserBadge.style.backgroundColor = '#3b82f6';
+                        currentUserBadge.style.color = '#ffffff';
+                    }
                 }
 
                 if (formNuovoUtenteContainer) {
@@ -149,4 +160,17 @@ export async function inizializzaAuth() {
             console.error("Errore validazione utente:", err);
         }
     }
+}
+
+// Funzione di supporto per determinare se il colore di sfondo è scuro (per impostare il testo bianco)
+function isColorDark(hexColor) {
+    let color = hexColor.replace('#', '');
+    if (color.length === 3) {
+        color = color.split('').map(c => c + c).join('');
+    }
+    const r = parseInt(color.substr(0, 2), 16);
+    const g = parseInt(color.substr(2, 2), 16);
+    const b = parseInt(color.substr(4, 2), 16);
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness < 128;
 }
