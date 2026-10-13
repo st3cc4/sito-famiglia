@@ -7,8 +7,8 @@ import {
     updateDoc, 
     getDoc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { db } from "./firebase-config.js";
-import { nomeUtenteCorrente, isAdminCorrente } from "./auth.js";
+import { db } from "../firebase-config.js";
+import { nomeUtenteCorrente, isAdminCorrente } from "../auth.js";
 
 const btnApriModalApp = document.getElementById('btn-apri-modal-appuntamento');
 const btnChiudiModalApp = document.getElementById('btn-chiudi-modal-appuntamento');
@@ -40,6 +40,40 @@ if (btnApriModalApp) {
 if (btnChiudiModalApp) {
     btnChiudiModalApp.addEventListener('click', () => {
         modalApp.style.display = 'none';
+    });
+}
+
+if (appForm) {
+    appForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const titolo = appTitoloInput.value.trim();
+        const data = appDataInput.value;
+        const oraInizio = appOraInizioInput.value;
+        const oraFine = appOraFineInput.value;
+        const editId = appIdInput.value;
+
+        const datiApp = {
+            titolo,
+            data,
+            oraInizio,
+            oraFine,
+            creatore: nomeUtenteCorrente || "Famiglia"
+        };
+
+        try {
+            if (editId) {
+                const docRef = doc(db, "appuntamenti", editId);
+                await updateDoc(docRef, datiApp);
+            } else {
+                await addDoc(collection(db, "appuntamenti"), datiApp);
+            }
+            modalApp.style.display = 'none';
+            appForm.reset();
+            caricaAppuntamenti();
+        } catch (err) {
+            console.error("Errore salvataggio impegno:", err);
+            alert("Errore nel salvataggio dell'impegno.");
+        }
     });
 }
 
@@ -134,8 +168,8 @@ function aggiornaGrigliaSettimanale(appuntamenti, mappaColori) {
         impegniDelGiorno.forEach(imp => {
             const creatore = imp.creatore || 'Famiglia';
             const colore = mappaColori[creatore.toLowerCase()] || '#3b82f6';
-            const isAdmin = isAdminCorrente;
-            const puoModificare = isAdmin || (creatore.toLowerCase() === (nomeUtenteCorrente || "").toLowerCase());
+            const userIsAdmin = typeof isAdminCorrente === 'function' ? isAdminCorrente() : Boolean(isAdminCorrente);
+            const puoModificare = userIsAdmin || (creatore.toLowerCase() === (nomeUtenteCorrente || "").toLowerCase());
 
             const ev = document.createElement('div');
             ev.className = 'evento-card';
@@ -184,22 +218,30 @@ if (btnNextWeek) {
 }
 
 window.modificaAppuntamento = async function(id) {
-    const docSnap = await getDoc(doc(db, "appuntamenti", id));
-    if (docSnap.exists()) {
-        const a = docSnap.data();
-        modalAppTitle.textContent = "Modifica Impegno";
-        appIdInput.value = id;
-        appTitoloInput.value = a.titolo || "";
-        appDataInput.value = a.data || "";
-        appOraInizioInput.value = a.oraInizio || "";
-        appOraFineInput.value = a.oraFine || "";
-        modalApp.style.display = 'flex';
+    try {
+        const docSnap = await getDoc(doc(db, "appuntamenti", id));
+        if (docSnap.exists()) {
+            const a = docSnap.data();
+            modalAppTitle.textContent = "Modifica Impegno";
+            appIdInput.value = id;
+            appTitoloInput.value = a.titolo || "";
+            appDataInput.value = a.data || "";
+            appOraInizioInput.value = a.oraInizio || "";
+            appOraFineInput.value = a.oraFine || "";
+            modalApp.style.display = 'flex';
+        }
+    } catch (err) {
+        alert("Errore nel recupero dell'impegno.");
     }
 }
 
 window.eliminaAppuntamento = async function(id) {
     if (confirm("Vuoi eliminare questo impegno?")) {
-        await deleteDoc(doc(db, "appuntamenti", id));
-        caricaAppuntamenti();
+        try {
+            await deleteDoc(doc(db, "appuntamenti", id));
+            caricaAppuntamenti();
+        } catch (err) {
+            alert("Errore nell'eliminazione.");
+        }
     }
 }
