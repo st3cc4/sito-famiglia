@@ -34,7 +34,6 @@ export async function inizializzaAuth() {
 
     // Gestione pulsante occhio per mostrare/nascondere la password
     if (btnTogglePassword && passwordInput) {
-        // Rimuoviamo eventuali vecchi listener clonando il bottone
         const nuovoBtn = btnTogglePassword.cloneNode(true);
         btnTogglePassword.parentNode.replaceChild(nuovoBtn, btnTogglePassword);
         
@@ -49,40 +48,42 @@ export async function inizializzaAuth() {
         });
     }
 
-    // Gestione invio form di login
+    // Gestione invio form di login con controlli rigorosi
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const username = usernameInput.value.trim().toLowerCase();
+            const usernameInserito = usernameInput.value.trim();
+            const usernameId = usernameInserito.toLowerCase();
             const password = passwordInput.value.trim();
 
-            if (!username) return;
+            if (!usernameInserito) return;
 
             try {
-                const userDocRef = doc(db, "utenti", username);
+                const userDocRef = doc(db, "utenti", usernameId);
                 const userSnap = await getDoc(userDocRef);
 
+                // Controllo rigoroso: l'utente deve esistere nel database (creato da te)
                 if (!userSnap.exists()) {
-                    alert("Utente non trovato nel database. Verifica il nome inserito (es. 'paolo').");
+                    alert("Accesso negato: utente non autorizzato o inesistente nel database.");
                     return;
                 }
 
                 const userData = userSnap.data();
                 
-                // Controllo password (se l'utente ha salvato una password nel db e non è vuota)
-                if (userData.password && userData.password.trim() !== "" && userData.password !== password) {
+                // Controllo password rigoroso
+                if (userData.password && userData.password !== password) {
                     alert("Password errata.");
                     return;
                 }
 
                 // Salva sessione in base a "Ricordami"
                 if (ricordamiCheckbox && ricordamiCheckbox.checked) {
-                    localStorage.setItem('famiglia_utente_corrente', username);
+                    localStorage.setItem('famiglia_utente_corrente', usernameId);
                 } else {
-                    sessionStorage.setItem('famiglia_utente_corrente', username);
+                    sessionStorage.setItem('famiglia_utente_corrente', usernameId);
                 }
 
-                await validaEImpostaUtente(username);
+                await validaEImpostaUtente(usernameId);
 
             } catch (err) {
                 console.error("Errore durante il login:", err);
@@ -95,7 +96,7 @@ export async function inizializzaAuth() {
     if (linkPasswordDimenticata) {
         linkPasswordDimenticata.addEventListener('click', (e) => {
             e.preventDefault();
-            alert("Il tuo account amministratore (Paolo) ha password: sv058753");
+            alert("Contatta l'amministratore (Paolo) per reimpostare la password.");
         });
     }
 
@@ -127,7 +128,6 @@ export async function inizializzaAuth() {
                     currentUserBadge.textContent = `${nomeUtenteCorrente} (${ruoloUtenteCorrente})`;
                 }
 
-                // Mostra pannello creazione utenti solo se admin
                 if (formNuovoUtenteContainer) {
                     formNuovoUtenteContainer.style.display = isAdminCorrente() ? 'block' : 'none';
                 }
