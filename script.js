@@ -2,7 +2,6 @@ import { controllaSessioneSalvata, impostaCallbackAvvio, attivaInterfacciaUtente
 import { caricaScadenze } from "./scadenze.js";
 import { caricaAppuntamenti } from "./appuntamenti.js";
 import { caricaRicette } from "./ricette.js";
-import { caricaUtentiAdmin } from "./utenti.js";
 
 const navButtons = document.querySelectorAll('.nav-btn');
 const pageSections = document.querySelectorAll('.page-section');
@@ -13,7 +12,6 @@ const sidebar = document.getElementById('sidebar');
 const toggleSidebarBtn = document.getElementById('toggle-sidebar');
 const cardCliccabili = document.querySelectorAll('.card-cliccabile');
 
-// Icone delle sezioni
 const iconeSezioni = {
     'sec-home': '🏠',
     'sec-scadenze': 'icon/icona-scadenze.png',
@@ -63,7 +61,6 @@ function attivaSezione(targetId) {
         }
     }
 
-    // Gestione visibilità pulsante "Torna alla Home"
     if (btnTopBackHome) {
         if (targetId === 'sec-home') {
             btnTopBackHome.style.display = 'none';
@@ -72,7 +69,6 @@ function attivaSezione(targetId) {
         }
     }
 
-    // Caricamento dati specifici in base alla sezione
     if (targetId === 'sec-scadenze') {
         caricaScadenze();
     } else if (targetId === 'sec-appuntamenti') {
@@ -86,7 +82,6 @@ function attivaSezione(targetId) {
     }
 }
 
-// Click sui bottoni della sidebar
 navButtons.forEach(button => {
     button.addEventListener('click', () => {
         const target = button.getAttribute('data-target');
@@ -96,14 +91,12 @@ navButtons.forEach(button => {
     });
 });
 
-// Click sul pulsante Torna alla Home nell'header
 if (btnTopBackHome) {
     btnTopBackHome.addEventListener('click', () => {
         attivaSezione('sec-home');
     });
 }
 
-// Click sulle schede cliccabili della Home
 cardCliccabili.forEach(card => {
     card.addEventListener('click', () => {
         const target = card.getAttribute('data-target');
@@ -113,20 +106,17 @@ cardCliccabili.forEach(card => {
     });
 });
 
-// Toggle Sidebar
 if (toggleSidebarBtn && sidebar) {
     toggleSidebarBtn.addEventListener('click', () => {
         sidebar.classList.toggle('collapsed');
     });
 }
 
-// Callback eseguito al login avvenuto con successo
 impostaCallbackAvvio(() => {
     attivaSezione('sec-home');
-    attivaInterfacciaUtente(caricaUtentiAdmin);
+    attivaInterfacciaUtente(null);
 });
 
-// All'avvio controlla se c'è una sessione salvata
 window.addEventListener('DOMContentLoaded', () => {
     controllaSessioneSalvata();
 });
