@@ -39,13 +39,15 @@ export async function caricaScadenze() {
 
         if (scadenze.length === 0) {
             listaScadenze.innerHTML = '<li class="text-muted" style="padding: 10px;">Nessuna scadenza presente.</li>';
-            if (summaryHome) summaryHome.innerHTML = '<p class="text-muted">Nessuna scadenza da saldare.</p>';
+            if (summaryHome) summaryHome.innerHTML = '<p class="text-muted">Nessuna scadenza in arrivo.</p>';
             if (totaleGenerale) totaleGenerale.textContent = 'Totale da pagare: € 0.00';
             return;
         }
 
         const oggi = new Date();
         oggi.setHours(0, 0, 0, 0);
+
+        let scadenzeMostrateInHome = 0;
 
         scadenze.forEach((s) => {
             const importoVal = parseFloat(s.importo) || 0;
@@ -87,7 +89,7 @@ export async function caricaScadenze() {
             // Formattazione data GG/MM/AAAA
             const dataFormattata = dataScadenza.toLocaleDateString('it-IT');
 
-            // 1. Creazione elemento della lista Scadenze
+            // 1. Creazione elemento della lista completa (Sezione SCADENZE)
             const li = document.createElement('li');
             li.className = `scadenza-item ${classeColore}`;
 
@@ -107,8 +109,9 @@ export async function caricaScadenze() {
 
             listaScadenze.appendChild(li);
 
-            // 2. Aggiunta alla vista di riepilogo della HOME (se visibile)
-            if (summaryHome) {
+            // 2. Filtro per la HOME: Mostriamo SOLO se già scaduta o entro 7 giorni (diffGiorni <= 7)
+            if (summaryHome && diffGiorni <= 7) {
+                scadenzeMostrateInHome++;
                 const homeRow = document.createElement('div');
                 homeRow.className = `scadenza-item ${classeColore}`;
                 homeRow.style.marginBottom = '8px';
@@ -124,6 +127,11 @@ export async function caricaScadenze() {
                 summaryHome.appendChild(homeRow);
             }
         });
+
+        // Messaggio di cortesia in HOME se non ci sono scadenze urgenti entro 7 giorni
+        if (summaryHome && scadenzeMostrateInHome === 0) {
+            summaryHome.innerHTML = '<p class="text-muted">Nessuna scadenza urgente nei prossimi 7 giorni.</p>';
+        }
 
         if (totaleGenerale) {
             totaleGenerale.textContent = `Totale da pagare: € ${totale.toFixed(2)}`;
