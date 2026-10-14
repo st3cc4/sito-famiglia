@@ -89,21 +89,25 @@ export async function caricaScadenze() {
             // Formattazione data GG/MM/AAAA
             const dataFormattata = dataScadenza.toLocaleDateString('it-IT');
 
-            // 1. Creazione elemento della lista completa (Sezione SCADENZE)
+            // 1. Creazione elemento della lista completa (Sezione SCADENZE) - Pulsanti spostati sotto
             const li = document.createElement('li');
             li.className = `scadenza-item ${classeColore}`;
 
             li.innerHTML = `
-                <div class="scadenza-info">
-                    <span class="scadenza-titolo">${escapeHtml(s.titolo)}</span>
-                    <span class="scadenza-data">${dataFormattata}</span>
-                    <span class="scadenza-mancano ${classeMancano}">- ${testoMancano}</span>
-                </div>
-                <div class="scadenza-azioni">
-                    <span class="scadenza-importo">€ ${importoVal.toFixed(2)}</span>
-                    <button class="btn-segna-pagata" data-id="${s.id}">Segna Pagata</button>
-                    <button class="btn-modifica-scadenza" data-id="${s.id}">Mod.</button>
-                    <button class="btn-elimina-scadenza" data-id="${s.id}" title="Elimina">🗑️</button>
+                <div style="display: flex; flex-direction: column; width: 100%; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div class="scadenza-info" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            <span class="scadenza-titolo">${escapeHtml(s.titolo)}</span>
+                            <span class="scadenza-data">${dataFormattata}</span>
+                            <span class="scadenza-mancano ${classeMancano}">- ${testoMancano}</span>
+                        </div>
+                        <span class="scadenza-importo" style="margin-right: 0; font-size: 1.15rem;">€ ${importoVal.toFixed(2)}</span>
+                    </div>
+                    <div class="scadenza-azioni" style="display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid rgba(0, 0, 0, 0.08); padding-top: 10px; width: 100%;">
+                        <button class="btn-segna-pagata" data-id="${s.id}">Segna Pagata</button>
+                        <button class="btn-modifica-scadenza" data-id="${s.id}">Mod.</button>
+                        <button class="btn-elimina-scadenza" data-id="${s.id}" title="Elimina">🗑️</button>
+                    </div>
                 </div>
             `;
 
