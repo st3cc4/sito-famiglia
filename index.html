@@ -46,7 +46,7 @@
     <!-- App Principale con Sidebar a comparsa / riducibile a icone -->
     <div id="app-container" class="app-layout" style="display: none;">
         
-        <!-- Sidebar a Sinistra (senza pulsante ESCI) -->
+        <!-- Sidebar a Sinistra -->
         <aside class="sidebar closed" id="sidebar">
             <div class="sidebar-header-row">
                 <button id="btn-toggle-sidebar" class="hamburger-btn" title="Apri/Chiudi Menu">☰</button>
@@ -82,8 +82,8 @@
             </div>
         </aside>
 
-        <!-- Area Principale dei Contenuti -->
-        <main class="main-content-area" id="main-content" style="display: flex; flex-direction: column; min-height: 100vh; justify-content: space-between;">
+        <!-- Area Principale dei Contenuti (strutturata per tenere la firma in basso a destra) -->
+        <main class="main-content-area" id="main-content" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh; box-sizing: border-box;">
             
             <div style="width: 100%;">
                 <!-- SEZIONE HOME -->
@@ -197,7 +197,7 @@
             </div>
 
             <!-- Firma in basso a destra -->
-            <footer style="padding: 10px 0 0 0; text-align: right; font-size: 0.85rem; color: #64748b; font-weight: 500; width: 100%;">
+            <footer style="padding: 20px 0 10px 0; text-align: right; font-size: 0.85rem; color: #64748b; font-weight: 500; width: 100%;">
                 Created by STECCA with GEMINI
             </footer>
         </main>
