@@ -94,23 +94,32 @@ export async function caricaAppuntamenti() {
             });
         } catch(e) {}
 
-        // 1. Popolamento Scheda HOME Impegni
+        // 1. Popolamento Scheda HOME Impegni: Tutti gli impegni della SETTIMANA CORRENTE
         if (summaryAppuntamenti) {
-            const oggiStr = new Date().toISOString().split('T')[0];
-            const futuri = appuntamenti
-                .filter(a => a.data >= oggiStr)
-                .sort((a, b) => (a.data + a.oraInizio).localeCompare(b.data + b.oraInizio))
-                .slice(0, 4);
+            const oggi = new Date();
+            const startOfWeek = getStartOfWeek(oggi);
+            startOfWeek.setHours(0, 0, 0, 0);
+
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+
+            const startOfWeekStr = startOfWeek.toISOString().split('T')[0];
+            const endOfWeekStr = endOfWeek.toISOString().split('T')[0];
+
+            const impegniSettimana = appuntamenti
+                .filter(a => a.data >= startOfWeekStr && a.data <= endOfWeekStr)
+                .sort((a, b) => (a.data + a.oraInizio).localeCompare(b.data + b.oraInizio));
 
             let htmlSummary = "";
-            futuri.forEach(a => {
+            impegniSettimana.forEach(a => {
                 const [yyyy, mm, dd] = a.data.split('-');
                 const dataFormattata = `${dd}/${mm}/${yyyy}`;
                 const creatore = a.creatore || 'Famiglia';
                 const coloreUser = mappaColoriUtenti[creatore.toLowerCase()] || '#3b82f6';
 
                 htmlSummary += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; background-color: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 5px solid ${coloreUser};">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background-color: ${coloreUser}15; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 6px solid ${coloreUser}; border: 1px solid ${coloreUser}40;">
                         <div style="display: flex; align-items: center; gap: 12px;">
                             <strong style="font-size: 1.05rem; color: #1e293b;">${a.titolo}</strong>
                             <span style="font-size: 1.05rem; color: #334155; font-weight: 700;">(${dataFormattata} - ${a.oraInizio})</span>
@@ -120,7 +129,7 @@ export async function caricaAppuntamenti() {
                 `;
             });
 
-            summaryAppuntamenti.innerHTML = htmlSummary || `<p class="text-muted">Nessun impegno in programma.</p>`;
+            summaryAppuntamenti.innerHTML = htmlSummary || `<p class="text-muted">Nessun impegno programmato per questa settimana.</p>`;
         }
 
         aggiornaGrigliaSettimanale(appuntamenti, mappaColoriUtenti);
