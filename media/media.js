@@ -52,7 +52,8 @@ if (mediaForm) {
             tipo,
             stato,
             voto,
-            creatore: nomeUtenteCorrente || "Famiglia"
+            creatore: nomeUtenteCorrente || "Famiglia",
+            dataCreazione: new Date().toISOString()
         };
 
         try {
@@ -88,23 +89,31 @@ export async function caricaMedia() {
             });
         } catch(e) {}
 
-        // 1. Popolamento Home Summary Media
+        // 1. Popolamento Home Summary Media: Mostra solo l'ULTIMO elemento caricato
         if (summaryMedia) {
+            // Ordiniamo per dataCreazione decrescente (o per ID se manca la data)
+            elementiMedia.sort((a, b) => {
+                const dataA = a.dataCreazione || "";
+                const dataB = b.dataCreazione || "";
+                return dataB.localeCompare(dataA);
+            });
+
             let htmlSummary = "";
-            elementiMedia.slice(0, 3).forEach(m => {
+            if (elementiMedia.length > 0) {
+                const m = elementiMedia[0]; // Prende il primo (l'ultimo inserito)
                 const creatore = m.creatore || 'Famiglia';
                 const coloreUser = mappaColoriUtenti[creatore.toLowerCase()] || '#3b82f6';
 
-                htmlSummary += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; background-color: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 5px solid ${coloreUser};">
+                htmlSummary = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; background-color: ${coloreUser}15; padding: 12px 16px; border-radius: 8px; border-left: 6px solid ${coloreUser}; border: 1px solid ${coloreUser}40;">
                         <div>
-                            <strong style="font-size: 1.05rem; color: #1e293b;">${m.titolo}</strong>
-                            <span style="font-size: 0.9rem; color: #64748b; margin-left: 8px;">(${m.tipo} - ${m.stato})</span>
+                            <strong style="font-size: 1.1rem; color: #1e293b; display: block;">${m.titolo}</strong>
+                            <span style="font-size: 0.95rem; color: #64748b;">Tipo: <strong>${m.tipo}</strong> | Stato: <strong>${m.stato}</strong> | Voto: <strong>${m.voto}/10</strong></span>
                         </div>
                         <span style="font-size: 0.9rem; font-weight: 700; color: #ffffff; background-color: ${coloreUser}; padding: 4px 12px; border-radius: 6px;">${creatore}</span>
                     </div>
                 `;
-            });
+            }
             summaryMedia.innerHTML = htmlSummary || `<p class="text-muted">Nessun elemento media registrato.</p>`;
         }
 
