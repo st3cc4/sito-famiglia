@@ -120,15 +120,18 @@ export async function caricaRicette() {
             });
         } catch(e) {}
 
-        // 1. Popolamento Home Summary Ricette
+        // 1. Popolamento Home Summary Ricette: Le tre ricette più apprezzate (o prime 3 in ordine alfabetico/recente)
         if (summaryRicette) {
             let htmlSummary = "";
+            // Ordiniamo per nome o per preferite se presente
+            ricette.sort((a, b) => a.nome.localeCompare(b.nome));
+
             ricette.slice(0, 3).forEach(r => {
                 const creatore = r.creatore || 'Famiglia';
                 const coloreUser = mappaColoriUtenti[creatore.toLowerCase()] || '#3b82f6';
 
                 htmlSummary += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; background-color: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 5px solid ${coloreUser};">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background-color: ${coloreUser}15; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 6px solid ${coloreUser}; border: 1px solid ${coloreUser}40;">
                         <strong style="font-size: 1.05rem; color: #1e293b;">${r.nome}</strong>
                         <span style="font-size: 0.9rem; font-weight: 700; color: #ffffff; background-color: ${coloreUser}; padding: 4px 12px; border-radius: 6px;">${creatore}</span>
                     </div>
