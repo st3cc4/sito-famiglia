@@ -1,11 +1,22 @@
 import { inizializzaAuth } from "./auth.js";
 import { caricaScadenze } from "./scadenze/scadenze.js";
+import { caricaAppuntamenti } from "./impegni/impegni.js";
+import { caricaMedia } from "./media/media.js";
+import { caricaRicette } from "./ricette/ricette.js";
+import { caricaUtenti } from "./utenti/utenti.js";
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Inizializzazione Autenticazione
     await inizializzaAuth();
 
-    // 2. Elementi della Sidebar e Navigazione
+    // 2. Caricamento iniziale di tutti i dati per popolare la Home e le sezioni
+    caricaScadenze();
+    caricaAppuntamenti();
+    caricaMedia();
+    caricaRicette();
+    caricaUtenti();
+
+    // 3. Elementi della Sidebar e Navigazione
     const sidebar = document.getElementById('sidebar');
     const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
     const navButtons = document.querySelectorAll('.nav-btn');
@@ -38,9 +49,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        // Se torniamo alla Home o andiamo nelle Scadenze, ricarichiamo i dati per sicurezza
+        // Ricarica i dati della sezione corrispondente per sicurezza
         if (targetId === 'home-section' || targetId === 'scadenze-section') {
             caricaScadenze();
+        }
+        if (targetId === 'home-section' || targetId === 'impegni-section') {
+            caricaAppuntamenti();
+        }
+        if (targetId === 'home-section' || targetId === 'media-section') {
+            caricaMedia();
+        }
+        if (targetId === 'home-section' || targetId === 'ricette-section') {
+            caricaRicette();
+        }
+        if (targetId === 'utenti-section') {
+            caricaUtenti();
         }
 
         // Scorri in alto la pagina
@@ -79,7 +102,4 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     });
-
-    // 3. Caricamento iniziale dei dati delle Scadenze
-    caricaScadenze();
 });
