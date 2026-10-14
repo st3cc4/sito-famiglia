@@ -64,33 +64,39 @@ export async function caricaScadenze() {
 
             let classeColore = 'scadenza-verde';
             let classeMancano = 'mancano-verde';
-            let codiceColoreHex = '#22c55e'; // Verde
+            let bgColore = '#fee2e2'; // Sfondo rosso chiaro
+            let borderColore = '#ef4444'; // Bordo rosso
             let testoMancano = '';
 
             if (diffGiorni < 0) {
                 classeColore = 'scadenza-rossa';
                 classeMancano = 'mancano-rosso';
-                codiceColoreHex = '#ef4444'; // Rosso
+                bgColore = '#fee2e2'; 
+                borderColore = '#ef4444';
                 testoMancano = `Scaduta da ${Math.abs(diffGiorni)} giorn${Math.abs(diffGiorni) === 1 ? 'o' : 'i'}`;
             } else if (diffGiorni === 0) {
                 classeColore = 'scadenza-rossa';
                 classeMancano = 'mancano-rosso';
-                codiceColoreHex = '#ef4444'; // Rosso
+                bgColore = '#fee2e2'; 
+                borderColore = '#ef4444';
                 testoMancano = 'Scade oggi!';
             } else if (diffGiorni <= 7) {
                 classeColore = 'scadenza-rossa';
                 classeMancano = 'mancano-rosso';
-                codiceColoreHex = '#ef4444'; // Rosso
+                bgColore = '#fee2e2'; 
+                borderColore = '#ef4444';
                 testoMancano = `Mancano ${diffGiorni} giorn${diffGiorni === 1 ? 'o' : 'i'}`;
             } else if (diffGiorni <= 14) {
                 classeColore = 'scadenza-arancione';
                 classeMancano = 'mancano-arancione';
-                codiceColoreHex = '#f97316'; // Arancione
+                bgColore = '#ffedd5'; // Sfondo arancione chiaro
+                borderColore = '#f97316';
                 testoMancano = `Mancano ${diffGiorni} giorni`;
             } else {
                 classeColore = 'scadenza-verde';
                 classeMancano = 'mancano-verde';
-                codiceColoreHex = '#22c55e'; // Verde
+                bgColore = '#dcfce7'; // Sfondo verde chiaro
+                borderColore = '#22c55e';
                 testoMancano = `Mancano ${diffGiorni} giorni`;
             }
 
@@ -117,15 +123,15 @@ export async function caricaScadenze() {
 
             listaScadenze.appendChild(li);
 
-            // 2. Elemento per la HOME uniformato allo stile di Impegni e Ricette
+            // 2. Elemento per la HOME con SFONDO COLORATO (rosso, arancione o verde)
             const elementoHomeHtml = `
-                <div style="display: flex; justify-content: space-between; align-items: center; background-color: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 6px solid ${codiceColoreHex}; border: 1px solid #e2e8f0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; background-color: ${bgColore}; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 6px solid ${borderColore}; border-top: 1px solid ${borderColore}40; border-right: 1px solid ${borderColore}40; border-bottom: 1px solid ${borderColore}40;">
                     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                         <strong style="font-size: 1.05rem; color: #1e293b;">${escapeHtml(s.titolo)}</strong>
                         <span style="font-size: 1.05rem; color: #334155; font-weight: 700;">(${dataFormattata})</span>
-                        <span style="font-size: 0.95rem; font-weight: 700; color: ${codiceColoreHex};">- ${testoMancano}</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: ${borderColore};">- ${testoMancano}</span>
                     </div>
-                    <span style="font-size: 1rem; font-weight: 800; color: #0f172a; background-color: #e2e8f0; padding: 4px 12px; border-radius: 6px;">€ ${importoVal.toFixed(2)}</span>
+                    <span style="font-size: 1rem; font-weight: 800; color: #0f172a; background-color: #ffffff; padding: 4px 12px; border-radius: 6px; border: 1px solid ${borderColore}60;">€ ${importoVal.toFixed(2)}</span>
                 </div>
             `;
 
