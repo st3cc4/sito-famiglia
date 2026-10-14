@@ -10,8 +10,6 @@
 
 .scadenza-item {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
     padding: 16px 20px;
     border-radius: 10px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -39,13 +37,6 @@
 .scadenza-item.scadenza-verde {
     background-color: #f0fdf4;
     border-left-color: #22c55e;
-}
-
-.scadenza-info {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: wrap;
 }
 
 .scadenza-titolo {
@@ -76,17 +67,10 @@
     color: #15803d;
 }
 
-.scadenza-azioni {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
 .scadenza-importo {
     font-weight: 800;
     font-size: 1.1rem;
     color: #0f172a;
-    margin-right: 10px;
 }
 
 .btn-segna-pagata {
@@ -153,40 +137,4 @@
     font-size: 1.15rem;
     font-weight: 700;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-/* Ottimizzazione rigida per Smartphone (Schermi <= 768px) */
-@media (max-width: 768px) {
-    .scadenza-item {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 12px !important;
-    }
-
-    .scadenza-info {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 6px !important;
-        width: 100% !important;
-    }
-
-    .scadenza-azioni {
-        width: 100% !important;
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: wrap !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        margin-top: 8px !important;
-        border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
-        padding-top: 10px !important;
-    }
-
-    .scadenza-importo {
-        margin-right: 0 !important;
-        font-size: 1.25rem !important;
-        order: -1; /* Mette l'importo in primo piano nella riga dei pulsanti sotto */
-        width: 100%;
-        margin-bottom: 5px;
-    }
 }
