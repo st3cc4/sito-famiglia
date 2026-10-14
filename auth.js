@@ -29,6 +29,7 @@ export async function inizializzaAuth() {
 
     const currentUserBadge = document.getElementById('current-user-badge');
     const pickerColoreUtente = document.getElementById('picker-colore-utente');
+    const btnCambiaColore = document.getElementById('btn-cambia-colore');
     const formNuovoUtenteContainer = document.getElementById('form-nuovo-utente-container');
     const homeSalutoUtente = document.getElementById('home-saluto-utente');
     
@@ -108,11 +109,19 @@ export async function inizializzaAuth() {
         });
     }
 
-    // Cliccando sul badge del nome, apriamo il color picker per cambiare colore al volo
-    if (currentUserBadge && pickerColoreUtente) {
-        currentUserBadge.addEventListener('click', () => {
-            pickerColoreUtente.click();
-        });
+    // Gestione cambio colore utente (tramite click sul pulsante "Cambia Colore" o sul Badge)
+    if (pickerColoreUtente) {
+        if (btnCambiaColore) {
+            btnCambiaColore.addEventListener('click', () => {
+                pickerColoreUtente.click();
+            });
+        }
+
+        if (currentUserBadge) {
+            currentUserBadge.addEventListener('click', () => {
+                pickerColoreUtente.click();
+            });
+        }
 
         pickerColoreUtente.addEventListener('change', async (e) => {
             const nuovoColore = e.target.value;
@@ -122,8 +131,14 @@ export async function inizializzaAuth() {
                 const userDocRef = doc(db, "utenti", idUtenteCorrenteId);
                 await updateDoc(userDocRef, { colore: nuovoColore });
 
-                currentUserBadge.style.backgroundColor = nuovoColore;
-                currentUserBadge.style.color = isColorDark(nuovoColore) ? '#ffffff' : '#0f172a';
+                if (currentUserBadge) {
+                    currentUserBadge.style.backgroundColor = nuovoColore;
+                    currentUserBadge.style.color = isColorDark(nuovoColore) ? '#ffffff' : '#0f172a';
+                }
+
+                // Ricarichiamo la vista se siamo sulla Home o sugli impegni per aggiornare i badge colorati
+                if (window.caricaAppuntamenti) window.caricaAppuntamenti();
+                if (window.caricaRicette) window.caricaRicette();
             } catch (err) {
                 console.error("Errore durante l'aggiornamento del colore:", err);
                 alert("Errore durante il salvataggio del colore.");
@@ -225,7 +240,6 @@ export async function inizializzaAuth() {
                 if (authScreen) authScreen.style.display = 'none';
                 if (appContainer) appContainer.style.display = 'flex';
 
-                // Imposta il saluto in corsivo nella Home: Ciao + nome utente
                 if (homeSalutoUtente) {
                     homeSalutoUtente.textContent = `Ciao ${nomeUtenteCorrente}`;
                 }
