@@ -22,10 +22,15 @@ export async function inizializzaAuth() {
     const ricordamiCheckbox = document.getElementById('login-ricordami');
     const btnTogglePassword = document.getElementById('btn-toggle-password');
     const linkPasswordDimenticata = document.getElementById('link-password-dimenticata');
+    
+    // Pulsanti di uscita / logout
     const btnCambiaUtente = document.getElementById('btn-cambia-utente');
+    const btnHomeEsci = document.getElementById('btn-home-esci');
+
     const currentUserBadge = document.getElementById('current-user-badge');
     const pickerColoreUtente = document.getElementById('picker-colore-utente');
     const formNuovoUtenteContainer = document.getElementById('form-nuovo-utente-container');
+    const homeSalutoUtente = document.getElementById('home-saluto-utente');
     
     // Elementi modale cambio password
     const modalPassword = document.getElementById('modal-password');
@@ -34,10 +39,6 @@ export async function inizializzaAuth() {
     const formCambiaPassword = document.getElementById('form-cambia-password');
     const pwdAttualeInput = document.getElementById('pwd-attuale');
     const pwdNuovaInput = document.getElementById('pwd-nuova');
-
-    if (btnCambiaUtente) {
-        btnCambiaUtente.textContent = "ESCI";
-    }
 
     // Controllo se c'è un utente salvato con "Ricordami"
     const utenteSalvato = localStorage.getItem('famiglia_utente_corrente') || sessionStorage.getItem('famiglia_utente_corrente');
@@ -121,7 +122,6 @@ export async function inizializzaAuth() {
                 const userDocRef = doc(db, "utenti", idUtenteCorrenteId);
                 await updateDoc(userDocRef, { colore: nuovoColore });
 
-                // Aggiorniamo subito l'interfaccia
                 currentUserBadge.style.backgroundColor = nuovoColore;
                 currentUserBadge.style.color = isColorDark(nuovoColore) ? '#ffffff' : '#0f172a';
             } catch (err) {
@@ -164,13 +164,11 @@ export async function inizializzaAuth() {
 
                 const userData = userSnap.data();
 
-                // Verifica password attuale
                 if (userData.password && userData.password !== pwdAttuale) {
                     alert("La password attuale inserita non è corretta.");
                     return;
                 }
 
-                // Aggiorna con la nuova password
                 await updateDoc(userDocRef, { password: pwdNuova });
                 alert("Password aggiornata con successo!");
                 modalPassword.style.display = 'none';
@@ -190,18 +188,23 @@ export async function inizializzaAuth() {
         });
     }
 
-    // Pulsante ESCI / Logout
+    // Funzione di Logout unificata
+    const esciDallAccount = () => {
+        localStorage.removeItem('famiglia_utente_corrente');
+        sessionStorage.removeItem('famiglia_utente_corrente');
+        nomeUtenteCorrente = null;
+        ruoloUtenteCorrente = null;
+        idUtenteCorrenteId = null;
+        if (appContainer) appContainer.style.display = 'none';
+        if (authScreen) authScreen.style.display = 'flex';
+        if (loginForm) loginForm.reset();
+    };
+
     if (btnCambiaUtente) {
-        btnCambiaUtente.addEventListener('click', () => {
-            localStorage.removeItem('famiglia_utente_corrente');
-            sessionStorage.removeItem('famiglia_utente_corrente');
-            nomeUtenteCorrente = null;
-            ruoloUtenteCorrente = null;
-            idUtenteCorrenteId = null;
-            if (appContainer) appContainer.style.display = 'none';
-            if (authScreen) authScreen.style.display = 'flex';
-            if (loginForm) loginForm.reset();
-        });
+        btnCambiaUtente.addEventListener('click', esciDallAccount);
+    }
+    if (btnHomeEsci) {
+        btnHomeEsci.addEventListener('click', esciDallAccount);
     }
 
     async function validaEImpostaUtente(username) {
@@ -216,15 +219,18 @@ export async function inizializzaAuth() {
                 idUtenteCorrenteId = userSnap.id;
                 
                 nomeUtenteCorrente = data.nome || userSnap.id;
-                // Ruolo con la lettera maiuscola: Admin o Membro
                 const ruoloDb = (userSnap.id.toLowerCase() === 'paolo' || data.ruolo === 'admin') ? 'Admin' : 'Membro';
                 ruoloUtenteCorrente = ruoloDb;
 
                 if (authScreen) authScreen.style.display = 'none';
                 if (appContainer) appContainer.style.display = 'flex';
 
+                // Imposta il saluto in corsivo nella Home: Ciao + nome utente
+                if (homeSalutoUtente) {
+                    homeSalutoUtente.textContent = `Ciao ${nomeUtenteCorrente}`;
+                }
+
                 if (currentUserBadge) {
-                    // Mostrerà ad esempio: Paolo (Admin) o Elena (Membro)
                     currentUserBadge.textContent = `${nomeUtenteCorrente} (${ruoloUtenteCorrente})`;
                     
                     const coloreUtente = data.colore || '#3b82f6';
