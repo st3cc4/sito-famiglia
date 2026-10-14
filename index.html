@@ -74,15 +74,17 @@
             </nav>
             <div class="sidebar-footer">
                 <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <!-- Badge utente cliccabile per cambiare colore -->
-                    <span id="current-user-badge" class="user-badge" title="Clicca per cambiare colore">Utente</span>
+                    <!-- Badge utente -->
+                    <span id="current-user-badge" class="user-badge" title="Il tuo profilo">Utente</span>
+                    <!-- Input colore nascosto attivato dai pulsanti -->
                     <input type="color" id="picker-colore-utente" style="display: none;">
                 </div>
                 <button id="btn-apri-modal-password" class="btn-sidebar-azione" style="margin-top: 10px;">Cambia Password</button>
+                <button id="btn-cambia-colore" class="btn-sidebar-azione" style="margin-top: 6px; background-color: #059669;">Cambia Colore</button>
             </div>
         </aside>
 
-        <!-- Area Principale dei Contenuti (strutturata per tenere la firma in basso a destra) -->
+        <!-- Area Principale dei Contenuti -->
         <main class="main-content-area" id="main-content" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh; box-sizing: border-box;">
             
             <div style="width: 100%;">
