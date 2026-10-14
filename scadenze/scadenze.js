@@ -47,7 +47,6 @@ export async function caricaScadenze() {
         const oggi = new Date();
         oggi.setHours(0, 0, 0, 0);
 
-        // Array per raccogliere le scadenze da mostrare in Home secondo le tue regole a cascata
         let scadenzeRosse = []; // Scadute o <= 7 giorni
         let scadenzeArancioni = []; // Tra 8 e 14 giorni
         let scadenzeVerdi = []; // Da 15 giorni in su
@@ -65,27 +64,33 @@ export async function caricaScadenze() {
 
             let classeColore = 'scadenza-verde';
             let classeMancano = 'mancano-verde';
+            let codiceColoreHex = '#22c55e'; // Verde
             let testoMancano = '';
 
             if (diffGiorni < 0) {
                 classeColore = 'scadenza-rossa';
                 classeMancano = 'mancano-rosso';
+                codiceColoreHex = '#ef4444'; // Rosso
                 testoMancano = `Scaduta da ${Math.abs(diffGiorni)} giorn${Math.abs(diffGiorni) === 1 ? 'o' : 'i'}`;
             } else if (diffGiorni === 0) {
                 classeColore = 'scadenza-rossa';
                 classeMancano = 'mancano-rosso';
+                codiceColoreHex = '#ef4444'; // Rosso
                 testoMancano = 'Scade oggi!';
             } else if (diffGiorni <= 7) {
                 classeColore = 'scadenza-rossa';
                 classeMancano = 'mancano-rosso';
+                codiceColoreHex = '#ef4444'; // Rosso
                 testoMancano = `Mancano ${diffGiorni} giorn${diffGiorni === 1 ? 'o' : 'i'}`;
             } else if (diffGiorni <= 14) {
                 classeColore = 'scadenza-arancione';
                 classeMancano = 'mancano-arancione';
+                codiceColoreHex = '#f97316'; // Arancione
                 testoMancano = `Mancano ${diffGiorni} giorni`;
             } else {
                 classeColore = 'scadenza-verde';
                 classeMancano = 'mancano-verde';
+                codiceColoreHex = '#22c55e'; // Verde
                 testoMancano = `Mancano ${diffGiorni} giorni`;
             }
 
@@ -112,15 +117,15 @@ export async function caricaScadenze() {
 
             listaScadenze.appendChild(li);
 
-            // 2. Classificazione per la HOME (regola a cascata)
+            // 2. Elemento per la HOME uniformato allo stile di Impegni e Ricette
             const elementoHomeHtml = `
-                <div class="scadenza-item ${classeColore}" style="margin-bottom: 8px; padding: 12px 16px;">
-                    <div class="scadenza-info">
-                        <span class="scadenza-titolo">${escapeHtml(s.titolo)}</span>
-                        <span class="scadenza-data">(${dataFormattata})</span>
-                        <span class="scadenza-mancano ${classeMancano}">- ${testoMancano}</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; background-color: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 6px solid ${codiceColoreHex}; border: 1px solid #e2e8f0;">
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <strong style="font-size: 1.05rem; color: #1e293b;">${escapeHtml(s.titolo)}</strong>
+                        <span style="font-size: 1.05rem; color: #334155; font-weight: 700;">(${dataFormattata})</span>
+                        <span style="font-size: 0.95rem; font-weight: 700; color: ${codiceColoreHex};">- ${testoMancano}</span>
                     </div>
-                    <span class="scadenza-importo" style="margin-right:0;">€ ${importoVal.toFixed(2)}</span>
+                    <span style="font-size: 1rem; font-weight: 800; color: #0f172a; background-color: #e2e8f0; padding: 4px 12px; border-radius: 6px;">€ ${importoVal.toFixed(2)}</span>
                 </div>
             `;
 
@@ -133,7 +138,7 @@ export async function caricaScadenze() {
             }
         });
 
-        // Selezione rigorosa per la HOME in base alle tue priorità
+        // Selezione per la HOME a cascata
         if (summaryHome) {
             if (scadenzeRosse.length > 0) {
                 summaryHome.innerHTML = scadenzeRosse.join('');
