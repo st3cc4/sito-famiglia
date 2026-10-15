@@ -154,7 +154,7 @@ export async function caricaAppuntamenti() {
             summaryAppuntamenti.innerHTML = htmlSummary || `<p class="text-muted">Nessun impegno previsto per questa settimana.</p>`;
         }
 
-        // 2. Popolamento Griglia Settimanale IN VERTICALE
+        // 2. Popolamento Griglia Settimanale IN VERTICALE con sfondi giorno differenziati
         if (gridSettimanale) {
             const dataFineSettimana = new Date(dataInizioSettimanaCorrente);
             dataFineSettimana.setDate(dataFineSettimana.getDate() + 6);
@@ -164,13 +164,23 @@ export async function caricaAppuntamenti() {
                 settimanaLabel.textContent = `Dal ${formatGiornoMese(dataInizioSettimanaCorrente)} al ${formatGiornoMese(dataFineSettimana)}`;
             }
 
-            // Layout in verticale (flex colonna)
             gridSettimanale.style.display = 'flex';
             gridSettimanale.style.flexDirection = 'column';
             gridSettimanale.style.gap = '15px';
             gridSettimanale.innerHTML = '';
 
             const nomiGiorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+            
+            // Sfondi delicati e distinti per ciascun giorno della settimana
+            const sfondiGiorni = [
+                '#f0fdf4', // Lunedì (Verde chiaro)
+                '#eff6ff', // Martedì (Blu chiaro)
+                '#fef2f2', // Mercoledì (Rosso/Rosa chiaro)
+                '#fdf4ff', // Giovedì (Viola chiaro)
+                '#fffbeb', // Venerdì (Giallo chiaro)
+                '#fff7ed', // Sabato (Arancione chiaro)
+                '#f8fafc'  // Domenica (Grigio/Azzurro chiaro)
+            ];
 
             for (let i = 0; i < 7; i++) {
                 const dataGiorno = new Date(dataInizioSettimanaCorrente);
@@ -181,10 +191,10 @@ export async function caricaAppuntamenti() {
                 appDelGiorno.sort((a, b) => a.oraInizio.localeCompare(b.oraInizio));
 
                 let cardGiorno = document.createElement('div');
-                cardGiorno.style.background = '#ffffff';
+                cardGiorno.style.background = sfondiGiorni[i];
                 cardGiorno.style.borderRadius = '10px';
                 cardGiorno.style.padding = '15px';
-                cardGiorno.style.border = '1px solid #e2e8f0';
+                cardGiorno.style.border = '1px solid #cbd5e1';
                 cardGiorno.style.boxShadow = '0 2px 4px rgba(0,0,0,0.02)';
 
                 let htmlApp = '';
@@ -195,7 +205,7 @@ export async function caricaAppuntamenti() {
                     const puoModificare = userIsAdmin || (creatore.toLowerCase() === (nomeUtenteCorrente || "").toLowerCase());
 
                     htmlApp += `
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 10px 14px; margin-top: 8px; border-radius: 8px; border-left: 5px solid ${coloreUser}; border: 1px solid #e2e8f0; border-left-width: 5px; border-left-color: ${coloreUser};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 10px 14px; margin-top: 8px; border-radius: 8px; border-left: 5px solid ${coloreUser}; border: 1px solid #e2e8f0; border-left-width: 5px; border-left-color: ${coloreUser};">
                             <div>
                                 <strong style="font-size: 1rem; color: #0f172a; display: block;">${a.titolo}</strong>
                                 <span style="font-size: 0.85rem; color: #64748b;">${a.oraInizio} - ${a.oraFine}</span>
@@ -212,8 +222,8 @@ export async function caricaAppuntamenti() {
                 });
 
                 cardGiorno.innerHTML = `
-                    <div style="font-weight: 700; font-size: 1.1rem; color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px;">
-                        ${nomiGiorni[i]} <span style="font-size: 0.9rem; color: #94a3b8; font-weight: 500;">${formatGiornoMese(dataGiorno)}</span>
+                    <div style="font-weight: 700; font-size: 1.1rem; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                        ${nomiGiorni[i]} <span style="font-size: 0.9rem; color: #64748b; font-weight: 500;">${formatGiornoMese(dataGiorno)}</span>
                     </div>
                     <div>${htmlApp || '<p style="font-size: 0.85rem; color: #94a3b8; margin-top: 8px; font-style: italic;">Nessun impegno</p>'}</div>
                 `;
