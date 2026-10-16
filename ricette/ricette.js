@@ -8,80 +8,81 @@ import {
 import { db } from "../firebase-config.js";
 import { nomeUtenteCorrente, idUtenteCorrenteId } from "../auth.js";
 
-export async function caricaMedia() {
-    const containerMedia = document.getElementById('lista-media');
-    if (!containerMedia) return;
+export async function caricaRicette() {
+    const containerRicette = document.getElementById('lista-ricette');
+    if (!containerRicette) return;
 
     try {
-        const querySnapshot = await getDocs(collection(db, "media"));
-        let mediaItems = [];
+        const querySnapshot = await getDocs(collection(db, "ricette"));
+        let ricette = [];
         querySnapshot.forEach((docSnap) => {
-            mediaItems.push({ id: docSnap.id, ...docSnap.data() });
+            ricette.push({ id: docSnap.id, ...docSnap.data() });
         });
 
         let html = "";
-        mediaItems.forEach((item) => {
-            const creatoreNome = item.creatore || '';
+        ricette.forEach((r) => {
+            const creatoreNome = r.creatore || '';
+            const nomeRicetta = r.nome || r.titolo || 'Ricetta';
 
             html += `
-                <div style="background-color: #f8fafc; padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                <div style="background-color: #f8fafc; padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0; border-left: 6px solid #10b981; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
                     <div>
-                        <strong style="font-size: 1.05rem; color: #1e293b; display: block; margin-bottom: 2px;">${escapeHtml(item.titolo || 'Media')}</strong>
-                        <a href="${escapeHtml(item.url)}" target="_blank" style="font-size: 0.9rem; color: #3b82f6; text-decoration: underline; word-break: break-all;">Apri link</a>
+                        <strong style="font-size: 1.05rem; color: #1e293b; display: block; margin-bottom: 2px;">${escapeHtml(nomeRicetta)}</strong>
+                        ${r.descrizione ? `<div style="font-size: 0.9rem; color: #475569;">${escapeHtml(r.descrizione)}</div>` : ''}
                     </div>
                     <div style="display: flex; align-items: center; gap: 12px;">
                         ${creatoreNome ? `<span style="font-size: 0.85rem; font-weight: 600; color: #64748b;">(${escapeHtml(creatoreNome)})</span>` : ''}
-                        <button onclick="eliminaMedia('${item.id}')" style="background: none; border: none; cursor: pointer; font-size: 1rem;" title="Elimina">🗑️</button>
+                        <button onclick="eliminaRicetta('${r.id}')" style="background: none; border: none; cursor: pointer; font-size: 1rem;" title="Elimina">🗑️</button>
                     </div>
                 </div>
             `;
         });
 
-        containerMedia.innerHTML = html || `<p class="text-muted" style="font-style: italic; color: #64748b;">Nessun elemento media registrato.</p>`;
+        containerRicette.innerHTML = html || `<p class="text-muted" style="font-style: italic; color: #64748b;">Nessuna ricetta inserita.</p>`;
 
     } catch (err) {
-        console.error("Errore caricamento media:", err);
+        console.error("Errore caricamento ricette:", err);
     }
 }
 
-// Gestione aggiunta nuovo media da form
-const formNuovoMedia = document.getElementById('form-nuovo-media');
-if (formNuovoMedia) {
-    formNuovoMedia.addEventListener('submit', async (e) => {
+// Gestione aggiunta nuova ricetta da form
+const formNuovaRicetta = document.getElementById('form-nuova-ricetta');
+if (formNuovaRicetta) {
+    formNuovaRicetta.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const titoloInput = document.getElementById('media-titolo');
-        const urlInput = document.getElementById('media-url');
+        const nomeInput = document.getElementById('ricetta-nome') || document.getElementById('ricetta-titolo');
+        const descInput = document.getElementById('ricetta-descrizione');
 
-        if (!titoloInput || !urlInput) return;
+        if (!nomeInput) return;
 
         try {
-            await addDoc(collection(db, "media"), {
-                titolo: titoloInput.value.trim(),
-                url: urlInput.value.trim(),
+            await addDoc(collection(db, "ricette"), {
+                nome: nomeInput.value.trim(),
+                descrizione: descInput ? descInput.value.trim() : '',
                 creatore: nomeUtenteCorrente || 'Famiglia',
                 creatoreId: idUtenteCorrenteId || ''
             });
 
-            formNuovoMedia.reset();
-            caricaMedia();
-            if (window.caricaSummaryMediaHome) window.caricaSummaryMediaHome();
+            formNuovaRicetta.reset();
+            caricaRicette();
+            if (window.caricaSummaryRicetteHome) window.caricaSummaryRicetteHome();
         } catch (err) {
-            console.error("Errore salvataggio media:", err);
-            alert("Errore durante il salvataggio del media.");
+            console.error("Errore salvataggio ricetta:", err);
+            alert("Errore durante il salvataggio della ricetta.");
         }
     });
 }
 
-// Funzione globale per eliminare il media
-window.eliminaMedia = async function(id) {
-    if (!confirm("Vuoi davvero eliminare questo elemento media?")) return;
+// Funzione globale per eliminare la ricetta
+window.eliminaRicetta = async function(id) {
+    if (!confirm("Vuoi davvero eliminare questa ricetta?")) return;
     try {
-        await deleteDoc(doc(db, "media", id));
-        caricaMedia();
-        if (window.caricaSummaryMediaHome) window.caricaSummaryMediaHome();
+        await deleteDoc(doc(db, "ricette", id));
+        caricaRicette();
+        if (window.caricaSummaryRicetteHome) window.caricaSummaryRicetteHome();
     } catch (err) {
-        console.error("Errore eliminazione media:", err);
-        alert("Impossibile eliminare il media.");
+        console.error("Errore eliminazione ricetta:", err);
+        alert("Impossibile eliminare la ricetta.");
     }
 }
 
@@ -95,4 +96,4 @@ function escapeHtml(text) {
         .replace(/'/g, "&#039;");
 }
 
-window.caricaMedia = caricaMedia;
+window.caricaRicette = caricaRicette;
