@@ -1,16 +1,20 @@
+// js/firebase-config.js
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// Configurazione Firebase del Portale
 const firebaseConfig = {
-    apiKey: "AIzaSyD-YOUR-API-KEY",
-    authDomain: "sito-famiglia.firebaseapp.com",
-    projectId: "sito-famiglia",
-    storageBucket: "sito-famiglia.appspot.com",
-    messagingSenderId: "1234567890",
-    appId: "1:1234567890:web:abcdef123456"
+  apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
+  authDomain: "sito-famiglia.firebaseapp.com",
+  projectId: "sito-famiglia",
+  storageBucket: "sito-famiglia.firebasestorage.app",
+  messagingSenderId: "932164677551",
+  appId: "1:932164677551:web:9930052845521ca5ef895a",
+  measurementId: "G-NYRQJDTWM3"
 };
 
-// Inizializza solo la configurazione base e il database Firestore
+// Inizializza Firebase
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+export const auth = getAuth(app);
