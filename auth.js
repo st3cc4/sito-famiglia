@@ -24,7 +24,6 @@ export async function inizializzaAuth() {
     const btnTogglePassword = document.getElementById('btn-toggle-password');
     const linkPasswordDimenticata = document.getElementById('link-password-dimenticata');
     
-    // Pulsanti di uscita / logout
     const btnCambiaUtente = document.getElementById('btn-cambia-utente');
     const btnHomeEsci = document.getElementById('btn-home-esci');
 
@@ -34,7 +33,6 @@ export async function inizializzaAuth() {
     const formNuovoUtenteContainer = document.getElementById('form-nuovo-utente-container');
     const homeSalutoUtente = document.getElementById('home-saluto-utente');
     
-    // Elementi modale cambio password
     const modalPassword = document.getElementById('modal-password');
     const btnApriModalPassword = document.getElementById('btn-apri-modal-password');
     const btnChiudiModalPassword = document.getElementById('btn-chiudi-modal-password');
@@ -42,14 +40,11 @@ export async function inizializzaAuth() {
     const pwdAttualeInput = document.getElementById('pwd-attuale');
     const pwdNuovaInput = document.getElementById('pwd-nuova');
 
-    // Controllo se c'è un utente salvato
     const utenteSalvato = localStorage.getItem('famiglia_utente_corrente') || sessionStorage.getItem('famiglia_utente_corrente');
     if (utenteSalvato) {
-        console.log("Utente trovato in storage:", utenteSalvato);
         await validaEImpostaUtente(utenteSalvato);
     }
 
-    // Toggle password
     if (btnTogglePassword && passwordInput) {
         const nuovoBtn = btnTogglePassword.cloneNode(true);
         btnTogglePassword.parentNode.replaceChild(nuovoBtn, btnTogglePassword);
@@ -65,58 +60,53 @@ export async function inizializzaAuth() {
         });
     }
 
-    // Invio form login
+    // Invio form login pulito
     if (loginForm) {
-        loginForm.addEventListener('submit', async (e) => {
+        loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const usernameInserito = usernameInput.value.trim();
             const password = passwordInput.value.trim();
 
-            console.log("Tentativo di accesso per utente:", usernameInserito);
-
             if (!usernameInserito) return;
 
-            try {
-                let userDocRef = doc(db, "utenti", usernameInserito);
-                let userSnap = await getDoc(userDocRef);
+            getDoc(doc(db, "utenti", usernameInserito))
+                .then(async (userSnap) => {
+                    let snapFinale = userSnap;
+                    let nomeDocTrovato = usernameInserito;
 
-                if (!userSnap.exists()) {
-                    userDocRef = doc(db, "utenti", usernameInserito.toLowerCase());
-                    userSnap = await getDoc(userDocRef);
-                }
+                    if (!snapFinale.exists()) {
+                        nomeDocTrovato = usernameInserito.toLowerCase();
+                        snapFinale = await getDoc(doc(db, "utenti", nomeDocTrovato));
+                    }
 
-                if (!userSnap.exists()) {
-                    console.warn("Utente non trovato nel database");
-                    alert("Accesso negato: utente non autorizzato o inesistente nel database.");
-                    return;
-                }
+                    if (!snapFinale.exists()) {
+                        alert("Accesso negato: utente non autorizzato o inesistente nel database.");
+                        return;
+                    }
 
-                const userData = userSnap.data();
-                const userIdTrovato = userSnap.id;
-                
-                if (userData.password && userData.password !== password) {
-                    console.warn("Password errata");
-                    alert("Password errata.");
-                    return;
-                }
+                    const userData = snapFinale.data();
+                    const userIdTrovato = snapFinale.id;
 
-                if (ricordamiCheckbox && ricordamiCheckbox.checked) {
-                    localStorage.setItem('famiglia_utente_corrente', userIdTrovato);
-                } else {
-                    sessionStorage.setItem('famiglia_utente_corrente', userIdTrovato);
-                }
+                    if (userData.password && userData.password !== password) {
+                        alert("Password errata.");
+                        return;
+                    }
 
-                console.log("Credenziali valide. Imposto utente:", userIdTrovato);
-                await validaEImpostaUtente(userIdTrovato);
+                    if (ricordamiCheckbox && ricordamiCheckbox.checked) {
+                        localStorage.setItem('famiglia_utente_corrente', userIdTrovato);
+                    } else {
+                        sessionStorage.setItem('famiglia_utente_corrente', userIdTrovato);
+                    }
 
-            } catch (err) {
-                console.error("Errore durante il login:", err);
-                alert("Errore di connessione durante il login.");
-            }
+                    await validaEImpostaUtente(userIdTrovato);
+                })
+                .catch((err) => {
+                    console.error("Errore durante il login:", err);
+                    alert("Errore di connessione durante il login.");
+                });
         });
     }
 
-    // Gestione cambio colore utente
     if (pickerColoreUtente) {
         if (btnCambiaColore) {
             btnCambiaColore.addEventListener('click', () => {
@@ -152,7 +142,6 @@ export async function inizializzaAuth() {
         });
     }
 
-    // Modale Cambio Password
     if (btnApriModalPassword && modalPassword) {
         btnApriModalPassword.addEventListener('click', () => {
             modalPassword.style.display = 'flex';
@@ -208,7 +197,6 @@ export async function inizializzaAuth() {
         });
     }
 
-    // Logout
     const esciDallAccount = () => {
         localStorage.removeItem('famiglia_utente_corrente');
         sessionStorage.removeItem('famiglia_utente_corrente');
@@ -271,10 +259,7 @@ export async function inizializzaAuth() {
                 if (window.caricaRicette) window.caricaRicette();
                 if (window.caricaUtenti) window.caricaUtenti();
 
-                console.log("Accesso completato con successo per:", nomeUtenteCorrente);
-
             } else {
-                console.warn("Utente non trovato durante la validazione");
                 localStorage.removeItem('famiglia_utente_corrente');
                 sessionStorage.removeItem('famiglia_utente_corrente');
             }
