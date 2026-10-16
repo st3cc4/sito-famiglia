@@ -14,7 +14,7 @@ export async function caricaMedia() {
 
     if (!mediaSection) return;
 
-    // Cambiamo l'intestazione H2 della sezione in "FOTO e VIDEO"
+    // Aggiorniamo l'intestazione H2 della sezione in "FOTO e VIDEO"
     const h2Title = mediaSection.querySelector('h2');
     if (h2Title) {
         h2Title.textContent = "FOTO e VIDEO";
@@ -51,7 +51,7 @@ export async function caricaMedia() {
                 ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" style="color: #0284c7; font-weight: 600; text-decoration: none; font-size: 0.9rem;">Guarda Elemento →</a>` : ''}
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
                     <span style="font-size: 0.8rem; color: #64748b;">Caricato da: ${escapeHtml(item.creatore || 'Utente')}</span>
-                    ${eMia ? `<button onclick="eliminaMedia('${item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem;">🗑️</button>` : ''}
+                    ${eMia ? `<button onclick="eliminaMedia('${item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem;" title="Elimina">🗑️</button>` : ''}
                 </div>
             `;
 
