@@ -109,8 +109,6 @@ export async function caricaUtenti() {
                 const utenteTrovato = utenti.find(x => x.id === idUtente);
                 if (!utenteTrovato) return;
 
-                const perm Correnti = utenteTrovato.permessi || { scadenze: true, impegni: true, media: true, ricette: true };
-
                 const vScadenze = confirm(`L'utente ${utenteTrovato.nome} può vedere le SCADENZE?\nOK = Sì | Annulla = No`);
                 const vImpegni = confirm(`L'utente ${utenteTrovato.nome} può vedere gli IMPEGNI?\nOK = Sì | Annulla = No`);
                 const vMedia = confirm(`L'utente ${utenteTrovato.nome} può vedere FOTO e VIDEO?\nOK = Sì | Annulla = No`);
@@ -155,7 +153,7 @@ export async function caricaUtenti() {
         console.error("Errore nel caricamento degli utenti:", err);
     }
 
-    // Gestione salvataggio nuovo utente (con permessi predefiniti attivi)
+    // Gestione salvataggio nuovo utente
     if (formNuovoUtente && !formNuovoUtente.dataset.listenerAggiunto) {
         formNuovoUtente.dataset.listenerAggiunto = "true";
         formNuovoUtente.addEventListener('submit', async (e) => {
