@@ -3,355 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sito Famiglia</title>
-    <!-- CSS Globale -->
+    <title>Famiglia</title>
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
-    <!-- CSS Specifici delle sezioni -->
-    <link rel="stylesheet" href="impegni/stile_impegni.css">
     <link rel="stylesheet" href="scadenze/stile_scadenze.css">
+    <link rel="stylesheet" href="impegni/stile_impegni.css">
+    <link rel="stylesheet" href="media/stile_media.css">
     <link rel="stylesheet" href="ricette/stile_ricette.css">
     <link rel="stylesheet" href="utenti/stile_utenti.css">
-    <link rel="stylesheet" href="media/stile_media.css">
-    <link rel="manifest" href="manifest.json">
 </head>
 <body>
-    <!-- Schermata di Login -->
-    <div id="auth-screen" class="auth-container">
-        <div class="auth-card">
-            <h2>Benvenuto nella Family App</h2>
-            <p>Inserisci le tue credenziali per accedere:</p>
-            <form id="login-form" class="auth-form">
-                <div class="form-group" style="text-align: left;">
-                    <label>Nome Utente</label>
-                    <input type="text" id="login-username" class="form-control" placeholder="Il tuo nome" required>
-                </div>
-                <div class="form-group" style="text-align: left; position: relative;">
-                    <label>Password</label>
-                    <div style="position: relative;">
-                        <input type="password" id="login-password" class="form-control" placeholder="Password" required style="padding-right: 40px;">
-                        <button type="button" id="btn-toggle-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.1rem;" title="Mostra/Nascondi Password">👁️</button>
-                    </div>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 0.9rem;">
-                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #475569;">
-                        <input type="checkbox" id="login-ricordami"> Ricordami
-                    </label>
-                    <a href="#" id="link-password-dimenticata" style="color: #3b82f6; text-decoration: none;">Password dimenticata?</a>
-                </div>
-                <button type="submit" class="btn-primary" style="width: 100%; padding: 12px;">Accedi</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- App Principale con Sidebar a comparsa / riducibile a icone -->
-    <div id="app-container" class="app-layout" style="display: none;">
-        
-        <!-- Sidebar a Sinistra -->
-        <aside class="sidebar closed" id="sidebar">
-            <div class="sidebar-header-row">
-                <button id="btn-toggle-sidebar" class="hamburger-btn" title="Apri/Chiudi Menu">☰</button>
-                <h2 class="sidebar-title">Famiglia</h2>
+    <div class="app-container">
+        <!-- Sidebar / Menu laterale -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <button id="sidebar-toggle" class="btn-toggle">☰</button>
+                <h2>Famiglia</h2>
             </div>
-            <nav class="sidebar-nav">
-                <button class="nav-btn active" data-target="home-section" title="Home">
-                    <span class="nav-emoji">🏠</span> <span class="nav-text">HOME</span>
-                </button>
-                <button class="nav-btn" data-target="scadenze-section" title="Scadenze">
-                    <span class="nav-emoji">💶</span> <span class="nav-text">SCADENZE</span>
-                </button>
-                <button class="nav-btn" data-target="impegni-section" title="Impegni">
-                    <span class="nav-emoji">📅</span> <span class="nav-text">IMPEGNI</span>
-                </button>
-                <button class="nav-btn" data-target="media-section" title="Foto e Video">
-                    <span class="nav-emoji">🎬</span> <span class="nav-text">FOTO e VIDEO</span>
-                </button>
-                <button class="nav-btn" data-target="ricette-section" title="Ricette">
-                    <span class="nav-emoji">🍳</span> <span class="nav-text">RICETTE</span>
-                </button>
-                <button class="nav-btn" data-target="utenti-section" title="Utenti">
-                    <span class="nav-emoji">👥</span> <span class="nav-text">UTENTI</span>
-                </button>
-            </nav>
+            <ul class="sidebar-menu">
+                <li><a href="#" class="nav-link active" data-section="home"><img src="icone/icona_home.png" alt="Home" class="nav-icon"> HOME</a></li>
+                <li><a href="#" class="nav-link" data-section="scadenze"><img src="icone/icona_scadenze.png" alt="Scadenze" class="nav-icon"> SCADENZE</a></li>
+                <li><a href="#" class="nav-link" data-section="impegni"><img src="icone/icona_impegni.png" alt="Impegni" class="nav-icon"> IMPEGNI</a></li>
+                <li><a href="#" class="nav-link" data-section="media"><img src="icone/icona_media.png" alt="Foto e Video" class="nav-icon"> FOTO e VIDEO</a></li>
+                <li><a href="#" class="nav-link" data-section="ricette"><img src="icone/icona_ricette.png" alt="Ricette" class="nav-icon"> RICETTE</a></li>
+                <li><a href="#" class="nav-link" data-section="utenti"><img src="icone/icona_utenti.png" alt="Utenti" class="nav-icon"> UTENTI</a></li>
+            </ul>
             <div class="sidebar-footer">
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <!-- Badge utente -->
-                    <span id="current-user-badge" class="user-badge" title="Il tuo profilo">Utente</span>
-                    <!-- Input colore nascosto -->
-                    <input type="color" id="picker-colore-utente" style="display: none;">
+                <div id="utente-corrente-box" class="utente-box">Utente (Admin)</div>
+                <button id="btn-cambia-password" class="btn-footer">Cambia Password</button>
+                <button id="btn-cambia-colore" class="btn-footer">Cambia Colore</button>
+            </div>
+        </nav>
+
+        <!-- Contenuto Principale -->
+        <main class="main-content">
+            <!-- Sezione Home -->
+            <section id="home-section" class="content-section active">
+                <h2>Benvenuti nel Portale della Famiglia</h2>
+                <div class="home-grid">
+                    <div class="home-card">
+                        <h3>Scadenze in arrivo</h3>
+                        <div id="home-summary-scadenze">Caricamento...</div>
+                    </div>
+                    <div class="home-card">
+                        <h3>Prossimi Impegni</h3>
+                        <div id="home-summary-impegni">Caricamento...</div>
+                    </div>
                 </div>
-                <button id="btn-apri-modal-password" class="btn-sidebar-azione" style="margin-top: 10px;">Cambia Password</button>
-                <button id="btn-cambia-colore" class="btn-sidebar-azione" style="margin-top: 6px; background-color: #059669;">Cambia Colore</button>
-            </div>
-        </aside>
+            </section>
 
-        <!-- Area Principale dei Contenuti -->
-        <main class="main-content-area" id="main-content" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 100vh; box-sizing: border-box;">
-            
-            <div style="width: 100%;">
-                <!-- SEZIONE HOME -->
-                <section id="home-section" class="section active">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                        <h2 style="margin: 0;">HOME</h2>
-                        <span id="home-saluto-utente" style="font-size: 1.2rem; font-style: italic; font-weight: 600; color: #1e293b;"></span>
-                        <button id="btn-home-esci" class="btn-sidebar-esci" style="width: auto; padding: 6px 16px; font-size: 0.9rem;">ESCI</button>
-                    </div>
-                    <div class="home-stack">
-                        <div class="card clickable-card" data-target="scadenze-section">
-                            <h3>SCADENZE</h3>
-                            <div id="home-summary-scadenze"></div>
-                        </div>
-                        <div class="card clickable-card" data-target="impegni-section">
-                            <h3>IMPEGNI</h3>
-                            <div id="home-summary-appuntamenti"></div>
-                        </div>
-                        <div class="card clickable-card" data-target="media-section">
-                            <h3>FOTO e VIDEO</h3>
-                            <div id="home-summary-media"></div>
-                        </div>
-                        <div class="card clickable-card" data-target="ricette-section">
-                            <h3>RICETTE</h3>
-                            <div id="home-summary-ricette"></div>
-                        </div>
-                    </div>
-                </section>
+            <!-- Sezione Scadenze -->
+            <section id="scadenze-section" class="content-section">
+                <h2>SCADENZE</h2>
+                <div id="lista-scadenze"></div>
+            </section>
 
-                <!-- SEZIONE SCADENZE -->
-                <section id="scadenze-section" class="section">
-                    <div style="margin-bottom: 15px;">
-                        <button class="btn-secondary btn-torna-home" data-target="home-section">&larr; Torna alla Home</button>
-                    </div>
-                    <div class="section-header">
-                        <h2>SCADENZE</h2>
-                        <button id="btn-apri-modal" class="btn-primary">Nuova Scadenza</button>
-                    </div>
-                    <ul id="lista-scadenze" class="lista-badge"></ul>
-                    <div id="totale-generale-scadenze" class="totale-badge"></div>
-                </section>
+            <!-- Sezione Impegni -->
+            <section id="impegni-section" class="content-section">
+                <h2>IMPEGNI</h2>
+                <div id="lista-appuntamenti"></div>
+            </section>
 
-                <!-- SEZIONE IMPEGNI -->
-                <section id="impegni-section" class="section">
-                    <div style="margin-bottom: 15px;">
-                        <button class="btn-secondary btn-torna-home" data-target="home-section">&larr; Torna alla Home</button>
-                    </div>
-                    <div class="section-header">
-                        <h2>IMPEGNI</h2>
-                        <button id="btn-apri-modal-appuntamento" class="btn-primary">Nuovo Impegno</button>
-                    </div>
-                    <div class="controlli-settimana">
-                        <button id="btn-prev-week" class="btn-secondary">&larr; Precedente</button>
-                        <span id="settimana-label" style="font-weight: 700;"></span>
-                        <button id="btn-next-week" class="btn-secondary">Successiva &rarr;</button>
-                    </div>
-                    <div id="grid-settimanale" class="grid-settimana-container"></div>
-                </section>
+            <!-- Sezione Media (Foto e Video) -->
+            <section id="media-section" class="content-section">
+                <h2>FOTO e VIDEO</h2>
+                <div id="lista-media" class="media-grid"></div>
+            </section>
 
-                <!-- SEZIONE MEDIA (FOTO e VIDEO) -->
-                <section id="media-section" class="section">
-                    <div style="margin-bottom: 15px;">
-                        <button class="btn-secondary btn-torna-home" data-target="home-section">&larr; Torna alla Home</button>
-                    </div>
-                    <div class="section-header">
-                        <h2>Foto, Video, Film e Serie TV</h2>
-                        <button id="btn-apri-modal-media" class="btn-primary">Nuovo Elemento</button>
-                    </div>
-                    <div id="lista-media" class="media-grid"></div>
-                </section>
+            <!-- Sezione Ricette -->
+            <section id="ricette-section" class="content-section">
+                <h2>RICETTE</h2>
+                <div id="lista-ricette" class="ricette-grid"></div>
+            </section>
 
-                <!-- SEZIONE RICETTE -->
-                <section id="ricette-section" class="section">
-                    <div style="margin-bottom: 15px;">
-                        <button class="btn-secondary btn-torna-home" data-target="home-section">&larr; Torna alla Home</button>
-                    </div>
-                    <div class="section-header">
-                        <h2>Ricettario</h2>
-                        <button id="btn-apri-modal-ricetta" class="btn-primary">Nuova Ricetta</button>
-                    </div>
-                    <div id="lista-ricette" class="ricette-grid"></div>
-                </section>
-
-                <!-- SEZIONE UTENTI -->
-                <section id="utenti-section" class="section">
-                    <div style="margin-bottom: 15px;">
-                        <button class="btn-secondary btn-torna-home" data-target="home-section">&larr; Torna alla Home</button>
-                    </div>
-                    <div class="section-header">
-                        <h2>Gestione Utenti</h2>
-                    </div>
-                    <div class="utenti-container">
-                        <div id="form-nuovo-utente-container" class="utenti-card" style="display: none;">
-                            <h3>Aggiungi Nuovo Membro</h3>
-                            <form id="form-nuovo-utente" style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
-                                <input type="text" id="nuovo-utente-nome" class="form-control" placeholder="Nome" required style="flex: 1; min-width: 150px;">
-                                <input type="password" id="nuovo-utente-password" class="form-control" placeholder="Password iniziale" required style="width: 160px;">
-                                <select id="nuovo-utente-ruolo" class="form-control" style="width: 130px;">
-                                    <option value="membro">Membro</option>
-                                    <option value="admin">Admin</option>
-                                </select>
-                                <button type="submit" class="btn-primary">Salva Utente</button>
-                            </form>
-                        </div>
-                        <div class="utenti-card">
-                            <h3>Membri della Famiglia</h3>
-                            <div id="lista-utenti" style="margin-top: 10px;"></div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <!-- Firma in fondo tutta a destra e di colore #0000ff -->
-            <footer style="padding: 20px 0 10px 0; text-align: right; font-size: 0.85rem; color: #0000ff; font-weight: 600; width: 100%;">
-                Created by STECCA with GEMINI
-            </footer>
+            <!-- Sezione Utenti -->
+            <section id="utenti-section" class="content-section">
+                <h2>UTENTI</h2>
+                <div id="lista-utenti" class="utenti-container"></div>
+            </section>
         </main>
     </div>
 
-    <!-- MODALI -->
-    <!-- Modal Cambio Password -->
-    <div id="modal-password" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h3>Cambia Password</h3>
-            <form id="form-cambia-password">
-                <div class="form-group">
-                    <label>Password Attuale</label>
-                    <input type="password" id="pwd-attuale" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Nuova Password</label>
-                    <input type="password" id="pwd-nuova" class="form-control" required>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" id="btn-chiudi-modal-password" class="btn-secondary">Annulla</button>
-                    <button type="submit" class="btn-primary">Aggiorna Password</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Appuntamento -->
-    <div id="modal-appuntamento" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h3 id="modal-appuntamento-title">Nuovo Impegno</h3>
-            <form id="appuntamento-form">
-                <input type="hidden" id="app-id">
-                <div class="form-group">
-                    <label>Titolo Impegno</label>
-                    <input type="text" id="app-titolo" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Data</label>
-                    <input type="date" id="app-data" class="form-control" required>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <div class="form-group" style="flex: 1;">
-                        <label>Ora Inizio</label>
-                        <input type="time" id="app-ora-inizio" class="form-control" required>
-                    </div>
-                    <div class="form-group" style="flex: 1;">
-                        <label>Ora Fine</label>
-                        <input type="time" id="app-ora-fine" class="form-control" required>
-                    </div>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" id="btn-chiudi-modal-appuntamento" class="btn-secondary">Annulla</button>
-                    <button type="submit" class="btn-primary">Salva</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Scadenza -->
-    <div id="modal-scadenza" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h3 id="modal-title">Nuova Scadenza</h3>
-            <form id="scadenza-form">
-                <div class="form-group">
-                    <label>Titolo</label>
-                    <input type="text" id="titolo" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Data Scadenza</label>
-                    <input type="date" id="data" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Importo (€)</label>
-                    <input type="number" step="0.01" id="importo" class="form-control" required>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" id="btn-chiudi-modal" class="btn-secondary">Annulla</button>
-                    <button type="submit" class="btn-primary">Salva</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Ricetta -->
-    <div id="modal-ricetta" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 600px;">
-            <h3 id="modal-ricetta-title">Nuova Ricetta</h3>
-            <form id="ricetta-form">
-                <input type="hidden" id="ricetta-id">
-                <div class="form-group">
-                    <label>Nome Ricetta</label>
-                    <input type="text" id="ricetta-nome" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Ingredienti</label>
-                    <div id="ingredienti-container"></div>
-                    <button type="button" id="btn-aggiungi-ingrediente" class="btn-secondary" style="margin-top: 5px; font-size: 0.85rem;">+ Aggiungi Ingrediente</button>
-                </div>
-                <div class="form-group">
-                    <label>Procedimento</label>
-                    <div id="procedimenti-container"></div>
-                    <button type="button" id="btn-aggiungi-procedimento" class="btn-secondary" style="margin-top: 5px; font-size: 0.85rem;">+ Passo</button>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" id="btn-chiudi-modal-ricetta" class="btn-secondary">Annulla</button>
-                    <button type="submit" class="btn-primary">Salva</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Media -->
-    <div id="modal-media" class="modal" style="display: none;">
-        <div class="modal-content">
-            <h3 id="modal-media-title">Nuovo Elemento</h3>
-            <form id="media-form">
-                <input type="hidden" id="media-id">
-                <div class="form-group">
-                    <label>Titolo</label>
-                    <input type="text" id="media-titolo" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Tipo</label>
-                    <select id="media-tipo" class="form-control">
-                        <option value="Foto/Video">Foto/Video</option>
-                        <option value="Film">Film</option>
-                        <option value="Serie TV">Serie TV</option>
-                        <option value="Libro">Libro</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Stato</label>
-                    <select id="media-stato" class="form-control">
-                        <option value="Completato">Completato</option>
-                        <option value="In corso">In corso</option>
-                        <option value="Da vedere">Da vedere</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Voto (0 - 10)</label>
-                    <input type="number" id="media-voto" min="0" max="10" value="0" class="form-control">
-                </div>
-                <div class="modal-actions">
-                    <button type="button" id="btn-chiudi-modal-media" class="btn-secondary">Annulla</button>
-                    <button type="submit" class="btn-primary">Salva</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Script Principale (Gestisce i moduli e l'avvio) -->
+    <!-- Script principali -->
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="auth.js"></script>
     <script type="module" src="script.js"></script>
 </body>
 </html>
