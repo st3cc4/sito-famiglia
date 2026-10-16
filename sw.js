@@ -1,47 +1,41 @@
-// Service Worker per la PWA della Famiglia
-const CACHE_NAME = 'famiglia-pwa-v1';
-const urlsToCache = [
+// sw.js - Service Worker per la PWA
+
+const CACHE_NAME = 'sito-famiglia-v1';
+const ASSETS_TO_CACHE = [
+  './',
   './index.html',
-  './script.js',
-  './style.css',
-  './auth.js',
-  './firebase-config.js',
+  './css/style.css',
+  './js/app.js',
+  './js/firebase-config.js',
   './manifest.json',
-  './impegni/impegni.js',
-  './impegni/stile_impegni.css',
-  './media/media.js',
-  './media/stile_media.css',
-  './ricette/ricette.js',
-  './ricette/stile_ricette.css',
-  './scadenze/stile_scadenze.css',
-  './utenti/utenti.js',
-  './utenti/stile_utenti.css'
+  './icone/icona_famiglia_192x192.png',
+  './icone/icona_famiglia_512x512.png',
+  './icone/icona-impegni.png',
+  './icone/icona-media.png',
+  './icone/icona-ricette.png',
+  './icone/icona-scadenze.png'
 ];
 
-// Installazione del Service Worker e memorizzazione in cache dei file principali
+// Installazione Service Worker e salvataggio file in cache
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Cache aperta con successo');
-        return cache.addAll(urlsToCache);
-      })
-      .catch((err) => {
-        console.error('Errore durante il salvataggio in cache:', err);
-      })
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('Caching risorse locali per utilizzo PWA...');
+      return cache.addAll(ASSETS_TO_CACHE);
+    })
   );
   self.skipWaiting();
 });
 
-// Attivazione del Service Worker e pulizia delle vecchie cache
+// Attivazione Service Worker e pulizia vecchie cache
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
+    caches.keys().then((keyList) => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Eliminazione vecchia cache:', cacheName);
-            return caches.delete(cacheName);
+        keyList.map((key) => {
+          if (key !== CACHE_NAME) {
+            console.log('Rimozione vecchia cache:', key);
+            return caches.delete(key);
           }
         })
       );
@@ -50,29 +44,21 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Gestione delle richieste di rete con strategia Cache-First e fallback su Network
+// Intercettazione richieste di rete
 self.addEventListener('fetch', (event) => {
-  // Ignora le richieste verso Firebase o domini esterni
-  if (!event.request.url.startsWith(self.location.origin)) {
+  // Ignora le chiamate dirette a Firebase API/Firestore
+  if (event.request.url.includes('firestore.googleapis.com') || 
+      event.request.url.includes('firebase') || 
+      event.request.url.includes('gstatic.com')) {
     return;
   }
 
   event.respondWith(
-    caches.match(event.request)
-      .then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-        return fetch(event.request).then((response) => {
-          // Risposta valida, la restituiamo
-          return response;
-        });
-      })
-      .catch(() => {
-        // Fallback offline opzionale se la pagina non è disponibile
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
-        }
-      })
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      return fetch(event.request);
+    })
   );
 });
