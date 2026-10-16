@@ -23,6 +23,100 @@
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
+    min-height: 100vh;
+}
+
+/* Helper per nascondere componenti */
+.hidden {
+    display: none !important;
+}
+
+/* --- SCHERMATA DI LOGIN --- */
+.login-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--bg-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.login-card {
+    background-color: var(--card-bg);
+    padding: 32px 24px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.login-card h2 {
+    margin-bottom: 24px;
+    font-size: 1.4rem;
+    color: var(--primary-color);
+}
+
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 45px;
+}
+
+.toggle-pwd-btn {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.form-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-align: left;
+    margin-top: 4px;
+}
+
+.form-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.error-msg {
+    color: #D9534F;
+    font-size: 0.85rem;
+    font-weight: 600;
+    min-height: 20px;
+    text-align: left;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    margin-top: 10px;
+}
+
+/* --- APP CONTAINER --- */
+.app-container {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -61,7 +155,6 @@ body {
     border-radius: 20px;
     font-size: 0.85rem;
     font-weight: 500;
-    cursor: pointer;
 }
 
 /* Sidebar Menu */
@@ -132,12 +225,17 @@ body {
 .logout-btn {
     width: 100%;
     padding: 10px;
-    background-color: var(--bg-color);
-    border: 1px solid var(--border-color);
+    background-color: #FFEBEB;
+    border: 1px solid #FFCDCD;
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
-    color: var(--text-color);
+    color: #D9534F;
+    transition: background-color 0.2s;
+}
+
+.logout-btn:hover {
+    background-color: #FFD6D6;
 }
 
 /* Overlay */
@@ -261,39 +359,6 @@ body {
 .modal-content h3 {
     margin-bottom: 20px;
     text-align: center;
-}
-
-.utenti-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.utente-btn {
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background-color: var(--bg-color);
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.utente-btn:hover {
-    background-color: rgba(74, 144, 226, 0.1);
-    border-color: var(--primary-color);
-}
-
-.close-modal-btn {
-    padding: 8px 16px;
-    background: none;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    cursor: pointer;
-    color: var(--text-muted);
-    width: 100%;
 }
 
 /* Form e Inserimento Dati */
