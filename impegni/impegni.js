@@ -8,7 +8,7 @@ import {
     getDoc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "../firebase-config.js";
-import { nomeUtenteCorrente, coloreUtenteCorrente } from "../auth.js";
+import { nomeUtenteCorrente } from "../auth.js";
 
 const listaSettimana = document.getElementById('lista-settimana');
 const btnApriModalImpegno = document.getElementById('btn-apri-modal-impegno');
@@ -60,7 +60,7 @@ if (impegnoForm) {
                     data,
                     ora,
                     creatore: nomeUtenteCorrente || "Anonimo",
-                    colore: coloreUtenteCorrente || "#3b82f6"
+                    colore: "#3b82f6"
                 });
             }
 
@@ -199,8 +199,7 @@ window.eliminaImpegno = async function(id) {
         try {
             await deleteDoc(doc(db, "appuntamenti", id));
             await caricaAppuntamenti();
-            // Ricarica anche il summary della Home se presente
-            location.reload(); 
+            if (window.caricaSummaryImpegniHome) window.caricaSummaryImpegniHome();
         } catch (err) {
             alert("Errore durante l'eliminazione.");
         }
