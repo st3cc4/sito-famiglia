@@ -14,7 +14,7 @@
 </head>
 <body>
 
-    <!-- Schermata / Modale di Login (Sempre attiva all'avvio se non ricordato) -->
+    <!-- Schermata di Login -->
     <div id="login-screen" class="login-screen">
         <div class="login-card">
             <h2>Accedi al Sito Famiglia</h2>
@@ -40,7 +40,7 @@
         </div>
     </div>
 
-    <!-- Struttura App (visibile dopo il Login) -->
+    <!-- Struttura App Principale -->
     <div id="app-container" class="app-container hidden">
         <!-- Header / Barra di Navigazione -->
         <header class="app-header">
@@ -57,23 +57,35 @@
                 <h2>Menu</h2>
                 <button id="btn-close-menu" class="close-btn">&times;</button>
             </div>
+
+            <!-- Card Profilo Utente Corrente con colore personalizzato -->
+            <div id="sidebar-user-card" class="sidebar-user-card">
+                <span id="sidebar-user-name">Paolo</span>
+                <span id="sidebar-user-role" class="role-badge">(Admin)</span>
+            </div>
+
             <nav class="sidebar-nav">
                 <ul>
-                    <li><a href="#" data-section="impegni" class="nav-link active">📅 Impegni</a></li>
-                    <li><a href="#" data-section="scadenze" class="nav-link">⏰ Scadenze</a></li>
-                    <li><a href="#" data-section="ricette" class="nav-link">🍳 Ricette</a></li>
-                    <li><a href="#" data-section="media" class="nav-link">🖼️ Foto e Video</a></li>
+                    <li id="nav-item-impegni"><a href="#" data-section="impegni" class="nav-link active"><img src="icone/icona-impegni.png" alt="" class="nav-icon"> Impegni</a></li>
+                    <li id="nav-item-scadenze"><a href="#" data-section="scadenze" class="nav-link"><img src="icone/icona-scadenze.png" alt="" class="nav-icon"> Scadenze</a></li>
+                    <li id="nav-item-ricette"><a href="#" data-section="ricette" class="nav-link"><img src="icone/icona-ricette.png" alt="" class="nav-icon"> Ricette</a></li>
+                    <li id="nav-item-media"><a href="#" data-section="media" class="nav-link"><img src="icone/icona-media.png" alt="" class="nav-icon"> Foto e Video</a></li>
                 </ul>
             </nav>
+
+            <!-- Pulsanti di gestione in fondo alla Sidebar -->
             <div class="sidebar-footer">
+                <button id="btn-admin-panel" class="sidebar-action-btn admin-btn hidden">⚙️ Gestione Utenti (Admin)</button>
+                <button id="btn-change-password" class="sidebar-action-btn">🔑 Cambia Password</button>
+                <button id="btn-change-color" class="sidebar-action-btn">🎨 Cambia Colore</button>
                 <button id="btn-logout" class="logout-btn">Esci / Disconnetti</button>
             </div>
         </aside>
 
-        <!-- Overlay per chiudere il menu cliccando fuori -->
+        <!-- Overlay per chiudere la sidebar -->
         <div id="overlay" class="overlay"></div>
 
-        <!-- Contenuto Principale dell'App -->
+        <!-- Contenuto Principale -->
         <main class="main-content">
 
             <!-- Sezione Impegni -->
@@ -113,6 +125,99 @@
             </section>
 
         </main>
+
+        <!-- Modale Cambia Password Utente -->
+        <div id="modal-password" class="modal">
+            <div class="modal-content">
+                <h3>Cambia Password</h3>
+                <form id="form-password" class="app-form">
+                    <div class="form-group">
+                        <label for="new-password">Nuova Password</label>
+                        <input type="password" id="new-password" required placeholder="Inserisci la nuova password">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="btn-close-modal-password" class="cancel-btn">Annulla</button>
+                        <button type="submit" class="save-btn">Aggiorna Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modale Cambia Colore Utente -->
+        <div id="modal-colore" class="modal">
+            <div class="modal-content">
+                <h3>Scegli Colore Personale</h3>
+                <form id="form-colore" class="app-form">
+                    <div class="form-group">
+                        <label for="user-color-picker">Seleziona il tuo colore</label>
+                        <input type="color" id="user-color-picker" value="#4A90E2" style="height: 50px; cursor: pointer;">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="btn-close-modal-colore" class="cancel-btn">Annulla</button>
+                        <button type="submit" class="save-btn">Salva Colore</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modale Gestione Utenti e Permessi (SOLO ADMIN) -->
+        <div id="modal-admin" class="modal">
+            <div class="modal-content modal-large">
+                <h3>⚙️ Gestione Utenti e Permessi</h3>
+                
+                <!-- Form per Aggiungere o Modificare Utente -->
+                <form id="form-admin-user" class="app-form" style="margin-bottom: 20px;">
+                    <input type="hidden" id="admin-user-id" value="">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="admin-user-name">Nome Utente</label>
+                            <input type="text" id="admin-user-name" required placeholder="Es. Mario">
+                        </div>
+                        <div class="form-group">
+                            <label for="admin-user-pwd">Password</label>
+                            <input type="text" id="admin-user-pwd" required placeholder="Password">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="admin-user-color">Colore</label>
+                            <input type="color" id="admin-user-color" value="#0000ff" style="height: 40px; cursor: pointer;">
+                        </div>
+                        <div class="form-group">
+                            <label for="admin-user-role">Ruolo</label>
+                            <select id="admin-user-role" style="padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+                                <option value="utente">Utente</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><strong>Permessi Sezioni Visibili:</strong></label>
+                        <div class="checkbox-grid">
+                            <label><input type="checkbox" id="perm-impegni" checked> Impegni</label>
+                            <label><input type="checkbox" id="perm-scadenze" checked> Scadenze</label>
+                            <label><input type="checkbox" id="perm-ricette" checked> Ricette</label>
+                            <label><input type="checkbox" id="perm-media" checked> Media</label>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="btn-admin-reset" class="cancel-btn">Pulisci / Nuovo</button>
+                        <button type="submit" class="save-btn">Salva Utente</button>
+                    </div>
+                </form>
+
+                <hr style="margin: 15px 0;">
+
+                <h4>Elenco Utenti Registrati</h4>
+                <div id="admin-users-list" class="admin-users-list">
+                    <!-- Tabella o lista utenti con opzioni Modifica/Elimina -->
+                </div>
+
+                <div class="form-actions" style="margin-top: 20px;">
+                    <button type="button" id="btn-close-modal-admin" class="cancel-btn" style="width: 100%;">Chiudi</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Modal Nuovo Impegno -->
         <div id="modal-impegno" class="modal">
