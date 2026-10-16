@@ -181,6 +181,64 @@ body {
     gap: 18px;
 }
 
+/* SCHEDE SCADENZE DELLA HOME CON LIVELLI DI URGENZA */
+.card-scadenza-home {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-left: 6px solid #ccc;
+    transition: transform 0.2s;
+}
+
+.card-scadenza-home:hover {
+    transform: translateY(-2px);
+}
+
+/* URGENZA ROSSA (Scadute o entro 7 giorni) */
+.card-scadenza-home.urgente-rossa {
+    background-color: #fdf2f2;
+    border-left-color: #e74c3c;
+    border-top: 1px solid #fadbd8;
+    border-right: 1px solid #fadbd8;
+    border-bottom: 1px solid #fadbd8;
+}
+
+/* URGENZA ARANCIONE (Da 8 a 14 giorni) */
+.card-scadenza-home.urgente-arancione {
+    background-color: #fef5e7;
+    border-left-color: #f39c12;
+    border-top: 1px solid #fdebd0;
+    border-right: 1px solid #fdebd0;
+    border-bottom: 1px solid #fdebd0;
+}
+
+/* URGENZA VERDE (Da 15 giorni in su) */
+.card-scadenza-home.urgente-verde {
+    background-color: #eafaf1;
+    border-left-color: #2ecc71;
+    border-top: 1px solid #d4efdf;
+    border-right: 1px solid #d4efdf;
+    border-bottom: 1px solid #d4efdf;
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.card-info {
+    font-size: 0.9rem;
+    color: #555555;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 /* ADATTAMENTO MOBILE RESPONSIVE */
 @media (max-width: 600px) {
     .app-header {
