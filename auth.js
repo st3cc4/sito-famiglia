@@ -24,6 +24,7 @@ export async function inizializzaAuth() {
     const btnTogglePassword = document.getElementById('btn-toggle-password');
     const linkPasswordDimenticata = document.getElementById('link-password-dimenticata');
     
+    // Pulsanti di uscita / logout
     const btnCambiaUtente = document.getElementById('btn-cambia-utente');
     const btnHomeEsci = document.getElementById('btn-home-esci');
 
@@ -33,6 +34,7 @@ export async function inizializzaAuth() {
     const formNuovoUtenteContainer = document.getElementById('form-nuovo-utente-container');
     const homeSalutoUtente = document.getElementById('home-saluto-utente');
     
+    // Elementi modale cambio password
     const modalPassword = document.getElementById('modal-password');
     const btnApriModalPassword = document.getElementById('btn-apri-modal-password');
     const btnChiudiModalPassword = document.getElementById('btn-chiudi-modal-password');
@@ -40,11 +42,13 @@ export async function inizializzaAuth() {
     const pwdAttualeInput = document.getElementById('pwd-attuale');
     const pwdNuovaInput = document.getElementById('pwd-nuova');
 
+    // Controllo se c'è un utente salvato
     const utenteSalvato = localStorage.getItem('famiglia_utente_corrente') || sessionStorage.getItem('famiglia_utente_corrente');
     if (utenteSalvato) {
         await validaEImpostaUtente(utenteSalvato);
     }
 
+    // Toggle password
     if (btnTogglePassword && passwordInput) {
         const nuovoBtn = btnTogglePassword.cloneNode(true);
         btnTogglePassword.parentNode.replaceChild(nuovoBtn, btnTogglePassword);
@@ -60,53 +64,53 @@ export async function inizializzaAuth() {
         });
     }
 
-    // Invio form login pulito
+    // Invio form login
     if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const usernameInserito = usernameInput.value.trim();
             const password = passwordInput.value.trim();
 
             if (!usernameInserito) return;
 
-            getDoc(doc(db, "utenti", usernameInserito))
-                .then(async (userSnap) => {
-                    let snapFinale = userSnap;
-                    let nomeDocTrovato = usernameInserito;
+            try {
+                let userDocRef = doc(db, "utenti", usernameInserito);
+                let userSnap = await getDoc(userDocRef);
 
-                    if (!snapFinale.exists()) {
-                        nomeDocTrovato = usernameInserito.toLowerCase();
-                        snapFinale = await getDoc(doc(db, "utenti", nomeDocTrovato));
-                    }
+                if (!userSnap.exists()) {
+                    userDocRef = doc(db, "utenti", usernameInserito.toLowerCase());
+                    userSnap = await getDoc(userDocRef);
+                }
 
-                    if (!snapFinale.exists()) {
-                        alert("Accesso negato: utente non autorizzato o inesistente nel database.");
-                        return;
-                    }
+                if (!userSnap.exists()) {
+                    alert("Accesso negato: utente non autorizzato o inesistente nel database.");
+                    return;
+                }
 
-                    const userData = snapFinale.data();
-                    const userIdTrovato = snapFinale.id;
+                const userData = userSnap.data();
+                const userIdTrovato = userSnap.id;
+                
+                if (userData.password && userData.password !== password) {
+                    alert("Password errata.");
+                    return;
+                }
 
-                    if (userData.password && userData.password !== password) {
-                        alert("Password errata.");
-                        return;
-                    }
+                if (ricordamiCheckbox && ricordamiCheckbox.checked) {
+                    localStorage.setItem('famiglia_utente_corrente', userIdTrovato);
+                } else {
+                    sessionStorage.setItem('famiglia_utente_corrente', userIdTrovato);
+                }
 
-                    if (ricordamiCheckbox && ricordamiCheckbox.checked) {
-                        localStorage.setItem('famiglia_utente_corrente', userIdTrovato);
-                    } else {
-                        sessionStorage.setItem('famiglia_utente_corrente', userIdTrovato);
-                    }
+                await validaEImpostaUtente(userIdTrovato);
 
-                    await validaEImpostaUtente(userIdTrovato);
-                })
-                .catch((err) => {
-                    console.error("Errore durante il login:", err);
-                    alert("Errore di connessione durante il login.");
-                });
+            } catch (err) {
+                console.error("Errore durante il login:", err);
+                alert("Errore di connessione durante il login.");
+            }
         });
     }
 
+    // Gestione cambio colore utente
     if (pickerColoreUtente) {
         if (btnCambiaColore) {
             btnCambiaColore.addEventListener('click', () => {
@@ -142,6 +146,7 @@ export async function inizializzaAuth() {
         });
     }
 
+    // Modale Cambio Password
     if (btnApriModalPassword && modalPassword) {
         btnApriModalPassword.addEventListener('click', () => {
             modalPassword.style.display = 'flex';
@@ -197,6 +202,7 @@ export async function inizializzaAuth() {
         });
     }
 
+    // Logout
     const esciDallAccount = () => {
         localStorage.removeItem('famiglia_utente_corrente');
         sessionStorage.removeItem('famiglia_utente_corrente');
@@ -226,6 +232,7 @@ export async function inizializzaAuth() {
                 const ruoloDb = (userSnap.id.toLowerCase() === 'paolo' || data.ruolo === 'admin') ? 'Admin' : 'Membro';
                 ruoloUtenteCorrente = ruoloDb;
 
+                // Carichiamo i permessi (default: tutto abilitato)
                 permessiUtenteCorrente = data.permessi || { scadenze: true, impegni: true, media: true, ricette: true };
 
                 if (authScreen) authScreen.style.display = 'none';
@@ -251,13 +258,8 @@ export async function inizializzaAuth() {
                     formNuovoUtenteContainer.style.display = isAdminCorrente() ? 'block' : 'none';
                 }
 
+                // Applichiamo la visibilità delle sezioni sia nella Sidebar che nella Home
                 applicaVisibilitaPermessi();
-
-                if (window.caricaScadenze) window.caricaScadenze();
-                if (window.caricaAppuntamenti) window.caricaAppuntamenti();
-                if (window.caricaMedia) window.caricaMedia();
-                if (window.caricaRicette) window.caricaRicette();
-                if (window.caricaUtenti) window.caricaUtenti();
 
             } else {
                 localStorage.removeItem('famiglia_utente_corrente');
@@ -272,6 +274,7 @@ export async function inizializzaAuth() {
 function applicaVisibilitaPermessi() {
     const p = permessiUtenteCorrente;
 
+    // Mappa sezioni e selettori
     const sezioniMappa = [
         { target: 'scadenze-section', visibile: p.scadenze },
         { target: 'impegni-section', visibile: p.impegni },
@@ -280,11 +283,13 @@ function applicaVisibilitaPermessi() {
     ];
 
     sezioniMappa.forEach(item => {
+        // Pulsanti nella sidebar
         const btnSidebar = document.querySelector(`.nav-btn[data-target="${item.target}"]`);
         if (btnSidebar) {
             btnSidebar.style.display = item.visibile ? 'flex' : 'none';
         }
 
+        // Riquadri nella Home
         const cardHome = document.querySelector(`.clickable-card[data-target="${item.target}"]`);
         if (cardHome) {
             cardHome.style.display = item.visibile ? 'block' : 'none';
