@@ -4,10 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sito Famiglia</title>    
+    <!-- Link al Manifest per PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4A90E2">
     <link rel="apple-touch-icon" href="icone/icona_famiglia_192x192.png">
+
+    <!-- Fogli di Stile CSS Separati -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/modals.css">
 </head>
 <body>
 
@@ -54,7 +60,7 @@
                 <button id="btn-close-menu" class="close-btn">&times;</button>
             </div>
 
-            <!-- Navigazione -->
+            <!-- Navigazione Sezioni -->
             <nav class="sidebar-nav">
                 <ul>
                     <li id="nav-item-impegni"><a href="#" data-section="impegni" class="nav-link active"><img src="icone/icona-impegni.png" alt="" class="nav-icon"> Impegni</a></li>
@@ -64,15 +70,15 @@
                 </ul>
             </nav>
 
-            <!-- Pulsanti di gestione nel corpo centrale della sidebar -->
+            <!-- Pulsanti di Gestione -->
             <div class="sidebar-middle">
                 <button id="btn-admin-panel" class="sidebar-action-btn admin-btn hidden">⚙️ Gestione Utenti (Admin)</button>
                 <button id="btn-change-password" class="sidebar-action-btn">🔑 Cambia Password</button>
                 <button id="btn-change-color" class="sidebar-action-btn">🎨 Cambia Colore</button>
             </div>
 
-            <!-- Card Profilo Utente in fondo alla Sidebar (con colore personalizzato e logout integrato) -->
-            <div id="sidebar-user-card" class="sidebar-user-card" title="Clicca per uscire">
+            <!-- Card Profilo Utente in fondo (al posto del pulsante esci) -->
+            <div id="sidebar-user-card" class="sidebar-user-card" title="Clicca per scollegarti">
                 <div class="user-info-text">
                     <span id="sidebar-user-name">Paolo</span>
                     <span id="sidebar-user-role" class="role-badge">(Admin)</span>
@@ -83,6 +89,7 @@
 
         <div id="overlay" class="overlay"></div>
 
+        <!-- Contenuto Principale -->
         <main class="main-content">
             <section id="section-impegni" class="app-section active">
                 <div class="section-header">
@@ -117,7 +124,7 @@
             </section>
         </main>
 
-        <!-- Modali -->
+        <!-- Modali di Profilo e Admin -->
         <div id="modal-password" class="modal">
             <div class="modal-content">
                 <h3>Cambia Password</h3>
@@ -150,7 +157,6 @@
             </div>
         </div>
 
-        <!-- Modale Gestione Utenti e Permessi (ADMIN) -->
         <div id="modal-admin" class="modal">
             <div class="modal-content modal-large">
                 <h3>⚙️ Gestione Utenti e Permessi</h3>
@@ -205,7 +211,7 @@
             </div>
         </div>
 
-        <!-- Altre Modali Inserimento -->
+        <!-- Modali Inserimento Sezioni -->
         <div id="modal-impegno" class="modal">
             <div class="modal-content">
                 <h3>Aggiungi Nuovo Impegno</h3>
@@ -287,9 +293,13 @@
                 </form>
             </div>
         </div>
+
     </div>
 
+    <!-- Script Principale JS Modulare -->
     <script type="module" src="js/app.js"></script>
+
+    <!-- Registrazione Service Worker per PWA -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
