@@ -161,8 +161,8 @@ body {
 .sidebar {
     position: fixed;
     top: 0;
-    left: -280px;
-    width: 280px;
+    left: -300px;
+    width: 300px;
     height: 100%;
     background-color: var(--card-bg);
     box-shadow: var(--shadow);
@@ -180,7 +180,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -192,9 +192,29 @@ body {
     cursor: pointer;
 }
 
+/* Card Utente in Sidebar con colore personalizzato */
+.sidebar-user-card {
+    padding: 14px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: inset 0 -2px 4px rgba(0,0,0,0.1);
+}
+
+.role-badge {
+    font-size: 0.8rem;
+    opacity: 0.85;
+    font-weight: 400;
+}
+
 .sidebar-nav {
     flex: 1;
-    padding: 20px 0;
+    padding: 10px 0;
+    overflow-y: auto;
 }
 
 .sidebar-nav ul {
@@ -202,12 +222,20 @@ body {
 }
 
 .sidebar-nav li a {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 12px;
     padding: 14px 24px;
     color: var(--text-color);
     text-decoration: none;
     font-weight: 500;
     transition: background-color 0.2s;
+}
+
+.nav-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
 }
 
 .sidebar-nav li a:hover,
@@ -217,9 +245,37 @@ body {
     border-left: 4px solid var(--primary-color);
 }
 
+/* Pulsanti Footer Sidebar */
 .sidebar-footer {
-    padding: 20px;
+    padding: 16px 20px;
     border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar-action-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-color);
+    text-align: left;
+    transition: background-color 0.2s;
+}
+
+.sidebar-action-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.admin-btn {
+    background-color: #EBF3FE;
+    border-color: #B2D4FF;
+    color: var(--primary-dark);
 }
 
 .logout-btn {
@@ -231,6 +287,8 @@ body {
     cursor: pointer;
     font-weight: 600;
     color: #D9534F;
+    text-align: center;
+    margin-top: 4px;
     transition: background-color 0.2s;
 }
 
@@ -356,10 +414,69 @@ body {
     overflow-y: auto;
 }
 
+.modal-large {
+    max-width: 650px;
+}
+
 .modal-content h3 {
     margin-bottom: 20px;
     text-align: center;
 }
+
+/* Modale Admin - Checkbox Grid */
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 6px;
+    background-color: var(--bg-color);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.checkbox-grid label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.admin-users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.admin-user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--bg-color);
+}
+
+.admin-user-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.sm-btn {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.edit-btn { background-color: #E2F0D9; color: #385723; }
+.del-btn { background-color: #FCE4D6; color: #C65911; }
 
 /* Form e Inserimento Dati */
 .app-form {
