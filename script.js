@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 });
 
-// Funzione di supporto per popolare il riquadro Scadenze nella HOME con i colori a cascata
+// Funzione di supporto per popolare il riquadro Scadenze nella HOME con lo stesso stile degli impegni
 async function caricaSummaryScadenzeHome() {
     const summaryScadenze = document.getElementById('home-summary-scadenze');
     if (!summaryScadenze) return;
@@ -106,7 +106,7 @@ async function caricaSummaryScadenzeHome() {
 
             let testoStato = "";
             let coloreBordo = "#cbd5e1";
-            let coloreSfondo = "#ffffff";
+            let coloreSfondo = "#f8fafc";
             let coloreTestoStato = "#1e293b";
 
             if (diffGiorni <= 7) {
@@ -136,18 +136,30 @@ async function caricaSummaryScadenzeHome() {
             const dataFormatted = `${dataScadenza.getDate().toString().padStart(2, '0')}/${(dataScadenza.getMonth()+1).toString().padStart(2, '0')}/${dataScadenza.getFullYear()}`;
 
             htmlSummary += `
-                <div style="display: flex; justify-content: space-between; align-items: center; background-color: ${coloreSfondo}; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 6px solid ${coloreBordo}; border: 1px solid ${coloreBordo}40;">
+                <div style="background-color: ${coloreSfondo}; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border: 1px solid ${coloreBordo}40; border-left: 6px solid ${coloreBordo}; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
                     <div>
-                        <strong style="font-size: 1.05rem; color: #1e293b;">${s.titolo}</strong>
-                        <span style="font-size: 0.9rem; color: #475569; margin-left: 8px;">(${dataFormatted} - <strong style="color: ${coloreTestoStato};">${testoStato}</strong>)</span>
+                        <strong style="font-size: 1rem; color: #1e293b; display: block;">${escapeHtml(s.titolo)}</strong>
+                        <span style="font-size: 0.85rem; color: #475569;">${dataFormatted} - <strong style="color: ${coloreTestoStato};">${testoStato}</strong></span>
                     </div>
-                    <span style="font-size: 1rem; font-weight: 700; color: #0f172a;">€ ${Number(s.importo).toFixed(2)}</span>
+                    <div style="text-align: right;">
+                        <span style="font-size: 1.05rem; font-weight: 700; color: #0f172a;">€ ${Number(s.importo).toFixed(2)}</span>
+                    </div>
                 </div>
             `;
         });
 
-        summaryScadenze.innerHTML = htmlSummary || `<p class="text-muted" style="font-style: italic;">Nessuna scadenza inserita.</p>`;
+        summaryScadenze.innerHTML = htmlSummary || `<p class="text-muted" style="font-style: italic; color: #64748b;">Nessuna scadenza inserita.</p>`;
     } catch (err) {
         console.error("Errore summary scadenze home:", err);
     }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
