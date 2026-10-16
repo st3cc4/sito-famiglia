@@ -1,183 +1,85 @@
 import { 
     collection, 
-    addDoc, 
     getDocs, 
-    doc, 
+    addDoc, 
     deleteDoc, 
-    updateDoc, 
-    getDoc 
+    doc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "../firebase-config.js";
-import { nomeUtenteCorrente, isAdminCorrente } from "../auth.js";
-
-const btnApriModalMedia = document.getElementById('btn-apri-modal-media');
-const btnChiudiModalMedia = document.getElementById('btn-chiudi-modal-media');
-const modalMedia = document.getElementById('modal-media');
-const modalMediaTitle = document.getElementById('modal-media-title');
-const mediaForm = document.getElementById('media-form');
-const mediaIdInput = document.getElementById('media-id');
-const mediaTitoloInput = document.getElementById('media-titolo');
-const mediaTipoInput = document.getElementById('media-tipo');
-const mediaStatoInput = document.getElementById('media-stato');
-const mediaVotoInput = document.getElementById('media-voto');
-const listaMedia = document.getElementById('lista-media');
-const summaryMedia = document.getElementById('home-summary-media');
-
-if (btnApriModalMedia) {
-    btnApriModalMedia.addEventListener('click', () => {
-        modalMediaTitle.textContent = "Nuovo Elemento Media";
-        mediaForm.reset();
-        mediaIdInput.value = "";
-        modalMedia.style.display = 'flex';
-    });
-}
-
-if (btnChiudiModalMedia) {
-    btnChiudiModalMedia.addEventListener('click', () => {
-        modalMedia.style.display = 'none';
-    });
-}
-
-if (mediaForm) {
-    mediaForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const titolo = mediaTitoloInput.value.trim();
-        const tipo = mediaTipoInput.value;
-        const stato = mediaStatoInput.value;
-        const voto = parseInt(mediaVotoInput.value) || 0;
-        const editId = mediaIdInput.value;
-
-        const datiMedia = {
-            titolo,
-            tipo,
-            stato,
-            voto,
-            creatore: nomeUtenteCorrente || "Famiglia",
-            dataCreazione: new Date().toISOString()
-        };
-
-        try {
-            if (editId) {
-                await updateDoc(doc(db, "media", editId), datiMedia);
-            } else {
-                await addDoc(collection(db, "media"), datiMedia);
-            }
-            modalMedia.style.display = 'none';
-            mediaForm.reset();
-            caricaMedia();
-        } catch (err) {
-            console.error("Errore salvataggio media:", err);
-            alert("Errore nel salvataggio dell'elemento.");
-        }
-    });
-}
+import { nomeUtenteCorrente } from "../auth.js";
 
 export async function caricaMedia() {
+    const mediaContainer = document.getElementById('lista-media');
+    const mediaSection = document.getElementById('media-section');
+
+    if (!mediaSection) return;
+
+    // Cambiamo l'intestazione H2 della sezione in "FOTO e VIDEO"
+    const h2Title = mediaSection.querySelector('h2');
+    if (h2Title) {
+        h2Title.textContent = "FOTO e VIDEO";
+    }
+
+    if (!mediaContainer) return;
+
     try {
         const querySnapshot = await getDocs(collection(db, "media"));
-        let elementiMedia = [];
-        querySnapshot.forEach(docSnap => {
-            elementiMedia.push({ id: docSnap.id, ...docSnap.data() });
+        let mediaItems = [];
+
+        querySnapshot.forEach((docSnap) => {
+            mediaItems.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        let mappaColoriUtenti = {};
-        try {
-            const utentiSnap = await getDocs(collection(db, "utenti"));
-            utentiSnap.forEach(uDoc => {
-                const uData = uDoc.data();
-                mappaColoriUtenti[uDoc.id.toLowerCase()] = uData.colore || '#3b82f6';
-            });
-        } catch(e) {}
+        mediaContainer.innerHTML = '';
 
-        // 1. Popolamento Home Summary Media: Mostra solo l'ULTIMO elemento caricato
-        if (summaryMedia) {
-            // Ordiniamo per dataCreazione decrescente (o per ID se manca la data)
-            elementiMedia.sort((a, b) => {
-                const dataA = a.dataCreazione || "";
-                const dataB = b.dataCreazione || "";
-                return dataB.localeCompare(dataA);
-            });
-
-            let htmlSummary = "";
-            if (elementiMedia.length > 0) {
-                const m = elementiMedia[0]; // Prende il primo (l'ultimo inserito)
-                const creatore = m.creatore || 'Famiglia';
-                const coloreUser = mappaColoriUtenti[creatore.toLowerCase()] || '#3b82f6';
-
-                htmlSummary = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; background-color: ${coloreUser}15; padding: 12px 16px; border-radius: 8px; border-left: 6px solid ${coloreUser}; border: 1px solid ${coloreUser}40;">
-                        <div>
-                            <strong style="font-size: 1.1rem; color: #1e293b; display: block;">${m.titolo}</strong>
-                            <span style="font-size: 0.95rem; color: #64748b;">Tipo: <strong>${m.tipo}</strong> | Stato: <strong>${m.stato}</strong> | Voto: <strong>${m.voto}/10</strong></span>
-                        </div>
-                        <span style="font-size: 0.9rem; font-weight: 700; color: #ffffff; background-color: ${coloreUser}; padding: 4px 12px; border-radius: 6px;">${creatore}</span>
-                    </div>
-                `;
-            }
-            summaryMedia.innerHTML = htmlSummary || `<p class="text-muted">Nessun elemento media registrato.</p>`;
+        if (mediaItems.length === 0) {
+            mediaContainer.innerHTML = '<p class="text-muted" style="color: #64748b; font-style: italic;">Nessun elemento presente.</p>';
+            return;
         }
 
-        // 2. Popolamento Sezione Media Completa
-        if (listaMedia) {
-            let htmlMedia = "";
-            elementiMedia.sort((a, b) => a.titolo.localeCompare(b.titolo));
+        mediaItems.forEach((item) => {
+            const divMedia = document.createElement('div');
+            divMedia.style.cssText = "background: #ffffff; padding: 14px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 8px;";
 
-            elementiMedia.forEach(m => {
-                const creatore = m.creatore || 'Famiglia';
-                const coloreUser = mappaColoriUtenti[creatore.toLowerCase()] || '#3b82f6';
-                const userIsAdmin = typeof isAdminCorrente === 'function' ? isAdminCorrente() : Boolean(isAdminCorrente);
-                const puoModificare = userIsAdmin || (creatore.toLowerCase() === (nomeUtenteCorrente || "").toLowerCase());
+            const eMia = (item.creatore || "").toLowerCase() === (nomeUtenteCorrente || "").toLowerCase();
 
-                htmlMedia += `
-                    <div class="media-card-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #ffffff; margin-bottom: 8px; border-radius: 8px; border-left: 5px solid ${coloreUser}; border-top: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;">
-                        <div>
-                            <strong style="font-size: 1.05rem; color: #1e293b; display: block;">${m.titolo}</strong>
-                            <span style="font-size: 0.9rem; color: #64748b;">Tipo: <strong>${m.tipo}</strong> | Stato: <strong>${m.stato}</strong> | Voto: <strong>${m.voto}/10</strong></span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 0.85rem; font-weight: 700; color: #ffffff; background-color: ${coloreUser}; padding: 4px 10px; border-radius: 6px;">${creatore}</span>
-                            ${puoModificare ? `
-                                <button class="btn-modifica" style="font-size: 0.8rem; padding: 4px 8px;" onclick="modificaMedia('${m.id}')">Mod.</button>
-                                <button class="btn-elimina" style="font-size: 0.8rem; padding: 4px 8px;" onclick="eliminaMedia('${m.id}')">&times;</button>
-                            ` : ''}
-                        </div>
-                    </div>
-                `;
-            });
+            divMedia.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong style="font-size: 1.05rem; color: #1e293b;">${escapeHtml(item.titolo || 'Senza titolo')}</strong>
+                    <span style="font-size: 0.8rem; background: #e2e8f0; padding: 2px 8px; border-radius: 4px; color: #475569;">${escapeHtml(item.tipo || 'Media')}</span>
+                </div>
+                ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" style="color: #0284c7; font-weight: 600; text-decoration: none; font-size: 0.9rem;">Guarda Elemento →</a>` : ''}
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                    <span style="font-size: 0.8rem; color: #64748b;">Caricato da: ${escapeHtml(item.creatore || 'Utente')}</span>
+                    ${eMia ? `<button onclick="eliminaMedia('${item.id}')" style="background-color: #ef4444; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.8rem;">🗑️</button>` : ''}
+                </div>
+            `;
 
-            listaMedia.innerHTML = htmlMedia || `<p class="text-muted">Nessun elemento presente.</p>`;
-        }
+            mediaContainer.appendChild(divMedia);
+        });
 
     } catch (err) {
-        console.error("Errore caricaMedia:", err);
-    }
-}
-
-window.modificaMedia = async function(id) {
-    try {
-        const docSnap = await getDoc(doc(db, "media", id));
-        if (docSnap.exists()) {
-            const m = docSnap.data();
-            modalMediaTitle.textContent = "Modifica Media";
-            mediaIdInput.value = id;
-            mediaTitoloInput.value = m.titolo || "";
-            mediaTipoInput.value = m.tipo || "Film";
-            mediaStatoInput.value = m.stato || "Da vedere";
-            mediaVotoInput.value = m.voto || 0;
-            modalMedia.style.display = 'flex';
-        }
-    } catch (err) {
-        alert("Errore nel recupero dell'elemento.");
+        console.error("Errore caricamento media:", err);
     }
 }
 
 window.eliminaMedia = async function(id) {
-    if (confirm("Vuoi eliminare questo elemento?")) {
+    if (confirm("Vuoi eliminare questo elemento foto/video?")) {
         try {
             await deleteDoc(doc(db, "media", id));
             caricaMedia();
         } catch (err) {
-            alert("Errore nell'eliminazione.");
+            alert("Errore durante l'eliminazione.");
         }
     }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
