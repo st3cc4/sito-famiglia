@@ -1,16 +1,29 @@
-// js/app.js - Logica principale dell'applicazione con inserimento dati
+// js/app.js - Logica principale dell'applicazione con Login e Firestore
 
 import { db } from "./firebase-config.js";
 import { 
     collection, 
     onSnapshot,
-    addDoc
+    addDoc,
+    getDocs,
+    query,
+    where
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // --- STATO APPLICAZIONE ---
-let utenteCorrente = { nome: "Ospite", colore: "#4A90E2" };
+let utenteCorrente = null;
 
-// --- ELEMENTI DOM ---
+// --- ELEMENTI DOM LOGIN ---
+const loginScreen = document.getElementById('login-screen');
+const appContainer = document.getElementById('app-container');
+const formLogin = document.getElementById('form-login');
+const loginUsername = document.getElementById('login-username');
+const loginPassword = document.getElementById('login-password');
+const loginRemember = document.getElementById('login-remember');
+const loginError = document.getElementById('login-error');
+const btnTogglePassword = document.getElementById('btn-toggle-password');
+
+// --- ELEMENTI DOM PRINCIPALI ---
 const btnToggleMenu = document.getElementById('btn-toggle-menu');
 const btnCloseMenu = document.getElementById('btn-close-menu');
 const sidebar = document.getElementById('sidebar');
@@ -22,11 +35,6 @@ const headerTitle = document.getElementById('header-title');
 const userBadge = document.getElementById('user-badge');
 const userNameDisplay = document.getElementById('user-name-display');
 const btnLogout = document.getElementById('btn-logout');
-
-// Modali Selezione Utente
-const modalUtenti = document.getElementById('modal-utenti');
-const utentiList = document.getElementById('utenti-list');
-const btnCloseModalUtenti = document.getElementById('btn-close-modal-utenti');
 
 // Modali Inserimento Dati
 const modalImpegno = document.getElementById('modal-impegno');
@@ -41,7 +49,7 @@ const btnCloseModalImpegno = document.getElementById('btn-close-modal-impegno');
 const btnCloseModalScadenza = document.getElementById('btn-close-modal-scadenza');
 const btnCloseModalRicetta = document.getElementById('btn-close-modal-ricetta');
 
-// Forms
+// Forms Dati
 const formImpegno = document.getElementById('form-impegno');
 const formScadenza = document.getElementById('form-scadenza');
 const formRicetta = document.getElementById('form-ricetta');
@@ -50,6 +58,97 @@ const formRicetta = document.getElementById('form-ricetta');
 const containerImpegni = document.getElementById('container-impegni');
 const containerScadenze = document.getElementById('container-scadenze');
 const containerRicette = document.getElementById('container-ricette');
+
+// --- MOSTRA / NASCONDI PASSWORD ---
+btnTogglePassword.addEventListener('click', () => {
+    const isPassword = loginPassword.getAttribute('type') === 'password';
+    loginPassword.setAttribute('type', isPassword ? 'text' : 'password');
+    btnTogglePassword.textContent = isPassword ? '🙈' : '👁️';
+});
+
+// --- GESTIONE LOGICA LOGIN ---
+formLogin.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginError.textContent = "";
+
+    const usernameDigitato = loginUsername.value.trim();
+    const passwordDigitata = loginPassword.value.trim();
+
+    try {
+        // Cerca l'utente nella collezione 'utenti'
+        const utentiRef = collection(db, "utenti");
+        const querySnapshot = await getDocs(utentiRef);
+
+        let utenteTrovato = null;
+
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const nomeUtente = data.nome || doc.id;
+
+            // Confronto case-insensitive per il nome utente e esatto per la password
+            if (nomeUtente.toLowerCase() === usernameDigitato.toLowerCase() && data.password === passwordDigitata) {
+                utenteTrovato = {
+                    id: doc.id,
+                    nome: nomeUtente,
+                    colore: data.colore || "#4A90E2"
+                };
+            }
+        });
+
+        if (utenteTrovato) {
+            autenticaUtente(utenteTrovato, loginRemember.checked);
+        } else {
+            loginError.textContent = "Nome utente o password non corretti.";
+        }
+    } catch (error) {
+        console.error("Errore durante il login:", error);
+        loginError.textContent = "Errore di connessione durante la verifica.";
+    }
+});
+
+function autenticaUtente(utente, ricorda) {
+    utenteCorrente = utente;
+    userNameDisplay.textContent = utente.nome;
+    if (utente.colore) {
+        userBadge.style.backgroundColor = utente.colore;
+    }
+
+    if (ricorda) {
+        localStorage.setItem('sito_famiglia_user', JSON.stringify(utente));
+    } else {
+        localStorage.removeItem('sito_famiglia_user');
+    }
+
+    loginScreen.classList.add('hidden');
+    appContainer.classList.remove('hidden');
+
+    // Carica i dati Firestore
+    ascoltaImpegni();
+    ascoltaScadenze();
+    ascoltaRicette();
+}
+
+function controllaSessioneSalvata() {
+    const salvato = localStorage.getItem('sito_famiglia_user');
+    if (salvato) {
+        try {
+            const utente = JSON.parse(salvato);
+            autenticaUtente(utente, true);
+        } catch (e) {
+            localStorage.removeItem('sito_famiglia_user');
+        }
+    }
+}
+
+// LOGOUT
+btnLogout.addEventListener('click', () => {
+    localStorage.removeItem('sito_famiglia_user');
+    utenteCorrente = null;
+    appContainer.classList.add('hidden');
+    loginScreen.classList.remove('hidden');
+    formLogin.reset();
+    closeMenu();
+});
 
 // --- GESTIONE SIDEBAR MENU ---
 function openMenu() {
@@ -103,14 +202,6 @@ function closeModal(modal) {
     modal.classList.remove('active');
 }
 
-userBadge.addEventListener('click', () => openModal(modalUtenti));
-btnLogout.addEventListener('click', () => {
-    closeMenu();
-    openModal(modalUtenti);
-});
-btnCloseModalUtenti.addEventListener('click', () => closeModal(modalUtenti));
-
-// Modali Aggiunta Dati
 btnAddImpegno.addEventListener('click', () => openModal(modalImpegno));
 btnCloseModalImpegno.addEventListener('click', () => closeModal(modalImpegno));
 
@@ -119,38 +210,6 @@ btnCloseModalScadenza.addEventListener('click', () => closeModal(modalScadenza))
 
 btnAddRicetta.addEventListener('click', () => openModal(modalRicetta));
 btnCloseModalRicetta.addEventListener('click', () => closeModal(modalRicetta));
-
-// --- CARICAMENTO UTENTI DA FIRESTORE ---
-function caricaUtenti() {
-    onSnapshot(collection(db, "utenti"), (snapshot) => {
-        utentiList.innerHTML = '';
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            const btn = document.createElement('button');
-            btn.className = 'utente-btn';
-            btn.textContent = data.nome || doc.id;
-            
-            if (data.colore) {
-                btn.style.borderLeft = `6px solid ${data.colore}`;
-            }
-
-            btn.addEventListener('click', () => {
-                selezionaUtente(data.nome || doc.id, data.colore);
-                closeModal(modalUtenti);
-            });
-
-            utentiList.appendChild(btn);
-        });
-    });
-}
-
-function selezionaUtente(nome, colore) {
-    utenteCorrente = { nome, colore };
-    userNameDisplay.textContent = nome;
-    if (colore) {
-        userBadge.style.backgroundColor = colore;
-    }
-}
 
 // --- SALVATAGGIO NUOVI DATI SU FIRESTORE ---
 
@@ -168,7 +227,7 @@ formImpegno.addEventListener('submit', async (e) => {
             data: data,
             oraInizio: oraInizio,
             oraFine: oraFine,
-            creatore: utenteCorrente.nome
+            creatore: utenteCorrente ? utenteCorrente.nome : "Sconosciuto"
         });
         formImpegno.reset();
         closeModal(modalImpegno);
@@ -190,7 +249,7 @@ formScadenza.addEventListener('submit', async (e) => {
             titolo: titolo,
             data: data,
             importo: importo,
-            creatore: utenteCorrente.nome
+            creatore: utenteCorrente ? utenteCorrente.nome : "Sconosciuto"
         });
         formScadenza.reset();
         closeModal(modalScadenza);
@@ -208,7 +267,6 @@ formRicetta.addEventListener('submit', async (e) => {
     const procedimentoRaw = document.getElementById('ricetta-procedimento').value;
     const note = document.getElementById('ricetta-note').value;
 
-    // Converti il testo in array dividendo per riga
     const ingredienti = ingredientiRaw.split('\n').filter(line => line.trim() !== '');
     const procedimento = procedimentoRaw.split('\n').filter(line => line.trim() !== '');
 
@@ -218,7 +276,7 @@ formRicetta.addEventListener('submit', async (e) => {
             ingredienti: ingredienti,
             procedimento: procedimento,
             note: note,
-            creatore: utenteCorrente.nome
+            creatore: utenteCorrente ? utenteCorrente.nome : "Sconosciuto"
         });
         formRicetta.reset();
         closeModal(modalRicetta);
@@ -304,8 +362,5 @@ function ascoltaRicette() {
 
 // --- INIZIALIZZAZIONE APP ---
 document.addEventListener('DOMContentLoaded', () => {
-    caricaUtenti();
-    ascoltaImpegni();
-    ascoltaScadenze();
-    ascoltaRicette();
+    controllaSessioneSalvata();
 });
