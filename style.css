@@ -19,7 +19,6 @@ body {
     display: flex;
     width: 100vw;
     height: 100vh;
-    position: relative;
 }
 
 /* Sidebar / Menu laterale */
@@ -30,24 +29,26 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: width 0.3s ease, transform 0.3s ease;
+    transition: all 0.3s ease;
     box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
     z-index: 100;
     overflow: hidden;
     flex-shrink: 0;
 }
 
-/* Stato chiuso della sidebar (si restringe a 0 ma non scompare) */
+/* Stato chiuso della sidebar */
 .sidebar.closed {
     width: 0;
-    transform: translateX(-100%);
+    min-width: 0;
+    opacity: 0;
+    visibility: hidden;
 }
 
 .sidebar-header {
     padding: 20px;
     display: flex;
     align-items: center;
-    gap: 15px;
+    justify-content: space-between;
     border-bottom: 1px solid #1e293b;
     white-space: nowrap;
 }
@@ -60,9 +61,14 @@ body {
 .btn-toggle {
     background: none;
     border: none;
-    color: #ffffff;
-    font-size: 1.4rem;
+    color: #94a3b8;
+    font-size: 1.2rem;
     cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.btn-toggle:hover {
+    color: #ffffff;
 }
 
 .sidebar-menu {
@@ -139,32 +145,51 @@ body {
     background-color: #2563eb;
 }
 
-/* Pulsante flottante per aprire la sidebar quando è chiusa */
-.btn-toggle-floating {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    z-index: 200;
-    background-color: #0f172a;
-    color: #ffffff;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
 /* Contenuto Principale */
 .main-content {
     flex-grow: 1;
-    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
     overflow-y: auto;
     background-color: #f8fafc;
 }
 
+/* Header Principale con il pulsante Hamburger */
+.main-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px 30px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.btn-toggle-main {
+    background: none;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    font-size: 1.2rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-toggle-main:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+.page-title {
+    font-size: 1.4rem;
+    color: #0f172a;
+    font-weight: 600;
+}
+
 .content-section {
     display: none;
+    padding: 30px;
 }
 
 .content-section.active {
