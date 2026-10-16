@@ -33,7 +33,6 @@ const btnCloseModalColore = document.getElementById('btn-close-modal-colore');
 const formPassword = document.getElementById('form-password');
 const formColore = document.getElementById('form-colore');
 
-// Callback per avvisare l'app principale quando l'utente si collega
 let onLoginSuccessCallback = null;
 
 export function initAuth(onLoginSuccess) {
@@ -68,12 +67,14 @@ export function initAuth(onLoginSuccess) {
                     const nomeUtente = data.nome || docSnap.id;
 
                     if (nomeUtente.toLowerCase() === usernameDigitato.toLowerCase() && data.password === passwordDigitata) {
+                        const eAdmin = (data.ruolo === 'admin') || (nomeUtente.toLowerCase() === 'paolo');
+
                         utenteTrovato = {
                             id: docSnap.id,
                             nome: nomeUtente,
                             password: data.password,
                             colore: data.colore || "#4A90E2",
-                            ruolo: data.ruolo || (nomeUtente.toLowerCase() === 'paolo' ? 'admin' : 'utente'),
+                            ruolo: eAdmin ? 'admin' : (data.ruolo || 'utente'),
                             permessi: data.permessi || { impegni: true, scadenze: true, ricette: true, media: true }
                         };
                     }
@@ -91,7 +92,7 @@ export function initAuth(onLoginSuccess) {
         });
     }
 
-    // Click sulla Card Utente in fondo alla Sidebar per effettuare il Logout
+    // Click sulla Card Utente per Logout
     if (sidebarUserCard) {
         sidebarUserCard.addEventListener('click', () => {
             if (confirm("Vuoi uscire / disconnetterti dall'applicazione?")) {
@@ -100,7 +101,7 @@ export function initAuth(onLoginSuccess) {
         });
     }
 
-    // Gestione Modali Password e Colore
+    // Modali Password e Colore
     if (btnChangePassword) {
         btnChangePassword.addEventListener('click', () => { modalPassword.classList.add('active'); });
     }
@@ -118,7 +119,7 @@ export function initAuth(onLoginSuccess) {
         btnCloseModalColore.addEventListener('click', () => modalColore.classList.remove('active'));
     }
 
-    // Salvataggio Nuova Password
+    // Salva Password
     if (formPassword) {
         formPassword.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -141,7 +142,7 @@ export function initAuth(onLoginSuccess) {
         });
     }
 
-    // Salvataggio Nuovo Colore
+    // Salva Colore
     if (formColore) {
         formColore.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -197,9 +198,35 @@ function effettuaLogin(utente, ricorda) {
     }
 }
 
+// Funzione automatica che calcola se il colore è chiaro o scuro e sceglie il colore del testo
+function calcolaColoreTestoContrastato(hexColor) {
+    const hex = hexColor.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    
+    // Formula della luminanza relativa per percezione visiva umana
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? '#1a1a1a' : '#ffffff';
+}
+
 function applicaColoreUtente(colore) {
-    if (sidebarUserCard) sidebarUserCard.style.backgroundColor = colore;
-    if (userBadge) userBadge.style.backgroundColor = colore;
+    const coloreTesto = calcolaColoreTestoContrastato(colore);
+
+    if (sidebarUserCard) {
+        sidebarUserCard.style.backgroundColor = colore;
+        sidebarUserCard.style.color = coloreTesto;
+    }
+
+    const userInfoText = document.querySelector('.user-info-text');
+    if (userInfoText) {
+        userInfoText.style.color = coloreTesto;
+    }
+
+    if (userBadge) {
+        userBadge.style.backgroundColor = colore;
+        userBadge.style.color = coloreTesto;
+    }
 }
 
 function eseguiLogout() {
@@ -215,6 +242,9 @@ function controllaSessioneSalvata() {
     if (salvato) {
         try {
             const utente = JSON.parse(salvato);
+            if (utente.nome && utente.nome.toLowerCase() === 'paolo') {
+                utente.ruolo = 'admin';
+            }
             effettuaLogin(utente, true);
         } catch (e) {
             localStorage.removeItem('sito_famiglia_user');
