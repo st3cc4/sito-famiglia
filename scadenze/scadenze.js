@@ -4,283 +4,184 @@ import {
     addDoc, 
     updateDoc, 
     deleteDoc, 
-    doc 
+    doc, 
+    getDoc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "../firebase-config.js";
-import { isAdminCorrente } from "../auth.js";
 
-let idScadenzaInModifica = null;
+const listaScadenze = document.getElementById('lista-scadenze');
+const totaleGeneraleScadenze = document.getElementById('totale-generale-scadenze');
+const btnApriModal = document.getElementById('btn-apri-modal');
+const btnChiudiModal = document.getElementById('btn-chiudi-modal');
+const modalScadenza = document.getElementById('modal-scadenza');
+const scadenzaForm = document.getElementById('scadenza-form');
+const modalTitle = document.getElementById('modal-title');
+const titoloInput = document.getElementById('titolo');
+const dataInput = document.getElementById('data');
+const importoInput = document.getElementById('importo');
+
+let idModificaCorrente = null;
+
+if (btnApriModal) {
+    btnApriModal.addEventListener('click', () => {
+        modalTitle.textContent = "Nuova Scadenza";
+        scadenzaForm.reset();
+        idModificaCorrente = null;
+        modalScadenza.style.display = 'flex';
+    });
+}
+
+if (btnChiudiModal) {
+    btnChiudiModal.addEventListener('click', () => {
+        modalScadenza.style.display = 'none';
+    });
+}
+
+if (scadenzaForm) {
+    scadenzaForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const titolo = titoloInput.value.trim();
+        const data = dataInput.value;
+        const importo = parseFloat(importoInput.value);
+
+        if (!titolo || !data || isNaN(importo)) return;
+
+        try {
+            if (idModificaCorrente) {
+                await updateDoc(doc(db, "scadenze", idModificaCorrente), {
+                    titolo,
+                    data,
+                    importo
+                });
+            } else {
+                await addDoc(collection(db, "scadenze"), {
+                    titolo,
+                    data,
+                    importo,
+                    pagata: false
+                });
+            }
+
+            modalScadenza.style.display = 'none';
+            scadenzaForm.reset();
+            idModificaCorrente = null;
+            caricaScadenze();
+        } catch (err) {
+            console.error("Errore salvataggio scadenza:", err);
+            alert("Errore durante il salvataggio della scadenza.");
+        }
+    });
+}
 
 export async function caricaScadenze() {
-    const listaScadenze = document.getElementById('lista-scadenze');
-    const totaleGenerale = document.getElementById('totale-generale-scadenze');
-    const summaryHome = document.getElementById('home-summary-scadenze');
-
-    if (!listaScadenze) return;
-
     try {
         const querySnapshot = await getDocs(collection(db, "scadenze"));
         let scadenze = [];
-        let totale = 0;
-
         querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            scadenze.push({
-                id: docSnap.id,
-                ...data
-            });
+            scadenze.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        // Ordina le scadenze per data crescente
+        // Ordinamento per data
         scadenze.sort((a, b) => new Date(a.data) - new Date(b.data));
 
-        listaScadenze.innerHTML = '';
-        if (summaryHome) summaryHome.innerHTML = '';
+        if (listaScadenze) {
+            listaScadenze.innerHTML = '';
+            let totaleComplessivo = 0;
+            const oggi = new Date();
+            oggi.setHours(0, 0, 0, 0);
 
-        if (scadenze.length === 0) {
-            listaScadenze.innerHTML = '<li class="text-muted" style="padding: 10px;">Nessuna scadenza presente.</li>';
-            if (summaryHome) summaryHome.innerHTML = '<p class="text-muted">Nessuna scadenza in arrivo.</p>';
-            if (totaleGenerale) totaleGenerale.textContent = 'Totale da pagare: € 0.00';
-            return;
-        }
+            scadenze.forEach((s) => {
+                const dataScadenza = new Date(s.data);
+                dataScadenza.setHours(0, 0, 0, 0);
+                
+                const diffTempo = dataScadenza - oggi;
+                const diffGiorni = Math.round(diffTempo / (1000 * 60 * 60 * 24));
 
-        const oggi = new Date();
-        oggi.setHours(0, 0, 0, 0);
+                let testoStato = "";
+                let coloreBordo = "#cbd5e1";
+                let coloreSfondo = "#ffffff";
 
-        let scadenzeRosse = []; // Scadute o <= 7 giorni
-        let scadenzeArancioni = []; // Tra 8 e 14 giorni
-        let scadenzeVerdi = []; // Da 15 giorni in su
-
-        scadenze.forEach((s) => {
-            const importoVal = parseFloat(s.importo) || 0;
-            totale += importoVal;
-
-            const dataScadenza = new Date(s.data);
-            dataScadenza.setHours(0, 0, 0, 0);
-
-            // Calcolo giorni di differenza
-            const diffTempo = dataScadenza.getTime() - oggi.getTime();
-            const diffGiorni = Math.ceil(diffTempo / (1000 * 3600 * 24));
-
-            let classeColore = 'scadenza-verde';
-            let classeMancano = 'mancano-verde';
-            let bgColore = '#fee2e2'; // Sfondo rosso chiaro
-            let borderColore = '#ef4444'; // Bordo rosso
-            let testoMancano = '';
-
-            if (diffGiorni < 0) {
-                classeColore = 'scadenza-rossa';
-                classeMancano = 'mancano-rosso';
-                bgColore = '#fee2e2'; 
-                borderColore = '#ef4444';
-                testoMancano = `Scaduta da ${Math.abs(diffGiorni)} giorn${Math.abs(diffGiorni) === 1 ? 'o' : 'i'}`;
-            } else if (diffGiorni === 0) {
-                classeColore = 'scadenza-rossa';
-                classeMancano = 'mancano-rosso';
-                bgColore = '#fee2e2'; 
-                borderColore = '#ef4444';
-                testoMancano = 'Scade oggi!';
-            } else if (diffGiorni <= 7) {
-                classeColore = 'scadenza-rossa';
-                classeMancano = 'mancano-rosso';
-                bgColore = '#fee2e2'; 
-                borderColore = '#ef4444';
-                testoMancano = `Mancano ${diffGiorni} giorn${diffGiorni === 1 ? 'o' : 'i'}`;
-            } else if (diffGiorni <= 14) {
-                classeColore = 'scadenza-arancione';
-                classeMancano = 'mancano-arancione';
-                bgColore = '#ffedd5'; // Sfondo arancione chiaro
-                borderColore = '#f97316';
-                testoMancano = `Mancano ${diffGiorni} giorni`;
-            } else {
-                classeColore = 'scadenza-verde';
-                classeMancano = 'mancano-verde';
-                bgColore = '#dcfce7'; // Sfondo verde chiaro
-                borderColore = '#22c55e';
-                testoMancano = `Mancano ${diffGiorni} giorni`;
-            }
-
-            // Formattazione data GG/MM/AAAA
-            const dataFormattata = dataScadenza.toLocaleDateString('it-IT');
-
-            // 1. Creazione elemento della lista completa (Sezione SCADENZE)
-            const li = document.createElement('li');
-            li.className = `scadenza-item ${classeColore}`;
-
-            li.innerHTML = `
-                <div class="scadenza-info">
-                    <span class="scadenza-titolo">${escapeHtml(s.titolo)}</span>
-                    <span class="scadenza-data">${dataFormattata}</span>
-                    <span class="scadenza-mancano ${classeMancano}">- ${testoMancano}</span>
-                </div>
-                <div class="scadenza-azioni">
-                    <span class="scadenza-importo">€ ${importoVal.toFixed(2)}</span>
-                    <button class="btn-segna-pagata" data-id="${s.id}">Segna Pagata</button>
-                    <button class="btn-modifica-scadenza" data-id="${s.id}">Mod.</button>
-                    <button class="btn-elimina-scadenza" data-id="${s.id}" title="Elimina">🗑️</button>
-                </div>
-            `;
-
-            listaScadenze.appendChild(li);
-
-            // 2. Elemento per la HOME con SFONDO COLORATO (rosso, arancione o verde)
-            const elementoHomeHtml = `
-                <div style="display: flex; justify-content: space-between; align-items: center; background-color: ${bgColore}; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border-left: 6px solid ${borderColore}; border-top: 1px solid ${borderColore}40; border-right: 1px solid ${borderColore}40; border-bottom: 1px solid ${borderColore}40;">
-                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                        <strong style="font-size: 1.05rem; color: #1e293b;">${escapeHtml(s.titolo)}</strong>
-                        <span style="font-size: 1.05rem; color: #334155; font-weight: 700;">(${dataFormattata})</span>
-                        <span style="font-size: 0.95rem; font-weight: 700; color: ${borderColore};">- ${testoMancano}</span>
-                    </div>
-                    <span style="font-size: 1rem; font-weight: 800; color: #0f172a; background-color: #ffffff; padding: 4px 12px; border-radius: 6px; border: 1px solid ${borderColore}60;">€ ${importoVal.toFixed(2)}</span>
-                </div>
-            `;
-
-            if (diffGiorni <= 7) {
-                scadenzeRosse.push(elementoHomeHtml);
-            } else if (diffGiorni >= 8 && diffGiorni <= 14) {
-                scadenzeArancioni.push(elementoHomeHtml);
-            } else if (diffGiorni >= 15) {
-                scadenzeVerdi.push(elementoHomeHtml);
-            }
-        });
-
-        // Selezione per la HOME a cascata
-        if (summaryHome) {
-            if (scadenzeRosse.length > 0) {
-                summaryHome.innerHTML = scadenzeRosse.join('');
-            } else if (scadenzeArancioni.length > 0) {
-                summaryHome.innerHTML = scadenzeArancioni.join('');
-            } else if (scadenzeVerdi.length > 0) {
-                summaryHome.innerHTML = scadenzeVerdi.join('');
-            } else {
-                summaryHome.innerHTML = '<p class="text-muted">Nessuna scadenza in arrivo.</p>';
-            }
-        }
-
-        if (totaleGenerale) {
-            totaleGenerale.textContent = `Totale da pagare: € ${totale.toFixed(2)}`;
-        }
-
-        // Collegamento eventi ai pulsanti
-        collegaEventiScadenze();
-
-    } catch (err) {
-        console.error("Errore nel caricamento delle scadenze:", err);
-    }
-}
-
-function collegaEventiScadenze() {
-    // Gestione pulsante "Segna Pagata"
-    document.querySelectorAll('.btn-segna-pagata').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const id = btn.getAttribute('data-id');
-            if (confirm("Confermi di voler segnare questa scadenza come pagata? Verrà rimossa dall'elenco.")) {
-                try {
-                    await deleteDoc(doc(db, "scadenze", id));
-                    await caricaScadenze();
-                } catch (err) {
-                    console.error("Errore durante la cancellazione:", err);
-                    alert("Errore nell'operazione.");
-                }
-            }
-        });
-    });
-
-    // Gestione pulsante "Modifica"
-    document.querySelectorAll('.btn-modifica-scadenza').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const id = btn.getAttribute('data-id');
-            idScadenzaInModifica = id;
-
-            try {
-                const querySnapshot = await getDocs(collection(db, "scadenze"));
-                querySnapshot.forEach((docSnap) => {
-                    if (docSnap.id === id) {
-                        const data = docSnap.data();
-                        document.getElementById('titolo').value = data.titolo || '';
-                        document.getElementById('data').value = data.data || '';
-                        document.getElementById('importo').value = data.importo || '';
-                        document.getElementById('modal-title').textContent = 'Modifica Scadenza';
-                        document.getElementById('modal-scadenza').style.display = 'flex';
-                    }
-                });
-            } catch (err) {
-                console.error("Errore durante il recupero per modifica:", err);
-            }
-        });
-    });
-
-    // Gestione pulsante "Elimina" (Cestino)
-    document.querySelectorAll('.btn-elimina-scadenza').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const id = btn.getAttribute('data-id');
-            if (confirm("Vuoi eliminare definitivamente questa scadenza?")) {
-                try {
-                    await deleteDoc(doc(db, "scadenze", id));
-                    await caricaScadenze();
-                } catch (err) {
-                    console.error("Errore durante l'eliminazione:", err);
-                    alert("Errore nell'eliminazione.");
-                }
-            }
-        });
-    });
-}
-
-// Gestione Modale per Nuova/Modifica Scadenza
-document.addEventListener('DOMContentLoaded', () => {
-    const btnApriModal = document.getElementById('btn-apri-modal');
-    const btnChiudiModal = document.getElementById('btn-chiudi-modal');
-    const modalScadenza = document.getElementById('modal-scadenza');
-    const scadenzaForm = document.getElementById('scadenza-form');
-
-    if (btnApriModal && modalScadenza) {
-        btnApriModal.addEventListener('click', () => {
-            idScadenzaInModifica = null;
-            if (scadenzaForm) scadenzaForm.reset();
-            document.getElementById('modal-title').textContent = 'Nuova Scadenza';
-            modalScadenza.style.display = 'flex';
-        });
-    }
-
-    if (btnChiudiModal && modalScadenza) {
-        btnChiudiModal.addEventListener('click', () => {
-            modalScadenza.style.display = 'none';
-        });
-    }
-
-    if (scadenzaForm) {
-        scadenzaForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const titolo = document.getElementById('titolo').value.trim();
-            const data = document.getElementById('data').value;
-            const importo = parseFloat(document.getElementById('importo').value) || 0;
-
-            if (!titolo || !data) return;
-
-            try {
-                if (idScadenzaInModifica) {
-                    const docRef = doc(db, "scadenze", idScadenzaInModifica);
-                    await updateDoc(docRef, { titolo, data, importo });
+                if (diffGiorni < 0) {
+                    const giorniRitardo = Math.abs(diffGiorni);
+                    testoStato = `Scaduta da ${giorniRitardo} ${giorniRitardo === 1 ? 'giorno' : 'giorni'}`;
+                    coloreBordo = "#ef4444"; // Rosso urgenza
+                    coloreSfondo = "#fef2f2";
+                } else if (diffGiorni === 0) {
+                    testoStato = "Scade oggi!";
+                    coloreBordo = "#ef4444"; // Rosso urgenza
+                    coloreSfondo = "#fef2f2";
+                } else if (diffGiorni <= 7) {
+                    testoStato = `Mancano ${diffGiorni} giorni`;
+                    coloreBordo = "#ef4444"; // Rosso urgenza
+                    coloreSfondo = "#fef2f2";
+                } else if (diffGiorni <= 14) {
+                    testoStato = `Mancano ${diffGiorni} giorni`;
+                    coloreBordo = "#f97316"; // Arancione
+                    coloreSfondo = "#fff7ed";
                 } else {
-                    await addDoc(collection(db, "scadenze"), { titolo, data, importo });
+                    testoStato = `Mancano ${diffGiorni} giorni`;
+                    coloreBordo = "#22c55e"; // Verde
+                    coloreSfondo = "#f0fdf4";
                 }
 
-                modalScadenza.style.display = 'none';
-                scadenzaForm.reset();
-                idScadenzaInModifica = null;
-                await caricaScadenze();
+                totaleComplessivo += Number(s.importo) || 0;
 
-            } catch (err) {
-                console.error("Errore durante il salvataggio della scadenza:", err);
-                alert("Errore nel salvataggio.");
+                const li = document.createElement('li');
+                li.style.cssText = `background: ${coloreSfondo}; padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0; border-left: 6px solid ${coloreBordo}; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;`;
+
+                const dataFormatted = `${dataScadenza.getDate().toString().padStart(2, '0')}/${(dataScadenza.getMonth()+1).toString().padStart(2, '0')}/${dataScadenza.getFullYear()}`;
+
+                li.innerHTML = `
+                    <div>
+                        <strong style="font-size: 1.05rem; color: #1e293b;">${escapeHtml(s.titolo)}</strong> 
+                        <span style="font-size: 0.9rem; color: #64748b; margin-left: 6px;">${dataFormatted} - <span style="font-weight: 600; color: ${coloreBordo};">${testoStato}</span></span>
+                        <div style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-top: 4px;">€ ${Number(s.importo).toFixed(2)}</div>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button onclick="modificaScadenza('${s.id}')" style="background-color: #0284c7; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem;">Mod.</button>
+                        <button onclick="eliminaScadenza('${s.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem;" title="Elimina">🗑️</button>
+                    </div>
+                `;
+
+                listaScadenze.appendChild(li);
+            });
+
+            if (totaleGeneraleScadenze) {
+                totaleGeneraleScadenze.innerHTML = `Totale da pagare: € ${totaleComplessivo.toFixed(2)}`;
             }
-        });
+        }
+    } catch (err) {
+        console.error("Errore caricamento scadenze:", err);
     }
-});
+}
+
+window.modificaScadenza = async function(id) {
+    try {
+        const docSnap = await getDoc(doc(db, "scadenze", id));
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            modalTitle.textContent = "Modifica Scadenza";
+            titoloInput.value = data.titolo || "";
+            dataInput.value = data.data || "";
+            importoInput.value = data.importo || "";
+            idModificaCorrente = id;
+            modalScadenza.style.display = 'flex';
+        }
+    } catch (err) {
+        alert("Errore nel recupero della scadenza.");
+    }
+}
+
+window.eliminaScadenza = async function(id) {
+    if (confirm("Vuoi eliminare questa scadenza?")) {
+        try {
+            await deleteDoc(doc(db, "scadenze", id));
+            caricaScadenze();
+        } catch (err) {
+            alert("Errore durante l'eliminazione.");
+        }
+    }
+}
 
 function escapeHtml(text) {
     if (!text) return '';
