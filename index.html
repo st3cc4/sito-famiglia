@@ -3,90 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Famiglia</title>
+    <title>Sito Famiglia</title>    
+    <!-- Link al Manifest per PWA -->
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="scadenze/stile_scadenze.css">
-    <link rel="stylesheet" href="impegni/stile_impegni.css">
-    <link rel="stylesheet" href="media/stile_media.css">
-    <link rel="stylesheet" href="ricette/stile_ricette.css">
-    <link rel="stylesheet" href="utenti/stile_utenti.css">
+    <meta name="theme-color" content="#4A90E2">
+    <link rel="apple-touch-icon" href="icone/icona_famiglia_192x192.png">
+
+    <!-- CSS Principale -->
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Sidebar / Menu laterale -->
-        <nav class="sidebar">
-            <div class="sidebar-header">
-                <button id="sidebar-toggle" class="btn-toggle" title="Apri/Chiudi Menu">☰</button>
-                <h2 class="sidebar-title">Famiglia</h2>
-            </div>
-            <ul class="sidebar-menu">
-                <li><a href="#" class="nav-link active" data-section="home"><img src="icone/icona_home.png" alt="Home" class="nav-icon"> <span>HOME</span></a></li>
-                <li><a href="#" class="nav-link" data-section="scadenze"><img src="icone/icona_scadenze.png" alt="Scadenze" class="nav-icon"> <span>SCADENZE</span></a></li>
-                <li><a href="#" class="nav-link" data-section="impegni"><img src="icone/icona_impegni.png" alt="Impegni" class="nav-icon"> <span>IMPEGNI</span></a></li>
-                <li><a href="#" class="nav-link" data-section="media"><img src="icone/icona_media.png" alt="Foto e Video" class="nav-icon"> <span>FOTO e VIDEO</span></a></li>
-                <li><a href="#" class="nav-link" data-section="ricette"><img src="icone/icona_ricette.png" alt="Ricette" class="nav-icon"> <span>RICETTE</span></a></li>
-                <li><a href="#" class="nav-link" data-section="utenti"><img src="icone/icona_utenti.png" alt="Utenti" class="nav-icon"> <span>UTENTI</span></a></li>
+
+    <!-- Header / Barra di Navigazione -->
+    <header class="app-header">
+        <button id="btn-toggle-menu" class="menu-btn" aria-label="Apri Menu">&#9776;</button>
+        <h1 id="header-title">Sito Famiglia</h1>
+        <div id="user-badge" class="user-badge">
+            <span id="user-name-display">Ospite</span>
+        </div>
+    </header>
+
+    <!-- Menu Laterale (Sidebar) -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h2>Menu</h2>
+            <button id="btn-close-menu" class="close-btn">&times;</button>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="#" data-section="impegni" class="nav-link active">📅 Impegni</a></li>
+                <li><a href="#" data-section="scadenze" class="nav-link">⏰ Scadenze</a></li>
+                <li><a href="#" data-section="ricette" class="nav-link">🍳 Ricette</a></li>
+                <li><a href="#" data-section="media" class="nav-link">🖼️ Foto e Video</a></li>
             </ul>
-            <div class="sidebar-footer">
-                <div id="utente-corrente-box" class="utente-box">Utente (Admin)</div>
-                <button id="btn-cambia-password" class="btn-footer">Cambia Password</button>
-                <button id="btn-cambia-colore" class="btn-footer">Cambia Colore</button>
-            </div>
         </nav>
+        <div class="sidebar-footer">
+            <button id="btn-logout" class="logout-btn">Seleziona Utente</button>
+        </div>
+    </aside>
 
-        <!-- Contenuto Principale -->
-        <main class="main-content">
-            <!-- Sezione Home -->
-            <section id="home-section" class="content-section active">
-                <h2>Benvenuti nel Portale della Famiglia</h2>
-                <div class="home-grid">
-                    <div class="home-card">
-                        <h3>Scadenze in arrivo</h3>
-                        <div id="home-summary-scadenze">Caricamento...</div>
-                    </div>
-                    <div class="home-card">
-                        <h3>Prossimi Impegni</h3>
-                        <div id="home-summary-impegni">Caricamento...</div>
-                    </div>
-                </div>
-            </section>
+    <!-- Overlay per chiudere il menu cliccando fuori -->
+    <div id="overlay" class="overlay"></div>
 
-            <!-- Sezione Scadenze -->
-            <section id="scadenze-section" class="content-section">
-                <h2>SCADENZE</h2>
-                <div id="lista-scadenze"></div>
-            </section>
+    <!-- Contenuto Principale dell'App -->
+    <main class="main-content">
 
-            <!-- Sezione Impegni -->
-            <section id="impegni-section" class="content-section">
-                <h2>IMPEGNI</h2>
-                <div id="lista-appuntamenti"></div>
-            </section>
+        <!-- Sezione Impegni -->
+        <section id="section-impegni" class="app-section active">
+            <div class="section-header">
+                <h2>📅 Appuntamenti e Impegni</h2>
+                <button id="btn-add-impegno" class="add-btn">+ Nuovo Impegno</button>
+            </div>
+            <div id="container-impegni" class="cards-grid">
+                <!-- Le schede degli impegni verranno inserite qui dinamicamente -->
+            </div>
+        </section>
 
-            <!-- Sezione Media (Foto e Video) -->
-            <section id="media-section" class="content-section">
-                <h2>FOTO e VIDEO</h2>
-                <div id="lista-media" class="media-grid"></div>
-            </section>
+        <!-- Sezione Scadenze -->
+        <section id="section-scadenze" class="app-section">
+            <div class="section-header">
+                <h2>⏰ Scadenze</h2>
+                <button id="btn-add-scadenza" class="add-btn">+ Nuova Scadenza</button>
+            </div>
+            <div id="container-scadenze" class="cards-grid">
+                <!-- Le schede delle scadenze verranno inserite qui dinamicamente -->
+            </div>
+        </section>
 
-            <!-- Sezione Ricette -->
-            <section id="ricette-section" class="content-section">
-                <h2>RICETTE</h2>
-                <div id="lista-ricette" class="ricette-grid"></div>
-            </section>
+        <!-- Sezione Ricette -->
+        <section id="section-ricette" class="app-section">
+            <div class="section-header">
+                <h2>🍳 Le Nostre Ricette</h2>
+                <button id="btn-add-ricetta" class="add-btn">+ Nuova Ricetta</button>
+            </div>
+            <div id="container-ricette" class="cards-grid">
+                <!-- Le schede delle ricette verranno inserite qui dinamicamente -->
+            </div>
+        </section>
 
-            <!-- Sezione Utenti -->
-            <section id="utenti-section" class="content-section">
-                <h2>UTENTI</h2>
-                <div id="lista-utenti" class="utenti-container"></div>
-            </section>
-        </main>
+        <!-- Sezione Foto e Video -->
+        <section id="section-media" class="app-section">
+            <div class="section-header">
+                <h2>🖼️ Foto e Video</h2>
+                <button id="btn-add-media" class="add-btn">+ Aggiungi Media</button>
+            </div>
+            <div id="container-media" class="cards-grid">
+                <!-- I contenuti multimediali verranno inseriti qui dinamicamente -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal Cambio/Selezione Utente -->
+    <div id="modal-utenti" class="modal">
+        <div class="modal-content">
+            <h3>Seleziona il tuo Profilo</h3>
+            <div id="utenti-list" class="utenti-list">
+                <!-- Lista utenti caricata da Firestore -->
+            </div>
+            <button id="btn-close-modal-utenti" class="close-modal-btn">Annulla</button>
+        </div>
     </div>
 
-    <!-- Script principali -->
-    <script type="module" src="firebase-config.js"></script>
-    <script type="module" src="auth.js"></script>
-    <script type="module" src="script.js"></script>
+    <!-- Script Principali JS (Module) -->
+    <script type="module" src="js/app.js"></script>
+
+    <!-- Registrazione Service Worker per PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registrato con successo:', reg.scope))
+                    .catch(err => console.error('Registrazione Service Worker fallita:', err));
+            });
+        }
+    </script>
 </body>
 </html>
