@@ -10,7 +10,6 @@ import { db } from "./firebase-config.js";
 document.addEventListener("DOMContentLoaded", async () => {
     await inizializzaAuth();
 
-    // Caricamento dei dati e dei riquadri della Home
     caricaScadenze();
     caricaAppuntamenti();
     caricaMedia();
@@ -76,7 +75,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 });
 
-// 1. SCADENZE HOME (con logica a cascata)
+// 1. SCADENZE HOME
 async function caricaSummaryScadenzeHome() {
     const summaryScadenze = document.getElementById('home-summary-scadenze');
     if (!summaryScadenze) return;
@@ -138,6 +137,7 @@ async function caricaSummaryScadenzeHome() {
                 coloreSfondo = "#fff7ed";
                 coloreTestoStato = "#c2410c";
             } else {
+                testoStrato = `Mancano ${diffGiorni} giorni`;
                 testoStato = `Mancano ${diffGiorni} giorni`;
                 coloreBordo = "#22c55e";
                 coloreSfondo = "#f0fdf4";
@@ -165,7 +165,7 @@ async function caricaSummaryScadenzeHome() {
     }
 }
 
-// 2. IMPEGNI HOME
+// 2. IMPEGNI HOME (corretto con confronto stringhe data)
 window.caricaSummaryImpegniHome = async function() {
     const summaryImpegni = document.getElementById('home-summary-impegni');
     if (!summaryImpegni) return;
@@ -177,15 +177,23 @@ window.caricaSummaryImpegniHome = async function() {
             impegni.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        impegni.sort((a, b) => new Date(a.data + 'T' + (a.ora || '00:00')) - new Date(b.data + 'T' + (b.ora || '00:00')));
+        // Ordinamento sicuro per data e ora
+        impegni.sort((a, b) => (a.data + (a.ora || '00:00')).localeCompare(b.data + (b.ora || '00:00')));
 
-        const oggiStr = new Date().toISOString().split('T')[0];
-        impegni = impegni.filter(i => i.data >= oggiStr);
+        // Data odierna in formato YYYY-MM-DD locale
+        const oraLocale = new Date();
+        const anno = oraLocale.getFullYear();
+        const mese = String(oraLocale.getMonth() + 1).padStart(2, '0');
+        const giorno = String(oraLocale.getDate()).padStart(2, '0');
+        const oggiStr = `${anno}-${mese}-${giorno}`;
+
+        // Filtriamo gli impegni da oggi in poi
+        let impegniFiltrati = impegni.filter(i => i.data >= oggiStr);
 
         let htmlSummary = "";
-        impegni.forEach((i) => {
-            const [anno, mese, giorno] = i.data.split('-');
-            const dataFormatted = `${giorno}/${mese}/${anno}`;
+        impegniFiltrati.forEach((i) => {
+            const parti = i.data.split('-');
+            const dataFormatted = parti.length === 3 ? `${parti[2]}/${parti[1]}/${parti[0]}` : i.data;
             const creatoreNome = i.creatore || i.utente || '';
 
             htmlSummary += `
@@ -246,7 +254,7 @@ async function caricaSummaryRicetteHome() {
         });
 
         let htmlSummary = "";
-        ricette.slice(0, 3).format = ricette.slice(0, 3).forEach((r) => {
+        ricette.slice(0, 3).forEach((r) => {
             htmlSummary += `
                 <div style="background-color: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
                     <strong style="font-size: 0.95rem; color: #1e293b;">${escapeHtml(r.nome || r.titolo || 'Ricetta')}</strong>
