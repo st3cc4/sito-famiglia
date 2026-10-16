@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sito Famiglia</title>    
-    <!-- Link al Manifest per PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4A90E2">
     <link rel="apple-touch-icon" href="icone/icona_famiglia_192x192.png">
-
-    <!-- CSS Principale -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -42,7 +39,6 @@
 
     <!-- Struttura App Principale -->
     <div id="app-container" class="app-container hidden">
-        <!-- Header / Barra di Navigazione -->
         <header class="app-header">
             <button id="btn-toggle-menu" class="menu-btn" aria-label="Apri Menu">&#9776;</button>
             <h1 id="header-title">Sito Famiglia</h1>
@@ -58,12 +54,7 @@
                 <button id="btn-close-menu" class="close-btn">&times;</button>
             </div>
 
-            <!-- Card Profilo Utente Corrente con colore personalizzato -->
-            <div id="sidebar-user-card" class="sidebar-user-card">
-                <span id="sidebar-user-name">Paolo</span>
-                <span id="sidebar-user-role" class="role-badge">(Admin)</span>
-            </div>
-
+            <!-- Navigazione -->
             <nav class="sidebar-nav">
                 <ul>
                     <li id="nav-item-impegni"><a href="#" data-section="impegni" class="nav-link active"><img src="icone/icona-impegni.png" alt="" class="nav-icon"> Impegni</a></li>
@@ -73,22 +64,26 @@
                 </ul>
             </nav>
 
-            <!-- Pulsanti di gestione in fondo alla Sidebar -->
-            <div class="sidebar-footer">
+            <!-- Pulsanti di gestione nel corpo centrale della sidebar -->
+            <div class="sidebar-middle">
                 <button id="btn-admin-panel" class="sidebar-action-btn admin-btn hidden">⚙️ Gestione Utenti (Admin)</button>
                 <button id="btn-change-password" class="sidebar-action-btn">🔑 Cambia Password</button>
                 <button id="btn-change-color" class="sidebar-action-btn">🎨 Cambia Colore</button>
-                <button id="btn-logout" class="logout-btn">Esci / Disconnetti</button>
+            </div>
+
+            <!-- Card Profilo Utente in fondo alla Sidebar (con colore personalizzato e logout integrato) -->
+            <div id="sidebar-user-card" class="sidebar-user-card" title="Clicca per uscire">
+                <div class="user-info-text">
+                    <span id="sidebar-user-name">Paolo</span>
+                    <span id="sidebar-user-role" class="role-badge">(Admin)</span>
+                </div>
+                <span class="logout-icon">🚪 Esci</span>
             </div>
         </aside>
 
-        <!-- Overlay per chiudere la sidebar -->
         <div id="overlay" class="overlay"></div>
 
-        <!-- Contenuto Principale -->
         <main class="main-content">
-
-            <!-- Sezione Impegni -->
             <section id="section-impegni" class="app-section active">
                 <div class="section-header">
                     <h2>📅 Appuntamenti e Impegni</h2>
@@ -97,7 +92,6 @@
                 <div id="container-impegni" class="cards-grid"></div>
             </section>
 
-            <!-- Sezione Scadenze -->
             <section id="section-scadenze" class="app-section">
                 <div class="section-header">
                     <h2>⏰ Scadenze</h2>
@@ -106,7 +100,6 @@
                 <div id="container-scadenze" class="cards-grid"></div>
             </section>
 
-            <!-- Sezione Ricette -->
             <section id="section-ricette" class="app-section">
                 <div class="section-header">
                     <h2>🍳 Le Nostre Ricette</h2>
@@ -115,7 +108,6 @@
                 <div id="container-ricette" class="cards-grid"></div>
             </section>
 
-            <!-- Sezione Foto e Video -->
             <section id="section-media" class="app-section">
                 <div class="section-header">
                     <h2>🖼️ Foto e Video</h2>
@@ -123,10 +115,9 @@
                 </div>
                 <div id="container-media" class="cards-grid"></div>
             </section>
-
         </main>
 
-        <!-- Modale Cambia Password Utente -->
+        <!-- Modali -->
         <div id="modal-password" class="modal">
             <div class="modal-content">
                 <h3>Cambia Password</h3>
@@ -143,7 +134,6 @@
             </div>
         </div>
 
-        <!-- Modale Cambia Colore Utente -->
         <div id="modal-colore" class="modal">
             <div class="modal-content">
                 <h3>Scegli Colore Personale</h3>
@@ -160,12 +150,10 @@
             </div>
         </div>
 
-        <!-- Modale Gestione Utenti e Permessi (SOLO ADMIN) -->
+        <!-- Modale Gestione Utenti e Permessi (ADMIN) -->
         <div id="modal-admin" class="modal">
             <div class="modal-content modal-large">
                 <h3>⚙️ Gestione Utenti e Permessi</h3>
-                
-                <!-- Form per Aggiungere o Modificare Utente -->
                 <form id="form-admin-user" class="app-form" style="margin-bottom: 20px;">
                     <input type="hidden" id="admin-user-id" value="">
                     <div class="form-row">
@@ -209,9 +197,7 @@
                 <hr style="margin: 15px 0;">
 
                 <h4>Elenco Utenti Registrati</h4>
-                <div id="admin-users-list" class="admin-users-list">
-                    <!-- Tabella o lista utenti con opzioni Modifica/Elimina -->
-                </div>
+                <div id="admin-users-list" class="admin-users-list"></div>
 
                 <div class="form-actions" style="margin-top: 20px;">
                     <button type="button" id="btn-close-modal-admin" class="cancel-btn" style="width: 100%;">Chiudi</button>
@@ -219,7 +205,7 @@
             </div>
         </div>
 
-        <!-- Modal Nuovo Impegno -->
+        <!-- Altre Modali Inserimento -->
         <div id="modal-impegno" class="modal">
             <div class="modal-content">
                 <h3>Aggiungi Nuovo Impegno</h3>
@@ -250,7 +236,6 @@
             </div>
         </div>
 
-        <!-- Modal Nuova Scadenza -->
         <div id="modal-scadenza" class="modal">
             <div class="modal-content">
                 <h3>Aggiungi Nuova Scadenza</h3>
@@ -275,7 +260,6 @@
             </div>
         </div>
 
-        <!-- Modal Nuova Ricetta -->
         <div id="modal-ricetta" class="modal">
             <div class="modal-content">
                 <h3>Aggiungi Nuova Ricetta</h3>
@@ -303,19 +287,15 @@
                 </form>
             </div>
         </div>
-
     </div>
 
-    <!-- Script Principali JS (Module) -->
     <script type="module" src="js/app.js"></script>
-
-    <!-- Registrazione Service Worker per PWA -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker registrato con successo:', reg.scope))
-                    .catch(err => console.error('Registrazione Service Worker fallita:', err));
+                    .then(reg => console.log('Service Worker registrato:', reg.scope))
+                    .catch(err => console.error('Service Worker fallito:', err));
             });
         }
     </script>
