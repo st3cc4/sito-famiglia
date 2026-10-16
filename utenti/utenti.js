@@ -42,10 +42,18 @@ export async function caricaUtenti() {
         utenti.forEach((u) => {
             const nomeUtente = u.nome || u.id;
             const ruoloDb = u.ruolo || 'membro';
-            // Prima lettera maiuscola per il ruolo (es. Membro o Admin)
             const ruoloUtente = ruoloDb.charAt(0).toUpperCase() + ruoloDb.slice(1);
             const coloreUtente = u.colore || '#3b82f6';
             const passwordUtente = u.password || 'Non impostata';
+            
+            // Permessi di default: se non specificati, vedono tutto
+            const permessi = u.permessi || { scadenze: true, impegni: true, media: true, ricette: true };
+            const etichettePermessi = [
+                permessi.scadenze ? 'Scadenze' : null,
+                permessi.impegni ? 'Impegni' : null,
+                permessi.media ? 'Foto/Video' : null,
+                permessi.ricette ? 'Ricette' : null
+            ].filter(Boolean).join(', ') || 'Nessuna sezione';
 
             const divUtente = document.createElement('div');
             divUtente.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0; border-left: 6px solid " + coloreUtente + "; flex-wrap: wrap; gap: 10px;";
@@ -60,6 +68,10 @@ export async function caricaUtenti() {
                         Password: <strong id="pwd-text-${u.id}">${escapeHtml(passwordUtente)}</strong>
                         ${isAdminCorrente() ? `<button class="btn-modifica-pwd-admin" data-id="${u.id}" style="background-color: #0284c7; color: white; border: none; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 600;">Modifica</button>` : ''}
                     </span>
+                    <span style="font-size: 0.85rem; color: #0f172a; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; border: 1px solid #cbd5e1;">
+                        Vede: <strong>${etichettePermessi}</strong>
+                        ${isAdminCorrente() ? `<button class="btn-modifica-permessi" data-id="${u.id}" style="background-color: #059669; color: white; border: none; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 600; margin-left: 6px;">Permessi</button>` : ''}
+                    </span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
                     ${puoEliminare ? `
@@ -71,7 +83,7 @@ export async function caricaUtenti() {
             listaUtentiContainer.appendChild(divUtente);
         });
 
-        // Gestione modifica password utente da parte dell'Admin
+        // Gestione modifica password
         document.querySelectorAll('.btn-modifica-pwd-admin').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const idUtente = btn.getAttribute('data-id');
@@ -90,7 +102,40 @@ export async function caricaUtenti() {
             });
         });
 
-        // Gestione eventi pulsante elimina utente con cestino rosso
+        // Gestione modifica permessi
+        document.querySelectorAll('.btn-modifica-permessi').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const idUtente = btn.getAttribute('data-id');
+                const utenteTrovato = utenti.find(x => x.id === idUtente);
+                if (!utenteTrovato) return;
+
+                const perm Correnti = utenteTrovato.permessi || { scadenze: true, impegni: true, media: true, ricette: true };
+
+                const vScadenze = confirm(`L'utente ${utenteTrovato.nome} può vedere le SCADENZE?\nOK = Sì | Annulla = No`);
+                const vImpegni = confirm(`L'utente ${utenteTrovato.nome} può vedere gli IMPEGNI?\nOK = Sì | Annulla = No`);
+                const vMedia = confirm(`L'utente ${utenteTrovato.nome} può vedere FOTO e VIDEO?\nOK = Sì | Annulla = No`);
+                const vRicette = confirm(`L'utente ${utenteTrovato.nome} può vedere le RICETTE?\nOK = Sì | Annulla = No`);
+
+                try {
+                    const userRef = doc(db, "utenti", idUtente);
+                    await updateDoc(userRef, {
+                        permessi: {
+                            scadenze: vScadenze,
+                            impegni: vImpegni,
+                            media: vMedia,
+                            ricette: vRicette
+                        }
+                    });
+                    alert("Permessi aggiornati con successo!");
+                    await caricaUtenti();
+                } catch (err) {
+                    console.error("Errore aggiornamento permessi:", err);
+                    alert("Errore durante l'aggiornamento dei permessi.");
+                }
+            });
+        });
+
+        // Gestione eliminazione utente
         document.querySelectorAll('.btn-elimina-utente').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const idUtente = btn.getAttribute('data-id');
@@ -110,7 +155,7 @@ export async function caricaUtenti() {
         console.error("Errore nel caricamento degli utenti:", err);
     }
 
-    // Gestione salvataggio nuovo utente
+    // Gestione salvataggio nuovo utente (con permessi predefiniti attivi)
     if (formNuovoUtente && !formNuovoUtente.dataset.listenerAggiunto) {
         formNuovoUtente.dataset.listenerAggiunto = "true";
         formNuovoUtente.addEventListener('submit', async (e) => {
@@ -133,7 +178,13 @@ export async function caricaUtenti() {
                     nome: nome,
                     password: password,
                     ruolo: ruolo,
-                    colore: "#3b82f6"
+                    colore: "#3b82f6",
+                    permessi: {
+                        scadenze: true,
+                        impegni: true,
+                        media: true,
+                        ricette: true
+                    }
                 });
 
                 formNuovoUtente.reset();
