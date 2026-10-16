@@ -65,30 +65,30 @@
                 <button id="btn-close-menu" class="close-btn">&times;</button>
             </div>
 
-            <!-- VOCI DI NAVIGAZIONE CON ICONE REALI -->
+            <!-- VOCI DI NAVIGAZIONE CON ICONE EMOJI SICURE -->
             <nav class="sidebar-nav">
                 <ul>
                     <li id="nav-item-impegni">
                         <a href="#" class="nav-link active" data-section="impegni">
-                            <img src="icone/impegni.png" alt="Impegni" class="nav-icon">
+                            <span class="nav-emoji">📅</span>
                             <span>Impegni</span>
                         </a>
                     </li>
                     <li id="nav-item-scadenze">
                         <a href="#" class="nav-link" data-section="scadenze">
-                            <img src="icone/scadenze.png" alt="Scadenze" class="nav-icon">
+                            <span class="nav-emoji">⏰</span>
                             <span>Scadenze</span>
                         </a>
                     </li>
                     <li id="nav-item-ricette">
                         <a href="#" class="nav-link" data-section="ricette">
-                            <img src="icone/ricette.png" alt="Ricette" class="nav-icon">
+                            <span class="nav-emoji">🍳</span>
                             <span>Ricette</span>
                         </a>
                     </li>
                     <li id="nav-item-media">
                         <a href="#" class="nav-link" data-section="media">
-                            <img src="icone/media.png" alt="Foto e Video" class="nav-icon">
+                            <span class="nav-emoji">🖼️</span>
                             <span>Foto e Video</span>
                         </a>
                     </li>
@@ -102,7 +102,7 @@
                 <button id="btn-change-color" class="sidebar-action-btn">🎨 Cambia Colore</button>
             </div>
 
-            <!-- CARD UTENTE IN FONDO ALLA SIDEBAR (Senza pulsante Esci) -->
+            <!-- CARD UTENTE IN FONDO ALLA SIDEBAR -->
             <div id="sidebar-user-card" class="sidebar-user-card" title="Clicca per uscire dall'applicazione">
                 <div class="user-info-text">
                     <span id="sidebar-user-name">Paolo</span>
@@ -287,7 +287,6 @@
         <div class="modal-content modal-large">
             <h3>Gestione Utenti (Admin)</h3>
             
-            <!-- FORM CREAZIONE / MODIFICA UTENTE -->
             <form id="form-admin-user" class="app-form">
                 <input type="hidden" id="admin-user-id">
 
@@ -316,7 +315,6 @@
                     </div>
                 </div>
 
-                <!-- PERMESSI SEZIONI -->
                 <div class="form-group">
                     <label>Sezioni Visibili:</label>
                     <div class="checkbox-grid">
