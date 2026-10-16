@@ -8,6 +8,7 @@ import { db } from "./firebase-config.js";
 export let nomeUtenteCorrente = null;
 export let ruoloUtenteCorrente = null;
 export let idUtenteCorrenteId = null;
+export let permessiUtenteCorrente = { scadenze: true, impegni: true, media: true, ricette: true };
 
 export function isAdminCorrente() {
     return ruoloUtenteCorrente === 'Admin';
@@ -41,13 +42,13 @@ export async function inizializzaAuth() {
     const pwdAttualeInput = document.getElementById('pwd-attuale');
     const pwdNuovaInput = document.getElementById('pwd-nuova');
 
-    // Controllo se c'è un utente salvato con "Ricordami"
+    // Controllo se c'è un utente salvato
     const utenteSalvato = localStorage.getItem('famiglia_utente_corrente') || sessionStorage.getItem('famiglia_utente_corrente');
     if (utenteSalvato) {
         await validaEImpostaUtente(utenteSalvato);
     }
 
-    // Gestione pulsante occhio per mostrare/nascondere la password nel login
+    // Toggle password
     if (btnTogglePassword && passwordInput) {
         const nuovoBtn = btnTogglePassword.cloneNode(true);
         btnTogglePassword.parentNode.replaceChild(nuovoBtn, btnTogglePassword);
@@ -63,7 +64,7 @@ export async function inizializzaAuth() {
         });
     }
 
-    // Gestione invio form di login
+    // Invio form login
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -109,7 +110,7 @@ export async function inizializzaAuth() {
         });
     }
 
-    // Gestione cambio colore utente (tramite click sul pulsante "Cambia Colore" o sul Badge)
+    // Gestione cambio colore utente
     if (pickerColoreUtente) {
         if (btnCambiaColore) {
             btnCambiaColore.addEventListener('click', () => {
@@ -136,7 +137,6 @@ export async function inizializzaAuth() {
                     currentUserBadge.style.color = isColorDark(nuovoColore) ? '#ffffff' : '#0f172a';
                 }
 
-                // Ricarichiamo la vista se siamo sulla Home o sugli impegni per aggiornare i badge colorati
                 if (window.caricaAppuntamenti) window.caricaAppuntamenti();
                 if (window.caricaRicette) window.caricaRicette();
             } catch (err) {
@@ -146,7 +146,7 @@ export async function inizializzaAuth() {
         });
     }
 
-    // Gestione Modale Cambio Password
+    // Modale Cambio Password
     if (btnApriModalPassword && modalPassword) {
         btnApriModalPassword.addEventListener('click', () => {
             modalPassword.style.display = 'flex';
@@ -195,7 +195,6 @@ export async function inizializzaAuth() {
         });
     }
 
-    // Password dimenticata
     if (linkPasswordDimenticata) {
         linkPasswordDimenticata.addEventListener('click', (e) => {
             e.preventDefault();
@@ -203,7 +202,7 @@ export async function inizializzaAuth() {
         });
     }
 
-    // Funzione di Logout unificata
+    // Logout
     const esciDallAccount = () => {
         localStorage.removeItem('famiglia_utente_corrente');
         sessionStorage.removeItem('famiglia_utente_corrente');
@@ -215,12 +214,8 @@ export async function inizializzaAuth() {
         if (loginForm) loginForm.reset();
     };
 
-    if (btnCambiaUtente) {
-        btnCambiaUtente.addEventListener('click', esciDallAccount);
-    }
-    if (btnHomeEsci) {
-        btnHomeEsci.addEventListener('click', esciDallAccount);
-    }
+    if (btnCambiaUtente) btnCambiaUtente.addEventListener('click', esciDallAccount);
+    if (btnHomeEsci) btnHomeEsci.addEventListener('click', esciDallAccount);
 
     async function validaEImpostaUtente(username) {
         try {
@@ -236,6 +231,9 @@ export async function inizializzaAuth() {
                 nomeUtenteCorrente = data.nome || userSnap.id;
                 const ruoloDb = (userSnap.id.toLowerCase() === 'paolo' || data.ruolo === 'admin') ? 'Admin' : 'Membro';
                 ruoloUtenteCorrente = ruoloDb;
+
+                // Carichiamo i permessi (default: tutto abilitato)
+                permessiUtenteCorrente = data.permessi || { scadenze: true, impegni: true, media: true, ricette: true };
 
                 if (authScreen) authScreen.style.display = 'none';
                 if (appContainer) appContainer.style.display = 'flex';
@@ -259,6 +257,10 @@ export async function inizializzaAuth() {
                 if (formNuovoUtenteContainer) {
                     formNuovoUtenteContainer.style.display = isAdminCorrente() ? 'block' : 'none';
                 }
+
+                // Applichiamo la visibilità delle sezioni sia nella Sidebar che nella Home
+                applicaVisibilitaPermessi();
+
             } else {
                 localStorage.removeItem('famiglia_utente_corrente');
                 sessionStorage.removeItem('famiglia_utente_corrente');
@@ -269,7 +271,32 @@ export async function inizializzaAuth() {
     }
 }
 
-// Funzione di supporto per determinare se il colore di sfondo è scuro
+function applicaVisibilitaPermessi() {
+    const p = permessiUtenteCorrente;
+
+    // Mappa sezioni e selettori
+    const sezioniMappa = [
+        { target: 'scadenze-section', visibile: p.scadenze },
+        { target: 'impegni-section', visibile: p.impegni },
+        { target: 'media-section', visibile: p.media },
+        { target: 'ricette-section', visibile: p.ricette }
+    ];
+
+    sezioniMappa.forEach(item => {
+        // Pulsanti nella sidebar
+        const btnSidebar = document.querySelector(`.nav-btn[data-target="${item.target}"]`);
+        if (btnSidebar) {
+            btnSidebar.style.display = item.visibile ? 'flex' : 'none';
+        }
+
+        // Riquadri nella Home
+        const cardHome = document.querySelector(`.clickable-card[data-target="${item.target}"]`);
+        if (cardHome) {
+            cardHome.style.display = item.visibile ? 'block' : 'none';
+        }
+    });
+}
+
 function isColorDark(hexColor) {
     let color = hexColor.replace('#', '');
     if (color.length === 3) {
