@@ -1,58 +1,95 @@
-/* css/sidebar.css - Stili per il Menu Laterale e la Card Utente */
+/* css/sidebar.css - Stili della Sidebar e Navigazione */
 
+/* CONTENITORE SIDEBAR */
 .sidebar {
     position: fixed;
     top: 0;
-    left: -300px;
-    width: 300px;
-    height: 100%;
-    background-color: var(--card-bg);
-    box-shadow: var(--shadow);
-    z-index: 200;
-    transition: left 0.3s ease;
+    left: -280px;
+    width: 280px;
+    height: 100vh;
+    background-color: #ffffff;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    transition: left 0.3s ease-in-out;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
+    overflow-y: auto;
 }
 
 .sidebar.open {
     left: 0;
 }
 
+/* HEADER SIDEBAR */
 .sidebar-header {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border-color);
+    align-items: center;
+    padding: 18px 20px;
+    border-bottom: 1px solid #eef0f3;
+}
+
+.sidebar-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #2c3e50;
+    font-weight: 700;
 }
 
 .close-btn {
     background: none;
     border: none;
-    font-size: 28px;
-    color: var(--text-muted);
+    font-size: 1.8rem;
     cursor: pointer;
+    color: #7f8c8d;
+    line-height: 1;
+    padding: 0;
+    transition: color 0.2s;
 }
 
+.close-btn:hover {
+    color: #e74c3c;
+}
+
+/* VOCI DI NAVIGAZIONE */
 .sidebar-nav {
     flex: 1;
-    padding: 10px 0;
-    overflow-y: auto;
+    padding: 15px 10px;
 }
 
 .sidebar-nav ul {
     list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
-.sidebar-nav li a {
+.sidebar-nav li {
+    margin-bottom: 6px;
+}
+
+.nav-link {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px 24px;
-    color: var(--text-color);
+    padding: 12px 15px;
+    color: #34495e;
     text-decoration: none;
     font-weight: 500;
-    transition: background-color 0.2s;
+    font-size: 0.95rem;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    background-color: #f4f6f8;
+    color: #1a73e8;
+}
+
+.nav-link.active {
+    background-color: #e8f0fe;
+    color: #1a73e8;
+    font-weight: 600;
 }
 
 .nav-icon {
@@ -61,83 +98,83 @@
     object-fit: contain;
 }
 
-.sidebar-nav li a:hover,
-.sidebar-nav li a.active {
-    background-color: rgba(74, 144, 226, 0.1);
-    color: var(--primary-color);
-    border-left: 4px solid var(--primary-color);
-}
-
-/* Pulsanti centrali nella Sidebar */
+/* PULSANTI AZIONI CENTRALI E BASSU */
 .sidebar-middle {
-    padding: 10px 16px;
+    padding: 10px 15px;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid #eef0f3;
 }
 
 .sidebar-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
     width: 100%;
-    padding: 10px;
-    background-color: var(--bg-color);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    padding: 10px 14px;
+    background-color: #f8f9fa;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    color: #2d3748;
+    font-size: 0.9rem;
+    font-weight: 500;
     cursor: pointer;
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: var(--text-color);
+    transition: all 0.2s ease;
     text-align: left;
-    transition: background-color 0.2s;
 }
 
 .sidebar-action-btn:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: #edf2f7;
+    border-color: #cbd5e0;
 }
 
-.admin-btn {
-    background-color: #EBF3FE;
-    border-color: #B2D4FF;
-    color: var(--primary-dark);
+.sidebar-action-btn.admin-btn {
+    background-color: #fffaf0;
+    border-color: #feebc8;
+    color: #dd6b20;
 }
 
-/* Card Utente in fondo alla Sidebar (Sfondo dinamico e tasto esci) */
+.sidebar-action-btn.admin-btn:hover {
+    background-color: #feebc8;
+}
+
+.sidebar-action-btn.hidden {
+    display: none !important;
+}
+
+/* CARD UTENTE IN FONDO ALLA SIDEBAR (Stile uguale ai pulsanti sopra) */
 .sidebar-user-card {
-    padding: 16px 20px;
-    background-color: var(--primary-color);
-    color: white;
-    font-weight: 600;
+    margin: 10px 15px 15px 15px;
+    padding: 10px 14px;
+    background-color: #f8f9fa;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     cursor: pointer;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-    transition: opacity 0.2s;
+    transition: all 0.2s ease;
 }
 
 .sidebar-user-card:hover {
-    opacity: 0.92;
+    background-color: #edf2f7;
+    border-color: #cbd5e0;
 }
 
 .user-info-text {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-#sidebar-user-name {
-    font-size: 1.05rem;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #2d3748;
+    white-space: nowrap;
 }
 
 .role-badge {
-    font-size: 0.8rem;
-    opacity: 0.85;
-    font-weight: 400;
-}
-
-.logout-icon {
-    font-size: 0.9rem;
-    background-color: rgba(0, 0, 0, 0.2);
-    padding: 6px 10px;
-    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #718096;
 }
