@@ -1,390 +1,169 @@
-/* Stili Globali e Layout Principale */
+/* Reset e impostazioni di base */
 * {
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-    background-color: #f1f5f9;
+    background-color: #f0f4f8;
     color: #1e293b;
-    min-height: 100vh;
-}
-
-/* Auth Screen */
-.auth-container {
     display: flex;
-    justify-content: center;
-    align-items: center;
     height: 100vh;
-    background: linear-gradient(135deg, #3b82f6 0%, #1e293b 100%);
+    overflow: hidden;
 }
 
-.auth-card {
-    background: #ffffff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
-    text-align: center;
-}
-
-.auth-card h2 {
-    margin-bottom: 10px;
-    color: #0f172a;
-}
-
-.auth-card p {
-    color: #64748b;
-    margin-bottom: 20px;
-}
-
-/* Layout App con Sidebar Retrattile (Icone vs Aperta) */
-.app-layout {
+/* Layout principale */
+.app-container {
     display: flex;
-    min-height: 100vh;
-    position: relative;
+    width: 100vw;
+    height: 100vh;
 }
 
-/* Sidebar: di default chiusa (mostra solo le icone, larghezza ridotta) */
+/* Sidebar / Menu laterale */
 .sidebar {
     width: 260px;
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-    border-right: 1px solid #334155;
+    background-color: #0f172a;
+    color: #ffffff;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 15px 12px;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 150;
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
     transition: width 0.3s ease;
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Quando è chiusa, la sidebar si stringe mostrando solo le emoji/icone */
-.sidebar.closed {
-    width: 76px;
+.sidebar-header {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-bottom: 1px solid #1e293b;
 }
 
-.sidebar-header-row {
+.sidebar-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.btn-toggle {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 20px 0;
+    flex-grow: 1;
+}
+
+.sidebar-menu li {
+    margin-bottom: 5px;
+}
+
+.sidebar-menu li a {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #334155;
-    margin-bottom: 15px;
-}
-
-.hamburger-btn {
-    background: #334155;
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    width: 42px;
-    height: 42px;
-    font-size: 1.3rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: background 0.2s ease;
-}
-
-.hamburger-btn:hover {
-    background: #475569;
-}
-
-.sidebar-title {
-    font-size: 1.15rem;
-    color: #f8fafc;
-    white-space: nowrap;
-    overflow: hidden;
-    transition: opacity 0.2s ease;
-}
-
-/* Se la sidebar è chiusa, nascondiamo i testi delle sezioni e il titolo dell'app */
-.sidebar.closed .sidebar-title,
-.sidebar.closed .nav-text,
-.sidebar.closed .user-badge,
-.sidebar.closed .btn-sidebar-azione,
-.sidebar.closed .btn-sidebar-esci {
-    display: none;
-}
-
-.sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex: 1;
-    overflow-y: auto;
-}
-
-.sidebar-nav .nav-btn {
-    background: transparent;
-    border: none;
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    font-weight: 600;
+    padding: 12px 20px;
     color: #94a3b8;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 14px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
     transition: all 0.2s ease;
-    text-align: left;
-    width: 100%;
-    white-space: nowrap;
 }
 
-.sidebar-nav .nav-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
+/* Stile e dimensionamento delle icone nella barra laterale */
+.nav-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+}
+
+.sidebar-menu li a:hover,
+.sidebar-menu li a.active {
+    background-color: #1e293b;
     color: #ffffff;
+    border-left: 4px solid #3b82f6;
 }
 
-.sidebar-nav .nav-btn.active {
-    background: #3b82f6;
-    color: #ffffff;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.nav-emoji {
-    font-size: 1.25rem;
-    min-width: 24px;
-    text-align: center;
-    flex-shrink: 0;
-}
-
+/* Footer della Sidebar */
 .sidebar-footer {
-    border-top: 1px solid #334155;
-    padding-top: 12px;
-}
-
-.user-badge {
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    display: block;
-    text-align: center;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    transition: transform 0.1s ease, filter 0.2s ease;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.user-badge:hover {
-    transform: scale(1.02);
-    filter: brightness(1.05);
-}
-
-/* Pulsanti personalizzati nella sidebar con colore */
-.btn-sidebar-azione {
-    background: #3b82f6;
-    color: #ffffff;
-    border: none;
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    width: 100%;
-    text-align: center;
-    transition: background 0.2s ease, transform 0.1s ease;
-    box-shadow: 0 2px 5px rgba(59, 130, 246, 0.3);
-}
-
-.btn-sidebar-azione:hover {
-    background: #2563eb;
-    transform: translateY(-1px);
-}
-
-.btn-sidebar-esci {
-    background: #ef4444;
-    color: #ffffff;
-    border: none;
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    width: 100%;
-    text-align: center;
-    transition: background 0.2s ease, transform 0.1s ease;
-    box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
-}
-
-.btn-sidebar-esci:hover {
-    background: #dc2626;
-    transform: translateY(-1px);
-}
-
-/* Area Contenuti Principale (Si adatta dinamicamente alla larghezza della sidebar) */
-.main-content-area {
-    margin-left: 76px; /* Spazio quando la sidebar è chiusa a icone */
-    padding: 30px;
-    flex: 1;
-    max-width: 1200px;
-    transition: margin-left 0.3s ease;
-}
-
-/* Quando la sidebar è aperta, spingiamo leggermente i contenuti */
-.app-layout:not(:has(.sidebar.closed)) .main-content-area {
-    margin-left: 260px;
-}
-
-.section {
-    display: none;
-}
-
-.section.active {
-    display: block;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-}
-
-/* Home Stack: Schede messe una sopra l'altra */
-.home-stack {
+    padding: 20px;
+    border-top: 1px solid #1e293b;
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    margin-top: 20px;
+    gap: 10px;
 }
 
-.card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 22px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.clickable-card {
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.clickable-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
-    border-color: #3b82f6;
-}
-
-.card h3 {
-    margin-bottom: 15px;
-    font-size: 1.15rem;
-    color: #0f172a;
-    border-bottom: 2px solid #f1f5f9;
-    padding-bottom: 8px;
-}
-
-/* Form & Modals */
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #475569;
-}
-
-.form-control {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #cbd5e1;
+.utente-box {
+    background-color: #1e293b;
+    padding: 10px;
     border-radius: 6px;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s ease;
+    font-size: 0.9rem;
+    text-align: center;
+    font-weight: 600;
+    color: #f8fafc;
 }
 
-.form-control:focus {
-    border-color: #3b82f6;
-}
-
-.btn-primary {
-    background: #3b82f6;
+.btn-footer {
+    background-color: #3b82f6;
     color: white;
     border: none;
-    padding: 10px 16px;
+    padding: 10px;
     border-radius: 6px;
-    font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-.btn-primary:hover {
-    background: #2563eb;
-}
-
-.btn-secondary {
-    background: #e2e8f0;
-    color: #334155;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 6px;
     font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s ease;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
 }
 
-.btn-secondary:hover {
-    background: #cbd5e1;
+.btn-footer:hover {
+    background-color: #2563eb;
 }
 
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+/* Contenuto Principale */
+.main-content {
+    flex-grow: 1;
+    padding: 30px;
+    overflow-y: auto;
+    background-color: #f8fafc;
 }
 
-.modal-content {
-    background: #ffffff;
-    padding: 25px;
-    border-radius: 12px;
-    width: 100%;
-    max-width: 500px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+.content-section {
+    display: none;
 }
 
-.modal-content h3 {
+.content-section.active {
+    display: block;
+}
+
+.content-section h2 {
+    font-size: 1.8rem;
     margin-bottom: 20px;
     color: #0f172a;
 }
 
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
+/* Griglie e Card generiche */
+.home-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
 }
 
-.text-muted {
-    color: #64748b;
-    font-size: 0.95rem;
-    font-style: italic;
+.home-card {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.home-card h3 {
+    margin-bottom: 15px;
+    color: #334155;
+    font-size: 1.1rem;
 }
