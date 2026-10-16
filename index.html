@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sito Famiglia</title>
     
-    <!-- Favicon per evitare l'errore 404 in console -->
+    <!-- Favicon -->
     <link rel="icon" href="favicon.ico">
 
     <!-- Fogli di stile CSS modulari -->
@@ -49,7 +49,7 @@
     <!-- CONTENITORE APPLICAZIONE -->
     <div id="app-container" class="app-container hidden">
 
-        <!-- HEADER PRINCIPALE (MODIFICATO CON HOME, SALUTO E PULSANTE ESCI) -->
+        <!-- HEADER PRINCIPALE -->
         <header class="app-header">
             <div class="header-left">
                 <button id="btn-toggle-menu" class="menu-btn" aria-label="Apri Menu">&#9776;</button>
@@ -75,11 +75,11 @@
                 <button id="btn-close-menu" class="close-btn">&times;</button>
             </div>
 
-            <!-- VOCI DI NAVIGAZIONE CON ICONE EMOJI -->
+            <!-- VOCI DI NAVIGAZIONE -->
             <nav class="sidebar-nav">
                 <ul>
                     <li id="nav-item-impegni">
-                        <a href="#" class="nav-link active" data-section="impegni">
+                        <a href="#" class="nav-link" data-section="impegni">
                             <span class="nav-emoji">📅</span>
                             <span>Impegni</span>
                         </a>
@@ -124,15 +124,23 @@
         <!-- CONTENUTO DELLE SEZIONI -->
         <main class="main-content">
 
+            <!-- SEZIONE 0: HOME (RIEPILOGO SCADENZE INTELLIGENTE) -->
+            <section id="section-home" class="app-section active">
+                <div class="section-header">
+                    <h2>Scadenze in Primo Piano</h2>
+                </div>
+                <div id="container-home-scadenze" class="cards-grid">
+                    <!-- Scadenze filtrate inserite dinamicamente -->
+                </div>
+            </section>
+
             <!-- SEZIONE 1: IMPEGNI / APPUNTAMENTI -->
-            <section id="section-impegni" class="app-section active">
+            <section id="section-impegni" class="app-section">
                 <div class="section-header">
                     <h2>I tuoi Appuntamenti</h2>
                     <button id="btn-add-impegno" class="add-btn">+ Nuovo Impegno</button>
                 </div>
-                <div id="container-impegni" class="cards-grid">
-                    <!-- Card impegni da Firestore -->
-                </div>
+                <div id="container-impegni" class="cards-grid"></div>
             </section>
 
             <!-- SEZIONE 2: SCADENZE -->
@@ -141,9 +149,7 @@
                     <h2>Le tue Scadenze</h2>
                     <button id="btn-add-scadenza" class="add-btn">+ Nuova Scadenza</button>
                 </div>
-                <div id="container-scadenze" class="cards-grid">
-                    <!-- Card scadenze da Firestore -->
-                </div>
+                <div id="container-scadenze" class="cards-grid"></div>
             </section>
 
             <!-- SEZIONE 3: RICETTE -->
@@ -152,9 +158,7 @@
                     <h2>Ricette di Famiglia</h2>
                     <button id="btn-add-ricetta" class="add-btn">+ Nuova Ricetta</button>
                 </div>
-                <div id="container-ricette" class="cards-grid">
-                    <!-- Card ricette da Firestore -->
-                </div>
+                <div id="container-ricette" class="cards-grid"></div>
             </section>
 
             <!-- SEZIONE 4: FOTO E VIDEO -->
@@ -163,9 +167,7 @@
                     <h2>Galleria Foto e Video</h2>
                     <button id="btn-add-media" class="add-btn">+ Carica File</button>
                 </div>
-                <div id="container-media" class="cards-grid">
-                    <!-- Card media da Firestore -->
-                </div>
+                <div id="container-media" class="cards-grid"></div>
             </section>
 
         </main>
@@ -173,7 +175,6 @@
 
     <!-- MODALI / POP-UP -->
 
-    <!-- MODALE 1: NUOVO IMPEGNO -->
     <div id="modal-impegno" class="modal">
         <div class="modal-content">
             <h3>Nuovo Impegno</h3>
@@ -204,7 +205,6 @@
         </div>
     </div>
 
-    <!-- MODALE 2: NUOVA SCADENZA -->
     <div id="modal-scadenza" class="modal">
         <div class="modal-content">
             <h3>Nuova Scadenza</h3>
@@ -229,7 +229,6 @@
         </div>
     </div>
 
-    <!-- MODALE 3: NUOVA RICETTA -->
     <div id="modal-ricetta" class="modal">
         <div class="modal-content">
             <h3>Nuova Ricetta</h3>
@@ -258,7 +257,6 @@
         </div>
     </div>
 
-    <!-- MODALE 4: CAMBIO PASSWORD -->
     <div id="modal-password" class="modal">
         <div class="modal-content">
             <h3>Cambia Password</h3>
@@ -275,7 +273,6 @@
         </div>
     </div>
 
-    <!-- MODALE 5: CAMBIO COLORE UTENTE -->
     <div id="modal-colore" class="modal">
         <div class="modal-content">
             <h3>Scegli Colore Personale</h3>
@@ -292,11 +289,9 @@
         </div>
     </div>
 
-    <!-- MODALE 6: GESTIONE UTENTI ADMIN -->
     <div id="modal-admin" class="modal">
         <div class="modal-content modal-large">
             <h3>Gestione Utenti (Admin)</h3>
-            
             <form id="form-admin-user" class="app-form">
                 <input type="hidden" id="admin-user-id">
 
@@ -344,9 +339,7 @@
             <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
 
             <h4>Utenti Registrati</h4>
-            <div id="admin-users-list" class="admin-users-list" style="margin-top: 10px;">
-                <!-- Lista utenti da Firestore -->
-            </div>
+            <div id="admin-users-list" class="admin-users-list" style="margin-top: 10px;"></div>
 
             <div class="form-actions" style="margin-top: 20px;">
                 <button type="button" id="btn-close-modal-admin" class="cancel-btn" style="width: 100%;">Chiudi Pannello Admin</button>
