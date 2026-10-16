@@ -92,10 +92,9 @@
     font-weight: 600;
 }
 
-.nav-icon {
-    width: 22px;
-    height: 22px;
-    object-fit: contain;
+.nav-emoji {
+    font-size: 1.2rem;
+    line-height: 1;
 }
 
 /* PULSANTI AZIONI CENTRALI E BASSU */
@@ -144,23 +143,22 @@
     display: none !important;
 }
 
-/* CARD UTENTE IN FONDO ALLA SIDEBAR (Stile uguale ai pulsanti sopra) */
+/* CARD UTENTE IN FONDO ALLA SIDEBAR (Gestione Colore e Contrasto Automatico) */
 .sidebar-user-card {
     margin: 10px 15px 15px 15px;
-    padding: 10px 14px;
-    background-color: #f8f9fa;
-    border: 1px solid #e2e8f0;
+    padding: 12px 14px;
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
     cursor: pointer;
     transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .sidebar-user-card:hover {
-    background-color: #edf2f7;
-    border-color: #cbd5e0;
+    opacity: 0.92;
+    transform: translateY(-1px);
 }
 
 .user-info-text {
@@ -169,12 +167,11 @@
     gap: 6px;
     font-size: 0.95rem;
     font-weight: 600;
-    color: #2d3748;
     white-space: nowrap;
 }
 
 .role-badge {
     font-size: 0.85rem;
     font-weight: 500;
-    color: #718096;
+    opacity: 0.85;
 }
