@@ -43,41 +43,16 @@ function inizializzaNavigazione() {
     });
 }
 
-// Gestione dell'apertura e chiusura della barra laterale
+// Gestione dell'apertura e chiusura della barra laterale tramite il tasto ☰ interno
 function inizializzaSidebarToggle() {
     const sidebar = document.querySelector('.sidebar');
     const sidebarToggle = document.getElementById('sidebar-toggle');
-    const sidebarToggleMain = document.getElementById('sidebar-toggle-main');
 
-    if (!sidebar) return;
+    if (!sidebar || !sidebarToggle) return;
 
-    // Funzione per chiudere la sidebar
-    const chiudiSidebar = () => {
-        sidebar.classList.add('closed');
-    };
-
-    // Funzione per aprire la sidebar
-    const apriSidebar = () => {
-        sidebar.classList.remove('closed');
-    };
-
-    // Pulsante "X" dentro la sidebar per chiuderla
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', () => {
-            chiudiSidebar();
-        });
-    }
-
-    // Pulsante "☰" nella testata principale per aprirla/chiuderla
-    if (sidebarToggleMain) {
-        sidebarToggleMain.addEventListener('click', () => {
-            if (sidebar.classList.contains('closed')) {
-                apriSidebar();
-            } else {
-                chiudiSidebar();
-            }
-        });
-    }
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('closed');
+    });
 }
 
 // Caricamento dei riepiloghi nella Home
