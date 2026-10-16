@@ -1,7 +1,7 @@
 // js/admin.js - Gestione Pannello Amministratore e Permessi Utenti
 
 import { db } from "./firebase-config.js";
-import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const btnAdminPanel = document.getElementById('btn-admin-panel');
 const modalAdmin = document.getElementById('modal-admin');
