@@ -105,6 +105,91 @@
         </div>
     </div>
 
+    <!-- Modal Nuovo Impegno -->
+    <div id="modal-impegno" class="modal">
+        <div class="modal-content">
+            <h3>Aggiungi Nuovo Impegno</h3>
+            <form id="form-impegno" class="app-form">
+                <div class="form-group">
+                    <label for="impegno-titolo">Titolo</label>
+                    <input type="text" id="impegno-titolo" required placeholder="Es. Visita medica">
+                </div>
+                <div class="form-group">
+                    <label for="impegno-data">Data</label>
+                    <input type="date" id="impegno-data" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="impegno-ora-inizio">Ora Inizio</label>
+                        <input type="time" id="impegno-ora-inizio" value="00:00">
+                    </div>
+                    <div class="form-group">
+                        <label for="impegno-ora-fine">Ora Fine</label>
+                        <input type="time" id="impegno-ora-fine" value="00:00">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="btn-close-modal-impegno" class="cancel-btn">Annulla</button>
+                    <button type="submit" class="save-btn">Salva Impegno</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Nuova Scadenza -->
+    <div id="modal-scadenza" class="modal">
+        <div class="modal-content">
+            <h3>Aggiungi Nuova Scadenza</h3>
+            <form id="form-scadenza" class="app-form">
+                <div class="form-group">
+                    <label for="scadenza-titolo">Titolo / Descrizione</label>
+                    <input type="text" id="scadenza-titolo" required placeholder="Es. Bolletta Luce">
+                </div>
+                <div class="form-group">
+                    <label for="scadenza-data">Data Scadenza</label>
+                    <input type="date" id="scadenza-data" required>
+                </div>
+                <div class="form-group">
+                    <label for="scadenza-importo">Importo (€)</label>
+                    <input type="number" id="scadenza-importo" step="0.01" placeholder="0.00">
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="btn-close-modal-scadenza" class="cancel-btn">Annulla</button>
+                    <button type="submit" class="save-btn">Salva Scadenza</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Nuova Ricetta -->
+    <div id="modal-ricetta" class="modal">
+        <div class="modal-content">
+            <h3>Aggiungi Nuova Ricetta</h3>
+            <form id="form-ricetta" class="app-form">
+                <div class="form-group">
+                    <label for="ricetta-nome">Nome Ricetta</label>
+                    <input type="text" id="ricetta-nome" required placeholder="Es. Tiramisù">
+                </div>
+                <div class="form-group">
+                    <label for="ricetta-ingredienti">Ingredienti (uno per riga)</label>
+                    <textarea id="ricetta-ingredienti" rows="4" placeholder="Mascarpone 500g&#10;Uova 4&#10;Zucchero 100g"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="ricetta-procedimento">Procedimento (uno step per riga)</label>
+                    <textarea id="ricetta-procedimento" rows="4" placeholder="Montare i tuorli con lo zucchero&#10;Aggiungere il mascarpone"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="ricetta-note">Note aggiuntive</label>
+                    <input type="text" id="ricetta-note" placeholder="Es. Conservare in frigo">
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="btn-close-modal-ricetta" class="cancel-btn">Annulla</button>
+                    <button type="submit" class="save-btn">Salva Ricetta</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Script Principali JS (Module) -->
     <script type="module" src="js/app.js"></script>
 
@@ -116,7 +201,3 @@
                     .then(reg => console.log('Service Worker registrato con successo:', reg.scope))
                     .catch(err => console.error('Registrazione Service Worker fallita:', err));
             });
-        }
-    </script>
-</body>
-</html>
