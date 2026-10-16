@@ -43,19 +43,39 @@ function inizializzaNavigazione() {
     });
 }
 
-// Gestione dell'apertura e chiusura della barra laterale (Sidebar)
+// Gestione dell'apertura e chiusura della barra laterale (Sidebar) con pulsante persistente
 function inizializzaSidebarToggle() {
-    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebar = document.querySelector('.sidebar');
     const appContainer = document.querySelector('.app-container');
+    const sidebarToggle = document.getElementById('sidebar-toggle');
 
-    if (sidebarToggle && appContainer) {
-        sidebarToggle.addEventListener('click', () => {
-            const sidebar = document.querySelector('.sidebar');
-            if (sidebar) {
-                sidebar.style.display = sidebar.style.display === 'none' ? 'flex' : 'none';
-            }
-        });
+    if (!sidebar || !appContainer) return;
+
+    // Crea un pulsante flottante per riaprire la sidebar quando è chiusa
+    let floatingBtn = document.getElementById('sidebar-toggle-floating');
+    if (!floatingBtn) {
+        floatingBtn = document.createElement('button');
+        floatingBtn.id = 'sidebar-toggle-floating';
+        floatingBtn.className = 'btn-toggle-floating';
+        floatingBtn.innerHTML = '☰';
+        floatingBtn.style.display = 'none'; // Inizialmente nascosto
+        appContainer.appendChild(floatingBtn);
     }
+
+    // Funzione per alternare lo stato della sidebar
+    const toggleSidebar = () => {
+        sidebar.classList.toggle('closed');
+        const isClosed = sidebar.classList.contains('closed');
+        
+        // Mostra o nascondi il pulsante flottante in base allo stato
+        floatingBtn.style.display = isClosed ? 'block' : 'none';
+    };
+
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
+    }
+
+    floatingBtn.addEventListener('click', toggleSidebar);
 }
 
 // Caricamento dei riepiloghi nella Home
