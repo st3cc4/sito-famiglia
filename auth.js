@@ -261,6 +261,13 @@ export async function inizializzaAuth() {
                 // Applichiamo la visibilità delle sezioni sia nella Sidebar che nella Home
                 applicaVisibilitaPermessi();
 
+                // Ricarichiamo esplicitamente i dati della Home all'accesso
+                if (window.caricaScadenze) window.caricaScadenze();
+                if (window.caricaAppuntamenti) window.caricaAppuntamenti();
+                if (window.caricaMedia) window.caricaMedia();
+                if (window.caricaRicette) window.caricaRicette();
+                if (window.caricaUtenti) window.caricaUtenti();
+
             } else {
                 localStorage.removeItem('famiglia_utente_corrente');
                 sessionStorage.removeItem('famiglia_utente_corrente');
