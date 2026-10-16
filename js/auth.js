@@ -15,12 +15,12 @@ const loginRemember = document.getElementById('login-remember');
 const loginError = document.getElementById('login-error');
 const btnTogglePassword = document.getElementById('btn-toggle-password');
 
-// Elementi Profilo e Sidebar
+// Elementi Profilo, Header e Sidebar
+const userGreeting = document.getElementById('user-greeting');
+const btnLogoutHeader = document.getElementById('btn-logout-header');
 const sidebarUserCard = document.getElementById('sidebar-user-card');
 const sidebarUserName = document.getElementById('sidebar-user-name');
 const sidebarUserRole = document.getElementById('sidebar-user-role');
-const userBadge = document.getElementById('user-badge');
-const userNameDisplay = document.getElementById('user-name-display');
 const btnAdminPanel = document.getElementById('btn-admin-panel');
 
 // Modali Profilo
@@ -38,7 +38,7 @@ let onLoginSuccessCallback = null;
 export function initAuth(onLoginSuccess) {
     onLoginSuccessCallback = onLoginSuccess;
 
-    // Mostra/Nascondi Password
+    // Mostra/Nascondi Password nel Form Login
     if (btnTogglePassword) {
         btnTogglePassword.addEventListener('click', () => {
             const isPassword = loginPassword.getAttribute('type') === 'password';
@@ -47,7 +47,7 @@ export function initAuth(onLoginSuccess) {
         });
     }
 
-    // Submit Login
+    // Submit Form Login
     if (formLogin) {
         formLogin.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -92,7 +92,16 @@ export function initAuth(onLoginSuccess) {
         });
     }
 
-    // Click sulla Card Utente per Logout
+    // Pulsante "Esci" nell'Header Principale
+    if (btnLogoutHeader) {
+        btnLogoutHeader.addEventListener('click', () => {
+            if (confirm("Vuoi uscire dall'applicazione?")) {
+                eseguiLogout();
+            }
+        });
+    }
+
+    // Click sulla Card Utente nella Sidebar per disconnessione alternativa
     if (sidebarUserCard) {
         sidebarUserCard.addEventListener('click', () => {
             if (confirm("Vuoi uscire / disconnetterti dall'applicazione?")) {
@@ -101,7 +110,7 @@ export function initAuth(onLoginSuccess) {
         });
     }
 
-    // Modali Password e Colore
+    // Gestione Modali Password e Colore
     if (btnChangePassword) {
         btnChangePassword.addEventListener('click', () => { modalPassword.classList.add('active'); });
     }
@@ -119,7 +128,7 @@ export function initAuth(onLoginSuccess) {
         btnCloseModalColore.addEventListener('click', () => modalColore.classList.remove('active'));
     }
 
-    // Salva Password
+    // Salva Nuova Password
     if (formPassword) {
         formPassword.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -142,7 +151,7 @@ export function initAuth(onLoginSuccess) {
         });
     }
 
-    // Salva Colore
+    // Salva Nuovo Colore
     if (formColore) {
         formColore.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -172,9 +181,10 @@ export function initAuth(onLoginSuccess) {
 function effettuaLogin(utente, ricorda) {
     utenteCorrente = utente;
 
-    userNameDisplay.textContent = utente.nome;
-    sidebarUserName.textContent = utente.nome;
-    sidebarUserRole.textContent = utente.ruolo === 'admin' ? '(Admin)' : '(Utente)';
+    // Aggiorna Saluto al centro dell'header e informazioni utente
+    if (userGreeting) userGreeting.textContent = `Ciao ${utente.nome}`;
+    if (sidebarUserName) sidebarUserName.textContent = utente.nome;
+    if (sidebarUserRole) sidebarUserRole.textContent = utente.ruolo === 'admin' ? '(Admin)' : '(Utente)';
 
     applicaColoreUtente(utente.colore);
 
@@ -198,14 +208,13 @@ function effettuaLogin(utente, ricorda) {
     }
 }
 
-// Funzione automatica che calcola se il colore è chiaro o scuro e sceglie il colore del testo
+// Funzione automatica per garantire leggibilità perfetta del testo in base al colore
 function calcolaColoreTestoContrastato(hexColor) {
     const hex = hexColor.replace('#', '');
     const r = parseInt(hex.substring(0, 2), 16) || 0;
     const g = parseInt(hex.substring(2, 4), 16) || 0;
     const b = parseInt(hex.substring(4, 6), 16) || 0;
     
-    // Formula della luminanza relativa per percezione visiva umana
     const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
     return (yiq >= 128) ? '#1a1a1a' : '#ffffff';
 }
@@ -221,11 +230,6 @@ function applicaColoreUtente(colore) {
     const userInfoText = document.querySelector('.user-info-text');
     if (userInfoText) {
         userInfoText.style.color = coloreTesto;
-    }
-
-    if (userBadge) {
-        userBadge.style.backgroundColor = colore;
-        userBadge.style.color = coloreTesto;
     }
 }
 
