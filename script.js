@@ -10,6 +10,7 @@ import { db } from "./firebase-config.js";
 document.addEventListener("DOMContentLoaded", async () => {
     await inizializzaAuth();
 
+    // Caricamento dei dati e dei riquadri della Home
     caricaScadenze();
     caricaAppuntamenti();
     caricaMedia();
@@ -17,6 +18,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     caricaUtenti();
     caricaSummaryScadenzeHome();
     caricaSummaryImpegniHome();
+    caricaSummaryMediaHome();
+    caricaSummaryRicetteHome();
 
     const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
     const sidebar = document.getElementById('sidebar');
@@ -62,8 +65,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 caricaSummaryImpegniHome();
             } else if (targetId === 'media-section') {
                 caricaMedia();
+                caricaSummaryMediaHome();
             } else if (targetId === 'ricette-section') {
                 caricaRicette();
+                caricaSummaryRicetteHome();
             } else if (targetId === 'utenti-section') {
                 caricaUtenti();
             }
@@ -71,7 +76,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 });
 
-// Summary Scadenze Home con layout: Titolo, Data, Stato, Importo
+// 1. SCADENZE HOME (con logica a cascata)
 async function caricaSummaryScadenzeHome() {
     const summaryScadenze = document.getElementById('home-summary-scadenze');
     if (!summaryScadenze) return;
@@ -160,8 +165,8 @@ async function caricaSummaryScadenzeHome() {
     }
 }
 
-// Summary Impegni Home con layout: Titolo, Data, Orario inizio e Creatore senza badge blu
-async function caricaSummaryImpegniHome() {
+// 2. IMPEGNI HOME
+window.caricaSummaryImpegniHome = async function() {
     const summaryImpegni = document.getElementById('home-summary-impegni');
     if (!summaryImpegni) return;
 
@@ -175,7 +180,6 @@ async function caricaSummaryImpegniHome() {
         impegni.sort((a, b) => new Date(a.data + 'T' + (a.ora || '00:00')) - new Date(b.data + 'T' + (b.ora || '00:00')));
 
         const oggiStr = new Date().toISOString().split('T')[0];
-        // Filtriamo solo impegni futuri o odierni
         impegni = impegni.filter(i => i.data >= oggiStr);
 
         let htmlSummary = "";
@@ -198,6 +202,62 @@ async function caricaSummaryImpegniHome() {
         summaryImpegni.innerHTML = htmlSummary || `<p class="text-muted" style="font-style: italic; color: #64748b;">Nessun impegno in programma.</p>`;
     } catch (err) {
         console.error("Errore summary impegni home:", err);
+    }
+}
+
+// 3. FOTO E VIDEO HOME
+async function caricaSummaryMediaHome() {
+    const summaryMedia = document.getElementById('home-summary-media');
+    if (!summaryMedia) return;
+
+    try {
+        const querySnapshot = await getDocs(collection(db, "media"));
+        let mediaItems = [];
+        querySnapshot.forEach((docSnap) => {
+            mediaItems.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        let htmlSummary = "";
+        mediaItems.slice(0, 3).forEach((item) => {
+            htmlSummary += `
+                <div style="background-color: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                    <strong style="font-size: 0.95rem; color: #1e293b;">${escapeHtml(item.titolo || 'Media')}</strong>
+                    <span style="font-size: 0.85rem; color: #64748b;">${escapeHtml(item.creatore || '')}</span>
+                </div>
+            `;
+        });
+
+        summaryMedia.innerHTML = htmlSummary || `<p class="text-muted" style="font-style: italic; color: #64748b;">Nessun elemento media registrato.</p>`;
+    } catch (err) {
+        console.error("Errore summary media home:", err);
+    }
+}
+
+// 4. RICETTE HOME
+async function caricaSummaryRicetteHome() {
+    const summaryRicette = document.getElementById('home-summary-ricette');
+    if (!summaryRicette) return;
+
+    try {
+        const querySnapshot = await getDocs(collection(db, "ricette"));
+        let ricette = [];
+        querySnapshot.forEach((docSnap) => {
+            ricette.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        let htmlSummary = "";
+        ricette.slice(0, 3).format = ricette.slice(0, 3).forEach((r) => {
+            htmlSummary += `
+                <div style="background-color: #f8fafc; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                    <strong style="font-size: 0.95rem; color: #1e293b;">${escapeHtml(r.nome || r.titolo || 'Ricetta')}</strong>
+                    <span style="font-size: 0.85rem; color: #64748b;">${escapeHtml(r.creatore || '')}</span>
+                </div>
+            `;
+        });
+
+        summaryRicette.innerHTML = htmlSummary || `<p class="text-muted" style="font-style: italic; color: #64748b;">Nessuna ricetta inserita.</p>`;
+    } catch (err) {
+        console.error("Errore summary ricette home:", err);
     }
 }
 
