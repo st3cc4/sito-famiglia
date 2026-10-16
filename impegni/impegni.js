@@ -15,7 +15,6 @@ export async function caricaAppuntamenti() {
     if (!containerImpegniCompleto && !summaryImpegniHome) return;
 
     try {
-        // Proviamo prima con "appuntamenti", se vuoto o errore gestiamo
         let querySnapshot;
         try {
             querySnapshot = await getDocs(collection(db, "appuntamenti"));
