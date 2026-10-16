@@ -90,6 +90,12 @@ export async function caricaScadenze() {
             const oggi = new Date();
             oggi.setHours(0, 0, 0, 0);
 
+            if (scadenze.length === 0) {
+                listaScadenze.innerHTML = '<p class="text-muted" style="color: #64748b; font-style: italic;">Nessuna scadenza presente.</p>';
+                if (totaleGeneraleScadenze) totaleGeneraleScadenze.innerHTML = 'Totale da pagare: € 0.00';
+                return;
+            }
+
             scadenze.forEach((s) => {
                 const dataScadenza = new Date(s.data);
                 dataScadenza.setHours(0, 0, 0, 0);
@@ -100,45 +106,52 @@ export async function caricaScadenze() {
                 let testoStato = "";
                 let coloreBordo = "#cbd5e1";
                 let coloreSfondo = "#ffffff";
+                let coloreTestoStato = "#1e293b";
 
-                if (diffGiorni < 0) {
-                    const giorniRitardo = Math.abs(diffGiorni);
-                    testoStato = `Scaduta da ${giorniRitardo} ${giorniRitardo === 1 ? 'giorno' : 'giorni'}`;
-                    coloreBordo = "#ef4444"; // Rosso urgenza
+                // Logica a cascata colori (sfondo, bordo e testo)
+                if (diffGiorni <= 7) {
+                    // <= 7 giorni o già scaduta -> ROSSO
+                    if (diffGiorni < 0) {
+                        const giorniRitardo = Math.abs(diffGiorni);
+                        testoStato = `Scaduta da ${giorniRitardo} ${giorniRitardo === 1 ? 'giorno' : 'giorni'}`;
+                    } else if (diffGiorni === 0) {
+                        testoStato = "Scade oggi!";
+                    } else {
+                        testoStato = `Mancano ${diffGiorni} giorni`;
+                    }
+                    coloreBordo = "#ef4444";
                     coloreSfondo = "#fef2f2";
-                } else if (diffGiorni === 0) {
-                    testoStato = "Scade oggi!";
-                    coloreBordo = "#ef4444"; // Rosso urgenza
-                    coloreSfondo = "#fef2f2";
-                } else if (diffGiorni <= 7) {
+                    coloreTestoStato = "#991b1b";
+                } else if (diffGiorni >= 8 && diffGiorni <= 14) {
+                    // 8-14 giorni -> ARANCIONE
                     testoStato = `Mancano ${diffGiorni} giorni`;
-                    coloreBordo = "#ef4444"; // Rosso urgenza
-                    coloreSfondo = "#fef2f2";
-                } else if (diffGiorni <= 14) {
-                    testoStato = `Mancano ${diffGiorni} giorni`;
-                    coloreBordo = "#f97316"; // Arancione
+                    coloreBordo = "#f97316";
                     coloreSfondo = "#fff7ed";
+                    coloreTestoStato = "#c2410c";
                 } else {
+                    // >= 15 giorni -> VERDE
                     testoStato = `Mancano ${diffGiorni} giorni`;
-                    coloreBordo = "#22c55e"; // Verde
+                    coloreBordo = "#22c55e";
                     coloreSfondo = "#f0fdf4";
+                    coloreTestoStato = "#15803d";
                 }
 
                 totaleComplessivo += Number(s.importo) || 0;
 
                 const li = document.createElement('li');
-                li.style.cssText = `background: ${coloreSfondo}; padding: 12px 16px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #e2e8f0; border-left: 6px solid ${coloreBordo}; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;`;
+                li.style.cssText = `background-color: ${coloreSfondo}; padding: 14px 18px; border-radius: 10px; margin-bottom: 12px; border: 1px solid ${coloreBordo}40; border-left: 6px solid ${coloreBordo}; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);`;
 
                 const dataFormatted = `${dataScadenza.getDate().toString().padStart(2, '0')}/${(dataScadenza.getMonth()+1).toString().padStart(2, '0')}/${dataScadenza.getFullYear()}`;
 
                 li.innerHTML = `
                     <div>
-                        <strong style="font-size: 1.05rem; color: #1e293b;">${escapeHtml(s.titolo)}</strong> 
-                        <span style="font-size: 0.9rem; color: #64748b; margin-left: 6px;">${dataFormatted} - <span style="font-weight: 600; color: ${coloreBordo};">${testoStato}</span></span>
-                        <div style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-top: 4px;">€ ${Number(s.importo).toFixed(2)}</div>
+                        <strong style="font-size: 1.1rem; color: #0f172a; display: block; margin-bottom: 2px;">${escapeHtml(s.titolo)}</strong> 
+                        <span style="font-size: 0.9rem; color: #475569;">${dataFormatted} - <strong style="color: ${coloreTestoStato};">${testoStato}</strong></span>
+                        <div style="font-size: 1.15rem; font-weight: 700; color: #0f172a; margin-top: 4px;">€ ${Number(s.importo).toFixed(2)}</div>
                     </div>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <button onclick="modificaScadenza('${s.id}')" style="background-color: #0284c7; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem;">Mod.</button>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <button onclick="segnaPagata('${s.id}')" style="background-color: #16a34a; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem;" title="Segna come Pagata">Segna Pagata</button>
+                        <button onclick="modificaScadenza('${s.id}')" style="background-color: #0284c7; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem;" title="Modifica">Mod.</button>
                         <button onclick="eliminaScadenza('${s.id}')" style="background-color: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem;" title="Elimina">🗑️</button>
                     </div>
                 `;
@@ -147,11 +160,22 @@ export async function caricaScadenze() {
             });
 
             if (totaleGeneraleScadenze) {
-                totaleGeneraleScadenze.innerHTML = `Totale da pagare: € ${totaleComplessivo.toFixed(2)}`;
+                totaleGeneraleScadenze.innerHTML = `<strong>Totale da pagare: € ${totaleComplessivo.toFixed(2)}</strong>`;
             }
         }
     } catch (err) {
         console.error("Errore caricamento scadenze:", err);
+    }
+}
+
+window.segnaPagata = async function(id) {
+    if (confirm("Vuoi segnare questa bolletta/scadenza come PAGATA? Verrà rimossa dalla lista.")) {
+        try {
+            await deleteDoc(doc(db, "scadenze", id));
+            caricaScadenze();
+        } catch (err) {
+            alert("Errore nell'aggiornamento della scadenza.");
+        }
     }
 }
 
