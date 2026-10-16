@@ -45,6 +45,7 @@ export async function inizializzaAuth() {
     // Controllo se c'è un utente salvato
     const utenteSalvato = localStorage.getItem('famiglia_utente_corrente') || sessionStorage.getItem('famiglia_utente_corrente');
     if (utenteSalvato) {
+        console.log("Utente trovato in storage:", utenteSalvato);
         await validaEImpostaUtente(utenteSalvato);
     }
 
@@ -71,6 +72,8 @@ export async function inizializzaAuth() {
             const usernameInserito = usernameInput.value.trim();
             const password = passwordInput.value.trim();
 
+            console.log("Tentativo di accesso per utente:", usernameInserito);
+
             if (!usernameInserito) return;
 
             try {
@@ -83,6 +86,7 @@ export async function inizializzaAuth() {
                 }
 
                 if (!userSnap.exists()) {
+                    console.warn("Utente non trovato nel database");
                     alert("Accesso negato: utente non autorizzato o inesistente nel database.");
                     return;
                 }
@@ -91,6 +95,7 @@ export async function inizializzaAuth() {
                 const userIdTrovato = userSnap.id;
                 
                 if (userData.password && userData.password !== password) {
+                    console.warn("Password errata");
                     alert("Password errata.");
                     return;
                 }
@@ -101,6 +106,7 @@ export async function inizializzaAuth() {
                     sessionStorage.setItem('famiglia_utente_corrente', userIdTrovato);
                 }
 
+                console.log("Credenziali valide. Imposto utente:", userIdTrovato);
                 await validaEImpostaUtente(userIdTrovato);
 
             } catch (err) {
@@ -232,7 +238,6 @@ export async function inizializzaAuth() {
                 const ruoloDb = (userSnap.id.toLowerCase() === 'paolo' || data.ruolo === 'admin') ? 'Admin' : 'Membro';
                 ruoloUtenteCorrente = ruoloDb;
 
-                // Carichiamo i permessi (default: tutto abilitato)
                 permessiUtenteCorrente = data.permessi || { scadenze: true, impegni: true, media: true, ricette: true };
 
                 if (authScreen) authScreen.style.display = 'none';
@@ -258,17 +263,18 @@ export async function inizializzaAuth() {
                     formNuovoUtenteContainer.style.display = isAdminCorrente() ? 'block' : 'none';
                 }
 
-                // Applichiamo la visibilità delle sezioni sia nella Sidebar che nella Home
                 applicaVisibilitaPermessi();
 
-                // Ricarichiamo esplicitamente i dati della Home all'accesso
                 if (window.caricaScadenze) window.caricaScadenze();
                 if (window.caricaAppuntamenti) window.caricaAppuntamenti();
                 if (window.caricaMedia) window.caricaMedia();
                 if (window.caricaRicette) window.caricaRicette();
                 if (window.caricaUtenti) window.caricaUtenti();
 
+                console.log("Accesso completato con successo per:", nomeUtenteCorrente);
+
             } else {
+                console.warn("Utente non trovato durante la validazione");
                 localStorage.removeItem('famiglia_utente_corrente');
                 sessionStorage.removeItem('famiglia_utente_corrente');
             }
@@ -281,7 +287,6 @@ export async function inizializzaAuth() {
 function applicaVisibilitaPermessi() {
     const p = permessiUtenteCorrente;
 
-    // Mappa sezioni e selettori
     const sezioniMappa = [
         { target: 'scadenze-section', visibile: p.scadenze },
         { target: 'impegni-section', visibile: p.impegni },
@@ -290,13 +295,11 @@ function applicaVisibilitaPermessi() {
     ];
 
     sezioniMappa.forEach(item => {
-        // Pulsanti nella sidebar
         const btnSidebar = document.querySelector(`.nav-btn[data-target="${item.target}"]`);
         if (btnSidebar) {
             btnSidebar.style.display = item.visibile ? 'flex' : 'none';
         }
 
-        // Riquadri nella Home
         const cardHome = document.querySelector(`.clickable-card[data-target="${item.target}"]`);
         if (cardHome) {
             cardHome.style.display = item.visibile ? 'block' : 'none';
