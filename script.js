@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 });
 
-// Funzione di supporto per popolare il riquadro Scadenze nella HOME con lo stesso stile degli impegni
+// Funzione di supporto per popolare il riquadro Scadenze nella HOME con la regola di priorità a cascata
 async function caricaSummaryScadenzeHome() {
     const summaryScadenze = document.getElementById('home-summary-scadenze');
     if (!summaryScadenze) return;
@@ -96,13 +96,46 @@ async function caricaSummaryScadenzeHome() {
         const oggi = new Date();
         oggi.setHours(0, 0, 0, 0);
 
-        let htmlSummary = "";
+        // Classifichiamo le scadenze per fasce di priorità
+        let fasce = {
+            urgenti: [], // <= 7 giorni (o scadute)
+            medie: [],   // tra 8 e 14 giorni
+            future: []   // >= 15 giorni
+        };
+
         scadenze.forEach((s) => {
             const dataScadenza = new Date(s.data);
             dataScadenza.setHours(0, 0, 0, 0);
             
             const diffTempo = dataScadenza - oggi;
             const diffGiorni = Math.round(diffTempo / (1000 * 60 * 60 * 24));
+
+            s.diffGiorni = diffGiorni;
+
+            if (diffGiorni <= 7) {
+                fasce.urgenti.push(s);
+            } else if (diffGiorni >= 8 && diffGiorni <= 14) {
+                fasce.medie.push(s);
+            } else {
+                fasce.future.push(s);
+            }
+        });
+
+        // Regola di priorità a cascata: se ci sono urgenti, mostra solo quelle; altrimenti medie; altrimenti future.
+        let scadenzeDaMostrare = [];
+        if (fasce.urgenti.length > 0) {
+            scadenzeDaMostrare = fasce.urgenti;
+        } else if (fasce.medie.length > 0) {
+            scadenzeDaMostrare = fasce.medie;
+        } else {
+            scadenzeDaMostrare = fasce.future;
+        }
+
+        let htmlSummary = "";
+        scadenzeDaMostrare.forEach((s) => {
+            const dataScadenza = new Date(s.data);
+            dataScadenza.setHours(0, 0, 0, 0);
+            const diffGiorni = s.diffGiorni;
 
             let testoStato = "";
             let coloreBordo = "#cbd5e1";
