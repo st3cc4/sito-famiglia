@@ -3,13 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sito Famiglia</title>    
-    <!-- Link al Manifest per PWA -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4A90E2">
-    <link rel="apple-touch-icon" href="icone/icona_famiglia_192x192.png">
-
-    <!-- Fogli di Stile CSS Separati -->
+    <title>Sito Famiglia</title>
+    
+    <!-- Fogli di stile CSS modulari -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/login.css">
     <link rel="stylesheet" href="css/sidebar.css">
@@ -17,297 +13,340 @@
 </head>
 <body>
 
-    <!-- Schermata di Login -->
+    <!-- SCHERMATA DI LOGIN -->
     <div id="login-screen" class="login-screen">
         <div class="login-card">
-            <h2>Accedi al Sito Famiglia</h2>
+            <h2>Sito Famiglia</h2>
             <form id="form-login" class="app-form">
                 <div class="form-group">
                     <label for="login-username">Nome Utente</label>
                     <input type="text" id="login-username" placeholder="Inserisci il tuo nome" required autocomplete="username">
                 </div>
+                
                 <div class="form-group">
                     <label for="login-password">Password</label>
                     <div class="password-wrapper">
                         <input type="password" id="login-password" placeholder="Inserisci la password" required autocomplete="current-password">
-                        <button type="button" id="btn-toggle-password" class="toggle-pwd-btn" aria-label="Mostra/Nascondi Password">👁️</button>
+                        <button type="button" id="btn-toggle-password" class="toggle-pwd-btn">👁️</button>
                     </div>
                 </div>
+
                 <div class="form-checkbox">
                     <input type="checkbox" id="login-remember">
                     <label for="login-remember">Ricordami su questo dispositivo</label>
                 </div>
+
                 <div id="login-error" class="error-msg"></div>
-                <button type="submit" class="save-btn login-btn">Accedi</button>
+
+                <button type="submit" class="add-btn login-btn">Accedi</button>
             </form>
         </div>
     </div>
 
-    <!-- Struttura App Principale -->
+    <!-- CONTENITORE APPLICAZIONE -->
     <div id="app-container" class="app-container hidden">
+
+        <!-- HEADER PRINCIPALE -->
         <header class="app-header">
             <button id="btn-toggle-menu" class="menu-btn" aria-label="Apri Menu">&#9776;</button>
-            <h1 id="header-title">Sito Famiglia</h1>
+            <h1 id="header-title">📅 Appuntamenti</h1>
             <div id="user-badge" class="user-badge">
-                <span id="user-name-display">Ospite</span>
+                <span id="user-name-display">Utente</span>
             </div>
         </header>
 
-        <!-- Menu Laterale (Sidebar) -->
+        <!-- OVERLAY SIDEBAR -->
+        <div id="overlay" class="overlay"></div>
+
+        <!-- SIDEBAR / MENU LATERALE -->
         <aside id="sidebar" class="sidebar">
             <div class="sidebar-header">
                 <h2>Menu</h2>
                 <button id="btn-close-menu" class="close-btn">&times;</button>
             </div>
 
-            <!-- Navigazione Sezioni -->
+            <!-- VOCI DI NAVIGAZIONE CON ICONE REALI -->
             <nav class="sidebar-nav">
                 <ul>
-                    <li id="nav-item-impegni"><a href="#" data-section="impegni" class="nav-link active"><img src="icone/icona-impegni.png" alt="" class="nav-icon"> Impegni</a></li>
-                    <li id="nav-item-scadenze"><a href="#" data-section="scadenze" class="nav-link"><img src="icone/icona-scadenze.png" alt="" class="nav-icon"> Scadenze</a></li>
-                    <li id="nav-item-ricette"><a href="#" data-section="ricette" class="nav-link"><img src="icone/icona-ricette.png" alt="" class="nav-icon"> Ricette</a></li>
-                    <li id="nav-item-media"><a href="#" data-section="media" class="nav-link"><img src="icone/icona-media.png" alt="" class="nav-icon"> Foto e Video</a></li>
+                    <li id="nav-item-impegni">
+                        <a href="#" class="nav-link active" data-section="impegni">
+                            <img src="icone/impegni.png" alt="Impegni" class="nav-icon">
+                            <span>Impegni</span>
+                        </a>
+                    </li>
+                    <li id="nav-item-scadenze">
+                        <a href="#" class="nav-link" data-section="scadenze">
+                            <img src="icone/scadenze.png" alt="Scadenze" class="nav-icon">
+                            <span>Scadenze</span>
+                        </a>
+                    </li>
+                    <li id="nav-item-ricette">
+                        <a href="#" class="nav-link" data-section="ricette">
+                            <img src="icone/ricette.png" alt="Ricette" class="nav-icon">
+                            <span>Ricette</span>
+                        </a>
+                    </li>
+                    <li id="nav-item-media">
+                        <a href="#" class="nav-link" data-section="media">
+                            <img src="icone/media.png" alt="Foto e Video" class="nav-icon">
+                            <span>Foto e Video</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
 
-            <!-- Pulsanti di Gestione -->
+            <!-- PULSANTI AZIONI E AMMINISTRAZIONE -->
             <div class="sidebar-middle">
-                <button id="btn-admin-panel" class="sidebar-action-btn admin-btn hidden">⚙️ Gestione Utenti (Admin)</button>
+                <button id="btn-admin-panel" class="sidebar-action-btn admin-btn hidden">⚙️ Gestione Utenti</button>
                 <button id="btn-change-password" class="sidebar-action-btn">🔑 Cambia Password</button>
                 <button id="btn-change-color" class="sidebar-action-btn">🎨 Cambia Colore</button>
             </div>
 
-            <!-- Card Profilo Utente in fondo (al posto del pulsante esci) -->
-            <div id="sidebar-user-card" class="sidebar-user-card" title="Clicca per scollegarti">
+            <!-- CARD UTENTE IN FONDO ALLA SIDEBAR (Senza pulsante Esci) -->
+            <div id="sidebar-user-card" class="sidebar-user-card" title="Clicca per uscire dall'applicazione">
                 <div class="user-info-text">
                     <span id="sidebar-user-name">Paolo</span>
                     <span id="sidebar-user-role" class="role-badge">(Admin)</span>
                 </div>
-                <span class="logout-icon">🚪 Esci</span>
             </div>
         </aside>
 
-        <div id="overlay" class="overlay"></div>
-
-        <!-- Contenuto Principale -->
+        <!-- CONTENUTO DELLE SEZIONI -->
         <main class="main-content">
+
+            <!-- SEZIONE 1: IMPEGNI / APPUNTAMENTI -->
             <section id="section-impegni" class="app-section active">
                 <div class="section-header">
-                    <h2>📅 Appuntamenti e Impegni</h2>
+                    <h2>I tuoi Appuntamenti</h2>
                     <button id="btn-add-impegno" class="add-btn">+ Nuovo Impegno</button>
                 </div>
-                <div id="container-impegni" class="cards-grid"></div>
+                <div id="container-impegni" class="cards-grid">
+                    <!-- Card impegni da Firestore -->
+                </div>
             </section>
 
+            <!-- SEZIONE 2: SCADENZE -->
             <section id="section-scadenze" class="app-section">
                 <div class="section-header">
-                    <h2>⏰ Scadenze</h2>
+                    <h2>Le tue Scadenze</h2>
                     <button id="btn-add-scadenza" class="add-btn">+ Nuova Scadenza</button>
                 </div>
-                <div id="container-scadenze" class="cards-grid"></div>
+                <div id="container-scadenze" class="cards-grid">
+                    <!-- Card scadenze da Firestore -->
+                </div>
             </section>
 
+            <!-- SEZIONE 3: RICETTE -->
             <section id="section-ricette" class="app-section">
                 <div class="section-header">
-                    <h2>🍳 Le Nostre Ricette</h2>
+                    <h2>Ricette di Famiglia</h2>
                     <button id="btn-add-ricetta" class="add-btn">+ Nuova Ricetta</button>
                 </div>
-                <div id="container-ricette" class="cards-grid"></div>
+                <div id="container-ricette" class="cards-grid">
+                    <!-- Card ricette da Firestore -->
+                </div>
             </section>
 
+            <!-- SEZIONE 4: FOTO E VIDEO -->
             <section id="section-media" class="app-section">
                 <div class="section-header">
-                    <h2>🖼️ Foto e Video</h2>
-                    <button id="btn-add-media" class="add-btn">+ Aggiungi Media</button>
+                    <h2>Galleria Foto e Video</h2>
+                    <button id="btn-add-media" class="add-btn">+ Carica File</button>
                 </div>
-                <div id="container-media" class="cards-grid"></div>
+                <div id="container-media" class="cards-grid">
+                    <!-- Card media da Firestore -->
+                </div>
             </section>
+
         </main>
-
-        <!-- Modali di Profilo e Admin -->
-        <div id="modal-password" class="modal">
-            <div class="modal-content">
-                <h3>Cambia Password</h3>
-                <form id="form-password" class="app-form">
-                    <div class="form-group">
-                        <label for="new-password">Nuova Password</label>
-                        <input type="password" id="new-password" required placeholder="Inserisci la nuova password">
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="btn-close-modal-password" class="cancel-btn">Annulla</button>
-                        <button type="submit" class="save-btn">Aggiorna Password</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div id="modal-colore" class="modal">
-            <div class="modal-content">
-                <h3>Scegli Colore Personale</h3>
-                <form id="form-colore" class="app-form">
-                    <div class="form-group">
-                        <label for="user-color-picker">Seleziona il tuo colore</label>
-                        <input type="color" id="user-color-picker" value="#4A90E2" style="height: 50px; cursor: pointer;">
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="btn-close-modal-colore" class="cancel-btn">Annulla</button>
-                        <button type="submit" class="save-btn">Salva Colore</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div id="modal-admin" class="modal">
-            <div class="modal-content modal-large">
-                <h3>⚙️ Gestione Utenti e Permessi</h3>
-                <form id="form-admin-user" class="app-form" style="margin-bottom: 20px;">
-                    <input type="hidden" id="admin-user-id" value="">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="admin-user-name">Nome Utente</label>
-                            <input type="text" id="admin-user-name" required placeholder="Es. Mario">
-                        </div>
-                        <div class="form-group">
-                            <label for="admin-user-pwd">Password</label>
-                            <input type="text" id="admin-user-pwd" required placeholder="Password">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="admin-user-color">Colore</label>
-                            <input type="color" id="admin-user-color" value="#0000ff" style="height: 40px; cursor: pointer;">
-                        </div>
-                        <div class="form-group">
-                            <label for="admin-user-role">Ruolo</label>
-                            <select id="admin-user-role" style="padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
-                                <option value="utente">Utente</option>
-                                <option value="admin">Admin</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label><strong>Permessi Sezioni Visibili:</strong></label>
-                        <div class="checkbox-grid">
-                            <label><input type="checkbox" id="perm-impegni" checked> Impegni</label>
-                            <label><input type="checkbox" id="perm-scadenze" checked> Scadenze</label>
-                            <label><input type="checkbox" id="perm-ricette" checked> Ricette</label>
-                            <label><input type="checkbox" id="perm-media" checked> Media</label>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="btn-admin-reset" class="cancel-btn">Pulisci / Nuovo</button>
-                        <button type="submit" class="save-btn">Salva Utente</button>
-                    </div>
-                </form>
-
-                <hr style="margin: 15px 0;">
-
-                <h4>Elenco Utenti Registrati</h4>
-                <div id="admin-users-list" class="admin-users-list"></div>
-
-                <div class="form-actions" style="margin-top: 20px;">
-                    <button type="button" id="btn-close-modal-admin" class="cancel-btn" style="width: 100%;">Chiudi</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modali Inserimento Sezioni -->
-        <div id="modal-impegno" class="modal">
-            <div class="modal-content">
-                <h3>Aggiungi Nuovo Impegno</h3>
-                <form id="form-impegno" class="app-form">
-                    <div class="form-group">
-                        <label for="impegno-titolo">Titolo</label>
-                        <input type="text" id="impegno-titolo" required placeholder="Es. Visita medica">
-                    </div>
-                    <div class="form-group">
-                        <label for="impegno-data">Data</label>
-                        <input type="date" id="impegno-data" required>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="impegno-ora-inizio">Ora Inizio</label>
-                            <input type="time" id="impegno-ora-inizio" value="00:00">
-                        </div>
-                        <div class="form-group">
-                            <label for="impegno-ora-fine">Ora Fine</label>
-                            <input type="time" id="impegno-ora-fine" value="00:00">
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="btn-close-modal-impegno" class="cancel-btn">Annulla</button>
-                        <button type="submit" class="save-btn">Salva Impegno</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div id="modal-scadenza" class="modal">
-            <div class="modal-content">
-                <h3>Aggiungi Nuova Scadenza</h3>
-                <form id="form-scadenza" class="app-form">
-                    <div class="form-group">
-                        <label for="scadenza-titolo">Titolo / Descrizione</label>
-                        <input type="text" id="scadenza-titolo" required placeholder="Es. Bolletta Luce">
-                    </div>
-                    <div class="form-group">
-                        <label for="scadenza-data">Data Scadenza</label>
-                        <input type="date" id="scadenza-data" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="scadenza-importo">Importo (€)</label>
-                        <input type="number" id="scadenza-importo" step="0.01" placeholder="0.00">
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="btn-close-modal-scadenza" class="cancel-btn">Annulla</button>
-                        <button type="submit" class="save-btn">Salva Scadenza</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div id="modal-ricetta" class="modal">
-            <div class="modal-content">
-                <h3>Aggiungi Nuova Ricetta</h3>
-                <form id="form-ricetta" class="app-form">
-                    <div class="form-group">
-                        <label for="ricetta-nome">Nome Ricetta</label>
-                        <input type="text" id="ricetta-nome" required placeholder="Es. Tiramisù">
-                    </div>
-                    <div class="form-group">
-                        <label for="ricetta-ingredienti">Ingredienti (uno per riga)</label>
-                        <textarea id="ricetta-ingredienti" rows="4" placeholder="Mascarpone 500g&#10;Uova 4&#10;Zucchero 100g"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="ricetta-procedimento">Procedimento (uno step per riga)</label>
-                        <textarea id="ricetta-procedimento" rows="4" placeholder="Montare i tuorli con lo zucchero&#10;Aggiungere il mascarpone"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="ricetta-note">Note aggiuntive</label>
-                        <input type="text" id="ricetta-note" placeholder="Es. Conservare in frigo">
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="btn-close-modal-ricetta" class="cancel-btn">Annulla</button>
-                        <button type="submit" class="save-btn">Salva Ricetta</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
     </div>
 
-    <!-- Script Principale JS Modulare -->
-    <script type="module" src="js/app.js"></script>
+    <!-- MODALI / POP-UP -->
 
-    <!-- Registrazione Service Worker per PWA -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker registrato:', reg.scope))
-                    .catch(err => console.error('Service Worker fallito:', err));
-            });
-        }
-    </script>
+    <!-- MODALE 1: NUOVO IMPEGNO -->
+    <div id="modal-impegno" class="modal">
+        <div class="modal-content">
+            <h3>Nuovo Impegno</h3>
+            <form id="form-impegno" class="app-form">
+                <div class="form-group">
+                    <label for="impegno-titolo">Titolo / Descrizione</label>
+                    <input type="text" id="impegno-titolo" required placeholder="Es. Visita medica">
+                </div>
+                <div class="form-group">
+                    <label for="impegno-data">Data</label>
+                    <input type="date" id="impegno-data" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="impegno-ora-inizio">Ora Inizio</label>
+                        <input type="time" id="impegno-ora-inizio">
+                    </div>
+                    <div class="form-group">
+                        <label for="impegno-ora-fine">Ora Fine</label>
+                        <input type="time" id="impegno-ora-fine">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="btn-close-modal-impegno" class="cancel-btn">Annulla</button>
+                    <button type="submit" class="save-btn">Salva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE 2: NUOVA SCADENZA -->
+    <div id="modal-scadenza" class="modal">
+        <div class="modal-content">
+            <h3>Nuova Scadenza</h3>
+            <form id="form-scadenza" class="app-form">
+                <div class="form-group">
+                    <label for="scadenza-titolo">Titolo / Bolletta</label>
+                    <input type="text" id="scadenza-titolo" required placeholder="Es. Assicurazione auto">
+                </div>
+                <div class="form-group">
+                    <label for="scadenza-data">Data Scadenza</label>
+                    <input type="date" id="scadenza-data" required>
+                </div>
+                <div class="form-group">
+                    <label for="scadenza-importo">Importo (€)</label>
+                    <input type="number" step="0.01" id="scadenza-importo" placeholder="0.00">
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="btn-close-modal-scadenza" class="cancel-btn">Annulla</button>
+                    <button type="submit" class="save-btn">Salva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE 3: NUOVA RICETTA -->
+    <div id="modal-ricetta" class="modal">
+        <div class="modal-content">
+            <h3>Nuova Ricetta</h3>
+            <form id="form-ricetta" class="app-form">
+                <div class="form-group">
+                    <label for="ricetta-nome">Nome della Ricetta</label>
+                    <input type="text" id="ricetta-nome" required placeholder="Es. Torta di mele">
+                </div>
+                <div class="form-group">
+                    <label for="ricetta-ingredienti">Ingredienti (uno per riga)</label>
+                    <textarea id="ricetta-ingredienti" rows="3" placeholder="Farina 200g&#10;Zucchero 100g"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="ricetta-procedimento">Procedimento (uno per riga)</label>
+                    <textarea id="ricetta-procedimento" rows="4" placeholder="Mescolare gli ingredienti..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="ricetta-note">Note Aggiuntive</label>
+                    <input type="text" id="ricetta-note" placeholder="Es. Cucinare a 180° per 30 minuti">
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="btn-close-modal-ricetta" class="cancel-btn">Annulla</button>
+                    <button type="submit" class="save-btn">Salva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE 4: CAMBIO PASSWORD -->
+    <div id="modal-password" class="modal">
+        <div class="modal-content">
+            <h3>Cambia Password</h3>
+            <form id="form-password" class="app-form">
+                <div class="form-group">
+                    <label for="new-password">Nuova Password</label>
+                    <input type="password" id="new-password" required minlength="4" placeholder="Inserisci la nuova password">
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="btn-close-modal-password" class="cancel-btn">Annulla</button>
+                    <button type="submit" class="save-btn">Aggiorna</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE 5: CAMBIO COLORE UTENTE -->
+    <div id="modal-colore" class="modal">
+        <div class="modal-content">
+            <h3>Scegli Colore Personale</h3>
+            <form id="form-colore" class="app-form">
+                <div class="form-group">
+                    <label for="user-color-picker">Seleziona un Colore</label>
+                    <input type="color" id="user-color-picker" value="#4A90E2" style="height: 50px; cursor: pointer;">
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="btn-close-modal-colore" class="cancel-btn">Annulla</button>
+                    <button type="submit" class="save-btn">Applica</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE 6: GESTIONE UTENTI ADMIN -->
+    <div id="modal-admin" class="modal">
+        <div class="modal-content modal-large">
+            <h3>Gestione Utenti (Admin)</h3>
+            
+            <!-- FORM CREAZIONE / MODIFICA UTENTE -->
+            <form id="form-admin-user" class="app-form">
+                <input type="hidden" id="admin-user-id">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="admin-user-name">Nome Utente</label>
+                        <input type="text" id="admin-user-name" required placeholder="Es. Elena">
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-user-pwd">Password</label>
+                        <input type="text" id="admin-user-pwd" required placeholder="Password">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="admin-user-color">Colore Profilo</label>
+                        <input type="color" id="admin-user-color" value="#4A90E2" style="height: 40px; cursor: pointer;">
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-user-role">Ruolo</label>
+                        <select id="admin-user-role" style="padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+                            <option value="utente">Utente</option>
+                            <option value="admin">Amministratore</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- PERMESSI SEZIONI -->
+                <div class="form-group">
+                    <label>Sezioni Visibili:</label>
+                    <div class="checkbox-grid">
+                        <label><input type="checkbox" id="perm-impegni" checked> 📅 Impegni</label>
+                        <label><input type="checkbox" id="perm-scadenze" checked> ⏰ Scadenze</label>
+                        <label><input type="checkbox" id="perm-ricette" checked> 🍳 Ricette</label>
+                        <label><input type="checkbox" id="perm-media" checked> 🖼️ Foto e Video</label>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="btn-admin-reset" class="cancel-btn">Pulisci / Nuovo</button>
+                    <button type="submit" class="save-btn">Salva Utente</button>
+                </div>
+            </form>
+
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
+
+            <h4>Utenti Registrati</h4>
+            <div id="admin-users-list" class="admin-users-list" style="margin-top: 10px;">
+                <!-- Lista utenti da Firestore -->
+            </div>
+
+            <div class="form-actions" style="margin-top: 20px;">
+                <button type="button" id="btn-close-modal-admin" class="cancel-btn" style="width: 100%;">Chiudi Pannello Admin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT PRINCIPALE MODULARE -->
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
