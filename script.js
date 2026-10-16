@@ -43,39 +43,41 @@ function inizializzaNavigazione() {
     });
 }
 
-// Gestione dell'apertura e chiusura della barra laterale (Sidebar) con pulsante persistente
+// Gestione dell'apertura e chiusura della barra laterale
 function inizializzaSidebarToggle() {
     const sidebar = document.querySelector('.sidebar');
-    const appContainer = document.querySelector('.app-container');
     const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebarToggleMain = document.getElementById('sidebar-toggle-main');
 
-    if (!sidebar || !appContainer) return;
+    if (!sidebar) return;
 
-    // Crea un pulsante flottante per riaprire la sidebar quando è chiusa
-    let floatingBtn = document.getElementById('sidebar-toggle-floating');
-    if (!floatingBtn) {
-        floatingBtn = document.createElement('button');
-        floatingBtn.id = 'sidebar-toggle-floating';
-        floatingBtn.className = 'btn-toggle-floating';
-        floatingBtn.innerHTML = '☰';
-        floatingBtn.style.display = 'none'; // Inizialmente nascosto
-        appContainer.appendChild(floatingBtn);
-    }
-
-    // Funzione per alternare lo stato della sidebar
-    const toggleSidebar = () => {
-        sidebar.classList.toggle('closed');
-        const isClosed = sidebar.classList.contains('closed');
-        
-        // Mostra o nascondi il pulsante flottante in base allo stato
-        floatingBtn.style.display = isClosed ? 'block' : 'none';
+    // Funzione per chiudere la sidebar
+    const chiudiSidebar = () => {
+        sidebar.classList.add('closed');
     };
 
+    // Funzione per aprire la sidebar
+    const apriSidebar = () => {
+        sidebar.classList.remove('closed');
+    };
+
+    // Pulsante "X" dentro la sidebar per chiuderla
     if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', toggleSidebar);
+        sidebarToggle.addEventListener('click', () => {
+            chiudiSidebar();
+        });
     }
 
-    floatingBtn.addEventListener('click', toggleSidebar);
+    // Pulsante "☰" nella testata principale per aprirla/chiuderla
+    if (sidebarToggleMain) {
+        sidebarToggleMain.addEventListener('click', () => {
+            if (sidebar.classList.contains('closed')) {
+                apriSidebar();
+            } else {
+                chiudiSidebar();
+            }
+        });
+    }
 }
 
 // Caricamento dei riepiloghi nella Home
