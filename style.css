@@ -29,53 +29,55 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: all 0.3s ease;
+    transition: width 0.3s ease;
     box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
     z-index: 100;
     overflow: hidden;
     flex-shrink: 0;
 }
 
-/* Stato chiuso della sidebar */
+/* Stato chiuso della sidebar (si restringe a 70px mostrando solo le icone) */
 .sidebar.closed {
-    width: 0;
-    min-width: 0;
-    opacity: 0;
-    visibility: hidden;
+    width: 70px;
 }
 
 .sidebar-header {
     padding: 20px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 15px;
     border-bottom: 1px solid #1e293b;
     white-space: nowrap;
 }
 
-.sidebar-header h2 {
+.sidebar.closed .sidebar-header {
+    justify-content: center;
+    padding: 20px 10px;
+}
+
+.sidebar-title {
     font-size: 1.25rem;
     font-weight: 600;
+}
+
+.sidebar.closed .sidebar-title {
+    display: none;
 }
 
 .btn-toggle {
     background: none;
     border: none;
-    color: #94a3b8;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-.btn-toggle:hover {
     color: #ffffff;
+    font-size: 1.4rem;
+    cursor: pointer;
+    flex-shrink: 0;
 }
 
 .sidebar-menu {
     list-style: none;
     padding: 20px 0;
     flex-grow: 1;
-    white-space: nowrap;
+    overflow-y: auto;
 }
 
 .sidebar-menu li {
@@ -92,6 +94,16 @@ body {
     font-weight: 600;
     font-size: 0.95rem;
     transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.sidebar.closed .sidebar-menu li a {
+    padding: 12px;
+    justify-content: center;
+}
+
+.sidebar.closed .sidebar-menu li a span {
+    display: none;
 }
 
 /* Stile e dimensionamento delle icone nella barra laterale */
@@ -109,6 +121,11 @@ body {
     border-left: 4px solid #3b82f6;
 }
 
+.sidebar.closed .sidebar-menu li a:hover,
+.sidebar.closed .sidebar-menu li a.active {
+    border-left: none;
+}
+
 /* Footer della Sidebar */
 .sidebar-footer {
     padding: 20px;
@@ -117,6 +134,11 @@ body {
     flex-direction: column;
     gap: 10px;
     white-space: nowrap;
+}
+
+.sidebar.closed .sidebar-footer {
+    padding: 10px;
+    align-items: center;
 }
 
 .utente-box {
@@ -129,6 +151,10 @@ body {
     color: #f8fafc;
 }
 
+.sidebar.closed .utente-box {
+    display: none;
+}
+
 .btn-footer {
     background-color: #3b82f6;
     color: white;
@@ -139,57 +165,23 @@ body {
     font-weight: 600;
     font-size: 0.9rem;
     transition: background-color 0.2s ease;
+    width: 100%;
 }
 
-.btn-footer:hover {
-    background-color: #2563eb;
+.sidebar.closed .btn-footer {
+    display: none;
 }
 
 /* Contenuto Principale */
 .main-content {
     flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+    padding: 30px;
     overflow-y: auto;
     background-color: #f8fafc;
 }
 
-/* Header Principale con il pulsante Hamburger */
-.main-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 20px 30px;
-    background-color: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.btn-toggle-main {
-    background: none;
-    border: 1px solid #cbd5e1;
-    color: #334155;
-    font-size: 1.2rem;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-toggle-main:hover {
-    background-color: #f1f5f9;
-    color: #0f172a;
-}
-
-.page-title {
-    font-size: 1.4rem;
-    color: #0f172a;
-    font-weight: 600;
-}
-
 .content-section {
     display: none;
-    padding: 30px;
 }
 
 .content-section.active {
