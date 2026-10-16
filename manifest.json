@@ -1,20 +1,21 @@
 {
-  "name": "Famiglia",
   "short_name": "Famiglia",
-  "start_url": "index.html",
-  "display": "standalone",
-  "background_color": "#f0f4f8",
-  "theme_color": "#3b82f6",
+  "name": "Sito Famiglia PWA",
   "icons": [
     {
       "src": "icone/icona_famiglia_192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "sizes": "192x192"
     },
     {
       "src": "icone/icona_famiglia_512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "sizes": "512x512"
     }
-  ]
+  ],
+  "start_url": "./index.html",
+  "background_color": "#F4F6F9",
+  "theme_color": "#4A90E2",
+  "display": "standalone",
+  "orientation": "portrait"
 }
