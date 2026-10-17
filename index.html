@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sito Famiglia</title>
     
-    <!-- Favicon -->
+    <!-- Manifest PWA e Favicon -->
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" href="favicon.ico">
 
     <!-- Fogli di stile CSS modulari -->
@@ -15,6 +16,18 @@
     <link rel="stylesheet" href="css/modals.css">
 </head>
 <body>
+
+    <!-- BANNER INSTALLAZIONE PWA IN ALTO -->
+    <div id="pwa-install-banner" class="pwa-install-banner hidden">
+        <div class="pwa-banner-content">
+            <span class="pwa-banner-icon">📱</span>
+            <span>Installa <strong>Sito Famiglia</strong> sul tuo telefono!</span>
+        </div>
+        <div class="pwa-banner-actions">
+            <button id="btn-pwa-install" class="pwa-btn-install">Installa</button>
+            <button id="btn-pwa-close" class="pwa-btn-close" title="Chiudi">✕</button>
+        </div>
+    </div>
 
     <!-- SCHERMATA DI LOGIN -->
     <div id="login-screen" class="login-screen">
