@@ -189,6 +189,21 @@ body {
     flex-direction: column;
     overflow: hidden;
     border: 1px solid #eef0f3;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* EFFETTO CARD CLICCABILI SULLA HOME */
+.dashboard-card.clickable-card {
+    cursor: pointer;
+}
+
+.dashboard-card.clickable-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.dashboard-card.clickable-card:active {
+    transform: translateY(-1px);
 }
 
 .dashboard-card-header {
