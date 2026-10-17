@@ -124,13 +124,50 @@
         <!-- CONTENUTO DELLE SEZIONI -->
         <main class="main-content">
 
-            <!-- SEZIONE 0: HOME (RIEPILOGO SCADENZE INTELLIGENTE) -->
+            <!-- SEZIONE 0: HOME (DASHBOARD CON LE 4 CARD PRINCIPALI) -->
             <section id="section-home" class="app-section active">
-                <div class="section-header">
-                    <h2>Scadenze in Primo Piano</h2>
-                </div>
-                <div id="container-home-scadenze" class="cards-grid">
-                    <!-- Scadenze filtrate inserite dinamicamente -->
+                <div class="home-dashboard-grid">
+                    
+                    <!-- 1. CARD RIEPILOGO SCADENZE -->
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-header">
+                            <h3>⏰ Scadenze in Primo Piano</h3>
+                        </div>
+                        <div id="container-home-scadenze" class="dashboard-card-body">
+                            <!-- Popolato dinamicamente -->
+                        </div>
+                    </div>
+
+                    <!-- 2. CARD IMPEGNI SETTIMANA -->
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-header">
+                            <h3>📅 Impegni della Settimana</h3>
+                        </div>
+                        <div id="container-home-impegni" class="dashboard-card-body">
+                            <!-- Popolato dinamicamente -->
+                        </div>
+                    </div>
+
+                    <!-- 3. CARD ULTIMI 5 MEDIA -->
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-header">
+                            <h3>🖼️ Ultimi Media Caricati</h3>
+                        </div>
+                        <div id="container-home-media" class="dashboard-card-body">
+                            <!-- Popolato dinamicamente -->
+                        </div>
+                    </div>
+
+                    <!-- 4. CARD RICETTE -->
+                    <div class="dashboard-card">
+                        <div class="dashboard-card-header">
+                            <h3>🍳 Ricette di Famiglia</h3>
+                        </div>
+                        <div id="container-home-ricette" class="dashboard-card-body">
+                            <!-- Popolato dinamicamente -->
+                        </div>
+                    </div>
+
                 </div>
             </section>
 
