@@ -52,7 +52,6 @@
         <!-- HEADER PRINCIPALE -->
         <header class="app-header">
             <div class="header-left">
-                <!-- ICONA HOME AL POSTO DELLE TRE BARRE -->
                 <button id="btn-go-home" class="header-home-btn" title="Torna alla Home">🏠</button>
                 <h1 id="header-title" class="header-home-title">HOME</h1>
             </div>
@@ -71,37 +70,42 @@
 
         <!-- SIDEBAR / MENU LATERALE -->
         <aside id="sidebar" class="sidebar">
-            <!-- HEADER SIDEBAR CON PULSANTE TRE BARRE IN ALTO -->
             <div class="sidebar-header">
                 <button id="btn-toggle-menu" class="sidebar-toggle-btn" title="Espandi / Comprimi Menu">&#9776;</button>
-                <h2 class="sidebar-title">Menu</h2>
+                <h2 class="sidebar-title">MENU</h2>
             </div>
 
-            <!-- VOCI DI NAVIGAZIONE -->
+            <!-- VOCI DI NAVIGAZIONE (CON HOME IN CIMA) -->
             <nav class="sidebar-nav">
                 <ul>
+                    <li id="nav-item-home">
+                        <a href="#" class="nav-link active" data-section="home">
+                            <span class="nav-emoji">🏠</span>
+                            <span>HOME</span>
+                        </a>
+                    </li>
                     <li id="nav-item-impegni">
                         <a href="#" class="nav-link" data-section="impegni">
                             <span class="nav-emoji">📅</span>
-                            <span>Impegni</span>
+                            <span>IMPEGNI</span>
                         </a>
                     </li>
                     <li id="nav-item-scadenze">
                         <a href="#" class="nav-link" data-section="scadenze">
                             <span class="nav-emoji">⏰</span>
-                            <span>Scadenze</span>
+                            <span>SCADENZE</span>
                         </a>
                     </li>
                     <li id="nav-item-ricette">
                         <a href="#" class="nav-link" data-section="ricette">
                             <span class="nav-emoji">🍳</span>
-                            <span>Ricette</span>
+                            <span>RICETTE</span>
                         </a>
                     </li>
                     <li id="nav-item-media">
                         <a href="#" class="nav-link" data-section="media">
                             <span class="nav-emoji">🖼️</span>
-                            <span>Foto e Video</span>
+                            <span>FOTO E VIDEO</span>
                         </a>
                     </li>
                 </ul>
@@ -111,24 +115,24 @@
             <div class="sidebar-middle">
                 <button id="btn-admin-panel" class="sidebar-action-btn admin-btn hidden">
                     <span class="nav-emoji">⚙️</span>
-                    <span class="btn-text">Gestione Utenti</span>
+                    <span class="btn-text">GESTIONE UTENTI</span>
                 </button>
                 <button id="btn-change-password" class="sidebar-action-btn">
                     <span class="nav-emoji">🔑</span>
-                    <span class="btn-text">Cambia Password</span>
+                    <span class="btn-text">CAMBIA PASSWORD</span>
                 </button>
                 <button id="btn-change-color" class="sidebar-action-btn">
                     <span class="nav-emoji">🎨</span>
-                    <span class="btn-text">Cambia Colore</span>
+                    <span class="btn-text">CAMBIA COLORE</span>
                 </button>
             </div>
 
-            <!-- CARD UTENTE IN FONDO ALLA SIDEBAR -->
+            <!-- CARD UTENTE IN FONDO -->
             <div id="sidebar-user-card" class="sidebar-user-card" title="Clicca per uscire dall'applicazione">
                 <span class="user-avatar-icon">👤</span>
                 <div class="user-info-text">
                     <span id="sidebar-user-name">Paolo</span>
-                    <span id="sidebar-user-role" class="role-badge">Admin</span>
+                    <span id="sidebar-user-role" class="role-badge">ADMIN</span>
                 </div>
             </div>
         </aside>
@@ -136,11 +140,9 @@
         <!-- CONTENUTO DELLE SEZIONI -->
         <main class="main-content">
 
-            <!-- SEZIONE 0: HOME (DASHBOARD IN COLONNA CON CARD CLICCABILI) -->
+            <!-- SEZIONE 0: HOME -->
             <section id="section-home" class="app-section active">
                 <div class="home-dashboard-grid">
-                    
-                    <!-- 1. SCADENZE -->
                     <div class="dashboard-card clickable-card" data-section="scadenze" title="Clicca per aprire la sezione Scadenze">
                         <div class="dashboard-card-header">
                             <h3>⏰ SCADENZE</h3>
@@ -148,7 +150,6 @@
                         <div id="container-home-scadenze" class="dashboard-card-body"></div>
                     </div>
 
-                    <!-- 2. IMPEGNI -->
                     <div class="dashboard-card clickable-card" data-section="impegni" title="Clicca per aprire la sezione Impegni">
                         <div class="dashboard-card-header">
                             <h3>📅 IMPEGNI</h3>
@@ -156,7 +157,6 @@
                         <div id="container-home-impegni" class="dashboard-card-body"></div>
                     </div>
 
-                    <!-- 3. MEDIA -->
                     <div class="dashboard-card clickable-card" data-section="media" title="Clicca per aprire la sezione Media">
                         <div class="dashboard-card-header">
                             <h3>🖼️ MEDIA</h3>
@@ -164,18 +164,16 @@
                         <div id="container-home-media" class="dashboard-card-body"></div>
                     </div>
 
-                    <!-- 4. RICETTE -->
                     <div class="dashboard-card clickable-card" data-section="ricette" title="Clicca per aprire la sezione Ricette">
                         <div class="dashboard-card-header">
                             <h3>🍳 RICETTE</h3>
                         </div>
                         <div id="container-home-ricette" class="dashboard-card-body"></div>
                     </div>
-
                 </div>
             </section>
 
-            <!-- SEZIONE 1: IMPEGNI / APPUNTAMENTI -->
+            <!-- SEZIONE 1: IMPEGNI -->
             <section id="section-impegni" class="app-section">
                 <div class="section-header">
                     <h2>I tuoi Appuntamenti</h2>
@@ -214,8 +212,7 @@
         </main>
     </div>
 
-    <!-- MODALI / POP-UP -->
-
+    <!-- MODALI -->
     <div id="modal-impegno" class="modal">
         <div class="modal-content">
             <h3>Nuovo Impegno</h3>
@@ -388,7 +385,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT PRINCIPALE MODULARE -->
+    <!-- SCRIPT PRINCIPALE -->
     <script type="module" src="js/app.js"></script>
 </body>
 </html>
