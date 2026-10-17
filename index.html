@@ -173,12 +173,9 @@
                 </div>
             </section>
 
-            <!-- SEZIONE 1: IMPEGNI -->
+            <!-- SEZIONE 1: IMPEGNI (AGENDA SETTIMANALE) -->
             <section id="section-impegni" class="app-section">
-                <div class="section-header">
-                    <h2>I tuoi Appuntamenti</h2>
-                    <button id="btn-add-impegno" class="add-btn">+ Nuovo Impegno</button>
-                </div>
+                <div class="section-header"></div>
                 <div id="container-impegni" class="cards-grid"></div>
             </section>
 
@@ -220,8 +217,9 @@
     <!-- MODALI -->
     <div id="modal-impegno" class="modal">
         <div class="modal-content">
-            <h3>Nuovo Impegno</h3>
+            <h3 id="modal-impegno-titolo-testo">Nuovo Impegno</h3>
             <form id="form-impegno" class="app-form">
+                <input type="hidden" id="impegno-edit-id">
                 <div class="form-group">
                     <label for="impegno-titolo">Titolo / Descrizione</label>
                     <input type="text" id="impegno-titolo" required placeholder="Es. Visita medica">
