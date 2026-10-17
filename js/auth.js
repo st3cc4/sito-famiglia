@@ -1,257 +1,115 @@
-// js/auth.js - Gestione Autenticazione, Login e Profilo Utente
+// js/auth.js - Gestione Autenticazione, Utenti e Permessi Sidebar
 
 import { db } from "./firebase-config.js";
-import { collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-export let utenteCorrente = null;
-
-// Elementi DOM Login
 const loginScreen = document.getElementById('login-screen');
 const appContainer = document.getElementById('app-container');
 const formLogin = document.getElementById('form-login');
-const loginUsername = document.getElementById('login-username');
-const loginPassword = document.getElementById('login-password');
-const loginRemember = document.getElementById('login-remember');
 const loginError = document.getElementById('login-error');
-const btnTogglePassword = document.getElementById('btn-toggle-password');
-
-// Elementi Profilo, Header e Sidebar
 const userGreeting = document.getElementById('user-greeting');
-const btnLogoutHeader = document.getElementById('btn-logout-header');
-const sidebarUserCard = document.getElementById('sidebar-user-card');
 const sidebarUserName = document.getElementById('sidebar-user-name');
-const sidebarUserRole = document.getElementById('sidebar-user-role');
+const btnLogoutHeader = document.getElementById('btn-logout-header');
 const btnAdminPanel = document.getElementById('btn-admin-panel');
 
-// Modali Profilo
-const modalPassword = document.getElementById('modal-password');
-const modalColore = document.getElementById('modal-colore');
-const btnChangePassword = document.getElementById('btn-change-password');
-const btnChangeColor = document.getElementById('btn-change-color');
-const btnCloseModalPassword = document.getElementById('btn-close-modal-password');
-const btnCloseModalColore = document.getElementById('btn-close-modal-colore');
-const formPassword = document.getElementById('form-password');
-const formColore = document.getElementById('form-colore');
-
-let onLoginSuccessCallback = null;
+let utenteCorrente = null;
 
 export function initAuth(onLoginSuccess) {
-    onLoginSuccessCallback = onLoginSuccess;
-
-    // Mostra/Nascondi Password nel Form Login
-    if (btnTogglePassword) {
-        btnTogglePassword.addEventListener('click', () => {
-            const isPassword = loginPassword.getAttribute('type') === 'password';
-            loginPassword.setAttribute('type', isPassword ? 'text' : 'password');
-            btnTogglePassword.textContent = isPassword ? '🙈' : '👁️';
-        });
+    // Controllo se c'è una sessione salvata in localStorage
+    const utenteSalvato = localStorage.getItem('famiglia_utente');
+    if (utenteSalvato) {
+        try {
+            utenteCorrente = JSON.parse(utenteSalvato);
+            mostraApplicazione(onLoginSuccess);
+        } catch (e) {
+            localStorage.removeItem('famiglia_utente');
+        }
     }
 
-    // Submit Form Login
     if (formLogin) {
         formLogin.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const usernameInput = document.getElementById('login-username').value.trim();
+            const passwordInput = document.getElementById('login-password').value.trim();
+            const rememberMe = document.getElementById('login-remember').checked;
+
             loginError.textContent = "";
 
-            const usernameDigitato = loginUsername.value.trim();
-            const passwordDigitata = loginPassword.value.trim();
-
             try {
-                const utentiRef = collection(db, "utenti");
-                const querySnapshot = await getDocs(utentiRef);
-
+                const querySnapshot = await getDocs(collection(db, "utenti"));
                 let utenteTrovato = null;
 
                 querySnapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    const nomeUtente = data.nome || docSnap.id;
-
-                    if (nomeUtente.toLowerCase() === usernameDigitato.toLowerCase() && data.password === passwordDigitata) {
-                        const eAdmin = (data.ruolo === 'admin') || (nomeUtente.toLowerCase() === 'paolo');
-
-                        utenteTrovato = {
-                            id: docSnap.id,
-                            nome: nomeUtente,
-                            password: data.password,
-                            colore: data.colore || "#4A90E2",
-                            ruolo: eAdmin ? 'admin' : (data.ruolo || 'utente'),
-                            permessi: data.permessi || { impegni: true, scadenze: true, ricette: true, media: true }
-                        };
+                    const dati = docSnap.data();
+                    if (dati.nome.toLowerCase() === usernameInput.toLowerCase() && dati.password === passwordInput) {
+                        utenteTrovato = { id: docSnap.id, ...dati };
                     }
                 });
 
                 if (utenteTrovato) {
-                    effettuaLogin(utenteTrovato, loginRemember.checked);
+                    utenteCorrente = utenteTrovato;
+                    if (rememberMe) {
+                        localStorage.setItem('famiglia_utente', JSON.stringify(utenteCorrente));
+                    }
+                    mostraApplicazione(onLoginSuccess);
                 } else {
-                    loginError.textContent = "Nome utente o password non corretti.";
+                    loginError.textContent = "Nome utente o password errati.";
                 }
-            } catch (error) {
-                console.error("Errore durante il login:", error);
-                loginError.textContent = "Errore di connessione durante la verifica.";
+            } catch (err) {
+                console.error("Errore durante il login:", err);
+                loginError.textContent = "Errore di connessione a Firebase.";
             }
         });
     }
 
-    // Pulsante "Esci" nell'Header Principale
     if (btnLogoutHeader) {
         btnLogoutHeader.addEventListener('click', () => {
-            if (confirm("Vuoi uscire dall'applicazione?")) {
-                eseguiLogout();
-            }
+            localStorage.removeItem('famiglia_utente');
+            utenteCorrente = null;
+            location.reload();
         });
-    }
-
-    // Click sulla Card Utente nella Sidebar per disconnessione alternativa
-    if (sidebarUserCard) {
-        sidebarUserCard.addEventListener('click', () => {
-            if (confirm("Vuoi uscire / disconnetterti dall'applicazione?")) {
-                eseguiLogout();
-            }
-        });
-    }
-
-    // Gestione Modali Password e Colore
-    if (btnChangePassword) {
-        btnChangePassword.addEventListener('click', () => { modalPassword.classList.add('active'); });
-    }
-    if (btnCloseModalPassword) {
-        btnCloseModalPassword.addEventListener('click', () => modalPassword.classList.remove('active'));
-    }
-
-    if (btnChangeColor) {
-        btnChangeColor.addEventListener('click', () => {
-            document.getElementById('user-color-picker').value = utenteCorrente ? utenteCorrente.colore : "#4A90E2";
-            modalColore.classList.add('active');
-        });
-    }
-    if (btnCloseModalColore) {
-        btnCloseModalColore.addEventListener('click', () => modalColore.classList.remove('active'));
-    }
-
-    // Salva Nuova Password
-    if (formPassword) {
-        formPassword.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const nuovaPwd = document.getElementById('new-password').value.trim();
-            if (!utenteCorrente || !nuovaPwd) return;
-
-            try {
-                await updateDoc(doc(db, "utenti", utenteCorrente.id), { password: nuovaPwd });
-                utenteCorrente.password = nuovaPwd;
-                if (localStorage.getItem('sito_famiglia_user')) {
-                    localStorage.setItem('sito_famiglia_user', JSON.stringify(utenteCorrente));
-                }
-                alert("Password aggiornata con successo!");
-                formPassword.reset();
-                modalPassword.classList.remove('active');
-            } catch (err) {
-                console.error("Errore aggiornamento password:", err);
-                alert("Errore durante l'aggiornamento della password.");
-            }
-        });
-    }
-
-    // Salva Nuovo Colore
-    if (formColore) {
-        formColore.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const nuovoColore = document.getElementById('user-color-picker').value;
-            if (!utenteCorrente || !nuovoColore) return;
-
-            try {
-                await updateDoc(doc(db, "utenti", utenteCorrente.id), { colore: nuovoColore });
-                utenteCorrente.colore = nuovoColore;
-                applicaColoreUtente(nuovoColore);
-
-                if (localStorage.getItem('sito_famiglia_user')) {
-                    localStorage.setItem('sito_famiglia_user', JSON.stringify(utenteCorrente));
-                }
-                alert("Colore aggiornato con successo!");
-                modalColore.classList.remove('active');
-            } catch (err) {
-                console.error("Errore aggiornamento colore:", err);
-                alert("Errore durante l'aggiornamento del colore.");
-            }
-        });
-    }
-
-    controllaSessioneSalvata();
-}
-
-function effettuaLogin(utente, ricorda) {
-    utenteCorrente = utente;
-
-    // Aggiorna Saluto al centro dell'header e informazioni utente
-    if (userGreeting) userGreeting.textContent = `Ciao ${utente.nome}`;
-    if (sidebarUserName) sidebarUserName.textContent = utente.nome;
-    if (sidebarUserRole) sidebarUserRole.textContent = utente.ruolo === 'admin' ? '(Admin)' : '(Utente)';
-
-    applicaColoreUtente(utente.colore);
-
-    if (utente.ruolo === 'admin') {
-        btnAdminPanel.classList.remove('hidden');
-    } else {
-        btnAdminPanel.classList.add('hidden');
-    }
-
-    if (ricorda) {
-        localStorage.setItem('sito_famiglia_user', JSON.stringify(utente));
-    } else {
-        localStorage.removeItem('sito_famiglia_user');
-    }
-
-    loginScreen.classList.add('hidden');
-    appContainer.classList.remove('hidden');
-
-    if (onLoginSuccessCallback) {
-        onLoginSuccessCallback(utente);
     }
 }
 
-// Funzione automatica per garantire leggibilità perfetta del testo in base al colore
-function calcolaColoreTestoContrastato(hexColor) {
-    const hex = hexColor.replace('#', '');
-    const r = parseInt(hex.substring(0, 2), 16) || 0;
-    const g = parseInt(hex.substring(2, 4), 16) || 0;
-    const b = parseInt(hex.substring(4, 6), 16) || 0;
-    
-    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-    return (yiq >= 128) ? '#1a1a1a' : '#ffffff';
-}
+function mostraApplicazione(onLoginSuccess) {
+    if (loginScreen) loginScreen.classList.add('hidden');
+    if (appContainer) appContainer.classList.remove('hidden');
 
-function applicaColoreUtente(colore) {
-    const coloreTesto = calcolaColoreTestoContrastato(colore);
+    if (userGreeting) userGreeting.textContent = `Ciao ${utenteCorrente.nome}`;
+    if (sidebarUserName) sidebarUserName.textContent = utenteCorrente.nome;
 
-    if (sidebarUserCard) {
-        sidebarUserCard.style.backgroundColor = colore;
-        sidebarUserCard.style.color = coloreTesto;
-    }
-
-    const userInfoText = document.querySelector('.user-info-text');
-    if (userInfoText) {
-        userInfoText.style.color = coloreTesto;
-    }
-}
-
-function eseguiLogout() {
-    localStorage.removeItem('sito_famiglia_user');
-    utenteCorrente = null;
-    appContainer.classList.add('hidden');
-    loginScreen.classList.remove('hidden');
-    if (formLogin) formLogin.reset();
-}
-
-function controllaSessioneSalvata() {
-    const salvato = localStorage.getItem('sito_famiglia_user');
-    if (salvato) {
-        try {
-            const utente = JSON.parse(salvato);
-            if (utente.nome && utente.nome.toLowerCase() === 'paolo') {
-                utente.ruolo = 'admin';
-            }
-            effettuaLogin(utente, true);
-        } catch (e) {
-            localStorage.removeItem('sito_famiglia_user');
+    // Gestione visibilità pannello Admin
+    if (btnAdminPanel) {
+        if (utenteCorrente.ruolo === 'admin' || utenteCorrente.nome.toLowerCase() === 'paolo') {
+            btnAdminPanel.classList.remove('hidden');
+        } else {
+            btnAdminPanel.classList.add('hidden');
         }
     }
+
+    // Gestione permessi sezioni/icone nella Sidebar
+    applicaPermessiSidebar();
+
+    if (typeof onLoginSuccess === 'function') {
+        onLoginSuccess(utenteCorrente);
+    }
+}
+
+function applicaPermessiSidebar() {
+    // Se l'utente ha una mappa di permessi personalizzata, nascondiamo le sezioni non autorizzate
+    const permessi = utenteCorrente.permessi || { impegni: true, scadenze: true, ricette: true, media: true };
+
+    const navImpegni = document.getElementById('nav-item-impegni');
+    const navScadenze = document.getElementById('nav-item-scadenze');
+    const navRicette = document.getElementById('nav-item-ricette');
+    const navMedia = document.getElementById('nav-item-media');
+
+    if (navImpegni) navImpegni.style.display = permessi.impegni !== false ? 'block' : 'none';
+    if (navScadenze) navScadenze.style.display = permessi.scadenze !== false ? 'block' : 'none';
+    if (navRicette) navRicette.style.display = permessi.ricette !== false ? 'block' : 'none';
+    if (navMedia) navMedia.style.display = permessi.media !== false ? 'block' : 'none';
+}
+
+export function getUtenteCorrente() {
+    return utenteCorrente;
 }
