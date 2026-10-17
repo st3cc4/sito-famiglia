@@ -158,4 +158,93 @@ function renderizzaAgendaSettimanale() {
 
         const anno = giornoCorrente.getFullYear();
         const mese = String(giornoCorrente.getMonth() + 1).padStart(2, '0');
-        const giorno =
+        const giorno = String(giornoCorrente.getDate()).padStart(2, '0');
+        const dataFormatoISO = `${anno}-${mese}-${giorno}`;
+        const dataFormatoVisibile = `${giorno}/${mese}`;
+
+        const impegniDelGiorno = tuttiGliImpegni.filter(imp => imp.data === dataFormatoISO);
+
+        const cardGiorno = document.createElement('div');
+        cardGiorno.style.backgroundColor = '#ffffff';
+        cardGiorno.style.borderRadius = '12px';
+        cardGiorno.style.boxShadow = '0 4px 10px rgba(0,0,0,0.08)';
+        cardGiorno.style.overflow = 'hidden';
+
+        const headerColor = coloriGiorni[i];
+
+        cardGiorno.innerHTML = `
+            <div style="background-color: ${headerColor}; color: white; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 1.2rem; font-weight: 800;">${giorniNomi[i]} ${dataFormatoVisibile}</div>
+                <button type="button" class="btn-add-imp-giorno" data-data="${dataFormatoISO}" style="background-color: rgba(255,255,255,0.25); color: white; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 1.4rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;">+</button>
+            </div>
+            <div class="body-giorno" style="padding: 15px; background-color: ${headerColor}0D;"></div>
+        `;
+
+        const bodyGiorno = cardGiorno.querySelector('.body-giorno');
+
+        if (impegniDelGiorno.length === 0) {
+            bodyGiorno.innerHTML = `<p style="color: #888; font-style: italic; font-size: 0.95rem; margin: 0;">Nessun impegno salvato</p>`;
+        } else {
+            impegniDelGiorno.forEach(item => {
+                const itemCard = document.createElement('div');
+                itemCard.style.backgroundColor = '#ffffff';
+                itemCard.style.padding = '12px 15px';
+                itemCard.style.borderRadius = '8px';
+                itemCard.style.marginBottom = '10px';
+                itemCard.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
+
+                let orarioTesto = '';
+                if (item.oraInizio && item.oraFine) {
+                    orarioTesto = `🕒 ${item.oraInizio} - ${item.oraFine}`;
+                } else if (item.oraInizio) {
+                    orarioTesto = `🕒 Ore ${item.oraInizio}`;
+                }
+
+                itemCard.innerHTML = `
+                    <div style="font-size: 1.1rem; font-weight: 800; color: #222; margin-bottom: 4px;">${item.titolo}</div>
+                    ${orarioTesto ? `<div style="font-size: 0.95rem; font-weight: bold; color: #555; margin-bottom: 4px;">${orarioTesto}</div>` : ''}
+                    <div style="font-size: 0.85rem; font-weight: bold; color: #777; margin-bottom: 8px;">👤 Creato da: ${item.creatoDa || 'Famiglia'}</div>
+                    
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn-edit-imp" style="background-color: #2980b9; color: white; padding: 6px 12px; font-size: 0.85rem; font-weight: bold; cursor: pointer; border-radius: 6px; border: none;" data-id="${item.id}">Modifica</button>
+                        <button type="button" class="btn-del-imp" style="background-color: #e74c3c; color: white; padding: 6px 12px; font-size: 0.85rem; font-weight: bold; cursor: pointer; border-radius: 6px; border: none;" data-id="${item.id}">Elimina</button>
+                    </div>
+                `;
+
+                itemCard.querySelector('.btn-edit-imp').addEventListener('click', () => {
+                    if (inputEditId) inputEditId.value = item.id;
+                    document.getElementById('impegno-titolo').value = item.titolo || '';
+                    document.getElementById('impegno-data').value = item.data || '';
+                    document.getElementById('impegno-ora-inizio').value = item.oraInizio || '';
+                    document.getElementById('impegno-ora-fine').value = item.oraFine || '';
+
+                    if (modalImpegnoTitoloTesto) modalImpegnoTitoloTesto.textContent = "Modifica Impegno";
+                    if (modalImpegno) modalImpegno.classList.add('active');
+                });
+
+                itemCard.querySelector('.btn-del-imp').addEventListener('click', async () => {
+                    if (confirm(`Vuoi eliminare l'impegno "${item.titolo}"?`)) {
+                        try {
+                            await deleteDoc(doc(db, "appuntamenti", item.id));
+                        } catch (err) {
+                            console.error("Errore eliminazione impegno:", err);
+                        }
+                    }
+                });
+
+                bodyGiorno.appendChild(itemCard);
+            });
+        }
+
+        cardGiorno.querySelector('.btn-add-imp-giorno').addEventListener('click', (e) => {
+            const dataGiorno = e.currentTarget.getAttribute('data-data');
+            if (formImpegno) formImpegno.reset();
+            if (inputEditId) inputEditId.value = "";
+            document.getElementById('impegno-data').value = dataGiorno;
+            if (modalImpegnoTitoloTesto) modalImpegnoTitoloTesto.textContent = "Nuovo Impegno";
+            if (modalImpegno) modalImpegno.classList.add('active');
+        });
+
+        containerImpegni.appendChild(cardGiorno);
+    }
+}
