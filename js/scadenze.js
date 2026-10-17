@@ -1,4 +1,4 @@
-// js/scadenze.js - Gestione Scadenze con Modifica, Totale e Layout Verticale
+// js/scadenze.js - Gestione Scadenze con Importo in Alto a Destra e Layout Ottimizzato
 
 import { db } from "./firebase-config.js";
 import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -11,7 +11,6 @@ const btnCloseModalScadenza = document.getElementById('btn-close-modal-scadenza'
 const formScadenza = document.getElementById('form-scadenza');
 const inputEditId = document.getElementById('scadenza-edit-id');
 const modalScadenzaTitoloTesto = document.getElementById('modal-scadenza-titolo-testo');
-
 const scadenzeTotaleImporto = document.getElementById('scadenze-totale-importo');
 
 let tutteLeScadenze = [];
@@ -36,7 +35,6 @@ export function initScadenze(getUtenteCorrente) {
 
             try {
                 if (editId) {
-                    // MODIFICA SCADENZA ESISTENTE
                     const scadRef = doc(db, "scadenze", editId);
                     await updateDoc(scadRef, {
                         titolo,
@@ -44,7 +42,6 @@ export function initScadenze(getUtenteCorrente) {
                         importo: importo ? parseFloat(importo) : 0
                     });
                 } else {
-                    // CREAZIONE NUOVA SCADENZA
                     await addDoc(collection(db, "scadenze"), {
                         titolo,
                         data,
@@ -168,18 +165,19 @@ function renderizzaScadenzeNormali() {
         }
 
         card.innerHTML = `
-            <div class="item-title" style="font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; color: #222;">${item.titolo}</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div class="item-title" style="font-size: 1.3rem; font-weight: 800; color: #222; margin: 0;">${item.titolo}</div>
+                ${item.importo ? `<div style="font-size: 1.2rem; font-weight: 800; color: #27ae60; background: #e8f8f5; padding: 4px 10px; border-radius: 8px;">💶 € ${item.importo.toFixed(2)}</div>` : ''}
+            </div>
             <div class="item-info" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 6px; color: #444;">⏰ ${testoScadenza}</div>
-            ${item.importo ? `<div class="item-info" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 6px; color: #444;">💶 Importo: € ${item.importo.toFixed(2)}</div>` : ''}
             <div class="item-info" style="font-size: 1rem; font-weight: bold; margin-bottom: 14px; color: #555;">👤 Creato da: ${item.creatoDa || 'Famiglia'}</div>
             
             <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button type="button" class="btn-edit-custom" style="background-color: #2980b9; color: white; padding: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; border-radius: 8px; border: none; flex: 1; transition: background-color 0.2s;" data-id="${item.id}">Modifica</button>
-                <button type="button" class="btn-delete-custom" style="background-color: #e74c3c; color: white; padding: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; border-radius: 8px; border: none; flex: 1; transition: background-color 0.2s;" data-id="${item.id}">Elimina</button>
+                <button type="button" class="btn-edit-custom" style="background-color: #2980b9; color: white; padding: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; border-radius: 8px; border: none; flex: 1;" data-id="${item.id}">Modifica</button>
+                <button type="button" class="btn-delete-custom" style="background-color: #e74c3c; color: white; padding: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; border-radius: 8px; border: none; flex: 1;" data-id="${item.id}">Elimina</button>
             </div>
         `;
 
-        // Evento Modifica
         card.querySelector('.btn-edit-custom').addEventListener('click', () => {
             if (inputEditId) inputEditId.value = item.id;
             document.getElementById('scadenza-titolo').value = item.titolo || '';
@@ -190,7 +188,6 @@ function renderizzaScadenzeNormali() {
             if (modalScadenza) modalScadenza.classList.add('active');
         });
 
-        // Evento Elimina
         card.querySelector('.btn-delete-custom').addEventListener('click', async () => {
             if (confirm(`Vuoi eliminare la scadenza "${item.titolo}"?`)) {
                 try {
@@ -260,9 +257,11 @@ function renderizzaScadenzeHomeIntelligente() {
         }
 
         card.innerHTML = `
-            <div class="item-title">${item.titolo}</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <div class="item-title" style="margin: 0;">${item.titolo}</div>
+                ${item.importo ? `<div style="font-weight: 800; color: #27ae60; font-size: 1rem;">💶 € ${item.importo.toFixed(2)}</div>` : ''}
+            </div>
             <div class="item-info">⏰ ${testoScadenza}</div>
-            ${item.importo ? `<div class="item-info">💶 € ${item.importo.toFixed(2)}</div>` : ''}
         `;
 
         containerHomeScadenze.appendChild(card);
