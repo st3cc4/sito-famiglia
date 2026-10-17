@@ -65,7 +65,7 @@
             </div>
         </header>
 
-        <!-- OVERLAY SIDEBAR -->
+        <!-- OVERLAY SFONDO SIDEBAR -->
         <div id="overlay" class="overlay"></div>
 
         <!-- SIDEBAR / MENU LATERALE -->
@@ -107,16 +107,26 @@
 
             <!-- PULSANTI AZIONI E AMMINISTRAZIONE -->
             <div class="sidebar-middle">
-                <button id="btn-admin-panel" class="sidebar-action-btn admin-btn hidden">⚙️ Gestione Utenti</button>
-                <button id="btn-change-password" class="sidebar-action-btn">🔑 Cambia Password</button>
-                <button id="btn-change-color" class="sidebar-action-btn">🎨 Cambia Colore</button>
+                <button id="btn-admin-panel" class="sidebar-action-btn admin-btn hidden">
+                    <span class="nav-emoji">⚙️</span>
+                    <span class="btn-text">Gestione Utenti</span>
+                </button>
+                <button id="btn-change-password" class="sidebar-action-btn">
+                    <span class="nav-emoji">🔑</span>
+                    <span class="btn-text">Cambia Password</span>
+                </button>
+                <button id="btn-change-color" class="sidebar-action-btn">
+                    <span class="nav-emoji">🎨</span>
+                    <span class="btn-text">Cambia Colore</span>
+                </button>
             </div>
 
             <!-- CARD UTENTE IN FONDO ALLA SIDEBAR -->
             <div id="sidebar-user-card" class="sidebar-user-card" title="Clicca per uscire dall'applicazione">
+                <span class="user-avatar-icon">👤</span>
                 <div class="user-info-text">
                     <span id="sidebar-user-name">Paolo</span>
-                    <span id="sidebar-user-role" class="role-badge">(Admin)</span>
+                    <span id="sidebar-user-role" class="role-badge">Admin</span>
                 </div>
             </div>
         </aside>
