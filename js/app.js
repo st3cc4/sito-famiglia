@@ -11,22 +11,30 @@ import { initMedia } from "./media.js";
 import { initPWA } from "./pwa.js";
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Inizializza Gestione Installazione PWA
-    initPWA();
+    try {
+        // 1. Inizializza Gestione Installazione PWA
+        initPWA();
 
-    // Inizializza Navigazione e Menu Laterale
-    initNavigation();
-    initSidebar();
-    initModals(getUtenteCorrente);
+        // 2. Inizializza Navigazione e Sidebar
+        initNavigation();
+        initSidebar();
 
-    // Inizializza Moduli di Sezione
-    initImpegni(getUtenteCorrente);
-    initScadenze(getUtenteCorrente);
-    initRicette(getUtenteCorrente);
-    initMedia(getUtenteCorrente);
+        // 3. Inizializza Modali
+        if (typeof initModals === 'function') {
+            initModals(getUtenteCorrente);
+        }
 
-    // Inizializza Autenticazione Utente
-    initAuth();
+        // 4. Inizializza Moduli delle Sezioni
+        if (typeof initImpegni === 'function') initImpegni(getUtenteCorrente);
+        if (typeof initScadenze === 'function') initScadenze(getUtenteCorrente);
+        if (typeof initRicette === 'function') initRicette(getUtenteCorrente);
+        if (typeof initMedia === 'function') initMedia(getUtenteCorrente);
 
-    console.log("Sito Famiglia inizializzato con successo in modalità modulare PWA.");
+        // 5. Inizializza Autenticazione Utente
+        if (typeof initAuth === 'function') initAuth();
+
+        console.log("Sito Famiglia inizializzato con successo in modalità modulare PWA.");
+    } catch (err) {
+        console.error("Errore durante l'inizializzazione dell'app:", err);
+    }
 });
