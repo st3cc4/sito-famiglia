@@ -1,4 +1,4 @@
-// js/navigation.js - Gestione Navigazione e Apertura/Chiusura Sidebar Collassabile
+// js/navigation.js - Gestione Navigazione, Home e Apertura/Chiusura Sidebar
 
 const navLinks = document.querySelectorAll('.nav-link');
 const appSections = document.querySelectorAll('.app-section');
@@ -6,7 +6,7 @@ const headerTitle = document.getElementById('header-title');
 const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('overlay');
 const btnToggleMenu = document.getElementById('btn-toggle-menu');
-const btnCloseMenu = document.getElementById('btn-close-menu');
+const btnGoHome = document.getElementById('btn-go-home');
 
 export function initNavigation() {
     // 1. Clic sulle Voci della Sidebar
@@ -15,7 +15,7 @@ export function initNavigation() {
             e.preventDefault();
             const sectionTarget = link.getAttribute('data-section');
             mostraSezione(sectionTarget);
-            chiudiSidebar(); // Richiude la sidebar mantenendo solo le icone
+            chiudiSidebar();
         });
     });
 
@@ -30,13 +30,17 @@ export function initNavigation() {
         });
     });
 
-    // 3. Clic sull'Hamburger per Alternare l'Espansione della Sidebar
-    if (btnToggleMenu) {
-        btnToggleMenu.addEventListener('click', toggleSidebar);
+    // 3. Clic sul pulsante Home (🏠) nell'header per tornare alla dashboard
+    if (btnGoHome) {
+        btnGoHome.addEventListener('click', () => {
+            mostraSezione('home');
+            chiudiSidebar();
+        });
     }
 
-    if (btnCloseMenu) {
-        btnCloseMenu.addEventListener('click', chiudiSidebar);
+    // 4. Clic sulle tre barre (hamburger) in alto nella sidebar per espandere/comprimere
+    if (btnToggleMenu) {
+        btnToggleMenu.addEventListener('click', toggleSidebar);
     }
 
     if (overlay) {
@@ -75,7 +79,7 @@ export function mostraSezione(sectionId) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Alterna tra la modalità chiusa (70px solo icone) e aperta (240px con testo)
+// Alterna lo stato della sidebar (chiusa/aperta)
 function toggleSidebar() {
     if (sidebar) {
         sidebar.classList.toggle('expanded');
