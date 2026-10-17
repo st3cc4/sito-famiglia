@@ -1,4 +1,4 @@
-/* css/style.css - Stili Generali e Layout dell'Applicazione */
+/* css/style.css - Stili Generali e Layout della Dashboard HOME */
 
 * {
     box-sizing: border-box;
@@ -131,7 +131,7 @@ body {
 .main-content {
     flex: 1;
     padding: 20px;
-    max-width: 1200px;
+    max-width: 1400px;
     width: 100%;
     margin: 0 auto;
 }
@@ -174,65 +174,94 @@ body {
     background-color: #357abd;
 }
 
-/* GRIGLIA SCHEDE / CARDS */
+/* GRIGLIA DASHBOARD HOME A 4 CARD */
+.home-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.dashboard-card {
+    background-color: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #eef0f3;
+}
+
+.dashboard-card-header {
+    background-color: #f8f9fa;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eef0f3;
+}
+
+.dashboard-card-header h3 {
+    font-size: 1.1rem;
+    color: #2c3e50;
+    font-weight: 700;
+    margin: 0;
+}
+
+.dashboard-card-body {
+    padding: 15px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+/* GRIGLIA SCHEDE STANDARD NELLE ALTRE SEZIONI */
 .cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 18px;
 }
 
-/* SCHEDE SCADENZE DELLA HOME CON LIVELLI DI URGENZA */
-.card-scadenza-home {
+/* SCHEDE INTERNE PER LA HOME (URGENZE SCADENZE, IMPEGNI, ETC.) */
+.home-item-card {
     background-color: #ffffff;
-    border-radius: 12px;
-    padding: 16px 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    border-left: 6px solid #ccc;
-    transition: transform 0.2s;
+    gap: 6px;
+    border-left: 5px solid #ccc;
 }
 
-.card-scadenza-home:hover {
-    transform: translateY(-2px);
-}
-
-/* URGENZA ROSSA (Scadute o entro 7 giorni) */
-.card-scadenza-home.urgente-rossa {
+/* URGENZA SCADENZE */
+.home-item-card.urgente-rossa {
     background-color: #fdf2f2;
     border-left-color: #e74c3c;
-    border-top: 1px solid #fadbd8;
-    border-right: 1px solid #fadbd8;
-    border-bottom: 1px solid #fadbd8;
+    border: 1px solid #fadbd8;
+    border-left-width: 5px;
 }
 
-/* URGENZA ARANCIONE (Da 8 a 14 giorni) */
-.card-scadenza-home.urgente-arancione {
+.home-item-card.urgente-arancione {
     background-color: #fef5e7;
     border-left-color: #f39c12;
-    border-top: 1px solid #fdebd0;
-    border-right: 1px solid #fdebd0;
-    border-bottom: 1px solid #fdebd0;
+    border: 1px solid #fdebd0;
+    border-left-width: 5px;
 }
 
-/* URGENZA VERDE (Da 15 giorni in su) */
-.card-scadenza-home.urgente-verde {
+.home-item-card.urgente-verde {
     background-color: #eafaf1;
     border-left-color: #2ecc71;
-    border-top: 1px solid #d4efdf;
-    border-right: 1px solid #d4efdf;
-    border-bottom: 1px solid #d4efdf;
+    border: 1px solid #d4efdf;
+    border-left-width: 5px;
 }
 
-.card-title {
-    font-size: 1.1rem;
+.item-title {
+    font-size: 1rem;
     font-weight: 700;
     color: #2c3e50;
 }
 
-.card-info {
-    font-size: 0.9rem;
+.item-info {
+    font-size: 0.85rem;
     color: #555555;
     display: flex;
     align-items: center;
@@ -260,5 +289,9 @@ body {
 
     .main-content {
         padding: 12px;
+    }
+
+    .home-dashboard-grid {
+        grid-template-columns: 1fr;
     }
 }
