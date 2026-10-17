@@ -1,7 +1,7 @@
-// js/scadenze.js - Gestione Scadenze, Grafica Verticale e Pulsanti Ottimizzati
+// js/scadenze.js - Gestione Scadenze con Modifica, Totale e Layout Verticale
 
 import { db } from "./firebase-config.js";
-import { collection, onSnapshot, addDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { mostraSezione } from "./navigation.js";
 
 const containerScadenze = document.getElementById('container-scadenze');
@@ -9,6 +9,10 @@ const containerHomeScadenze = document.getElementById('container-home-scadenze')
 const modalScadenza = document.getElementById('modal-scadenza');
 const btnCloseModalScadenza = document.getElementById('btn-close-modal-scadenza');
 const formScadenza = document.getElementById('form-scadenza');
+const inputEditId = document.getElementById('scadenza-edit-id');
+const modalScadenzaTitoloTesto = document.getElementById('modal-scadenza-titolo-testo');
+
+const scadenzeTotaleImporto = document.getElementById('scadenze-totale-importo');
 
 let tutteLeScadenze = [];
 
@@ -25,20 +29,33 @@ export function initScadenze(getUtenteCorrente) {
             const utente = getUtenteCorrente();
             if (!utente) return;
 
+            const editId = inputEditId ? inputEditId.value : "";
             const titolo = document.getElementById('scadenza-titolo').value.trim();
             const data = document.getElementById('scadenza-data').value;
             const importo = document.getElementById('scadenza-importo').value;
 
             try {
-                await addDoc(collection(db, "scadenze"), {
-                    titolo,
-                    data,
-                    importo: importo ? parseFloat(importo) : 0,
-                    creatoDa: utente.nome,
-                    creatoDaId: utente.id
-                });
+                if (editId) {
+                    // MODIFICA SCADENZA ESISTENTE
+                    const scadRef = doc(db, "scadenze", editId);
+                    await updateDoc(scadRef, {
+                        titolo,
+                        data,
+                        importo: importo ? parseFloat(importo) : 0
+                    });
+                } else {
+                    // CREAZIONE NUOVA SCADENZA
+                    await addDoc(collection(db, "scadenze"), {
+                        titolo,
+                        data,
+                        importo: importo ? parseFloat(importo) : 0,
+                        creatoDa: utente.nome,
+                        creatoDaId: utente.id
+                    });
+                }
 
                 formScadenza.reset();
+                if (inputEditId) inputEditId.value = "";
                 if (modalScadenza) modalScadenza.classList.remove('active');
             } catch (err) {
                 console.error("Errore salvataggio scadenza:", err);
@@ -64,14 +81,27 @@ function ascoltaScadenzeFirestore() {
 
         renderizzaScadenzeNormali();
         renderizzaScadenzeHomeIntelligente();
+        calcolaEmostraTotale();
     });
+}
+
+function calcolaEmostraTotale() {
+    if (!scadenzeTotaleImporto) return;
+
+    let totale = 0;
+    tutteLeScadenze.forEach((item) => {
+        if (item.importo) {
+            totale += parseFloat(item.importo);
+        }
+    });
+
+    scadenzeTotaleImporto.textContent = `€ ${totale.toFixed(2)}`;
 }
 
 function renderizzaScadenzeNormali() {
     if (!containerScadenze) return;
     containerScadenze.innerHTML = '';
 
-    // Troviamo o creiamo il contenitore dell'header della sezione (pulsanti Torna alla Home e Nuova Scadenza)
     const sectionScadenze = document.getElementById('section-scadenze');
     let sectionHeader = sectionScadenze.querySelector('.section-header');
     
@@ -81,18 +111,18 @@ function renderizzaScadenzeNormali() {
             <button id="btn-add-scadenza-custom" class="add-btn" style="padding: 10px 18px; font-weight: bold; cursor: pointer; border-radius: 8px;">Nuova Scadenza</button>
         `;
 
-        // Evento per tornare alla Home
         document.getElementById('btn-torna-home-scadenze').addEventListener('click', () => {
             mostraSezione('home');
         });
 
-        // Evento per aprire modale nuova scadenza
         document.getElementById('btn-add-scadenza-custom').addEventListener('click', () => {
+            if (formScadenza) formScadenza.reset();
+            if (inputEditId) inputEditId.value = "";
+            if (modalScadenzaTitoloTesto) modalScadenzaTitoloTesto.textContent = "Nuova Scadenza";
             if (modalScadenza) modalScadenza.classList.add('active');
         });
     }
 
-    // Layout in colonna verticale perfetto per i telefoni
     containerScadenze.style.display = 'flex';
     containerScadenze.style.flexDirection = 'column';
     containerScadenze.style.gap = '15px';
@@ -142,9 +172,25 @@ function renderizzaScadenzeNormali() {
             <div class="item-info" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 6px; color: #444;">⏰ ${testoScadenza}</div>
             ${item.importo ? `<div class="item-info" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 6px; color: #444;">💶 Importo: € ${item.importo.toFixed(2)}</div>` : ''}
             <div class="item-info" style="font-size: 1rem; font-weight: bold; margin-bottom: 14px; color: #555;">👤 Creato da: ${item.creatoDa || 'Famiglia'}</div>
-            <button type="button" class="btn-delete-custom" style="background-color: #e74c3c; color: white; padding: 10px 16px; font-size: 1rem; font-weight: bold; cursor: pointer; border-radius: 8px; border: none; width: 100%; transition: background-color 0.2s;" data-id="${item.id}">Elimina</button>
+            
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button type="button" class="btn-edit-custom" style="background-color: #2980b9; color: white; padding: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; border-radius: 8px; border: none; flex: 1; transition: background-color 0.2s;" data-id="${item.id}">Modifica</button>
+                <button type="button" class="btn-delete-custom" style="background-color: #e74c3c; color: white; padding: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; border-radius: 8px; border: none; flex: 1; transition: background-color 0.2s;" data-id="${item.id}">Elimina</button>
+            </div>
         `;
 
+        // Evento Modifica
+        card.querySelector('.btn-edit-custom').addEventListener('click', () => {
+            if (inputEditId) inputEditId.value = item.id;
+            document.getElementById('scadenza-titolo').value = item.titolo || '';
+            document.getElementById('scadenza-data').value = item.data || '';
+            document.getElementById('scadenza-importo').value = item.importo || '';
+            
+            if (modalScadenzaTitoloTesto) modalScadenzaTitoloTesto.textContent = "Modifica Scadenza";
+            if (modalScadenza) modalScadenza.classList.add('active');
+        });
+
+        // Evento Elimina
         card.querySelector('.btn-delete-custom').addEventListener('click', async () => {
             if (confirm(`Vuoi eliminare la scadenza "${item.titolo}"?`)) {
                 try {
