@@ -1,10 +1,11 @@
-// js/ricette.js - Gestione Ricette con Layout Verticale, Colore Creatore e Controlli Sicuri per i Tipi di Dati
+// js/ricette.js - Gestione Ricette, Layout Verticale, Colore Creatore e Anteprima Home
 
 import { db } from "./firebase-config.js";
 import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { mostraSezione } from "./navigation.js";
 
 const containerRicette = document.getElementById('container-ricette');
+const containerHomeRicette = document.getElementById('container-home-ricette');
 const modalRicetta = document.getElementById('modal-ricetta');
 const btnCloseModalRicetta = document.getElementById('btn-close-modal-ricetta');
 const formRicetta = document.getElementById('form-ricetta');
@@ -35,7 +36,6 @@ export function initRicette(getUtenteCorrente) {
 
             try {
                 if (editId) {
-                    // MODIFICA
                     const ricRef = doc(db, "ricette", editId);
                     await updateDoc(ricRef, {
                         nome,
@@ -44,7 +44,6 @@ export function initRicette(getUtenteCorrente) {
                         note
                     });
                 } else {
-                    // CREAZIONE
                     await addDoc(collection(db, "ricette"), {
                         nome,
                         ingredienti,
@@ -96,6 +95,41 @@ function ascoltaRicetteFirestore() {
         });
 
         renderizzaRicette();
+        renderizzaRicetteHome();
+    });
+}
+
+function renderizzaRicetteHome() {
+    if (!containerHomeRicette) return;
+    containerHomeRicette.innerHTML = '';
+
+    if (tutteLeRicette.length === 0) {
+        containerHomeRicette.innerHTML = '<p style="color: #777; font-size: 0.95rem; font-weight: bold; margin: 0;">Nessuna ricetta salvata.</p>';
+        return;
+    }
+
+    // Prende le ultime ricette o fino a 3 ricette per la Home
+    const ultimeRicette = tutteLeRicette.slice(-3).reverse();
+
+    ultimeRicette.forEach(item => {
+        const nomeCreatore = item.creatoDa || 'Famiglia';
+        const coloreCreatore = item.coloreUtente || mappaColoriUtenti[nomeCreatore.toLowerCase()] || '#4A90E2';
+
+        const div = document.createElement('div');
+        div.style.padding = '8px 10px';
+        div.style.backgroundColor = '#f8f9fa';
+        div.style.borderRadius = '6px';
+        div.style.marginBottom = '8px';
+        div.style.borderLeft = `4px solid ${coloreCreatore}`;
+
+        div.innerHTML = `
+            <div style="font-weight: 800; color: #2c3e50; font-size: 1rem;">🍳 ${item.nome || 'Senza Titolo'}</div>
+            <div style="font-size: 0.85rem; font-weight: bold; color: ${coloreCreatore}; margin-top: 2px;">
+                👤 Creato da: ${nomeCreatore}
+            </div>
+        `;
+
+        containerHomeRicette.appendChild(div);
     });
 }
 
@@ -103,9 +137,8 @@ function renderizzaRicette() {
     if (!containerRicette) return;
     containerRicette.innerHTML = '';
 
-    // Intestazione Sezione Ricette
     const sectionRicette = document.getElementById('section-ricette');
-    let sectionHeader = sectionRicette.querySelector('.section-header');
+    let sectionHeader = sectionRicette ? sectionRicette.querySelector('.section-header') : null;
     
     if (sectionHeader) {
         sectionHeader.innerHTML = `
@@ -125,7 +158,6 @@ function renderizzaRicette() {
         });
     }
 
-    // Layout Verticale in colonna
     containerRicette.style.display = 'flex';
     containerRicette.style.flexDirection = 'column';
     containerRicette.style.gap = '15px';
@@ -138,7 +170,6 @@ function renderizzaRicette() {
 
     tutteLeRicette.forEach((item) => {
         const nomeCreatore = item.creatoDa || 'Famiglia';
-        // Determina il colore del creatore
         const coloreCreatore = item.coloreUtente || mappaColoriUtenti[nomeCreatore.toLowerCase()] || '#4A90E2';
 
         const card = document.createElement('div');
@@ -150,7 +181,6 @@ function renderizzaRicette() {
         card.style.boxShadow = '0 4px 10px rgba(0,0,0,0.08)';
         card.style.borderLeft = `8px solid ${coloreCreatore}`;
 
-        // Gestione Sicura degli Ingredienti (sia se Array che se Stringa)
         let htmlIngredienti = 'Nessun ingrediente specificato';
         if (Array.isArray(item.ingredienti)) {
             htmlIngredienti = item.ingredienti.join(' • ');
@@ -160,7 +190,6 @@ function renderizzaRicette() {
             htmlIngredienti = String(item.ingredienti);
         }
 
-        // Gestione Sicura del Procedimento (sia se Array che se Stringa)
         let htmlProcedimento = '';
         let passaggi = [];
         if (Array.isArray(item.procedimento)) {
@@ -205,7 +234,6 @@ function renderizzaRicette() {
             </div>
         `;
 
-        // Evento Modifica
         card.querySelector('.btn-edit-ric').addEventListener('click', () => {
             if (inputEditId) inputEditId.value = item.id;
             document.getElementById('ricetta-nome').value = item.nome || '';
@@ -221,7 +249,6 @@ function renderizzaRicette() {
             if (modalRicetta) modalRicetta.classList.add('active');
         });
 
-        // Evento Elimina
         card.querySelector('.btn-del-ric').addEventListener('click', async () => {
             if (confirm(`Vuoi eliminare la ricetta "${item.nome}"?`)) {
                 try {
