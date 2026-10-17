@@ -1,80 +1,64 @@
-// js/navigation.js - Gestione Navigazione e Aggiornamento Header
+// js/navigation.js - Gestione Navigazione e Cambio Sezioni
 
+const sezioni = document.querySelectorAll('.app-section');
+const vociMenu = document.querySelectorAll('.sidebar-menu li');
 const headerTitle = document.getElementById('header-title');
-const headerIcon = document.getElementById('header-icon');
-const navLinks = document.querySelectorAll('.nav-link');
-const appSections = document.querySelectorAll('.app-section');
-const sidebar = document.getElementById('sidebar');
-const overlay = document.getElementById('overlay');
 
-// Mappa Titoli ed Emoji per l'Header
-const sezioniInfo = {
-    'home': { titolo: 'HOME', emoji: '🏠' },
-    'scadenze': { titolo: 'SCADENZE', emoji: '⏰' },
-    'impegni': { titolo: 'IMPEGNI', emoji: '📅' },
-    'media': { titolo: 'FOTO E VIDEO', emoji: '🖼️' },
-    'ricette': { titolo: 'RICETTE', emoji: '🍳' }
+const titoliSezioni = {
+    'home': 'HOME',
+    'impegni': 'IMPEGNI',
+    'scadenze': 'SCADENZE',
+    'ricette': 'RICETTE',
+    'media': 'MEDIA'
 };
 
 export function initNavigation() {
-    // Navigazione tramite barra laterale
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetSection = link.getAttribute('data-section');
-            if (targetSection) {
-                mostraSezione(targetSection);
-                chiudiSidebarMobile();
+    // Navigazione tramite Menu Sidebar
+    vociMenu.forEach(item => {
+        item.addEventListener('click', () => {
+            const sezione = item.getAttribute('data-section');
+            if (sezione) {
+                mostraSezione(sezione);
             }
         });
     });
 
-    // Navigazione tramite Card Cliccabili nella HOME
-    const clickableCards = document.querySelectorAll('.clickable-card');
-    clickableCards.forEach(card => {
+    // Navigazione tramite Click sulle Card della Home
+    const cardClickabili = document.querySelectorAll('.clickable-card');
+    cardClickabili.forEach(card => {
         card.addEventListener('click', () => {
-            const targetSection = card.getAttribute('data-section');
-            if (targetSection) {
-                mostraSezione(targetSection);
+            const navTarget = card.getAttribute('data-nav');
+            if (navTarget) {
+                mostraSezione(navTarget);
             }
         });
     });
 }
 
-export function mostraSezione(sectionId) {
-    const info = sezioniInfo[sectionId] || { titolo: 'HOME', emoji: '🏠' };
+export function mostraSezione(idSezione) {
+    // Nasconde tutte le sezioni
+    sezioni.forEach(sec => sec.classList.remove('active'));
 
-    // Aggiorna Titolo ed Emoji nell'Header (non cliccabile)
-    if (headerTitle) headerTitle.textContent = info.titolo;
-    if (headerIcon) headerIcon.textContent = info.emoji;
+    // Mostra la sezione selezionata
+    const sezioneTarget = document.getElementById(`section-${idSezione}`);
+    if (sezioneTarget) {
+        sezioneTarget.classList.add('active');
+    }
 
-    // Gestione visibilità sezioni
-    appSections.forEach(section => {
-        if (section.id === `section-${sectionId}`) {
-            section.classList.add('active');
+    // Aggiorna lo stato attivo nel menu della sidebar
+    vociMenu.forEach(item => {
+        if (item.getAttribute('data-section') === idSezione) {
+            item.classList.add('active');
         } else {
-            section.classList.remove('active');
+            item.classList.remove('active');
         }
     });
 
-    // Aggiorna stato attivo nei link della sidebar
-    navLinks.forEach(link => {
-        if (link.getAttribute('data-section') === sectionId) {
-            link.classList.add('active');
-        } else {
-            link.classList.remove('active');
-        }
-    });
+    // Aggiorna il titolo nell'header
+    if (headerTitle && titoliSezioni[idSezione]) {
+        headerTitle.textContent = titoliSezioni[idSezione];
+    }
 
-    // Scorrimento in cima alla pagina
+    // Scorri in alto alla pagina
     window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function chiudiSidebarMobile() {
-    if (sidebar && sidebar.classList.contains('open')) {
-        sidebar.classList.remove('open');
-    }
-    if (overlay && overlay.classList.contains('active')) {
-        overlay.classList.remove('active');
-    }
 }
