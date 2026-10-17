@@ -1,32 +1,32 @@
-// js/app.js - File Principale di Coordinamento Modulare
+// js/app.js - Punto di Ingresso Principale dell'Applicazione
 
 import { initAuth, getUtenteCorrente } from "./auth.js";
-import { initAdmin, applicaPermessiSezioni } from "./admin.js";
 import { initNavigation } from "./navigation.js";
+import { initSidebar } from "./sidebar.js";
+import { initModals } from "./modals.js";
 import { initImpegni } from "./impegni.js";
 import { initScadenze } from "./scadenze.js";
 import { initRicette } from "./ricette.js";
 import { initMedia } from "./media.js";
+import { initPWA } from "./pwa.js";
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Inizializzazione Navigazione (Sidebar + HOME)
+    // Inizializza Gestione Installazione PWA
+    initPWA();
+
+    // Inizializza Navigazione e Menu Laterale
     initNavigation();
+    initSidebar();
+    initModals(getUtenteCorrente);
 
-    // 2. Inizializzazione Autenticazione e Permessi
-    initAuth((utente) => {
-        if (utente && utente.permessi) {
-            applicaPermessiSezioni(utente.permessi);
-        }
-    });
-
-    // 3. Inizializzazione Gestione Admin
-    initAdmin(getUtenteCorrente);
-
-    // 4. Inizializzazione Moduli Sezioni
+    // Inizializza Moduli di Sezione
     initImpegni(getUtenteCorrente);
     initScadenze(getUtenteCorrente);
     initRicette(getUtenteCorrente);
     initMedia(getUtenteCorrente);
 
-    console.log("Sito Famiglia inizializzato con successo in modalità modulare.");
+    // Inizializza Autenticazione Utente
+    initAuth();
+
+    console.log("Sito Famiglia inizializzato con successo in modalità modulare PWA.");
 });
