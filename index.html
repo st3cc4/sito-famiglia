@@ -3,230 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sito Famiglia</title>
-    <!-- Fogli di stile -->
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/sidebar.css">
-    <!-- Manifest PWA -->
+    <title>Famiglia PWA - Login</title>
+    <!-- Includiamo il file CSS principale che faremo dopo -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Icone per il pulsante mostra/nascondi password -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Manifest per la PWA -->
     <link rel="manifest" href="manifest.json">
 </head>
-<body>
+<body class="login-body">
 
-    <!-- Banner PWA in alto -->
-    <div id="pwa-install-banner" class="pwa-install-banner hidden">
-        <div class="pwa-banner-content">
-            <span class="pwa-banner-icon">📱</span>
-            <span>Installa Sito Famiglia sul tuo dispositivo!</span>
-        </div>
-        <div class="pwa-banner-actions">
-            <button id="pwa-btn-install" class="pwa-btn-install">Installa</button>
-            <button id="pwa-btn-close" class="pwa-btn-close">✕</button>
-        </div>
-    </div>
-
-    <!-- Schermata di Login -->
-    <div id="login-screen" class="login-screen">
+    <div class="login-container">
         <div class="login-card">
-            <h2>Sito Famiglia</h2>
-            <p>Inserisci le tue credenziali per accedere</p>
-            <form id="form-login">
-                <div class="form-group">
-                    <label for="login-username">Nome Utente</label>
-                    <input type="text" id="login-username" required placeholder="Es. Paolo">
+            <h2>Famiglia PWA</h2>
+            <p class="login-subtitle">Inserisci le tue credenziali per accedere</p>
+
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="username">Nome</label>
+                    <select id="username" required>
+                        <option value="" disabled selected>Seleziona il tuo nome...</option>
+                        <option value="Paolo">Paolo</option>
+                        <option value="Elena">Elena</option>
+                        <option value="Sara">Sara</option>
+                        <option value="Giulia">Giulia</option>
+                        <option value="Carlo">Carlo</option>
+                        <option value="Samuele">Samuele</option>
+                        <option value="Leo">Leo</option>
+                    </select>
                 </div>
-                <div class="form-group" style="position: relative;">
-                    <label for="login-password">Password</label>
-                    <input type="password" id="login-password" required placeholder="********">
-                    <button type="button" id="btn-toggle-password" style="position: absolute; right: 10px; top: 32px; background: none; border: none; cursor: pointer; font-size: 1.2rem;">👁️</button>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" placeholder="Inserisci password" required>
+                        <button type="button" id="toggle-password" class="toggle-pwd-btn">
+                            <i class="fa-solid fa-eye" id="eye-icon"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="form-group-checkbox" style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
-                    <input type="checkbox" id="login-remember">
-                    <label for="login-remember" style="margin: 0; cursor: pointer;">Ricordami su questo dispositivo</label>
+
+                <div class="remember-group">
+                    <label>
+                        <input type="checkbox" id="remember-me" checked> Ricordami e accedi in automatico
+                    </label>
                 </div>
-                <button type="submit" class="save-btn" style="width: 100%;">Accedi</button>
-                <p id="login-error" class="error-text" style="color: #e74c3c; margin-top: 10px; font-weight: bold;"></p>
+
+                <button type="submit" class="btn-login">Accedi</button>
+                <div id="login-error" class="error-message"></div>
             </form>
         </div>
     </div>
 
-    <!-- Contenitore Principale dell'App -->
-    <div id="app-container" class="app-container hidden">
-        
-        <!-- Sidebar di Navigazione -->
-        <nav id="sidebar" class="sidebar">
-            <div class="sidebar-header">
-                <h3>Famiglia</h3>
-            </div>
-            <ul class="sidebar-menu">
-                <li class="active" data-section="home">🏠 Home</li>
-                <li data-section="impegni">📅 Impegni</li>
-                <li data-section="scadenze">⏰ Scadenze</li>
-                <li data-section="ricette">🍳 Ricette</li>
-                <li data-section="media">🖼️ Media</li>
-            </ul>
-            <div class="sidebar-footer">
-                <div id="sidebar-user-card" class="sidebar-user-card" style="cursor: pointer;" title="Clicca per uscire">
-                    <div id="sidebar-user-name" style="font-weight: bold;">Utente</div>
-                    <div id="sidebar-user-role" style="font-size: 0.8rem; opacity: 0.8;">RUOLO</div>
-                </div>
-                <button id="btn-admin-panel" class="cancel-btn hidden" style="width: 100%; margin-top: 10px; font-size: 0.85rem;">⚙️ Admin</button>
-            </div>
-        </nav>
-
-        <!-- Header Principale -->
-        <header class="app-header">
-            <div class="header-left">
-                <span class="header-icon-badge">🏠</span>
-                <span id="header-title" class="header-home-title">HOME</span>
-            </div>
-            <div class="header-center">
-                <span id="user-greeting" class="user-greeting">Ciao Utente</span>
-            </div>
-            <div class="header-right">
-                <button id="btn-logout-header" class="header-logout-btn">Esci</button>
-            </div>
-        </header>
-
-        <!-- Contenuto Dinamico delle Sezioni -->
-        <main class="main-content">
-
-            <!-- SEZIONE HOME -->
-            <section id="section-home" class="app-section active">
-                <div class="home-dashboard-grid">
-                    
-                    <!-- Card Scadenze Home -->
-                    <div class="dashboard-card clickable-card" data-nav="scadenze">
-                        <div class="dashboard-card-header">
-                            <h3>⏰ SCADENZE</h3>
-                        </div>
-                        <div class="dashboard-card-body" id="container-home-scadenze">
-                            <p style="color: #777; font-size: 0.95rem; font-weight: bold; margin: 0;">Caricamento scadenze...</p>
-                        </div>
-                    </div>
-
-                    <!-- Card Impegni Home -->
-                    <div class="dashboard-card clickable-card" data-nav="impegni">
-                        <div class="dashboard-card-header">
-                            <h3>📅 IMPEGNI</h3>
-                        </div>
-                        <div class="dashboard-card-body" id="container-home-impegni">
-                            <p style="color: #777; font-size: 0.95rem; font-weight: bold; margin: 0;">Caricamento impegni...</p>
-                        </div>
-                    </div>
-
-                    <!-- Card Media Home -->
-                    <div class="dashboard-card clickable-card" data-nav="media">
-                        <div class="dashboard-card-header">
-                            <h3>🖼️ MEDIA</h3>
-                        </div>
-                        <div class="dashboard-card-body" id="container-home-media">
-                            <p style="color: #777; font-size: 0.95rem; font-weight: bold; margin: 0;">Nessun media recente.</p>
-                        </div>
-                    </div>
-
-                    <!-- Card Ricette Home -->
-                    <div class="dashboard-card clickable-card" data-nav="ricette">
-                        <div class="dashboard-card-header">
-                            <h3>🍳 RICETTE</h3>
-                        </div>
-                        <div class="dashboard-card-body" id="container-home-ricette">
-                            <p style="color: #777; font-size: 0.95rem; font-weight: bold; margin: 0;">Nessuna ricetta salvata.</p>
-                        </div>
-                    </div>
-
-                </div>
-            </section>
-
-            <!-- SEZIONE IMPEGNI -->
-            <section id="section-impegni" class="app-section">
-                <div class="section-header"></div>
-                <div id="container-impegni"></div>
-            </section>
-
-            <!-- SEZIONE SCADENZE -->
-            <section id="section-scadenze" class="app-section">
-                <div class="section-header"></div>
-                <div id="container-scadenze"></div>
-            </section>
-
-            <!-- SEZIONE RICETTE -->
-            <section id="section-ricette" class="app-section">
-                <div class="section-header"></div>
-                <div id="container-ricette"></div>
-            </section>
-
-            <!-- SEZIONE MEDIA -->
-            <section id="section-media" class="app-section">
-                <div class="section-header"></div>
-                <div id="container-media"></div>
-            </section>
-
-        </main>
-    </div>
-
-    <!-- MODALE IMPEGNO -->
-    <div id="modal-impegno" class="modal-overlay">
-        <div class="modal-card">
-            <h3 id="modal-impegno-titolo-testo" style="margin-bottom: 15px;">Nuovo Impegno</h3>
-            <form id="form-impegno">
-                <input type="hidden" id="impegno-edit-id">
-                <div class="form-group" style="margin-bottom: 12px;">
-                    <label>Titolo Impegno</label>
-                    <input type="text" id="impegno-titolo" required placeholder="Es. Visita medica" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
-                </div>
-                <div class="form-group" style="margin-bottom: 12px;">
-                    <label>Data</label>
-                    <input type="date" id="impegno-data" required style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
-                </div>
-                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                    <div class="form-group" style="flex: 1;">
-                        <label>Ora Inizio</label>
-                        <input type="time" id="impegno-ora-inizio" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
-                    </div>
-                    <div class="form-group" style="flex: 1;">
-                        <label>Ora Fine</label>
-                        <input type="time" id="impegno-ora-fine" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
-                    </div>
-                </div>
-                <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                    <button type="button" id="btn-close-modal-impegno" class="cancel-btn">Annulla</button>
-                    <button type="submit" class="save-btn">Salva</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODALE RICETTA -->
-    <div id="modal-ricetta" class="modal-overlay">
-        <div class="modal-card">
-            <h3 id="modal-ricetta-titolo-testo" style="margin-bottom: 15px;">Nuova Ricetta</h3>
-            <form id="form-ricetta">
-                <input type="hidden" id="ricetta-edit-id">
-                <div class="form-group" style="margin-bottom: 12px;">
-                    <label>Nome della Ricetta</label>
-                    <input type="text" id="ricetta-nome" required placeholder="Es. Torta di mele" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
-                </div>
-                <div class="form-group" style="margin-bottom: 12px;">
-                    <label>Ingredienti</label>
-                    <div id="container-ingredienti-dinamici"></div>
-                </div>
-                <div class="form-group" style="margin-bottom: 12px;">
-                    <label>Procedimento</label>
-                    <div id="container-procedimenti-dinamici"></div>
-                </div>
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label>Note Aggiuntive</label>
-                    <input type="text" id="ricetta-note" placeholder="Es. Cucinare a 180° per 30 minuti" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
-                </div>
-                <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                    <button type="button" id="btn-close-modal-ricetta" class="cancel-btn">Annulla</button>
-                    <button type="submit" class="save-btn">Salva</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Script principale come Modulo -->
-    <script type="module" src="js/app.js"></script>
+    <!-- Script di gestione del login -->
+    <script type="module" src="login.js"></script>
 </body>
 </html>
