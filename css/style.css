@@ -70,7 +70,7 @@ body {
     line-height: 1;
 }
 
-/* Contenitore e Header */
+/* Contenitore e Header Allineati con la Sidebar */
 .app-container {
     display: flex;
     flex-direction: column;
@@ -84,7 +84,9 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 15px 0 75px; /* Spazio a sinistra per non sovrapporsi alla sidebar */
+    padding: 0 20px;
+    margin-left: 220px;
+    width: calc(100% - 220px);
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     position: sticky;
     top: 0;
@@ -125,10 +127,10 @@ body {
 /* Area Contenuto Principale */
 .main-content {
     flex: 1;
-    padding: 20px 15px 20px 80px; /* Margine sinistro adattato alla sidebar ridotta */
+    padding: 20px;
+    margin-left: 220px;
+    width: calc(100% - 220px);
     max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
 }
 
 .app-section {
@@ -146,7 +148,7 @@ body {
     margin-bottom: 20px;
 }
 
-/* Griglia Dashboard della Home - FORZATA IN VERTICALE (COLONNA SINGOLA) */
+/* Griglia Dashboard della Home - Layout in Colonna Singola */
 .home-dashboard-grid {
     display: flex;
     flex-direction: column;
@@ -276,12 +278,15 @@ body {
 }
 
 /* Adattamenti Mobile */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     .app-header {
-        padding-left: 70px;
+        margin-left: 0;
+        width: 100%;
     }
 
     .main-content {
-        padding: 15px 10px 20px 75px;
+        margin-left: 0;
+        width: 100%;
+        padding: 15px 10px;
     }
 }
