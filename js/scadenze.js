@@ -1,24 +1,18 @@
-// js/scadenze.js - Gestione Scadenze, Logica Intelligente e Card in Verticale
+// js/scadenze.js - Gestione Scadenze, Grafica Verticale e Pulsanti Ottimizzati
 
 import { db } from "./firebase-config.js";
 import { collection, onSnapshot, addDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { mostraSezione } from "./navigation.js";
 
 const containerScadenze = document.getElementById('container-scadenze');
 const containerHomeScadenze = document.getElementById('container-home-scadenze');
 const modalScadenza = document.getElementById('modal-scadenza');
-const btnAddScadenza = document.getElementById('btn-add-scadenza');
 const btnCloseModalScadenza = document.getElementById('btn-close-modal-scadenza');
 const formScadenza = document.getElementById('form-scadenza');
 
 let tutteLeScadenze = [];
 
 export function initScadenze(getUtenteCorrente) {
-    if (btnAddScadenza) {
-        btnAddScadenza.addEventListener('click', () => {
-            if (modalScadenza) modalScadenza.classList.add('active');
-        });
-    }
-
     if (btnCloseModalScadenza) {
         btnCloseModalScadenza.addEventListener('click', () => {
             if (modalScadenza) modalScadenza.classList.remove('active');
@@ -77,13 +71,35 @@ function renderizzaScadenzeNormali() {
     if (!containerScadenze) return;
     containerScadenze.innerHTML = '';
 
-    // Forza il layout in colonna verticale perfetto per i telefoni
+    // Troviamo o creiamo il contenitore dell'header della sezione (pulsanti Torna alla Home e Nuova Scadenza)
+    const sectionScadenze = document.getElementById('section-scadenze');
+    let sectionHeader = sectionScadenze.querySelector('.section-header');
+    
+    if (sectionHeader) {
+        sectionHeader.innerHTML = `
+            <button id="btn-torna-home-scadenze" class="cancel-btn" style="padding: 10px 16px; font-weight: bold; cursor: pointer; border-radius: 8px;">← Torna alla Home</button>
+            <button id="btn-add-scadenza-custom" class="add-btn" style="padding: 10px 18px; font-weight: bold; cursor: pointer; border-radius: 8px;">Nuova Scadenza</button>
+        `;
+
+        // Evento per tornare alla Home
+        document.getElementById('btn-torna-home-scadenze').addEventListener('click', () => {
+            mostraSezione('home');
+        });
+
+        // Evento per aprire modale nuova scadenza
+        document.getElementById('btn-add-scadenza-custom').addEventListener('click', () => {
+            if (modalScadenza) modalScadenza.classList.add('active');
+        });
+    }
+
+    // Layout in colonna verticale perfetto per i telefoni
     containerScadenze.style.display = 'flex';
     containerScadenze.style.flexDirection = 'column';
     containerScadenze.style.gap = '15px';
+    containerScadenze.style.marginTop = '20px';
 
     if (tutteLeScadenze.length === 0) {
-        containerScadenze.innerHTML = '<p style="color: #777;">Nessuna scadenza presente.</p>';
+        containerScadenze.innerHTML = '<p style="color: #777; font-size: 1.1rem; font-weight: bold;">Nessuna scadenza presente.</p>';
         return;
     }
 
@@ -108,6 +124,9 @@ function renderizzaScadenzeNormali() {
         card.className = `home-item-card urgente-${urgenza}`;
         card.style.width = '100%';
         card.style.boxSizing = 'border-box';
+        card.style.padding = '18px';
+        card.style.borderRadius = '12px';
+        card.style.boxShadow = '0 4px 10px rgba(0,0,0,0.08)';
 
         let testoScadenza = '';
         if (diffGiorni < 0) {
@@ -119,14 +138,14 @@ function renderizzaScadenzeNormali() {
         }
 
         card.innerHTML = `
-            <div class="item-title" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 6px;">${item.titolo}</div>
-            <div class="item-info" style="margin-bottom: 4px;">⏰ ${testoScadenza}</div>
-            ${item.importo ? `<div class="item-info" style="margin-bottom: 4px;">💶 Importo: € ${item.importo.toFixed(2)}</div>` : ''}
-            <div class="item-info" style="margin-bottom: 10px;">👤 Creato da: ${item.creatoDa || 'Famiglia'}</div>
-            <button type="button" class="cancel-btn" style="padding: 8px 14px; font-size: 0.9rem; cursor: pointer; border-radius: 6px; border: none;" data-id="${item.id}">Elimina</button>
+            <div class="item-title" style="font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; color: #222;">${item.titolo}</div>
+            <div class="item-info" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 6px; color: #444;">⏰ ${testoScadenza}</div>
+            ${item.importo ? `<div class="item-info" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 6px; color: #444;">💶 Importo: € ${item.importo.toFixed(2)}</div>` : ''}
+            <div class="item-info" style="font-size: 1rem; font-weight: bold; margin-bottom: 14px; color: #555;">👤 Creato da: ${item.creatoDa || 'Famiglia'}</div>
+            <button type="button" class="btn-delete-custom" style="background-color: #e74c3c; color: white; padding: 10px 16px; font-size: 1rem; font-weight: bold; cursor: pointer; border-radius: 8px; border: none; width: 100%; transition: background-color 0.2s;" data-id="${item.id}">Elimina</button>
         `;
 
-        card.querySelector('button').addEventListener('click', async () => {
+        card.querySelector('.btn-delete-custom').addEventListener('click', async () => {
             if (confirm(`Vuoi eliminare la scadenza "${item.titolo}"?`)) {
                 try {
                     await deleteDoc(doc(db, "scadenze", item.id));
