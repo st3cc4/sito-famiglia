@@ -1,237 +1,186 @@
-/* css/sidebar.css - Stili Sidebar con Scritte in Maiuscolo e Sezione HOME in Cima */
+/* css/sidebar.css - Sidebar reattiva per Mobile */
 
 .sidebar {
     position: fixed;
     top: 0;
     left: 0;
-    width: 70px; /* Larghezza da chiusa (solo icone) */
+    width: 65px; /* Larghezza ridotta su schermi piccoli */
     height: 100vh;
-    background-color: #1e1e1e;
+    height: 100dvh; /* Altezza adattiva su smartphone */
+    background-color: #1a1a1a;
     color: #ffffff;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    padding: 10px 0 15px 0;
     z-index: 1000;
-    box-shadow: 3px 0 10px rgba(0, 0, 0, 0.25);
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
-    white-space: nowrap;
-    text-transform: uppercase; /* Forza tutte le scritte della sidebar in MAIUSCOLO */
+    transition: width 0.3s ease;
+    overflow-y: auto; /* Permette lo scorrimento se lo schermo è corto */
+    overflow-x: hidden;
 }
 
-/* STATO ESPANSO */
-.sidebar.expanded {
-    width: 240px;
+.sidebar.open {
+    width: 250px; /* Larghezza da aperta per mostrare le scritte */
 }
 
-/* HEADER SIDEBAR (Pulsante Hamburger in alto) */
 .sidebar-header {
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 0 16px;
-    height: 50px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px 15px;
+    background-color: #111111;
 }
 
 .sidebar-toggle-btn {
     background: none;
     border: none;
     color: #ffffff;
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     cursor: pointer;
-    line-height: 1;
-    padding: 4px;
-    border-radius: 6px;
-    transition: background-color 0.2s, transform 0.2s;
-    min-width: 38px;
-    text-align: center;
-}
-
-.sidebar-toggle-btn:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .sidebar-title {
+    margin-left: 15px;
     font-size: 1.1rem;
-    font-weight: 700;
-    color: #ffffff;
+    font-weight: bold;
+    white-space: nowrap;
     opacity: 0;
     transition: opacity 0.2s ease;
-    letter-spacing: 0.5px;
 }
 
-.sidebar.expanded .sidebar-title {
+.sidebar.open .sidebar-title {
     opacity: 1;
 }
 
-/* PULSANTE HOME NELL'HEADER AZZURRO */
-.header-home-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    line-height: 1;
-    padding: 4px 8px;
-    border-radius: 8px;
-    transition: background-color 0.2s, transform 0.1s;
-}
-
-.header-home-btn:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    transform: scale(1.05);
-}
-
-/* NAVIGAZIONE */
 .sidebar-nav {
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding-top: 15px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    margin-top: 10px;
 }
 
 .sidebar-nav ul {
     list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 0 10px;
+    padding: 0;
+    margin: 0;
 }
 
-.sidebar-nav li {
-    width: 100%;
-}
-
-.nav-link {
+.sidebar-nav li a {
     display: flex;
     align-items: center;
-    height: 48px;
-    padding: 0 12px;
-    border-radius: 12px;
-    color: #b0b0b0;
+    padding: 12px 18px;
+    color: #cccccc;
     text-decoration: none;
+    font-weight: 600;
+    white-space: nowrap;
     transition: background-color 0.2s, color 0.2s;
-    gap: 15px;
+}
+
+.sidebar-nav li a:hover,
+.sidebar-nav li a.active {
+    background-color: #333333;
+    color: #ffffff;
 }
 
 .nav-emoji {
-    font-size: 1.4rem;
-    min-width: 26px;
+    font-size: 1.3rem;
+    min-width: 30px;
     text-align: center;
 }
 
-/* Etichette del menu */
-.nav-link span:not(.nav-emoji) {
-    font-size: 0.9rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+.sidebar-nav span:not(.nav-emoji) {
+    margin-left: 15px;
     opacity: 0;
     transition: opacity 0.2s ease;
 }
 
-.sidebar.expanded .nav-link span:not(.nav-emoji) {
+.sidebar.open .sidebar-nav span:not(.nav-emoji) {
     opacity: 1;
 }
 
-.nav-link:hover,
-.nav-link.active {
-    background-color: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
-}
-
-/* AZIONI CENTRALI (Admin, Password, Colore) */
 .sidebar-middle {
+    padding: 10px 10px;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid #333333;
 }
 
 .sidebar-action-btn {
-    background: none;
-    border: none;
-    color: #b0b0b0;
-    height: 44px;
-    padding: 0 12px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
     display: flex;
     align-items: center;
-    gap: 15px;
-    transition: background-color 0.2s, color 0.2s;
-    width: 100%;
-    text-align: left;
-    overflow: hidden;
+    background: none;
+    border: none;
+    color: #cccccc;
+    padding: 10px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9rem;
+    white-space: nowrap;
 }
 
-.sidebar-action-btn span.btn-text {
+.sidebar-action-btn:hover {
+    background-color: #2a2a2a;
+    color: #ffffff;
+}
+
+.btn-text {
+    margin-left: 15px;
     opacity: 0;
     transition: opacity 0.2s ease;
 }
 
-.sidebar.expanded .sidebar-action-btn span.btn-text {
+.sidebar.open .btn-text {
     opacity: 1;
 }
 
-.sidebar-action-btn:hover {
-    background-color: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
-}
-
-/* CARD UTENTE IN FONDO */
 .sidebar-user-card {
-    padding: 12px 15px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px 15px;
+    background-color: #222222;
+    border-top: 1px solid #333333;
+    margin-top: auto;
     cursor: pointer;
-    background-color: rgba(0, 0, 0, 0.2);
 }
 
 .user-avatar-icon {
-    font-size: 1.3rem;
-    min-width: 26px;
+    font-size: 1.4rem;
+    min-width: 30px;
     text-align: center;
 }
 
 .user-info-text {
+    margin-left: 15px;
     display: flex;
     flex-direction: column;
     opacity: 0;
+    white-space: nowrap;
     transition: opacity 0.2s ease;
 }
 
-.sidebar.expanded .user-info-text {
+.sidebar.open .user-info-text {
     opacity: 1;
 }
 
-#sidebar-user-name {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #ffffff;
+.role-badge {
+    font-size: 0.75rem;
+    color: #27ae60;
+    font-weight: bold;
 }
 
-#sidebar-user-role {
-    font-size: 0.7rem;
-    color: #aaa;
+/* Sfondo scuro semitrasparente quando si apre la sidebar su mobile */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
 }
 
-/* LAYOUT RESPONSIVE */
-.app-container {
-    padding-left: 70px;
-    transition: padding-left 0.3s ease;
-}
-
-@media (max-width: 600px) {
-    .app-container {
-        padding-left: 70px;
-    }
+.overlay.active {
+    display: block;
 }
