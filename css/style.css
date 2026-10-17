@@ -146,11 +146,12 @@ body {
     margin-bottom: 20px;
 }
 
-/* Griglia Dashboard della Home */
+/* Griglia Dashboard della Home - FORZATA IN VERTICALE (COLONNA SINGOLA) */
 .home-dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 20px;
+    width: 100%;
 }
 
 .dashboard-card {
@@ -159,6 +160,7 @@ body {
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     overflow: hidden;
     transition: transform 0.2s, box-shadow 0.2s;
+    width: 100%;
 }
 
 .clickable-card {
