@@ -66,7 +66,6 @@ function ascoltaScadenzeFirestore() {
             });
         });
 
-        // Ordina per data crescente
         tutteLeScadenze.sort((a, b) => new Date(a.data) - new Date(b.data));
 
         renderizzaScadenzeNormali();
@@ -74,7 +73,6 @@ function ascoltaScadenzeFirestore() {
     });
 }
 
-// Renderizza la sezione standard "Scadenze"
 function renderizzaScadenzeNormali() {
     if (!containerScadenze) return;
     containerScadenze.innerHTML = '';
@@ -86,12 +84,12 @@ function renderizzaScadenzeNormali() {
 
     tutteLeScadenze.forEach((item) => {
         const card = document.createElement('div');
-        card.className = 'card-scadenza-home';
+        card.className = 'home-item-card';
         card.innerHTML = `
-            <div class="card-title">${item.titolo}</div>
-            <div class="card-info">📅 Scadenza: ${item.data}</div>
-            ${item.importo ? `<div class="card-info">💶 Importo: € ${item.importo.toFixed(2)}</div>` : ''}
-            <div class="card-info">👤 Creato da: ${item.creatoDa || 'Famiglia'}</div>
+            <div class="item-title">${item.titolo}</div>
+            <div class="item-info">📅 Scadenza: ${item.data}</div>
+            ${item.importo ? `<div class="item-info">💶 Importo: € ${item.importo.toFixed(2)}</div>` : ''}
+            <div class="item-info">👤 Creato da: ${item.creatoDa || 'Famiglia'}</div>
             <button type="button" class="cancel-btn" style="margin-top: 8px; padding: 6px 12px; font-size: 0.85rem;" data-id="${item.id}">Elimina</button>
         `;
 
@@ -109,13 +107,12 @@ function renderizzaScadenzeNormali() {
     });
 }
 
-// Renderizza la HOME con la logica richiesta (Rosso -> Arancione -> Verde)
 function renderizzaScadenzeHomeIntelligente() {
     if (!containerHomeScadenze) return;
     containerHomeScadenze.innerHTML = '';
 
     if (tutteLeScadenze.length === 0) {
-        containerHomeScadenze.innerHTML = '<p style="color: #777;">Nessuna scadenza in programma nella HOME.</p>';
+        containerHomeScadenze.innerHTML = '<p style="color: #777; font-size: 0.9rem;">Nessuna scadenza in programma.</p>';
         return;
     }
 
@@ -134,18 +131,14 @@ function renderizzaScadenzeHomeIntelligente() {
         const diffGiorni = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
 
         if (diffGiorni <= 7) {
-            // Già scadute o entro 7 giorni -> ROSSO
             scadenzeRosse.push({ ...item, urgenza: 'rossa', giorni: diffGiorni });
         } else if (diffGiorni >= 8 && diffGiorni <= 14) {
-            // Dall'8° al 14° giorno -> ARANCIONE
             scadenzeArancioni.push({ ...item, urgenza: 'arancione', giorni: diffGiorni });
         } else {
-            // Dal 15° giorno in su -> VERDE
             scadenzeVerdi.push({ ...item, urgenza: 'verde', giorni: diffGiorni });
         }
     });
 
-    // Seleziona il gruppo da mostrare in base alla priorità richiesta
     let gruppoDaMostrare = [];
     if (scadenzeRosse.length > 0) {
         gruppoDaMostrare = scadenzeRosse;
@@ -157,7 +150,7 @@ function renderizzaScadenzeHomeIntelligente() {
 
     gruppoDaMostrare.forEach((item) => {
         const card = document.createElement('div');
-        card.className = `card-scadenza-home urgente-${item.urgenza}`;
+        card.className = `home-item-card urgente-${item.urgenza}`;
 
         let testoScadenza = '';
         if (item.giorni < 0) {
@@ -169,10 +162,9 @@ function renderizzaScadenzeHomeIntelligente() {
         }
 
         card.innerHTML = `
-            <div class="card-title">${item.titolo}</div>
-            <div class="card-info">⏰ ${testoScadenza}</div>
-            ${item.importo ? `<div class="card-info">💶 Importo: € ${item.importo.toFixed(2)}</div>` : ''}
-            <div class="card-info">👤 Creato da: ${item.creatoDa || 'Famiglia'}</div>
+            <div class="item-title">${item.titolo}</div>
+            <div class="item-info">⏰ ${testoScadenza}</div>
+            ${item.importo ? `<div class="item-info">💶 € ${item.importo.toFixed(2)}</div>` : ''}
         `;
 
         containerHomeScadenze.appendChild(card);
