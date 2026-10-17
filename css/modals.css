@@ -1,51 +1,148 @@
-/* css/modals.css - Stili per Finestre Modali, Pop-up e Form */
+/* css/modals.css - Stili Finestre Modali / Pop-up */
 
+/* Sfondo scuro di copertura (Overlay) */
 .modal {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: none;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.65);
+    display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 300;
-    padding: 20px;
+    z-index: 2000; /* Sopra la sidebar e l'header */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+    padding: 15px;
+    box-sizing: border-box;
 }
 
-.modal.active {
-    display: flex;
+/* Quando la modale è aperta */
+.modal.active,
+.modal.show {
+    opacity: 1;
+    visibility: visible;
 }
 
+/* Contenitore interno del Pop-up */
 .modal-content {
-    background-color: var(--card-bg);
+    background-color: #ffffff;
+    color: #333333;
+    border-radius: 16px;
     padding: 24px;
-    border-radius: var(--radius);
     width: 100%;
-    max-width: 480px;
-    box-shadow: var(--shadow);
+    max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    position: relative;
+    box-sizing: border-box;
+    transform: translateY(-20px);
+    transition: transform 0.25s ease;
 }
 
-.modal-large {
+.modal.active .modal-content,
+.modal.show .modal-content {
+    transform: translateY(0);
+}
+
+/* Modale grande (per Admin) */
+.modal-content.modal-large {
     max-width: 650px;
 }
 
+/* Titolo Pop-up */
 .modal-content h3 {
+    margin-top: 0;
     margin-bottom: 20px;
-    text-align: center;
+    font-size: 1.3rem;
+    color: #1e1e1e;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
 }
 
-/* Modale Admin - Checkbox Grid e Lista Utenti */
+.modal-content h4 {
+    margin-top: 15px;
+    margin-bottom: 10px;
+    font-size: 1.05rem;
+    color: #333;
+}
+
+/* Pulsante di Chiusura rapida (X) in alto a destra */
+.modal-close-x {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #888888;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    transition: color 0.2s;
+}
+
+.modal-close-x:hover {
+    color: #e74c3c;
+}
+
+/* Form all'interno della modale */
+.app-form .form-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.app-form label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #444444;
+}
+
+.app-form input[type="text"],
+.app-form input[type="password"],
+.app-form input[type="number"],
+.app-form input[type="date"],
+.app-form input[type="time"],
+.app-form select,
+.app-form textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    background-color: #f9f9f9;
+}
+
+.app-form input:focus,
+.app-form select:focus,
+.app-form textarea:focus {
+    border-color: #4A90E2;
+    outline: none;
+    background-color: #ffffff;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
 .checkbox-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
-    margin-top: 6px;
-    background-color: var(--bg-color);
-    padding: 10px;
+    background-color: #f5f5f5;
+    padding: 12px;
     border-radius: 8px;
 }
 
@@ -53,27 +150,34 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-weight: 500;
-    font-size: 0.9rem;
+    font-weight: normal;
     cursor: pointer;
 }
 
+/* Lista Utenti Admin */
 .admin-users-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-height: 200px;
+    max-height: 180px;
     overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 8px;
+    background-color: #fafafa;
 }
 
 .admin-user-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background-color: var(--bg-color);
+    padding: 8px 12px;
+    border-bottom: 1px solid #eeeeee;
+    background-color: #ffffff;
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+
+.admin-user-item:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
 }
 
 .admin-user-actions {
@@ -81,8 +185,8 @@
     gap: 6px;
 }
 
-.sm-btn {
-    padding: 4px 8px;
+.btn-sm {
+    padding: 4px 10px;
     font-size: 0.8rem;
     border-radius: 6px;
     border: none;
@@ -90,81 +194,48 @@
     font-weight: 600;
 }
 
-.edit-btn { background-color: #E2F0D9; color: #385723; }
-.del-btn { background-color: #FCE4D6; color: #C65911; }
-
-/* Stili per Form e Campi Inserimento */
-.app-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+.btn-edit {
+    background-color: #e3f2fd;
+    color: #1976d2;
 }
 
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    text-align: left;
+.btn-delete {
+    background-color: #ffebee;
+    color: #c62828;
 }
 
-.form-group label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-muted);
-}
-
-.form-group input,
-.form-group textarea {
-    padding: 10px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-    border-color: var(--primary-color);
-}
-
-.form-row {
-    display: flex;
-    gap: 12px;
-}
-
-.form-row .form-group {
-    flex: 1;
-}
-
+/* Azioni Pulsanti Modale */
 .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
-    margin-top: 10px;
-}
-
-.cancel-btn {
-    padding: 10px 16px;
-    background: none;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    color: var(--text-muted);
+    gap: 10px;
+    margin-top: 20px;
 }
 
 .save-btn {
-    padding: 10px 16px;
-    background-color: var(--primary-color);
-    color: white;
+    background-color: #27ae60;
+    color: #ffffff;
     border: none;
+    padding: 10px 18px;
     border-radius: 8px;
-    cursor: pointer;
     font-weight: 600;
-    transition: background-color 0.2s;
+    cursor: pointer;
 }
 
 .save-btn:hover {
-    background-color: var(--primary-dark);
+    background-color: #219150;
+}
+
+.cancel-btn {
+    background-color: #95a5a6;
+    color: #ffffff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cancel-btn:hover {
+    background-color: #7f8c8d;
 }
