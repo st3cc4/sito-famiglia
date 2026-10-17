@@ -1,10 +1,11 @@
-// js/impegni.js - Gestione Agenda Settimanale Impegni
+// js/impegni.js - Gestione Agenda Settimanale Impegni e Anteprima Home
 
 import { db } from "./firebase-config.js";
 import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { mostraSezione } from "./navigation.js";
 
 const containerImpegni = document.getElementById('container-impegni');
+const containerHomeImpegni = document.getElementById('container-home-impegni');
 const modalImpegno = document.getElementById('modal-impegno');
 const btnCloseModalImpegno = document.getElementById('btn-close-modal-impegno');
 const formImpegno = document.getElementById('form-impegno');
@@ -77,6 +78,70 @@ function ascoltaImpegniFirestore() {
         });
 
         renderizzaAgendaSettimanale();
+        renderizzaImpegniHome();
+    });
+}
+
+function renderizzaImpegniHome() {
+    if (!containerHomeImpegni) return;
+    containerHomeImpegni.innerHTML = '';
+
+    const oggi = new Date();
+    oggi.setHours(0, 0, 0, 0);
+
+    const curr = new Date(oggi);
+    const day = curr.getDay();
+    const diffToMonday = curr.getDate() - day + (day === 0 ? -6 : 1);
+    const lunedi = new Date(curr.setDate(diffToMonday));
+    lunedi.setHours(0, 0, 0, 0);
+
+    const domenica = new Date(lunedi);
+    domenica.setDate(lunedi.getDate() + 6);
+    domenica.setHours(23, 59, 59, 999);
+
+    // Filtra gli impegni che rientrano nella settimana corrente
+    const impegniSettimana = tuttiGliImpegni.filter(imp => {
+        if (!imp.data) return false;
+        const d = new Date(imp.data);
+        return d >= lunedi && d <= domenica;
+    });
+
+    if (impegniSettimana.length === 0) {
+        containerHomeImpegni.innerHTML = '<p style="color: #777; font-size: 0.95rem; font-weight: bold; margin: 0;">Nessun impegno in programma per questa settimana.</p>';
+        return;
+    }
+
+    // Ordina per data
+    impegniSettimana.sort((a, b) => new Date(a.data) - new Date(b.data));
+
+    const giorniNomi = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
+
+    impegniSettimana.forEach(item => {
+        const d = new Date(item.data);
+        const nomeGiorno = giorniNomi[d.getDay()];
+        const gg = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+
+        let orario = '';
+        if (item.oraInizio) {
+            orario = ` 🕒 ${item.oraInizio}`;
+        }
+
+        const div = document.createElement('div');
+        div.style.padding = '8px 10px';
+        div.style.backgroundColor = '#f8f9fa';
+        div.style.borderRadius = '6px';
+        div.style.marginBottom = '8px';
+        div.style.borderLeft = '4px solid #3498db';
+
+        div.innerHTML = `
+            <div style="font-weight: 800; color: #2c3e50; font-size: 1rem;">${item.titolo}</div>
+            <div style="font-size: 0.85rem; font-weight: bold; color: #666; margin-top: 2px;">
+                📅 ${nomeGiorno} ${gg}/${mm}${orario}
+            </div>
+        `;
+
+        containerHomeImpegni.appendChild(div);
     });
 }
 
@@ -85,9 +150,8 @@ function renderizzaAgendaSettimanale() {
     containerImpegni.innerHTML = '';
 
     const sectionImpegni = document.getElementById('section-impegni');
-    let sectionHeader = sectionImpegni.querySelector('.section-header');
+    let sectionHeader = sectionImpegni ? sectionImpegni.querySelector('.section-header') : null;
 
-    // Calcola inizio settimana (Lunedì) e fine (Domenica)
     const curr = new Date(dataCorrenteRiferimento);
     const day = curr.getDay();
     const diffToMonday = curr.getDate() - day + (day === 0 ? -6 : 1);
@@ -103,7 +167,6 @@ function renderizzaAgendaSettimanale() {
         return `${gg}/${mm}`;
     };
 
-    // Solo i giorni senza l'anno e senza "Settimana dal al"
     const stringaIntervallo = `${formatoDataBreve(lunedi)} - ${formatoDataBreve(domenica)}`;
 
     if (sectionHeader) {
@@ -148,7 +211,6 @@ function renderizzaAgendaSettimanale() {
     containerImpegni.style.gap = '15px';
     containerImpegni.style.marginTop = '15px';
 
-    // Genera i 7 giorni della settimana
     const giorniNomi = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
     const coloriGiorni = ['#3498db', '#9b59b6', '#1abc9c', '#e67e22', '#2980b9', '#8e44ad', '#e74c3c'];
 
