@@ -75,7 +75,7 @@
                 <h2 class="sidebar-title">MENU</h2>
             </div>
 
-            <!-- VOCI DI NAVIGAZIONE NEL NUOVO ORDINE RICHIESTO -->
+            <!-- VOCI DI NAVIGAZIONE -->
             <nav class="sidebar-nav">
                 <ul>
                     <li id="nav-item-home">
@@ -184,11 +184,14 @@
 
             <!-- SEZIONE 2: SCADENZE -->
             <section id="section-scadenze" class="app-section">
-                <div class="section-header">
-                    <h2>Le tue Scadenze</h2>
-                    <button id="btn-add-scadenza" class="add-btn">+ Nuova Scadenza</button>
-                </div>
+                <div class="section-header"></div>
                 <div id="container-scadenze" class="cards-grid"></div>
+                
+                <!-- CONTENITORE TOTALE IN BASSO A SINISTRA -->
+                <div id="scadenze-totale-container" style="margin-top: 25px; padding: 15px; background-color: #ffffff; border-radius: 12px; border-left: 6px solid #27ae60; box-shadow: 0 4px 10px rgba(0,0,0,0.08); max-width: 320px;">
+                    <div style="font-size: 0.95rem; font-weight: bold; color: #555; text-transform: uppercase;">Totale Scadenze da Pagare</div>
+                    <div id="scadenze-totale-importo" style="font-size: 1.6rem; font-weight: 800; color: #27ae60; margin-top: 4px;">€ 0.00</div>
+                </div>
             </section>
 
             <!-- SEZIONE 3: RICETTE -->
@@ -245,8 +248,9 @@
 
     <div id="modal-scadenza" class="modal">
         <div class="modal-content">
-            <h3>Nuova Scadenza</h3>
+            <h3 id="modal-scadenza-titolo-testo">Nuova Scadenza</h3>
             <form id="form-scadenza" class="app-form">
+                <input type="hidden" id="scadenza-edit-id">
                 <div class="form-group">
                     <label for="scadenza-titolo">Titolo / Bolletta</label>
                     <input type="text" id="scadenza-titolo" required placeholder="Es. Assicurazione auto">
@@ -320,8 +324,8 @@
                     <input type="color" id="user-color-picker" value="#4A90E2" style="height: 50px; cursor: pointer;">
                 </div>
                 <div class="form-actions">
-                    <button type="button" id="btn-close-modal-colore" class="cancel-btn">Applica</button>
-                    <button type="submit" class="save-btn">Salva</button>
+                    <button type="button" id="btn-close-modal-colore" class="cancel-btn">Annulla</button>
+                    <button type="submit" class="save-btn">Applica</button>
                 </div>
             </form>
         </div>
