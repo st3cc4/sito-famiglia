@@ -1,4 +1,4 @@
-// js/ricette.js - Gestione Ricette con Layout Verticale e Colore Creatore
+// js/ricette.js - Gestione Ricette con Layout Verticale, Colore Creatore e Controlli Sicuri per i Tipi di Dati
 
 import { db } from "./firebase-config.js";
 import { collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -150,21 +150,33 @@ function renderizzaRicette() {
         card.style.boxShadow = '0 4px 10px rgba(0,0,0,0.08)';
         card.style.borderLeft = `8px solid ${coloreCreatore}`;
 
-        // Formattazione Ingredienti
+        // Gestione Sicura degli Ingredienti (sia se Array che se Stringa)
         let htmlIngredienti = 'Nessun ingrediente specificato';
-        if (item.ingredienti) {
+        if (Array.isArray(item.ingredienti)) {
+            htmlIngredienti = item.ingredienti.join(' • ');
+        } else if (typeof item.ingredienti === 'string' && item.ingredienti.trim() !== '') {
             htmlIngredienti = item.ingredienti.split('\n').filter(i => i.trim() !== '').join(' • ');
+        } else if (item.ingredienti) {
+            htmlIngredienti = String(item.ingredienti);
         }
 
-        // Formattazione Procedimento
+        // Gestione Sicura del Procedimento (sia se Array che se Stringa)
         let htmlProcedimento = '';
-        if (item.procedimento) {
-            const passaggi = item.procedimento.split('\n').filter(p => p.trim() !== '');
+        let passaggi = [];
+        if (Array.isArray(item.procedimento)) {
+            passaggi = item.procedimento;
+        } else if (typeof item.procedimento === 'string' && item.procedimento.trim() !== '') {
+            passaggi = item.procedimento.split('\n').filter(p => p.trim() !== '');
+        } else if (item.procedimento) {
+            passaggi = [String(item.procedimento)];
+        }
+
+        if (passaggi.length > 0) {
             htmlProcedimento = passaggi.map((p, idx) => `<div style="margin-top: 4px;"><strong>${idx + 1}.</strong> ${p}</div>`).join('');
         }
 
         card.innerHTML = `
-            <div style="font-size: 1.3rem; font-weight: 800; color: #222; margin-bottom: 10px;">${item.nome}</div>
+            <div style="font-size: 1.3rem; font-weight: 800; color: #222; margin-bottom: 10px;">${item.nome || 'Senza Titolo'}</div>
             
             <div style="font-size: 1.05rem; font-weight: bold; color: #333; margin-bottom: 8px;">
                 🛒 <strong>Ingredienti:</strong> <span style="font-weight: normal; color: #444;">${htmlIngredienti}</span>
@@ -197,8 +209,12 @@ function renderizzaRicette() {
         card.querySelector('.btn-edit-ric').addEventListener('click', () => {
             if (inputEditId) inputEditId.value = item.id;
             document.getElementById('ricetta-nome').value = item.nome || '';
-            document.getElementById('ricetta-ingredienti').value = item.ingredienti || '';
-            document.getElementById('ricetta-procedimento').value = item.procedimento || '';
+            
+            const ingrVal = Array.isArray(item.ingredienti) ? item.ingredienti.join('\n') : (item.ingredienti || '');
+            const procVal = Array.isArray(item.procedimento) ? item.procedimento.join('\n') : (item.procedimento || '');
+
+            document.getElementById('ricetta-ingredienti').value = ingrVal;
+            document.getElementById('ricetta-procedimento').value = procVal;
             document.getElementById('ricetta-note').value = item.note || '';
 
             if (modalRicettaTitoloTesto) modalRicettaTitoloTesto.textContent = "Modifica Ricetta";
