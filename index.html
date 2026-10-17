@@ -195,10 +195,7 @@
 
             <!-- SEZIONE 3: RICETTE -->
             <section id="section-ricette" class="app-section">
-                <div class="section-header">
-                    <h2>Ricette di Famiglia</h2>
-                    <button id="btn-add-ricetta" class="add-btn">+ Nuova Ricetta</button>
-                </div>
+                <div class="section-header"></div>
                 <div id="container-ricette" class="cards-grid"></div>
             </section>
 
@@ -273,8 +270,9 @@
 
     <div id="modal-ricetta" class="modal">
         <div class="modal-content">
-            <h3>Nuova Ricetta</h3>
+            <h3 id="modal-ricetta-titolo-testo">Nuova Ricetta</h3>
             <form id="form-ricetta" class="app-form">
+                <input type="hidden" id="ricetta-edit-id">
                 <div class="form-group">
                     <label for="ricetta-nome">Nome della Ricetta</label>
                     <input type="text" id="ricetta-nome" required placeholder="Es. Torta di mele">
