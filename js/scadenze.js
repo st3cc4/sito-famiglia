@@ -1,4 +1,4 @@
-// js/scadenze.js - Gestione Scadenze e Logica Intelligente per la HOME
+// js/scadenze.js - Gestione Scadenze, Logica Intelligente e Card in Verticale
 
 import { db } from "./firebase-config.js";
 import { collection, onSnapshot, addDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -77,20 +77,53 @@ function renderizzaScadenzeNormali() {
     if (!containerScadenze) return;
     containerScadenze.innerHTML = '';
 
+    // Forza il layout in colonna verticale perfetto per i telefoni
+    containerScadenze.style.display = 'flex';
+    containerScadenze.style.flexDirection = 'column';
+    containerScadenze.style.gap = '15px';
+
     if (tutteLeScadenze.length === 0) {
         containerScadenze.innerHTML = '<p style="color: #777;">Nessuna scadenza presente.</p>';
         return;
     }
 
+    const oggi = new Date();
+    oggi.setHours(0, 0, 0, 0);
+
     tutteLeScadenze.forEach((item) => {
+        const dataScad = new Date(item.data);
+        dataScad.setHours(0, 0, 0, 0);
+
+        const diffTempo = dataScad - oggi;
+        const diffGiorni = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+
+        let urgenza = 'verde';
+        if (diffGiorni <= 7) {
+            urgenza = 'rossa';
+        } else if (diffGiorni >= 8 && diffGiorni <= 14) {
+            urgenza = 'arancione';
+        }
+
         const card = document.createElement('div');
-        card.className = 'home-item-card';
+        card.className = `home-item-card urgente-${urgenza}`;
+        card.style.width = '100%';
+        card.style.boxSizing = 'border-box';
+
+        let testoScadenza = '';
+        if (diffGiorni < 0) {
+            testoScadenza = `Scaduta da ${Math.abs(diffGiorni)} giorni (${item.data})`;
+        } else if (diffGiorni === 0) {
+            testoScadenza = `Scade OGGI (${item.data})`;
+        } else {
+            testoScadenza = `Scade tra ${diffGiorni} giorni (${item.data})`;
+        }
+
         card.innerHTML = `
-            <div class="item-title">${item.titolo}</div>
-            <div class="item-info">📅 Scadenza: ${item.data}</div>
-            ${item.importo ? `<div class="item-info">💶 Importo: € ${item.importo.toFixed(2)}</div>` : ''}
-            <div class="item-info">👤 Creato da: ${item.creatoDa || 'Famiglia'}</div>
-            <button type="button" class="cancel-btn" style="margin-top: 8px; padding: 6px 12px; font-size: 0.85rem;" data-id="${item.id}">Elimina</button>
+            <div class="item-title" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 6px;">${item.titolo}</div>
+            <div class="item-info" style="margin-bottom: 4px;">⏰ ${testoScadenza}</div>
+            ${item.importo ? `<div class="item-info" style="margin-bottom: 4px;">💶 Importo: € ${item.importo.toFixed(2)}</div>` : ''}
+            <div class="item-info" style="margin-bottom: 10px;">👤 Creato da: ${item.creatoDa || 'Famiglia'}</div>
+            <button type="button" class="cancel-btn" style="padding: 8px 14px; font-size: 0.9rem; cursor: pointer; border-radius: 6px; border: none;" data-id="${item.id}">Elimina</button>
         `;
 
         card.querySelector('button').addEventListener('click', async () => {
