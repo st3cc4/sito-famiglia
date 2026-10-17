@@ -1,99 +1,80 @@
-// js/navigation.js - Gestione Navigazione, Home e Apertura/Chiusura Sidebar
+// js/navigation.js - Gestione Navigazione e Aggiornamento Header
 
+const headerTitle = document.getElementById('header-title');
+const headerIcon = document.getElementById('header-icon');
 const navLinks = document.querySelectorAll('.nav-link');
 const appSections = document.querySelectorAll('.app-section');
-const headerTitle = document.getElementById('header-title');
 const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('overlay');
-const btnToggleMenu = document.getElementById('btn-toggle-menu');
-const btnGoHome = document.getElementById('btn-go-home');
+
+// Mappa Titoli ed Emoji per l'Header
+const sezioniInfo = {
+    'home': { titolo: 'HOME', emoji: '🏠' },
+    'scadenze': { titolo: 'SCADENZE', emoji: '⏰' },
+    'impegni': { titolo: 'IMPEGNI', emoji: '📅' },
+    'media': { titolo: 'FOTO E VIDEO', emoji: '🖼️' },
+    'ricette': { titolo: 'RICETTE', emoji: '🍳' }
+};
 
 export function initNavigation() {
-    // 1. Clic sulle Voci della Sidebar
+    // Navigazione tramite barra laterale
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const sectionTarget = link.getAttribute('data-section');
-            mostraSezione(sectionTarget);
-            chiudiSidebar();
+            const targetSection = link.getAttribute('data-section');
+            if (targetSection) {
+                mostraSezione(targetSection);
+                chiudiSidebarMobile();
+            }
         });
     });
 
-    // 2. Clic sulle Card Cliccabili della HOME
+    // Navigazione tramite Card Cliccabili nella HOME
     const clickableCards = document.querySelectorAll('.clickable-card');
     clickableCards.forEach(card => {
         card.addEventListener('click', () => {
-            const sectionTarget = card.getAttribute('data-section');
-            if (sectionTarget) {
-                mostraSezione(sectionTarget);
+            const targetSection = card.getAttribute('data-section');
+            if (targetSection) {
+                mostraSezione(targetSection);
             }
         });
     });
-
-    // 3. Clic sul pulsante Home (🏠) nell'header per tornare alla dashboard
-    if (btnGoHome) {
-        btnGoHome.addEventListener('click', () => {
-            mostraSezione('home');
-            chiudiSidebar();
-        });
-    }
-
-    // 4. Clic sulle tre barre (hamburger) in alto nella sidebar per espandere/comprimere
-    if (btnToggleMenu) {
-        btnToggleMenu.addEventListener('click', toggleSidebar);
-    }
-
-    if (overlay) {
-        overlay.addEventListener('click', chiudiSidebar);
-    }
 }
 
-// Funzione principale per attivare la sezione desiderata
 export function mostraSezione(sectionId) {
+    const info = sezioniInfo[sectionId] || { titolo: 'HOME', emoji: '🏠' };
+
+    // Aggiorna Titolo ed Emoji nell'Header (non cliccabile)
+    if (headerTitle) headerTitle.textContent = info.titolo;
+    if (headerIcon) headerIcon.textContent = info.emoji;
+
+    // Gestione visibilità sezioni
     appSections.forEach(section => {
-        section.classList.remove('active');
-    });
-
-    navLinks.forEach(link => {
-        link.classList.remove('active');
-    });
-
-    const targetSection = document.getElementById(`section-${sectionId}`);
-    if (targetSection) {
-        targetSection.classList.add('active');
-    }
-
-    if (sectionId === 'home') {
-        if (headerTitle) headerTitle.textContent = "HOME";
-    } else {
-        const activeLink = document.querySelector(`.nav-link[data-section="${sectionId}"]`);
-        if (activeLink) {
-            activeLink.classList.add('active');
-            const testoVoce = activeLink.querySelector('span:not(.nav-emoji)');
-            if (headerTitle && testoVoce) {
-                headerTitle.textContent = testoVoce.textContent.toUpperCase();
-            }
+        if (section.id === `section-${sectionId}`) {
+            section.classList.add('active');
+        } else {
+            section.classList.remove('active');
         }
-    }
+    });
 
+    // Aggiorna stato attivo nei link della sidebar
+    navLinks.forEach(link => {
+        if (link.getAttribute('data-section') === sectionId) {
+            link.classList.add('active');
+        } else {
+            link.classList.remove('active');
+        }
+    });
+
+    // Scorrimento in cima alla pagina
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Alterna lo stato della sidebar (chiusa/aperta)
-function toggleSidebar() {
-    if (sidebar) {
-        sidebar.classList.toggle('expanded');
-        if (overlay) {
-            if (sidebar.classList.contains('expanded')) {
-                overlay.classList.add('active');
-            } else {
-                overlay.classList.remove('active');
-            }
-        }
+function chiudiSidebarMobile() {
+    if (sidebar && sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
     }
-}
-
-function chiudiSidebar() {
-    if (sidebar) sidebar.classList.remove('expanded');
-    if (overlay) overlay.classList.remove('active');
+    if (overlay && overlay.classList.contains('active')) {
+        overlay.classList.remove('active');
+    }
 }
