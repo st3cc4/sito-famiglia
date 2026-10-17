@@ -1,177 +1,171 @@
-/* css/sidebar.css - Stili della Sidebar e Navigazione */
+/* css/sidebar.css - Stili per la Sidebar Compatta con sole Icone */
 
-/* CONTENITORE SIDEBAR */
 .sidebar {
     position: fixed;
     top: 0;
-    left: -280px;
-    width: 280px;
+    left: 0;
+    width: 70px; /* Larghezza ridotta solo a icone */
     height: 100vh;
-    background-color: #ffffff;
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
-    transition: left 0.3s ease-in-out;
+    background-color: #1e1e1e;
+    color: #ffffff;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    overflow-y: auto;
+    padding: 15px 0;
+    z-index: 1000;
+    box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
+    transition: width 0.3s ease;
 }
 
-.sidebar.open {
-    left: 0;
-}
-
-/* HEADER SIDEBAR */
+/* Header della Sidebar (titolo nascosto in modalità compatta) */
 .sidebar-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 18px 20px;
-    border-bottom: 1px solid #eef0f3;
+    justify-content: center;
+    padding: 0 10px 15px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sidebar-header h2 {
-    margin: 0;
-    font-size: 1.25rem;
-    color: #2c3e50;
-    font-weight: 700;
+    display: none; /* Nascondiamo la scritta "Menu" per lasciare spazio solo alle icone */
 }
 
 .close-btn {
-    background: none;
-    border: none;
-    font-size: 1.8rem;
-    cursor: pointer;
-    color: #7f8c8d;
-    line-height: 1;
-    padding: 0;
-    transition: color 0.2s;
+    display: none; /* Non serve il tasto chiudi se la barra è fissa a icone */
 }
 
-.close-btn:hover {
-    color: #e74c3c;
-}
-
-/* VOCI DI NAVIGAZIONE */
+/* Navigazione con le icone */
 .sidebar-nav {
     flex: 1;
-    padding: 15px 10px;
+    display: flex;
+    flex-direction: column;
+    padding-top: 10px;
+    overflow-y: auto;
 }
 
 .sidebar-nav ul {
     list-style: none;
-    padding: 0;
-    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 10px;
 }
 
 .sidebar-nav li {
-    margin-bottom: 6px;
+    width: 100%;
 }
 
 .nav-link {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 15px;
-    color: #34495e;
+    justify-content: center; /* Centriamo l'icona */
+    height: 48px;
+    width: 48px;
+    margin: 0 auto;
+    border-radius: 12px;
+    color: #b0b0b0;
     text-decoration: none;
-    font-weight: 500;
-    font-size: 0.95rem;
-    border-radius: 10px;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s, color 0.2s;
 }
 
-.nav-link:hover {
-    background-color: #f4f6f8;
-    color: #1a73e8;
-}
-
-.nav-link.active {
-    background-color: #e8f0fe;
-    color: #1a73e8;
-    font-weight: 600;
+/* Nascondiamo il testo descrittivo, lasciando visibile solo l'emoji/icona */
+.nav-link span:not(.nav-emoji) {
+    display: none;
 }
 
 .nav-emoji {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     line-height: 1;
 }
 
-/* PULSANTI AZIONI CENTRALI E BASSU */
+.nav-link:hover,
+.nav-link.active {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+}
+
+/* Pulsanti centrali (Admin, Password, Colore) */
 .sidebar-middle {
-    padding: 10px 15px;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    border-top: 1px solid #eef0f3;
+    padding: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sidebar-action-btn {
+    background: none;
+    border: none;
+    color: #b0b0b0;
+    height: 44px;
+    width: 44px;
+    margin: 0 auto;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1.2rem;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    gap: 10px;
-    width: 100%;
-    padding: 10px 14px;
-    background-color: #f8f9fa;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    color: #2d3748;
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: left;
+    justify-content: center;
+    transition: background-color 0.2s, color 0.2s;
 }
 
 .sidebar-action-btn:hover {
-    background-color: #edf2f7;
-    border-color: #cbd5e0;
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
 }
 
-.sidebar-action-btn.admin-btn {
-    background-color: #fffaf0;
-    border-color: #feebc8;
-    color: #dd6b20;
-}
-
-.sidebar-action-btn.admin-btn:hover {
-    background-color: #feebc8;
-}
-
-.sidebar-action-btn.hidden {
-    display: none !important;
-}
-
-/* CARD UTENTE IN FONDO ALLA SIDEBAR (Gestione Colore e Contrasto Automatico) */
+/* Card Utente in basso */
 .sidebar-user-card {
-    margin: 10px 15px 15px 15px;
-    padding: 12px 14px;
-    border-radius: 10px;
+    padding: 10px;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.sidebar-user-card:hover {
-    opacity: 0.92;
-    transform: translateY(-1px);
 }
 
 .user-info-text {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    white-space: nowrap;
+    display: none; /* Nascondiamo il nome testuale in basso per compattezza */
 }
 
-.role-badge {
-    font-size: 0.85rem;
-    font-weight: 500;
-    opacity: 0.85;
+/* Creiamo un cerchio avatar con l'iniziale o il ruolo dell'utente loggato */
+.sidebar-user-card::before {
+    content: "👤";
+    font-size: 1.2rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Aggiustamento del margine principale della pagina per fare spazio alla sidebar fissa */
+@media (min-width: 768px) {
+    .app-container {
+        padding-left: 70px; /* Sposta il contenuto a destra della sidebar fissa */
+    }
+    
+    /* Nascondiamo il pulsante hamburger nell'header su desktop poiché la barra è sempre visibile */
+    #btn-toggle-menu {
+        display: none;
+    }
+}
+
+/* Per i telefoni cellulari: la sidebar si nasconde a sinistra e compare con l'hamburger */
+@media (max-width: 767px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        width: 80px;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .app-container {
+        padding-left: 0;
+    }
 }
