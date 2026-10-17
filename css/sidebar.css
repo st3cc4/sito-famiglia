@@ -1,17 +1,17 @@
-/* css/sidebar.css - Sidebar Collassabile (Chiusa = Solo Icone, Aperta = Icone + Testo) */
+/* css/sidebar.css - Stili Sidebar con Tre Barre in alto e Icona Home */
 
 .sidebar {
     position: fixed;
     top: 0;
     left: 0;
-    width: 70px; /* Di default parte chiusa mostrando solo le icone */
+    width: 70px; /* Larghezza iniziale da chiusa (solo icone) */
     height: 100vh;
     background-color: #1e1e1e;
     color: #ffffff;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 15px 0;
+    padding: 10px 0 15px 0;
     z-index: 1000;
     box-shadow: 3px 0 10px rgba(0, 0, 0, 0.25);
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -19,46 +19,69 @@
     white-space: nowrap;
 }
 
-/* Stato APERTO: Espande la barra per mostrare le etichette di testo */
+/* STATO ESPANSO */
 .sidebar.expanded {
     width: 240px;
 }
 
-/* Header della Sidebar */
+/* HEADER SIDEBAR (Pulsante Hamburger in alto) */
 .sidebar-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 16px 15px 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    gap: 15px;
+    padding: 0 16px;
     height: 50px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.sidebar-header h2 {
+.sidebar-toggle-btn {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 1.6rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background-color 0.2s, transform 0.2s;
+    min-width: 38px;
+    text-align: center;
+}
+
+.sidebar-toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.sidebar-title {
     font-size: 1.1rem;
+    font-weight: 700;
     color: #ffffff;
     opacity: 0;
     transition: opacity 0.2s ease;
 }
 
-.sidebar.expanded .sidebar-header h2 {
+.sidebar.expanded .sidebar-title {
     opacity: 1;
 }
 
-.close-btn {
+/* PULSANTE HOME NELL'HEADER AZZURRO */
+.header-home-btn {
     background: none;
     border: none;
-    color: #ffffff;
     font-size: 1.5rem;
     cursor: pointer;
-    display: none; /* Visibile solo quando espansa */
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s, transform 0.1s;
 }
 
-.sidebar.expanded .close-btn {
-    display: block;
+.header-home-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
 }
 
-/* Navigazione */
+/* NAVIGAZIONE */
 .sidebar-nav {
     flex: 1;
     display: flex;
@@ -98,7 +121,7 @@
     text-align: center;
 }
 
-/* Testo del link: nascosto quando la barra è chiusa, visibile quando è aperta */
+/* Testo etichette nascosto da chiuso, visibile da aperto */
 .nav-link span:not(.nav-emoji) {
     font-size: 0.95rem;
     font-weight: 500;
@@ -116,7 +139,7 @@
     color: #ffffff;
 }
 
-/* Pulsanti Azioni / Admin in Basso */
+/* AZIONI CENTRALI (Admin, Password, Colore) */
 .sidebar-middle {
     display: flex;
     flex-direction: column;
@@ -157,7 +180,7 @@
     color: #ffffff;
 }
 
-/* Card Utente in fondo */
+/* CARD UTENTE IN FONDO */
 .sidebar-user-card {
     padding: 12px 15px;
     display: flex;
@@ -196,15 +219,14 @@
     color: #aaa;
 }
 
-/* Margine del contenuto principale per lasciare spazio alla barra chiusa */
+/* LAYOUT RESPONSIVE */
 .app-container {
     padding-left: 70px;
     transition: padding-left 0.3s ease;
 }
 
-/* Su schermi piccoli (mobile) */
 @media (max-width: 600px) {
     .app-container {
-        padding-left: 70px; /* Mantiene la colonna di icone fissa a 70px anche su mobile */
+        padding-left: 70px;
     }
 }
