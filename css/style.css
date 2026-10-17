@@ -1,4 +1,4 @@
-/* css/style.css - Stili Generali e Layout della Dashboard HOME */
+/* css/style.css - Stili Generali e Layout della Dashboard HOME in Colonna */
 
 * {
     box-sizing: border-box;
@@ -131,7 +131,7 @@ body {
 .main-content {
     flex: 1;
     padding: 20px;
-    max-width: 1400px;
+    max-width: 800px;
     width: 100%;
     margin: 0 auto;
 }
@@ -174,10 +174,10 @@ body {
     background-color: #357abd;
 }
 
-/* GRIGLIA DASHBOARD HOME A 4 CARD */
+/* GRIGLIA DASHBOARD HOME DISPOSTA IN COLONNA (UNA SOTTO L'ALTRA) */
 .home-dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 20px;
 }
 
@@ -202,6 +202,7 @@ body {
     color: #2c3e50;
     font-weight: 700;
     margin: 0;
+    letter-spacing: 0.5px;
 }
 
 .dashboard-card-body {
@@ -209,7 +210,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    max-height: 380px;
+    max-height: 400px;
     overflow-y: auto;
 }
 
@@ -220,7 +221,7 @@ body {
     gap: 18px;
 }
 
-/* SCHEDE INTERNE PER LA HOME (URGENZE SCADENZE, IMPEGNI, ETC.) */
+/* SCHEDE INTERNE PER LA HOME */
 .home-item-card {
     background-color: #ffffff;
     border-radius: 10px;
@@ -232,7 +233,7 @@ body {
     border-left: 5px solid #ccc;
 }
 
-/* URGENZA SCADENZE */
+/* URGENZE SCADENZE */
 .home-item-card.urgente-rossa {
     background-color: #fdf2f2;
     border-left-color: #e74c3c;
@@ -268,7 +269,7 @@ body {
     gap: 6px;
 }
 
-/* ADATTAMENTO MOBILE RESPONSIVE */
+/* ADATTAMENTO MOBILE */
 @media (max-width: 600px) {
     .app-header {
         padding: 10px 12px;
@@ -289,9 +290,5 @@ body {
 
     .main-content {
         padding: 12px;
-    }
-
-    .home-dashboard-grid {
-        grid-template-columns: 1fr;
     }
 }
