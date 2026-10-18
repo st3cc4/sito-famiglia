@@ -51,8 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Caricamento dinamico del foglio di stile per le scadenze con forzatura della cache
+    // Caricamento dinamico dei fogli di stile esterni con forzatura della cache
     caricaStileDinamico('../scadenze/stile-scadenze.css?v=2', 'css-scadenze');
+    caricaStileDinamico('../impegni/stile-impegni.css?v=2', 'css-impegni');
 
     initNavigation();
 });
@@ -154,7 +155,6 @@ async function loadSectionContent(target, container) {
             break;
         case 'scadenze':
             try {
-                // Aggiunta query string ?v=2 per evitare il caching del file js
                 const { initScadenzeSection } = await import(`../scadenze/scadenze.js?v=${Date.now()}`);
                 await initScadenzeSection(container);
             } catch (err) {
@@ -163,10 +163,13 @@ async function loadSectionContent(target, container) {
             }
             break;
         case 'impegni':
-            container.innerHTML = `
-                <h2>Gestione Impegni</h2>
-                <p>Sezione dedicata agli impegni e appuntamenti di famiglia.</p>
-            `;
+            try {
+                const { initImpegniSection } = await import(`../impegni/impegni.js?v=${Date.now()}`);
+                await initImpegniSection(container);
+            } catch (err) {
+                console.error("Errore durante il caricamento del modulo Impegni:", err);
+                container.innerHTML = `<p style="color:red; text-align:center;">Impossibile caricare la sezione Impegni.</p>`;
+            }
             break;
         case 'media':
             container.innerHTML = `
