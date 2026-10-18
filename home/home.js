@@ -1,4 +1,4 @@
-// --- 1. Controllo Autenticazione all'avvio ---
+// --- 1. Controllo Autenticazione e Permessi all'avvio ---
 document.addEventListener('DOMContentLoaded', () => {
     const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
     
@@ -10,25 +10,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const userData = JSON.parse(savedUser);
     
-    // Mostra il nome dell'utente nell'header
+    // Mostra il nome dell'utente e il colore nell'header
     const userDisplayName = document.getElementById('user-display-name');
     userDisplayName.textContent = userData.nome;
     if (userData.colore) {
         userDisplayName.style.backgroundColor = userData.colore;
     }
 
-    // Inizializza la navigazione dinamica (carica la dashboard iniziale)
+    // Compila il box utente in basso nella sidebar
+    const sidebarUsername = document.getElementById('sidebar-username');
+    const sidebarUserRole = document.getElementById('sidebar-user-role');
+    
+    sidebarUsername.textContent = userData.nome;
+    
+    const isAdmin = (userData.ruolo === 'admin' || userData.nome.toLowerCase() === 'paolo');
+    sidebarUserRole.textContent = isAdmin ? 'Admin' : 'Utente';
+
+    // Se l'utente è Admin, mostra la voce "Gestione Utenti"
+    if (isAdmin) {
+        const adminMenuItem = document.getElementById('admin-menu-item');
+        if (adminMenuItem) {
+            adminMenuItem.style.display = 'block';
+        }
+    }
+
+    // Inizializza la navigazione dinamica
     initNavigation();
 });
 
-// --- 2. Gestione Sidebar (Apri / Chiudi) ---
+// --- 2. Gestione Sidebar (Espandi / Contrai) ---
 const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
 const sidebar = document.getElementById('sidebar');
 const sidebarOverlay = document.getElementById('sidebar-overlay');
 
 function toggleSidebar() {
-    sidebar.classList.toggle('open');
-    sidebarOverlay.classList.toggle('active');
+    if (window.innerWidth <= 768) {
+        // Su dispositivi mobili apre e chiude il drawer con overlay
+        sidebar.classList.toggle('open');
+        sidebarOverlay.classList.toggle('active');
+    } else {
+        // Su Desktop commuta tra contratta (solo icone) ed espansa
+        sidebar.classList.toggle('collapsed');
+    }
 }
 
 btnToggleSidebar.addEventListener('click', toggleSidebar);
@@ -49,62 +72,79 @@ function initNavigation() {
     const pageTitle = document.getElementById('page-title');
 
     navButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            // Rimuovi la classe active da tutti i bottoni e aggiungila a quello cliccato
+        button.addEventListener('click', () => {
+            // Rimuovi active da tutti i bottoni e imposta quello selezionato
             navButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
 
             const target = button.getAttribute('data-target');
-            const spanText = button.querySelector('span').textContent;
-            pageTitle.textContent = `Famiglia PWA - ${spanText}`;
+            const navText = button.querySelector('.nav-text').textContent;
+            pageTitle.textContent = `Famiglia PWA - ${navText}`;
 
-            // Carica i contenuti in base alla sezione selezionata sulla tela
+            // Carica la schermata selezionata sulla tela centrale
             loadSectionContent(target, contentArea);
 
-            // Su mobile, chiudi la sidebar dopo il clic
+            // Su mobile chiudi la sidebar al clic
             if (window.innerWidth <= 768) {
-                toggleSidebar();
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('active');
             }
         });
     });
 
-    // Carica la dashboard di default all'avvio
+    // Carica la dashboard iniziale
     loadSectionContent('dashboard', contentArea);
 }
 
-// Funzione per caricare le sezioni nella tela centrale
+// Funzione per caricare le differenti schermate nella tela centrale
 function loadSectionContent(target, container) {
     switch (target) {
         case 'dashboard':
             container.innerHTML = `
                 <h2>Benvenuto nella Famiglia PWA</h2>
-                <p>Questa è la tua dashboard principale. Da qui puoi tenere sotto controllo tutte le attività della famiglia.</p>
-                <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
-                <p>Seleziona una sezione dal menu laterale per gestire Impegni, Scadenze, Ricette o Foto e Video.</p>
+                <p>Questa è la tua dashboard principale. Da qui puoi accedere a tutte le funzionalità riservate alla famiglia.</p>
             `;
             break;
         case 'impegni':
             container.innerHTML = `
-                <h2>Gestione Impegni e Appuntamenti</h2>
-                <p>Qui caricheremo la sezione impegni collegata al database.</p>
+                <h2>Gestione Impegni</h2>
+                <p>Sezione dedicata agli impegni e appuntamenti di famiglia.</p>
             `;
             break;
         case 'scadenze':
             container.innerHTML = `
                 <h2>Gestione Scadenze</h2>
-                <p>Qui caricheremo la sezione scadenze e bollette.</p>
+                <p>Sezione per le scadenze e le bollette.</p>
             `;
             break;
         case 'ricette':
             container.innerHTML = `
                 <h2>Ricettario di Famiglia</h2>
-                <p>Qui caricheremo le ricette.</p>
+                <p>Sezione per visualizzare e salvare le ricette preferite.</p>
             `;
             break;
         case 'media':
             container.innerHTML = `
-                <h2>Raccolta Foto e Video</h2>
-                <p>Qui caricheremo la galleria multimediale.</p>
+                <h2>Foto & Video</h2>
+                <p>Raccolta multimediale della famiglia.</p>
+            `;
+            break;
+        case 'gestione-utenti':
+            container.innerHTML = `
+                <h2>Gestione Utenti (Pannello Admin)</h2>
+                <p>Qui l'amministratore può gestire gli utenti, i ruoli e i permessi.</p>
+            `;
+            break;
+        case 'cambia-password':
+            container.innerHTML = `
+                <h2>Cambia Password</h2>
+                <p>Pannello per aggiornare la propria password di accesso.</p>
+            `;
+            break;
+        case 'cambia-colore':
+            container.innerHTML = `
+                <h2>Cambia Colore</h2>
+                <p>Pannello per personalizzare il proprio colore utente.</p>
             `;
             break;
         default:
