@@ -6,14 +6,14 @@
     <title>Famiglia PWA - Home</title>
     <!-- Foglio di stile specifico per la Home -->
     <link rel="stylesheet" href="home/stile-home.css">
-    <!-- Icone FontAwesome per menu e icone di navigazione -->
+    <!-- Icone FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Manifest per PWA -->
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
-    <!-- Header / Barra Superiore (Cornice) -->
+    <!-- Header / Barra Superiore -->
     <header class="app-header">
         <div class="header-left">
             <button id="btn-toggle-sidebar" class="btn-icon" aria-label="Apri Menu">
@@ -29,53 +29,85 @@
         </div>
     </header>
 
-    <!-- Overlay per chiudere la Sidebar su dispositivi mobili -->
+    <!-- Overlay per chiudere la Sidebar su mobile -->
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
-    <!-- Container Principale (Cornice + Tela Dynamic) -->
+    <!-- Container Principale -->
     <div class="app-container">
         
-        <!-- Sidebar / Menu di Navigazione -->
-        <aside id="sidebar" class="sidebar">
+        <!-- Sidebar / Menu Laterale (Inizia chiusa / solo icone) -->
+        <aside id="sidebar" class="sidebar collapsed">
             <nav class="nav-menu">
-                <ul>
+                <ul class="menu-list top-menu">
                     <li>
-                        <button class="nav-btn active" data-target="dashboard">
+                        <button class="nav-btn active" data-target="dashboard" title="Home">
                             <i class="fa-solid fa-house"></i>
-                            <span>Home</span>
+                            <span class="nav-text">Home</span>
                         </button>
                     </li>
                     <li>
-                        <button class="nav-btn" data-target="impegni">
+                        <button class="nav-btn" data-target="impegni" title="Impegni">
                             <i class="fa-solid fa-calendar-days"></i>
-                            <span>Impegni</span>
+                            <span class="nav-text">Impegni</span>
                         </button>
                     </li>
                     <li>
-                        <button class="nav-btn" data-target="scadenze">
+                        <button class="nav-btn" data-target="scadenze" title="Scadenze">
                             <i class="fa-solid fa-file-invoice-dollar"></i>
-                            <span>Scadenze</span>
+                            <span class="nav-text">Scadenze</span>
                         </button>
                     </li>
                     <li>
-                        <button class="nav-btn" data-target="ricette">
+                        <button class="nav-btn" data-target="ricette" title="Ricette">
                             <i class="fa-solid fa-utensils"></i>
-                            <span>Ricette</span>
+                            <span class="nav-text">Ricette</span>
                         </button>
                     </li>
                     <li>
-                        <button class="nav-btn" data-target="media">
+                        <button class="nav-btn" data-target="media" title="Foto & Video">
                             <i class="fa-solid fa-photo-film"></i>
-                            <span>Foto & Video</span>
+                            <span class="nav-text">Foto & Video</span>
                         </button>
+                    </li>
+                    <!-- Visibile solo per Admin -->
+                    <li id="admin-menu-item" style="display: none;">
+                        <button class="nav-btn" data-target="gestione-utenti" title="Gestione Utenti">
+                            <i class="fa-solid fa-users-gear"></i>
+                            <span class="nav-text">Gestione Utenti</span>
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Sezione in basso della Sidebar -->
+                <ul class="menu-list bottom-menu">
+                    <li>
+                        <button class="nav-btn" data-target="cambia-password" title="Cambia Password">
+                            <i class="fa-solid fa-key"></i>
+                            <span class="nav-text">Cambia Password</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button class="nav-btn" data-target="cambia-colore" title="Cambia Colore">
+                            <i class="fa-solid fa-palette"></i>
+                            <span class="nav-text">Cambia Colore</span>
+                        </button>
+                    </li>
+                    <!-- Box Info Utente in basso -->
+                    <li class="sidebar-user-info">
+                        <div class="user-info-card">
+                            <i class="fa-solid fa-user-shield user-info-icon"></i>
+                            <div class="user-info-details">
+                                <span id="sidebar-username" class="info-name">Nome</span>
+                                <span id="sidebar-user-role" class="info-role">Ruolo</span>
+                            </div>
+                        </div>
                     </li>
                 </ul>
             </nav>
         </aside>
 
-        <!-- TELA CENTRALE DYNAMICA -->
+        <!-- TELA CENTRALE -->
         <main id="main-content" class="main-content">
-            <!-- Qui verranno iniettate le varie schermate/sezioni -->
             <div id="content-area">
                 <h2>Benvenuto nella Famiglia PWA</h2>
                 <p>Seleziona una voce dal menu per iniziare.</p>
@@ -84,7 +116,7 @@
 
     </div>
 
-    <!-- Script di gestione della Home -->
+    <!-- Script della Home -->
     <script type="module" src="home/home.js"></script>
 </body>
 </html>
