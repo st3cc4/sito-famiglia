@@ -19,7 +19,7 @@ const db = getFirestore(app);
 
 let scadenzeGlobal = [];
 let filtroAttivo = 'tutte';
-let idInModifica = null; // Traccia se stiamo modificando un elemento esistente
+let idInModifica = null;
 
 // Funzione ausiliaria per formattare la data in formato europeo (GG-MM-AAAA)
 function formatDataEuropea(dataString) {
@@ -35,12 +35,19 @@ function formatDataEuropea(dataString) {
 export async function initScadenzeSection(container) {
     container.innerHTML = `
         <div class="scadenze-container">
-            <!-- Header della sezione con Azioni -->
+            <!-- Header della sezione con Pulsante Home e Nuova Scadenza -->
             <div class="section-header-actions">
-                <h2><i class="fa-solid fa-file-invoice-dollar"></i> GESTIONE SCADENZE</h2>
-                <button id="btn-toggle-form" class="btn-primary">
-                    Nuova Scadenza
-                </button>
+                <div class="header-left-group">
+                    <button id="btn-torna-home" class="btn-outline" title="Torna alla Home">
+                        <i class="fa-solid fa-arrow-left"></i> Home
+                    </button>
+                    <h2><i class="fa-solid fa-file-invoice-dollar"></i> GESTIONE SCADENZE</h2>
+                </div>
+                <div class="header-buttons-right">
+                    <button id="btn-toggle-form" class="btn-primary">
+                        Nuova Scadenza
+                    </button>
+                </div>
             </div>
 
             <!-- Form per l'inserimento / modifica della scadenza -->
@@ -123,7 +130,7 @@ async function caricaScadenze(container) {
             });
         });
 
-        // Ordina le scadenze per data (dalla più vicina/scaduta alla più lontana)
+        // Ordina le scadenze per data
         scadenzeGlobal.sort((a, b) => new Date(a.dataGrezza) - new Date(b.dataGrezza));
 
         renderListaScadenze(listContainer, container);
@@ -238,13 +245,23 @@ function resetForm(container) {
     if (formCard) formCard.style.display = 'none';
 }
 
-// --- Gestione Eventi (Form e Filtri) ---
+// --- Gestione Eventi (Form, Filtri e Ritorno Home) ---
 function setupEventListeners(container) {
+    const btnTornaHome = container.querySelector('#btn-torna-home');
     const btnToggleForm = container.querySelector('#btn-toggle-form');
     const formCard = container.querySelector('#form-scadenza-card');
     const btnAnnulla = container.querySelector('#btn-annulla-form');
     const form = container.querySelector('#form-nuova-scadenza');
     const listContainer = container.querySelector('#scadenze-list-container');
+
+    // Pulsante Torna alla Home
+    if (btnTornaHome) {
+        btnTornaHome.addEventListener('click', () => {
+            if (typeof window.selezionaScheda === 'function') {
+                window.selezionaScheda('dashboard');
+            }
+        });
+    }
 
     // Mostra/Nascondi Form
     if (btnToggleForm) {
@@ -279,7 +296,6 @@ function setupEventListeners(container) {
 
             try {
                 if (idInModifica) {
-                    // MODIFICA elemento esistente
                     const scadenzaRef = doc(db, "scadenze", idInModifica);
                     await updateDoc(scadenzaRef, {
                         titolo: titolo,
@@ -287,7 +303,6 @@ function setupEventListeners(container) {
                         data: dataScad
                     });
                 } else {
-                    // NUOVO elemento
                     await addDoc(collection(db, "scadenze"), {
                         titolo: titolo,
                         importo: importo,
