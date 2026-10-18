@@ -48,7 +48,7 @@
     transform: translateY(-1px);
 }
 
-/* Pannello Modale / Form Inserimento Scadenza */
+/* Form Inserimento / Modifica Scadenza */
 .form-card {
     background-color: var(--card-bg);
     border-radius: 10px;
@@ -147,7 +147,7 @@
     border-color: var(--primary-color);
 }
 
-/* Griglia e Lista delle Scadenze Estesa */
+/* Lista e Card Scadenze */
 .scadenze-full-list {
     display: flex;
     flex-direction: column;
@@ -188,7 +188,15 @@
     font-size: 0.85rem;
     color: var(--text-muted);
     display: flex;
+    align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
+}
+
+.scadenza-creator {
+    font-weight: 700;
+    color: #2c3e50;
+    opacity: 0.85;
 }
 
 .scadenza-full-right {
@@ -205,7 +213,7 @@
 
 .scadenza-full-actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
 }
 
 .btn-action-icon {
@@ -213,10 +221,15 @@
     border: none;
     color: var(--text-muted);
     font-size: 1rem;
-    padding: 6px;
+    padding: 6px 8px;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 6px;
     transition: color 0.2s, background-color 0.2s;
+}
+
+.btn-action-icon.edit:hover {
+    color: var(--primary-color);
+    background-color: rgba(43, 62, 80, 0.1);
 }
 
 .btn-action-icon.delete:hover {
