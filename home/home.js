@@ -51,8 +51,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Caricamento dinamico del foglio di stile per le scadenze se non è ancora stato incluso
+    caricaStileDinamico('../scadenze/stile-scadenze.css', 'css-scadenze');
+
     initNavigation();
 });
+
+// Funzione ausiliaria per caricare Fogli di Stile CSS esterni dinamicamente
+function caricaStileDinamico(url, idElemento) {
+    if (!document.getElementById(idElemento)) {
+        const head = document.getElementsByTagName('head')[0];
+        const link = document.createElement('link');
+        link.id = idElemento;
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = url;
+        head.appendChild(link);
+    }
+}
 
 // --- 2. Gestione Sidebar (Espandi / Contrai) ---
 const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
@@ -126,7 +142,7 @@ window.selezionaScheda = function(targetName) {
 };
 
 // Funzione per caricare le differenti schermate nella tela centrale
-function loadSectionContent(target, container) {
+async function loadSectionContent(target, container) {
     if (!container) return;
 
     switch (target) {
@@ -134,10 +150,13 @@ function loadSectionContent(target, container) {
             renderDashboard(container);
             break;
         case 'scadenze':
-            container.innerHTML = `
-                <h2>Gestione Scadenze</h2>
-                <p>Sezione completa per visualizzare e aggiungere tutte le scadenze.</p>
-            `;
+            try {
+                const { initScadenzeSection } = await import('../scadenze/scadenze.js');
+                await initScadenzeSection(container);
+            } catch (err) {
+                console.error("Errore durante il caricamento del modulo Scadenze:", err);
+                container.innerHTML = `<p style="color:red; text-align:center;">Impossibile caricare la sezione Scadenze.</p>`;
+            }
             break;
         case 'impegni':
             container.innerHTML = `
