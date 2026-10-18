@@ -1,6 +1,6 @@
 // --- Import SDK di Firebase ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // Configurazione Firebase dal tuo progetto
 const firebaseConfig = {
@@ -19,6 +19,7 @@ const db = getFirestore(app);
 
 let scadenzeGlobal = [];
 let filtroAttivo = 'tutte';
+let idInModifica = null; // Traccia se stiamo modificando un elemento esistente
 
 // Funzione ausiliaria per formattare la data in formato europeo (GG-MM-AAAA)
 function formatDataEuropea(dataString) {
@@ -38,13 +39,13 @@ export async function initScadenzeSection(container) {
             <div class="section-header-actions">
                 <h2><i class="fa-solid fa-file-invoice-dollar"></i> GESTIONE SCADENZE</h2>
                 <button id="btn-toggle-form" class="btn-primary">
-                    <i class="fa-solid fa-plus"></i> Nuova Scadenza
+                    Nuova Scadenza
                 </button>
             </div>
 
-            <!-- Form per l'inserimento di una nuova scadenza (Nascosto di default) -->
+            <!-- Form per l'inserimento / modifica della scadenza -->
             <div id="form-scadenza-card" class="form-card" style="display: none;">
-                <h3>Nuova Scadenza</h3>
+                <h3 id="form-scadenza-title">Nuova Scadenza</h3>
                 <form id="form-nuova-scadenza">
                     <div class="form-grid">
                         <div class="form-group">
@@ -62,7 +63,7 @@ export async function initScadenzeSection(container) {
                     </div>
                     <div class="form-actions">
                         <button type="button" id="btn-annulla-form" class="btn-secondary">Annulla</button>
-                        <button type="submit" class="btn-primary">Salva Scadenza</button>
+                        <button type="submit" id="btn-salva-scadenza" class="btn-primary">Salva Scadenza</button>
                     </div>
                 </form>
             </div>
@@ -81,10 +82,7 @@ export async function initScadenzeSection(container) {
         </div>
     `;
 
-    // Attiva eventi del modulo e dei filtri
     setupEventListeners(container);
-    
-    // Carica dati da Firebase
     await caricaScadenze(container);
 }
 
@@ -128,7 +126,7 @@ async function caricaScadenze(container) {
         // Ordina le scadenze per data (dalla più vicina/scaduta alla più lontana)
         scadenzeGlobal.sort((a, b) => new Date(a.dataGrezza) - new Date(b.dataGrezza));
 
-        renderListaScadenze(listContainer);
+        renderListaScadenze(listContainer, container);
 
     } catch (error) {
         console.error("Errore nel caricamento delle scadenze:", error);
@@ -139,7 +137,7 @@ async function caricaScadenze(container) {
 }
 
 // --- Rendering della Lista Filtrata ---
-function renderListaScadenze(listContainer) {
+function renderListaScadenze(listContainer, container) {
     if (!listContainer) return;
 
     let listaFiltrata = scadenzeGlobal;
@@ -164,11 +162,15 @@ function renderListaScadenze(listContainer) {
                         <div class="scadenza-full-meta">
                             <span><i class="fa-regular fa-calendar"></i> ${s.dataFormattata}</span>
                             <span><strong>${s.giorniMancanti < 0 ? 'Scaduta' : (s.giorniMancanti === 0 ? 'Scade Oggi' : `Tra ${s.giorniMancanti} gg`)}</strong></span>
+                            ${s.creatore ? `<span class="scadenza-creator">(${s.creatore})</span>` : ''}
                         </div>
                     </div>
                     <div class="scadenza-full-right">
                         <span class="scadenza-full-amount">€ ${s.importo.toFixed(2)}</span>
                         <div class="scadenza-full-actions">
+                            <button class="btn-action-icon edit" data-id="${s.id}" title="Modifica Scadenza">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
                             <button class="btn-action-icon delete" data-id="${s.id}" title="Elimina Scadenza">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
@@ -179,16 +181,61 @@ function renderListaScadenze(listContainer) {
         </ul>
     `;
 
-    // Aggiungi listener per i pulsanti di eliminazione
+    // Event listener per il pulsante MODIFICA
+    const editButtons = listContainer.querySelectorAll('.btn-action-icon.edit');
+    editButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const scadenzaId = btn.getAttribute('data-id');
+            apriModificaForm(scadenzaId, container);
+        });
+    });
+
+    // Event listener per il pulsante ELIMINA
     const deleteButtons = listContainer.querySelectorAll('.btn-action-icon.delete');
     deleteButtons.forEach(btn => {
-        btn.addEventListener('click', async (e) => {
+        btn.addEventListener('click', async () => {
             const scadenzaId = btn.getAttribute('data-id');
             if (confirm('Sei sicuro di voler eliminare questa scadenza?')) {
-                await eliminaScadenza(scadenzaId, listContainer);
+                await eliminaScadenza(scadenzaId, listContainer, container);
             }
         });
     });
+}
+
+// --- Funzione per Aprire il Form in Modalità Modifica ---
+function apriModificaForm(id, container) {
+    const item = scadenzeGlobal.find(s => s.id === id);
+    if (!item) return;
+
+    idInModifica = id;
+
+    const formCard = container.querySelector('#form-scadenza-card');
+    const formTitle = container.querySelector('#form-scadenza-title');
+    const btnSalva = container.querySelector('#btn-salva-scadenza');
+
+    container.querySelector('#scadenza-titolo').value = item.titolo;
+    container.querySelector('#scadenza-importo').value = item.importo;
+    container.querySelector('#scadenza-data').value = item.dataGrezza;
+
+    if (formTitle) formTitle.textContent = 'Modifica Scadenza';
+    if (btnSalva) btnSalva.textContent = 'Aggiorna Scadenza';
+
+    formCard.style.display = 'flex';
+    formCard.scrollIntoView({ behavior: 'smooth' });
+}
+
+// --- Reset del Form in Modalità Inserimento ---
+function resetForm(container) {
+    idInModifica = null;
+    const formCard = container.querySelector('#form-scadenza-card');
+    const form = container.querySelector('#form-nuova-scadenza');
+    const formTitle = container.querySelector('#form-scadenza-title');
+    const btnSalva = container.querySelector('#btn-salva-scadenza');
+
+    if (form) form.reset();
+    if (formTitle) formTitle.textContent = 'Nuova Scadenza';
+    if (btnSalva) btnSalva.textContent = 'Salva Scadenza';
+    if (formCard) formCard.style.display = 'none';
 }
 
 // --- Gestione Eventi (Form e Filtri) ---
@@ -203,18 +250,22 @@ function setupEventListeners(container) {
     if (btnToggleForm) {
         btnToggleForm.addEventListener('click', () => {
             const isHidden = formCard.style.display === 'none';
-            formCard.style.display = isHidden ? 'flex' : 'none';
+            if (isHidden) {
+                resetForm(container);
+                formCard.style.display = 'flex';
+            } else {
+                resetForm(container);
+            }
         });
     }
 
     if (btnAnnulla) {
         btnAnnulla.addEventListener('click', () => {
-            formCard.style.display = 'none';
-            form.reset();
+            resetForm(container);
         });
     }
 
-    // Invio Form Nuova Scadenza
+    // Invio Form (Nuovo Inserimento oppure Modifica)
     if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -227,16 +278,26 @@ function setupEventListeners(container) {
             const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
 
             try {
-                await addDoc(collection(db, "scadenze"), {
-                    titolo: titolo,
-                    importo: importo,
-                    data: dataScad,
-                    creatore: userData.nome,
-                    creatoIl: new Date().toISOString()
-                });
+                if (idInModifica) {
+                    // MODIFICA elemento esistente
+                    const scadenzaRef = doc(db, "scadenze", idInModifica);
+                    await updateDoc(scadenzaRef, {
+                        titolo: titolo,
+                        importo: importo,
+                        data: dataScad
+                    });
+                } else {
+                    // NUOVO elemento
+                    await addDoc(collection(db, "scadenze"), {
+                        titolo: titolo,
+                        importo: importo,
+                        data: dataScad,
+                        creatore: userData.nome,
+                        creatoIl: new Date().toISOString()
+                    });
+                }
 
-                form.reset();
-                formCard.style.display = 'none';
+                resetForm(container);
                 await caricaScadenze(container);
 
             } catch (err) {
@@ -254,17 +315,17 @@ function setupEventListeners(container) {
             btn.classList.add('active');
 
             filtroAttivo = btn.getAttribute('data-filter');
-            renderListaScadenze(listContainer);
+            renderListaScadenze(listContainer, container);
         });
     });
 }
 
 // --- Funzione Elimina Scadenza ---
-async function eliminaScadenza(id, listContainer) {
+async function eliminaScadenza(id, listContainer, container) {
     try {
         await deleteDoc(doc(db, "scadenze", id));
         scadenzeGlobal = scadenzeGlobal.filter(s => s.id !== id);
-        renderListaScadenze(listContainer);
+        renderListaScadenze(listContainer, container);
     } catch (err) {
         console.error("Errore durante l'eliminazione della scadenza:", err);
         alert("Errore durante l'eliminazione della scadenza.");
