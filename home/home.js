@@ -256,7 +256,7 @@ async function renderDashboard(container) {
         const curr = new Date();
         const firstDayOfWeek = new Date(curr);
         const day = curr.getDay();
-        const diff = curr.getDate() - day + (day === 0 ? -6 : 1); // Regola per portare a Lunedì
+        const diff = curr.getDate() - day + (day === 0 ? -6 : 1);
         firstDayOfWeek.setDate(diff);
         firstDayOfWeek.setHours(0, 0, 0, 0);
 
@@ -272,7 +272,6 @@ async function renderDashboard(container) {
             const data = doc.data();
             const dataImpegno = new Date(data.data);
             
-            // Verifica se l'impegno cade nella settimana corrente (Lunedì - Domenica)
             if (dataImpegno >= firstDayOfWeek && dataImpegno <= lastDayOfWeek) {
                 const creatore = data.creatore || '';
                 const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
@@ -288,7 +287,7 @@ async function renderDashboard(container) {
             }
         });
 
-        // Recupera Ricette da Firestore (prime 3)
+        // Recupera Ricette da Firestore (le prime 3 più apprezzate)
         const ricetteSnapshot = await getDocs(collection(db, "ricette"));
         const ricetteList = [];
         ricetteSnapshot.forEach(doc => {
