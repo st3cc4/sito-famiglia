@@ -79,7 +79,7 @@ function initNavigation() {
 
             const target = button.getAttribute('data-target');
             const navText = button.querySelector('.nav-text').textContent;
-            pageTitle.textContent = `Famiglia PWA - ${navText}`;
+            pageTitle.textContent = `FAMIGLIA - ${navText}`;
 
             // Carica la schermata selezionata sulla tela centrale
             loadSectionContent(target, contentArea);
@@ -101,7 +101,7 @@ function loadSectionContent(target, container) {
     switch (target) {
         case 'dashboard':
             container.innerHTML = `
-                <h2>Benvenuto nella Famiglia PWA</h2>
+                <h2>Benvenuto nell'App per la Famiglia</h2>
                 <p>Questa è la tua dashboard principale. Da qui puoi accedere a tutte le funzionalità riservate alla famiglia.</p>
             `;
             break;
