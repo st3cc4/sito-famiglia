@@ -194,6 +194,16 @@ function hexToRgba(hex, alpha = 0.12) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+// Funzione ausiliaria per formattare la data in formato europeo (GG-MM-AAAA)
+function formatDataEuropea(dataString) {
+    if (!dataString) return '';
+    const parti = dataString.split('-');
+    if (parti.length === 3) {
+        return `${parti[2]}-${parti[1]}-${parti[0]}`;
+    }
+    return dataString;
+}
+
 // --- 5. Logica di Rendering della DASHBOARD con dati reali da Firebase ---
 async function renderDashboard(container) {
     container.innerHTML = `<p style="text-align:center; padding: 20px; color: var(--text-muted);">Caricamento dati in corso...</p>`;
@@ -224,7 +234,7 @@ async function renderDashboard(container) {
             scadenzeList.push({
                 titolo: data.titolo || 'Senza titolo',
                 importo: data.importo !== undefined ? `€ ${Number(data.importo).toFixed(2)}` : '',
-                dataFormattata: data.data || '',
+                dataFormattata: formatDataEuropea(data.data),
                 giorniMancanti: giorniMancanti
             });
         });
@@ -242,20 +252,40 @@ async function renderDashboard(container) {
             coloreScadenza = 'green';
         }
 
-        // Recupera Impegni (appuntamenti) da Firestore
+        // Calcolo dei limiti della settimana corrente (da Lunedì a Domenica)
+        const curr = new Date();
+        const firstDayOfWeek = new Date(curr);
+        const day = curr.getDay();
+        const diff = curr.getDate() - day + (day === 0 ? -6 : 1); // Regola per portare a Lunedì
+        firstDayOfWeek.setDate(diff);
+        firstDayOfWeek.setHours(0, 0, 0, 0);
+
+        const lastDayOfWeek = new Date(firstDayOfWeek);
+        lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
+        lastDayOfWeek.setHours(23, 59, 59, 999);
+
+        // Recupera Impegni (appuntamenti) da Firestore e filtra per la settimana corrente
         const appuntamentiSnapshot = await getDocs(collection(db, "appuntamenti"));
         const impegniList = [];
         
         appuntamentiSnapshot.forEach(doc => {
             const data = doc.data();
-            const creatore = (data.creatore || '').toLowerCase();
-            const coloreUtente = utentiCollezioni[creatore] || '#3498db';
-            impegniList.push({
-                titolo: data.titolo || 'Impegno',
-                data: data.data || '',
-                coloreUtente: coloreUtente,
-                bgTrasparente: hexToRgba(coloreUtente, 0.12)
-            });
+            const dataImpegno = new Date(data.data);
+            
+            // Verifica se l'impegno cade nella settimana corrente (Lunedì - Domenica)
+            if (dataImpegno >= firstDayOfWeek && dataImpegno <= lastDayOfWeek) {
+                const creatore = data.creatore || '';
+                const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
+                
+                impegniList.push({
+                    titolo: data.titolo || 'Impegno',
+                    dataFormattata: formatDataEuropea(data.data),
+                    oraInizio: data.oraInizio || '',
+                    creatore: creatore,
+                    coloreUtente: coloreUtente,
+                    bgTrasparente: hexToRgba(coloreUtente, 0.12)
+                });
+            }
         });
 
         // Recupera Ricette da Firestore (prime 3)
@@ -317,12 +347,17 @@ async function renderDashboard(container) {
                             <ul class="impegni-list">
                                 ${impegniList.map(i => `
                                     <li class="impegno-item" style="background-color: ${i.bgTrasparente}; border-left-color: ${i.coloreUtente};">
-                                        <span>${i.titolo}</span>
-                                        <span style="font-size: 0.88rem; font-weight: 600; color: #4a5568;">${i.data}</span>
+                                        <div class="impegno-row-top">
+                                            <span class="impegno-title">${i.titolo}</span>
+                                        </div>
+                                        <div class="impegno-row-bottom">
+                                            <span class="impegno-datetime">${i.dataFormattata} ore ${i.oraInizio}</span>
+                                            <span class="impegno-creator">(${i.creatore})</span>
+                                        </div>
                                     </li>
                                 `).join('')}
                             </ul>
-                        ` : `<p class="card-empty">Nessun impegno in programma</p>`}
+                        ` : `<p class="card-empty">Nessun impegno in programma per questa settimana</p>`}
                     </div>
                 </div>
 
