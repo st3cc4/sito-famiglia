@@ -209,7 +209,7 @@ async function renderDashboard(container) {
     container.innerHTML = `<p style="text-align:center; padding: 20px; color: var(--text-muted);">Caricamento dati in corso...</p>`;
 
     try {
-        // Recupera utenti (per associare i colori ai creatori degli impegni)
+        // Recupera utenti (per associare i colori ai creatori)
         const utentiSnapshot = await getDocs(collection(db, "utenti"));
         const utentiCollezioni = {};
         utentiSnapshot.forEach(doc => {
@@ -264,7 +264,7 @@ async function renderDashboard(container) {
         lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
         lastDayOfWeek.setHours(23, 59, 59, 999);
 
-        // Recupera Impegni (appuntamenti) da Firestore e filtra per la settimana corrente
+        // Recupera Impegni da Firestore e filtra per la settimana corrente
         const appuntamentiSnapshot = await getDocs(collection(db, "appuntamenti"));
         const impegniList = [];
         
@@ -287,14 +287,20 @@ async function renderDashboard(container) {
             }
         });
 
-        // Recupera Ricette da Firestore (le prime 3 più apprezzate)
+        // Recupera Ricette da Firestore (prime 3)
         const ricetteSnapshot = await getDocs(collection(db, "ricette"));
         const ricetteList = [];
         ricetteSnapshot.forEach(doc => {
             const data = doc.data();
+            const creatore = data.creatore || '';
+            const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
+
             ricetteList.push({
                 titolo: data.nome || 'Ricetta',
-                stelle: '★★★★★'
+                stelle: '★★★★★',
+                creatore: creatore,
+                coloreUtente: coloreUtente,
+                bgTrasparente: hexToRgba(coloreUtente, 0.12)
             });
         });
         const primeRicette = ricetteList.slice(0, 3);
@@ -383,9 +389,14 @@ async function renderDashboard(container) {
                         ${primeRicette.length > 0 ? `
                             <ul class="ricette-list">
                                 ${primeRicette.map(r => `
-                                    <li class="ricetta-item">
-                                        <span>${r.titolo}</span>
-                                        <span class="ricetta-rating">${r.stelle}</span>
+                                    <li class="ricetta-item" style="background-color: ${r.bgTrasparente}; border-left-color: ${r.coloreUtente};">
+                                        <div class="ricetta-row-top">
+                                            <span class="ricetta-title">${r.titolo}</span>
+                                            <span class="ricetta-rating">${r.stelle}</span>
+                                        </div>
+                                        <div class="ricetta-row-bottom">
+                                            <span class="ricetta-creator">(${r.creatore})</span>
+                                        </div>
                                     </li>
                                 `).join('')}
                             </ul>
