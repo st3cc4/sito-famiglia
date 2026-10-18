@@ -117,7 +117,7 @@ async function caricaImpegni(container) {
     try {
         const utentiSnapshot = await getDocs(collection(db, "utenti"));
         utentiCollezioni = {};
-        utentiSnapshot.forEach(docSnap => {
+        utentiSnapshot.forEach(function(docSnap) {
             const data = docSnap.data();
             if (data.nome) {
                 utentiCollezioni[data.nome.toLowerCase()] = data.colore || '#3498db';
@@ -127,7 +127,7 @@ async function caricaImpegni(container) {
         const impegniSnapshot = await getDocs(collection(db, "appuntamenti"));
         impegniGlobal = [];
 
-        impegniSnapshot.forEach(docSnap => {
+        impegniSnapshot.forEach(function(docSnap) {
             const data = docSnap.data();
             const dataImpegnoGrezza = data.data || '';
             const dataImpegno = new Date(dataImpegnoGrezza);
@@ -390,4 +390,32 @@ function setupEventListeners(container) {
                         titolo: titolo,
                         data: dataImpegno,
                         oraInizio: oraInizio,
-                        oraFine
+                        oraFine: oraFine,
+                        note: note,
+                        creatore: userData.nome,
+                        creatoIl: new Date().toISOString()
+                    });
+                }
+
+                resetForm(container);
+                await caricaImpegni(container);
+
+            } catch (err) {
+                console.error("Errore durante il salvataggio dell'impegno:", err);
+                alert("Errore durante il salvataggio. Riprova.");
+            }
+        });
+    }
+}
+
+// --- Funzione Elimina Impegno ---
+async function eliminaImpegno(id, listContainer, container) {
+    try {
+        await deleteDoc(doc(db, "appuntamenti", id));
+        impegniGlobal = impegniGlobal.filter(function(i) { return i.id !== id; });
+        renderSettimanaVerticale(listContainer, container);
+    } catch (err) {
+        console.error("Errore durante l'eliminazione dell'impegno:", err);
+        alert("Errore durante l'eliminazione dell'impegno.");
+    }
+}
