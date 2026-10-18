@@ -18,7 +18,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // --- 1. Controllo Autenticazione e Permessi all'avvio ---
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
     
     if (!savedUser) {
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Caricamento dinamico dei fogli di stile esterni con forzatura della cache
+    // Caricamento dinamico dei fogli di stile esterni
     caricaStileDinamico('../scadenze/stile-scadenze.css?v=2', 'css-scadenze');
     caricaStileDinamico('../impegni/stile-impegni.css?v=2', 'css-impegni');
 
@@ -94,7 +94,7 @@ if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
 // --- 3. Gestione Logout ---
 const btnLogout = document.getElementById('btn-logout');
 if (btnLogout) {
-    btnLogout.addEventListener('click', () => {
+    btnLogout.addEventListener('click', function() {
         localStorage.removeItem('famiglia_pwa_user');
         sessionStorage.removeItem('famiglia_pwa_user');
         window.location.href = '../index.html';
@@ -107,9 +107,9 @@ function initNavigation() {
     const contentArea = document.getElementById('content-area');
     const pageTitle = document.getElementById('page-title');
 
-    navButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            navButtons.forEach(btn => btn.classList.remove('active'));
+    navButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            navButtons.forEach(function(btn) { btn.classList.remove('active'); });
             button.classList.add('active');
 
             const target = button.getAttribute('data-target');
@@ -117,9 +117,9 @@ function initNavigation() {
             const navText = navTextSpan ? navTextSpan.textContent.trim() : 'HOME';
             
             if (pageTitle) {
-                pageTitle.textContent = `FAMIGLIA - ${navText.toUpperCase()}`;
+                pageTitle.textContent = 'FAMIGLIA - ' + navText.toUpperCase();
             }
-            document.title = `FAMIGLIA - ${navText.toUpperCase()}`;
+            document.title = 'FAMIGLIA - ' + navText.toUpperCase();
 
             loadSectionContent(target, contentArea);
 
@@ -137,9 +137,9 @@ function initNavigation() {
     loadSectionContent('dashboard', contentArea);
 }
 
-// Funzione globale per attivare una scheda dal menu (usata cliccando sulle card)
+// Funzione globale per attivare una scheda dal menu
 window.selezionaScheda = function(targetName) {
-    const targetButton = document.querySelector(`.nav-btn[data-target="${targetName}"]`);
+    const targetButton = document.querySelector('.nav-btn[data-target="' + targetName + '"]');
     if (targetButton) {
         targetButton.click();
     }
@@ -155,69 +155,56 @@ async function loadSectionContent(target, container) {
             break;
         case 'scadenze':
             try {
-                const { initScadenzeSection } = await import(`../scadenze/scadenze.js?v=${Date.now()}`);
-                await initScadenzeSection(container);
+                const moduloScadenze = await import('../scadenze/scadenze.js?v=' + Date.now());
+                await moduloScadenze.initScadenzeSection(container);
             } catch (err) {
                 console.error("Errore durante il caricamento del modulo Scadenze:", err);
-                container.innerHTML = `<p style="color:red; text-align:center;">Impossibile caricare la sezione Scadenze.</p>`;
+                container.innerHTML = '<p style="color:red; text-align:center;">Impossibile caricare la sezione Scadenze.</p>';
             }
             break;
         case 'impegni':
             try {
-                const { initImpegniSection } = await import(`../impegni/impegni.js?v=${Date.now()}`);
-                await initImpegniSection(container);
+                const moduloImpegni = await import('../impegni/impegni.js?v=' + Date.now());
+                await moduloImpegni.initImpegniSection(container);
             } catch (err) {
                 console.error("Errore durante il caricamento del modulo Impegni:", err);
-                container.innerHTML = `<p style="color:red; text-align:center;">Impossibile caricare la sezione Impegni.</p>`;
+                container.innerHTML = '<p style="color:red; text-align:center;">Impossibile caricare la sezione Impegni.</p>';
             }
             break;
         case 'media':
-            container.innerHTML = `
-                <h2>Foto & Video</h2>
-                <p>Raccolta multimediale completa della famiglia.</p>
-            `;
+            container.innerHTML = '<h2>Foto & Video</h2><p>Raccolta multimediale completa della famiglia.</p>';
             break;
         case 'ricette':
-            container.innerHTML = `
-                <h2>Ricettario di Famiglia</h2>
-                <p>Sezione completa per visualizzare e salvare le ricette preferite.</p>
-            `;
+            container.innerHTML = '<h2>Ricettario di Famiglia</h2><p>Sezione completa per visualizzare e salvare le ricette preferite.</p>';
             break;
         case 'gestione-utenti':
-            container.innerHTML = `
-                <h2>Gestione Utenti (Pannello Admin)</h2>
-                <p>Qui l'amministratore può gestire gli utenti, i ruoli e i permessi.</p>
-            `;
+            container.innerHTML = '<h2>Gestione Utenti (Pannello Admin)</h2><p>Qui l amministrazione può gestire gli utenti, i ruoli e i permessi.</p>';
             break;
         case 'cambia-password':
-            container.innerHTML = `
-                <h2>Cambia Password</h2>
-                <p>Pannello per aggiornare la propria password di accesso.</p>
-            `;
+            container.innerHTML = '<h2>Cambia Password</h2><p>Pannello per aggiornare la propria password di accesso.</p>';
             break;
         case 'cambia-colore':
-            container.innerHTML = `
-                <h2>Cambia Colore</h2>
-                <p>Pannello per personalizzare il proprio colore utente.</p>
-            `;
+            container.innerHTML = '<h2>Cambia Colore</h2><p>Pannello per personalizzare il proprio colore utente.</p>';
             break;
         default:
-            container.innerHTML = `<h2>Sezione non trovata</h2>`;
+            container.innerHTML = '<h2>Sezione non trovata</h2>';
     }
 }
 
 // Funzione ausiliaria per convertire colori HEX in formato RGBA trasparente
-function hexToRgba(hex, alpha = 0.12) {
+function hexToRgba(hex, alpha) {
+    const a = alpha !== undefined ? alpha : 0.12;
+    if (!hex) return "rgba(52, 152, 219, " + a + ")";
     let c = hex.replace('#', '');
     if (c.length === 3) {
-        c = c.split('').map(char => char + char).join('');
+        c = c.split('').map(function(char) { return char + char; }).join('');
     }
     const num = parseInt(c, 16);
-    if (isNaN(num)) return `rgba(52, 152, 219, ${alpha})`;
+    if (isNaN(num)) return "rgba(52, 152, 219, " + a + ")";
     const r = (num >> 16) & 255;
     const g = (num >> 8) & 255;
     const b = num & 255;
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    return "rgba(" + r + ", " + g + ", " + b + ", " + a + ")";
 }
 
 // Funzione ausiliaria per formattare la data in formato europeo (GG-MM-AAAA)
@@ -225,31 +212,31 @@ function formatDataEuropea(dataString) {
     if (!dataString) return '';
     const parti = dataString.split('-');
     if (parti.length === 3) {
-        return `${parti[2]}-${parti[1]}-${parti[0]}`;
+        return parti[2] + '-' + parti[1] + '-' + parti[0];
     }
     return dataString;
 }
 
 // --- 5. Logica di Rendering della DASHBOARD con dati reali da Firebase ---
 async function renderDashboard(container) {
-    container.innerHTML = `<p style="text-align:center; padding: 20px; color: var(--text-muted);">Caricamento dati in corso...</p>`;
+    container.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--text-muted);">Caricamento dati in corso...</p>';
 
     try {
-        // Recupera utenti (per associare i colori ai creatori)
         const utentiSnapshot = await getDocs(collection(db, "utenti"));
         const utentiCollezioni = {};
-        utentiSnapshot.forEach(doc => {
+        utentiSnapshot.forEach(function(doc) {
             const data = doc.data();
-            utentiCollezioni[data.nome.toLowerCase()] = data.colore || '#3498db';
+            if (data.nome) {
+                utentiCollezioni[data.nome.toLowerCase()] = data.colore || '#3498db';
+            }
         });
 
-        // Recupera Scadenze da Firestore
         const scadenzeSnapshot = await getDocs(collection(db, "scadenze"));
         const scadenzeList = [];
         const oggi = new Date();
         oggi.setHours(0, 0, 0, 0);
 
-        scadenzeSnapshot.forEach(doc => {
+        scadenzeSnapshot.forEach(function(doc) {
             const data = doc.data();
             const dataScad = new Date(data.data);
             dataScad.setHours(0, 0, 0, 0);
@@ -259,26 +246,24 @@ async function renderDashboard(container) {
             
             scadenzeList.push({
                 titolo: data.titolo || 'Senza titolo',
-                importo: data.importo !== undefined ? `€ ${Number(data.importo).toFixed(2)}` : '',
+                importo: data.importo !== undefined ? '€ ' + Number(data.importo).toFixed(2) : '',
                 dataFormattata: formatDataEuropea(data.data),
                 giorniMancanti: giorniMancanti
             });
         });
 
-        // Filtro scadenze: Rosso (<=7), Arancione (8-14), Verde (>=15)
-        let scadenzeFiltrate = scadenzeList.filter(s => s.giorniMancanti <= 7);
+        let scadenzeFiltrate = scadenzeList.filter(function(s) { return s.giorniMancanti <= 7; });
         let coloreScadenza = 'red';
 
         if (scadenzeFiltrate.length === 0) {
-            scadenzeFiltrate = scadenzeList.filter(s => s.giorniMancanti >= 8 && s.giorniMancanti <= 14);
+            scadenzeFiltrate = scadenzeList.filter(function(s) { return s.giorniMancanti >= 8 && s.giorniMancanti <= 14; });
             coloreScadenza = 'orange';
         }
         if (scadenzeFiltrate.length === 0) {
-            scadenzeFiltrate = scadenzeList.filter(s => s.giorniMancanti >= 15);
+            scadenzeFiltrate = scadenzeList.filter(function(s) { return s.giorniMancanti >= 15; });
             coloreScadenza = 'green';
         }
 
-        // Calcolo dei limiti della settimana corrente (da Lunedì a Domenica)
         const curr = new Date();
         const firstDayOfWeek = new Date(curr);
         const day = curr.getDay();
@@ -290,11 +275,10 @@ async function renderDashboard(container) {
         lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
         lastDayOfWeek.setHours(23, 59, 59, 999);
 
-        // Recupera Impegni da Firestore e filtra per la settimana corrente
         const appuntamentiSnapshot = await getDocs(collection(db, "appuntamenti"));
         const impegniList = [];
         
-        appuntamentiSnapshot.forEach(doc => {
+        appuntamentiSnapshot.forEach(function(doc) {
             const data = doc.data();
             const dataImpegno = new Date(data.data);
             
@@ -313,10 +297,9 @@ async function renderDashboard(container) {
             }
         });
 
-        // Recupera Ricette da Firestore (prime 3)
         const ricetteSnapshot = await getDocs(collection(db, "ricette"));
         const ricetteList = [];
-        ricetteSnapshot.forEach(doc => {
+        ricetteSnapshot.forEach(function(doc) {
             const data = doc.data();
             const creatore = data.creatore || '';
             const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
@@ -331,7 +314,6 @@ async function renderDashboard(container) {
         });
         const primeRicette = ricetteList.slice(0, 3);
 
-        // Foto & Video di esempio
         const mediaData = [
             'https://picsum.photos/seed/fam1/200',
             'https://picsum.photos/seed/fam2/200',
@@ -340,7 +322,6 @@ async function renderDashboard(container) {
             'https://picsum.photos/seed/fam5/200'
         ];
 
-        // Costruisci l'HTML della Dashboard
         container.innerHTML = `
             <div class="dashboard-grid">
                 <!-- 1. CARD SCADENZE -->
@@ -351,7 +332,8 @@ async function renderDashboard(container) {
                     <div class="card-body">
                         ${scadenzeFiltrate.length > 0 ? `
                             <ul class="scadenze-list">
-                                ${scadenzeFiltrate.map(s => `
+                                ${scadenzeFiltrate.map(function(s) {
+                                    return `
                                     <li class="scadenza-item ${coloreScadenza}">
                                         <div class="scadenza-row">
                                             <span class="scadenza-title">${s.titolo}</span>
@@ -359,12 +341,12 @@ async function renderDashboard(container) {
                                         </div>
                                         <div class="scadenza-row">
                                             <span class="scadenza-date">${s.dataFormattata}</span>
-                                            <span class="scadenza-status">${s.giorniMancanti < 0 ? 'Scaduta' : (s.giorniMancanti === 0 ? 'Scade oggi' : `Tra ${s.giorniMancanti} gg`)}</span>
+                                            <span class="scadenza-status">${s.giorniMancanti < 0 ? 'Scaduta' : (s.giorniMancanti === 0 ? 'Scade oggi' : 'Tra ' + s.giorniMancanti + ' gg')}</span>
                                         </div>
-                                    </li>
-                                `).join('')}
+                                    </li>`;
+                                }).join('')}
                             </ul>
-                        ` : `<p class="card-empty">Nessuna scadenza in evidenza</p>`}
+                        ` : '<p class="card-empty">Nessuna scadenza in evidenza</p>'}
                     </div>
                 </div>
 
@@ -376,7 +358,8 @@ async function renderDashboard(container) {
                     <div class="card-body">
                         ${impegniList.length > 0 ? `
                             <ul class="impegni-list">
-                                ${impegniList.map(i => `
+                                ${impegniList.map(function(i) {
+                                    return `
                                     <li class="impegno-item" style="background-color: ${i.bgTrasparente}; border-left-color: ${i.coloreUtente};">
                                         <div class="impegno-row-top">
                                             <span class="impegno-title">${i.titolo}</span>
@@ -385,10 +368,10 @@ async function renderDashboard(container) {
                                             <span class="impegno-datetime">${i.dataFormattata} ore ${i.oraInizio}</span>
                                             <span class="impegno-creator">(${i.creatore})</span>
                                         </div>
-                                    </li>
-                                `).join('')}
+                                    </li>`;
+                                }).join('')}
                             </ul>
-                        ` : `<p class="card-empty">Nessun impegno in programma per questa settimana</p>`}
+                        ` : '<p class="card-empty">Nessun impegno in programma per questa settimana</p>'}
                     </div>
                 </div>
 
@@ -400,9 +383,9 @@ async function renderDashboard(container) {
                     <div class="card-body">
                         ${mediaData.length > 0 ? `
                             <div class="media-grid-preview">
-                                ${mediaData.map(img => `<img src="${img}" class="media-thumb" alt="Anteprima media">`).join('')}
+                                ${mediaData.map(function(img) { return '<img src="' + img + '" class="media-thumb" alt="Anteprima media">'; }).join('')}
                             </div>
-                        ` : `<p class="card-empty">Nessun contenuto multimediale recente</p>`}
+                        ` : '<p class="card-empty">Nessun contenuto multimediale recente</p>'}
                     </div>
                 </div>
 
@@ -414,7 +397,8 @@ async function renderDashboard(container) {
                     <div class="card-body">
                         ${primeRicette.length > 0 ? `
                             <ul class="ricette-list">
-                                ${primeRicette.map(r => `
+                                ${primeRicette.map(function(r) {
+                                    return `
                                     <li class="ricetta-item" style="background-color: ${r.bgTrasparente}; border-left-color: ${r.coloreUtente};">
                                         <div class="ricetta-row-top">
                                             <span class="ricetta-title">${r.titolo}</span>
@@ -423,10 +407,10 @@ async function renderDashboard(container) {
                                         <div class="ricetta-row-bottom">
                                             <span class="ricetta-creator">(${r.creatore})</span>
                                         </div>
-                                    </li>
-                                `).join('')}
+                                    </li>`;
+                                }).join('')}
                             </ul>
-                        ` : `<p class="card-empty">Nessuna ricetta salvata</p>`}
+                        ` : '<p class="card-empty">Nessuna ricetta salvata</p>'}
                     </div>
                 </div>
             </div>
@@ -434,6 +418,6 @@ async function renderDashboard(container) {
 
     } catch (error) {
         console.error("Errore nel recupero dei dati da Firebase:", error);
-        container.innerHTML = `<p style="color: red; text-align: center;">Errore durante il caricamento dei dati dal database.</p>`;
+        container.innerHTML = '<p style="color: red; text-align: center;">Errore durante il caricamento dei dati dal database.</p>';
     }
 }
