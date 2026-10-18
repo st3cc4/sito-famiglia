@@ -1,316 +1,393 @@
-/* --- STILI DEDICATI ALLA SEZIONE IMPEGNI --- */
+// --- Import SDK di Firebase ---
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-.impegni-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    max-width: 900px;
-    margin: 0 auto;
+// Configurazione Firebase dal tuo progetto
+const firebaseConfig = {
+    apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
+    authDomain: "sito-famiglia.firebaseapp.com",
+    projectId: "sito-famiglia",
+    storageBucket: "sito-famiglia.appspot.com",
+    messagingSenderId: "93216467751",
+    appId: "1:93216467751:web:9930052845521ca5ef895a",
+    measurementId: "G-NYRQJDTWM3"
+};
+
+// Inizializza Firebase e Firestore
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let impegniGlobal = [];
+let utentiCollezioni = {};
+let idInModifica = null;
+
+// Funzione ausiliaria per convertire colori HEX in formato RGBA trasparente
+function hexToRgba(hex, alpha) {
+    const a = alpha !== undefined ? alpha : 0.12;
+    if (!hex) return "rgba(52, 152, 219, " + a + ")";
+    let c = hex.replace('#', '');
+    if (c.length === 3) {
+        c = c.split('').map(function(char) { return char + char; }).join('');
+    }
+    const num = parseInt(c, 16);
+    if (isNaN(num)) return "rgba(52, 152, 219, " + a + ")";
+    const r = (num >> 16) & 255;
+    const g = (num >> 8) & 255;
+    const b = num & 255;
+    return "rgba(" + r + ", " + g + ", " + b + ", " + a + ")";
 }
 
-/* Header della sezione con Pulsante Home e Nuovo Impegno */
-.section-header-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: var(--card-bg);
-    padding: 16px 20px;
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-    flex-wrap: wrap;
-    gap: 12px;
+// Funzione ausiliaria per formattare la data in formato europeo (GG-MM-AAAA)
+function formatDataEuropea(dataString) {
+    if (!dataString) return '';
+    const parti = dataString.split('-');
+    if (parti.length === 3) {
+        return parti[2] + '-' + parti[1] + '-' + parti[0];
+    }
+    return dataString;
 }
 
-.header-left-group {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+// --- Render Principale della Sezione Impegni ---
+export async function initImpegniSection(container) {
+    container.innerHTML = `
+        <div class="impegni-container">
+            <!-- Header della sezione con Pulsante Home e Nuovo Impegno -->
+            <div class="section-header-actions">
+                <div class="header-left-group">
+                    <button id="btn-torna-home" class="btn-outline" title="Torna alla Home">
+                        <i class="fa-solid fa-arrow-left"></i> Home
+                    </button>
+                    <h2><i class="fa-solid fa-calendar-days"></i> GESTIONE IMPEGNI (SETTIMANA)</h2>
+                </div>
+                <div class="header-buttons-right">
+                    <button id="btn-toggle-form" class="btn-primary">
+                        Nuovo Impegno
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form per l'inserimento / modifica dell'impegno -->
+            <div id="form-impegno-card" class="form-card" style="display: none;">
+                <h3 id="form-impegno-title">Nuovo Impegno</h3>
+                <form id="form-nuovo-impegno">
+                    <div class="form-grid">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label for="impegno-titolo">Titolo / Descrizione principale *</label>
+                            <input type="text" id="impegno-titolo" placeholder="Es. Visita medica, Riunione..." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="impegno-data">Data *</label>
+                            <input type="date" id="impegno-data" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="impegno-ora-inizio">Ora Inizio</label>
+                            <input type="time" id="impegno-ora-inizio" value="09:00">
+                        </div>
+                        <div class="form-group">
+                            <label for="impegno-ora-fine">Ora Fine</label>
+                            <input type="time" id="impegno-ora-fine" value="10:00">
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label for="impegno-note">Note / Dettagli</label>
+                            <textarea id="impegno-note" rows="2" placeholder="Eventuali dettagli aggiuntivi..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="btn-annulla-form" class="btn-secondary">Annulla</button>
+                        <button type="submit" id="btn-salva-impegno" class="btn-primary">Salva Impegno</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Visualizzazione Settimanale Verticale -->
+            <div id="impegni-settimana-container">
+                <p style="text-align:center; padding: 20px; color: var(--text-muted);">Caricamento impegni...</p>
+            </div>
+        </div>
+    `;
+
+    setupEventListeners(container);
+    await caricaImpegni(container);
 }
 
-.section-header-actions h2 {
-    font-size: 1.2rem;
-    color: var(--primary-color);
-    display: flex;
-    align-items: center;
-    gap: 10px;
+// --- Caricamento Dati da Firebase ---
+async function caricaImpegni(container) {
+    const listContainer = container.querySelector('#impegni-settimana-container');
+    
+    try {
+        const utentiSnapshot = await getDocs(collection(db, "utenti"));
+        utentiCollezioni = {};
+        utentiSnapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            if (data.nome) {
+                utentiCollezioni[data.nome.toLowerCase()] = data.colore || '#3498db';
+            }
+        });
+
+        const impegniSnapshot = await getDocs(collection(db, "appuntamenti"));
+        impegniGlobal = [];
+
+        impegniSnapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const dataImpegnoGrezza = data.data || '';
+            const dataImpegno = new Date(dataImpegnoGrezza);
+            dataImpegno.setHours(0, 0, 0, 0);
+
+            const creatore = data.creatore || 'Utente';
+            const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
+
+            impegniGlobal.push({
+                id: docSnap.id,
+                titolo: data.titolo || 'Impegno',
+                dataGrezza: dataImpegnoGrezza,
+                dataOggetto: dataImpegno,
+                dataFormattata: formatDataEuropea(dataImpegnoGrezza),
+                oraInizio: data.oraInizio || '',
+                oraFine: data.oraFine || '',
+                note: data.note || '',
+                creatore: creatore,
+                coloreUtente: coloreUtente,
+                bgTrasparente: hexToRgba(coloreUtente, 0.12)
+            });
+        });
+
+        renderSettimanaVerticale(listContainer, container);
+
+    } catch (error) {
+        console.error("Errore nel caricamento degli impegni:", error);
+        if (listContainer) {
+            listContainer.innerHTML = `<p style="color: red; text-align: center;">Errore durante il caricamento degli impegni.</p>`;
+        }
+    }
 }
 
-.header-buttons-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+// --- Rendering dei 7 Giorni della Settimana (Lunedì - Domenica) ---
+function renderSettimanaVerticale(listContainer, container) {
+    if (!listContainer) return;
+
+    const curr = new Date();
+    const dayOfWeek = curr.getDay();
+    const diffToMonday = curr.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    
+    const primoGiornoSettimana = new Date(curr.setDate(diffToMonday));
+    primoGiornoSettimana.setHours(0, 0, 0, 0);
+
+    const giorniNomi = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+    let htmlContent = '<div class="settimana-verticale-container">';
+
+    for (let i = 0; i < 7; i++) {
+        const dataCorrente = new Date(primoGiornoSettimana);
+        dataCorrente.setDate(primoGiornoSettimana.getDate() + i);
+        dataCorrente.setHours(0, 0, 0, 0);
+
+        const anno = dataCorrente.getFullYear();
+        const mese = String(dataCorrente.getMonth() + 1).padStart(2, '0');
+        const giornoNum = String(dataCorrente.getDate()).padStart(2, '0');
+        const dataIsoString = anno + '-' + mese + '-' + giornoNum;
+
+        const nomeGiorno = giorniNomi[i];
+        const isDomenica = (i === 6);
+
+        const impegniDelGiorno = impegniGlobal.filter(function(item) {
+            return item.dataOggetto.getTime() === dataCorrente.getTime();
+        });
+
+        impegniDelGiorno.sort(function(a, b) {
+            return (a.oraInizio || '').localeCompare(b.oraInizio || '');
+        });
+
+        htmlContent += `
+            <div class="giorno-box ${isDomenica ? 'domenica' : ''}">
+                <div class="giorno-header" data-data-iso="${dataIsoString}" title="Clicca per aggiungere un impegno in questo giorno">
+                    <span class="giorno-nome">${nomeGiorno} (${formatDataEuropea(dataIsoString)})</span>
+                    <span class="giorno-data"><i class="fa-solid fa-plus-circle"></i> Aggiungi</span>
+                </div>
+                ${impegniDelGiorno.length > 0 ? `
+                    <ul class="giorno-eventi-lista">
+                        ${impegniDelGiorno.map(function(item) {
+                            return `
+                            <li class="impegno-item-card" style="background-color: ${item.bgTrasparente}; border-left-color: ${item.coloreUtente};">
+                                <div class="impegno-info">
+                                    <span class="impegno-titolo">${item.titolo}</span>
+                                    <div class="impegno-meta">
+                                        ${item.oraInizio ? `<span><i class="fa-regular fa-clock"></i> ${item.oraInizio}${item.oraFine ? ' - ' + item.oraFine : ''}</span>` : ''}
+                                        ${item.creatore ? `<span class="impegno-creator">(${item.creatore})</span>` : ''}
+                                        ${item.note ? `<span>- ${item.note}</span>` : ''}
+                                    </div>
+                                </div>
+                                <div class="impegno-azioni">
+                                    <button class="btn-action-icon edit" data-id="${item.id}" title="Modifica">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <button class="btn-action-icon delete" data-id="${item.id}" title="Elimina">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </li>
+                            `;
+                        }).join('')}
+                    </ul>
+                ` : `
+                    <div class="giorno-vuoto">Nessun impegno in programma</div>
+                `}
+            </div>
+        `;
+    }
+
+    htmlContent += '</div>';
+    listContainer.innerHTML = htmlContent;
+
+    // Attiva i click sugli header dei giorni
+    const giornoHeaders = listContainer.querySelectorAll('.giorno-header');
+    giornoHeaders.forEach(function(header) {
+        header.addEventListener('click', function() {
+            const dataIso = header.getAttribute('data-data-iso');
+            apriNuovoImpegnoConData(dataIso, container);
+        });
+    });
+
+    // Event listener Modifica
+    const editButtons = listContainer.querySelectorAll('.btn-action-icon.edit');
+    editButtons.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id');
+            apriModificaForm(id, container);
+        });
+    });
+
+    // Event listener Elimina
+    const deleteButtons = listContainer.querySelectorAll('.btn-action-icon.delete');
+    deleteButtons.forEach(function(btn) {
+        btn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id');
+            if (confirm('Sei sicuro di voler eliminare questo impegno?')) {
+                await eliminaImpegno(id, listContainer, container);
+            }
+        });
+    });
 }
 
-.btn-primary {
-    background-color: var(--primary-color);
-    color: #ffffff;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: background-color 0.2s, transform 0.1s;
+// --- Funzione per Aprire il Form con Data Preimpostata ---
+function apriNuovoImpegnoConData(dataIso, container) {
+    idInModifica = null;
+    const formCard = container.querySelector('#form-impegno-card');
+    const form = container.querySelector('#form-nuovo-impegno');
+    const formTitle = container.querySelector('#form-impegno-title');
+    const btnSalva = container.querySelector('#btn-salva-impegno');
+
+    if (form) form.reset();
+    if (formTitle) formTitle.textContent = 'Nuovo Impegno';
+    if (btnSalva) btnSalva.textContent = 'Salva Impegno';
+
+    const inputData = container.querySelector('#impegno-data');
+    if (inputData) inputData.value = dataIso;
+
+    if (formCard) {
+        formCard.style.display = 'flex';
+        formCard.scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
-.btn-primary:hover {
-    background-color: var(--primary-hover);
-    transform: translateY(-1px);
+// --- Funzione per Modificare un Impegno Esistente ---
+function apriModificaForm(id, container) {
+    const item = impegniGlobal.find(function(i) { return i.id === id; });
+    if (!item) return;
+
+    idInModifica = id;
+
+    const formCard = container.querySelector('#form-impegno-card');
+    const formTitle = container.querySelector('#form-impegno-title');
+    const btnSalva = container.querySelector('#btn-salva-impegno');
+
+    container.querySelector('#impegno-titolo').value = item.titolo;
+    container.querySelector('#impegno-data').value = item.dataGrezza;
+    container.querySelector('#impegno-ora-inizio').value = item.oraInizio;
+    container.querySelector('#impegno-ora-fine').value = item.oraFine;
+    container.querySelector('#impegno-note').value = item.note;
+
+    if (formTitle) formTitle.textContent = 'Modifica Impegno';
+    if (btnSalva) btnSalva.textContent = 'Aggiorna Impegno';
+
+    formCard.style.display = 'flex';
+    formCard.scrollIntoView({ behavior: 'smooth' });
 }
 
-.btn-outline {
-    background-color: transparent;
-    color: var(--primary-color);
-    border: 1px solid var(--primary-color);
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: background-color 0.2s, color 0.2s;
+// --- Reset del Form ---
+function resetForm(container) {
+    idInModifica = null;
+    const formCard = container.querySelector('#form-impegno-card');
+    const form = container.querySelector('#form-nuovo-impegno');
+    const formTitle = container.querySelector('#form-impegno-title');
+    const btnSalva = container.querySelector('#btn-salva-impegno');
+
+    if (form) form.reset();
+    if (formTitle) formTitle.textContent = 'Nuovo Impegno';
+    if (btnSalva) btnSalva.textContent = 'Salva Impegno';
+    if (formCard) formCard.style.display = 'none';
 }
 
-.btn-outline:hover {
-    background-color: var(--primary-color);
-    color: #ffffff;
-}
+// --- Gestione Eventi ---
+function setupEventListeners(container) {
+    const btnTornaHome = container.querySelector('#btn-torna-home');
+    const btnToggleForm = container.querySelector('#btn-toggle-form');
+    const btnAnnulla = container.querySelector('#btn-annulla-form');
+    const form = container.querySelector('#form-nuovo-impegno');
 
-/* Form Inserimento / Modifica Impegno */
-.form-card {
-    background-color: var(--card-bg);
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
+    if (btnTornaHome) {
+        btnTornaHome.addEventListener('click', function() {
+            if (typeof window.selezionaScheda === 'function') {
+                window.selezionaScheda('dashboard');
+            }
+        });
+    }
 
-.form-card h3 {
-    font-size: 1rem;
-    color: var(--primary-color);
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 10px;
-}
+    if (btnToggleForm) {
+        btnToggleForm.addEventListener('click', function() {
+            const formCard = container.querySelector('#form-impegno-card');
+            const isHidden = formCard.style.display === 'none';
+            if (isHidden) {
+                const oggiIso = new Date().toISOString().split('T')[0];
+                apriNuovoImpegnoConData(oggiIso, container);
+            } else {
+                resetForm(container);
+            }
+        });
+    }
 
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 14px;
-}
+    if (btnAnnulla) {
+        btnAnnulla.addEventListener('click', function() {
+            resetForm(container);
+        });
+    }
 
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const titolo = container.querySelector('#impegno-titolo').value.trim();
+            const dataImpegno = container.querySelector('#impegno-data').value;
+            const oraInizio = container.querySelector('#impegno-ora-inizio').value;
+            const oraFine = container.querySelector('#impegno-ora-fine').value;
+            const note = container.querySelector('#impegno-note').value.trim();
 
-.form-group label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #4a5568;
-}
+            const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
+            const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
 
-.form-group input,
-.form-group textarea {
-    padding: 10px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s;
-    font-family: inherit;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-    border-color: var(--primary-color);
-}
-
-.form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.btn-secondary {
-    background-color: #e2e8f0;
-    color: #4a5568;
-    border: none;
-    padding: 9px 16px;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.btn-secondary:hover {
-    background-color: #cbd5e0;
-}
-
-/* Barra dei Filtri */
-.filter-bar {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-}
-
-.filter-btn {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.2s;
-}
-
-.filter-btn.active {
-    background-color: var(--primary-color);
-    color: #ffffff;
-    border-color: var(--primary-color);
-}
-
-/* Struttura Giornaliera Verticale */
-.settimana-verticale-container {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.giorno-box {
-    background-color: var(--card-bg);
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-    overflow: hidden;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.giorno-box:hover {
-    border-color: var(--primary-color);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.06);
-}
-
-.giorno-header {
-    background-color: #f8fafc;
-    padding: 12px 18px;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-}
-
-.giorno-header:hover {
-    background-color: #f1f5f9;
-}
-
-.giorno-nome {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #2c3e50;
-    text-transform: capitalize;
-}
-
-/* Domenica in rosso */
-.giorno-box.domenica .giorno-nome {
-    color: #e74c3c;
-}
-
-.giorno-data {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    font-weight: 600;
-}
-
-.giorno-eventi-lista {
-    padding: 12px 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    list-style: none;
-}
-
-.giorno-vuoto {
-    padding: 10px 18px;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    font-style: italic;
-}
-
-/* Singola Card Impegno all'interno del giorno */
-.impegno-item-card {
-    border-radius: 8px;
-    padding: 10px 14px;
-    border-left: 5px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-}
-
-.impegno-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.impegno-titolo {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #1a252f;
-}
-
-.impegno-meta {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.impegno-creator {
-    font-weight: 700;
-    color: #2c3e50;
-}
-
-.impegno-azioni {
-    display: flex;
-    gap: 4px;
-}
-
-.btn-action-icon {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    padding: 6px;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: color 0.2s, background-color 0.2s;
-}
-
-.btn-action-icon.edit:hover {
-    color: var(--primary-color);
-    background-color: rgba(43, 62, 80, 0.1);
-}
-
-.btn-action-icon.delete:hover {
-    color: #e74c3c;
-    background-color: rgba(231, 76, 60, 0.1);
-}
+            try {
+                if (idInModifica) {
+                    const impegnoRef = doc(db, "appuntamenti", idInModifica);
+                    await updateDoc(impegnoRef, {
+                        titolo: titolo,
+                        data: dataImpegno,
+                        oraInizio: oraInizio,
+                        oraFine: oraFine,
+                        note: note
+                    });
+                } else {
+                    await addDoc(collection(db, "appuntamenti"), {
+                        titolo: titolo,
+                        data: dataImpegno,
+                        oraInizio: oraInizio,
+                        oraFine
