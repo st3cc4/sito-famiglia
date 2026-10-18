@@ -156,7 +156,7 @@ async function caricaImpegni(container) {
     } catch (error) {
         console.error("Errore nel caricamento degli impegni:", error);
         if (listContainer) {
-            listContainer.innerHTML = `<p style="color: red; text-align: center;">Errore durante il caricamento degli impegni.</p>`;
+            listContainer.innerHTML = '<p style="color: red; text-align: center;">Errore durante il caricamento degli impegni.</p>';
         }
     }
 }
@@ -173,6 +173,8 @@ function renderSettimanaVerticale(listContainer, container) {
     primoGiornoSettimana.setHours(0, 0, 0, 0);
 
     const giorniNomi = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+    const classiCSSGiorni = ['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'];
+    
     let htmlContent = '<div class="settimana-verticale-container">';
 
     for (let i = 0; i < 7; i++) {
@@ -186,7 +188,7 @@ function renderSettimanaVerticale(listContainer, container) {
         const dataIsoString = anno + '-' + mese + '-' + giornoNum;
 
         const nomeGiorno = giorniNomi[i];
-        const isDomenica = (i === 6);
+        const classeGiorno = classiCSSGiorni[i];
 
         const impegniDelGiorno = impegniGlobal.filter(function(item) {
             return item.dataOggetto.getTime() === dataCorrente.getTime();
@@ -197,7 +199,7 @@ function renderSettimanaVerticale(listContainer, container) {
         });
 
         htmlContent += `
-            <div class="giorno-box ${isDomenica ? 'domenica' : ''}">
+            <div class="giorno-box ${classeGiorno}">
                 <div class="giorno-header" data-data-iso="${dataIsoString}" title="Clicca per aggiungere un impegno in questo giorno">
                     <span class="giorno-nome">${nomeGiorno} (${formatDataEuropea(dataIsoString)})</span>
                     <span class="giorno-data"><i class="fa-solid fa-plus-circle"></i> Aggiungi</span>
