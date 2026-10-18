@@ -403,7 +403,7 @@ body {
     opacity: 0.85;
 }
 
-/* --- CARD RICETTE (Stile elegante e pulito) --- */
+/* --- CARD RICETTE (Sfondo personalizzato del creatore) --- */
 .ricette-list {
     list-style: none;
     display: flex;
@@ -413,20 +413,25 @@ body {
 
 .ricetta-item {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 14px;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 14px;
     border-radius: 8px;
-    background-color: #f8f9fa;
-    border: 1px solid #eef2f5;
-    font-size: 0.92rem;
     color: #2c3e50;
-    font-weight: 600;
-    transition: background-color 0.2s;
+    border-left: 5px solid;
 }
 
-.ricetta-item:hover {
-    background-color: #edf2f7;
+.ricetta-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.ricetta-title {
+    font-weight: 800;
+    font-size: 0.98rem;
+    color: #1a252f;
 }
 
 .ricetta-rating {
@@ -434,6 +439,20 @@ body {
     font-weight: bold;
     font-size: 0.9rem;
     letter-spacing: 2px;
+}
+
+.ricetta-row-bottom {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+}
+
+.ricetta-creator {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: #2c3e50;
+    opacity: 0.9;
 }
 
 /* Overlay Mobile */
