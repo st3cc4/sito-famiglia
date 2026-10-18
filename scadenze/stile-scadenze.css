@@ -8,7 +8,7 @@
     margin: 0 auto;
 }
 
-/* Header della sezione con pulsante aggiungi */
+/* Header della sezione con pulsante Home e Nuova Scadenza */
 .section-header-actions {
     display: flex;
     justify-content: space-between;
@@ -18,11 +18,25 @@
     border-radius: 10px;
     border: 1px solid var(--border-color);
     box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.header-left-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .section-header-actions h2 {
     font-size: 1.2rem;
     color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-buttons-right {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -46,6 +60,26 @@
 .btn-primary:hover {
     background-color: var(--primary-hover);
     transform: translateY(-1px);
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-outline:hover {
+    background-color: var(--primary-color);
+    color: #ffffff;
 }
 
 /* Form Inserimento / Modifica Scadenza */
