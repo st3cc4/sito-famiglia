@@ -157,34 +157,7 @@
     background-color: #cbd5e0;
 }
 
-/* Barra dei Filtri */
-.filter-bar {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-}
-
-.filter-btn {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.2s;
-}
-
-.filter-btn.active {
-    background-color: var(--primary-color);
-    color: #ffffff;
-    border-color: var(--primary-color);
-}
-
-/* Struttura Giornaliera Verticale */
+/* --- Struttura Giornaliera Verticale con Sfondi Colorati --- */
 .settimana-verticale-container {
     display: flex;
     flex-direction: column;
@@ -192,31 +165,67 @@
 }
 
 .giorno-box {
-    background-color: var(--card-bg);
     border-radius: 10px;
     border: 1px solid var(--border-color);
     box-shadow: 0 2px 4px rgba(0,0,0,0.03);
     overflow: hidden;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: transform 0.15s, box-shadow 0.2s;
 }
 
 .giorno-box:hover {
-    border-color: var(--primary-color);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* Sfondi per ciascun giorno della settimana */
+.giorno-box.lunedì {
+    background-color: #f0f4ff;
+    border-color: #cbd5e1;
+}
+
+.giorno-box.martedì {
+    background-color: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.giorno-box.mercoledì {
+    background-color: #fefce8;
+    border-color: #fef08a;
+}
+
+.giorno-box.giovedì {
+    background-color: #faf5ff;
+    border-color: #e9d5ff;
+}
+
+.giorno-box.venerdì {
+    background-color: #ecfeff;
+    border-color: #a5f3fc;
+}
+
+.giorno-box.sabato {
+    background-color: #fff7ed;
+    border-color: #ffedd5;
+}
+
+/* DOMENICA IN ROSSO */
+.giorno-box.domenica {
+    background-color: #fef2f2;
+    border-color: #fca5a5;
 }
 
 .giorno-header {
-    background-color: #f8fafc;
     padding: 12px 18px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
     display: flex;
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
+    background-color: rgba(255,255,255,0.4);
 }
 
 .giorno-header:hover {
-    background-color: #f1f5f9;
+    background-color: rgba(255,255,255,0.7);
 }
 
 .giorno-nome {
@@ -226,15 +235,19 @@
     text-transform: capitalize;
 }
 
-/* Domenica in rosso */
+/* Testo rosso per il titolo della Domenica */
 .giorno-box.domenica .giorno-nome {
-    color: #e74c3c;
+    color: #dc2626;
 }
 
 .giorno-data {
     font-size: 0.85rem;
     color: var(--text-muted);
     font-weight: 600;
+}
+
+.giorno-box.domenica .giorno-data {
+    color: #ef4444;
 }
 
 .giorno-eventi-lista {
@@ -252,7 +265,7 @@
     font-style: italic;
 }
 
-/* Singola Card Impegno all'interno del giorno */
+/* Singola Card Impegno (Eredita il colore dell'utente creatore) */
 .impegno-item-card {
     border-radius: 8px;
     padding: 10px 14px;
@@ -260,7 +273,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
 .impegno-info {
