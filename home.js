@@ -80,8 +80,8 @@ function initNavigation() {
             const target = button.getAttribute('data-target');
             const navText = button.querySelector('.nav-text').textContent;
             
-            // Formato richiesto: FAMIGLIA - [NOME SCHEDA]
-            pageTitle.textContent = `FAMIGLIA - ${navText}`;
+            // Garantisce sempre il formato: FAMIGLIA - [NOME SCHEDA]
+            pageTitle.textContent = `FAMIGLIA - ${navText.toUpperCase()}`;
 
             // Carica la schermata selezionata sulla tela centrale
             loadSectionContent(target, contentArea);
