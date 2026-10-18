@@ -184,83 +184,124 @@
     border-color: var(--primary-color);
 }
 
-/* Lista e Card Impegni */
-.impegni-full-list {
+/* Struttura Giornaliera Verticale */
+.settimana-verticale-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    list-style: none;
+    gap: 16px;
 }
 
-.impegno-full-card {
+.giorno-box {
     background-color: var(--card-bg);
     border-radius: 10px;
-    padding: 14px 18px;
     border: 1px solid var(--border-color);
-    border-left: 6px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.giorno-box:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+}
+
+.giorno-header {
+    background-color: #f8fafc;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-    transition: transform 0.15s;
+    cursor: pointer;
 }
 
-.impegno-full-card:hover {
-    transform: translateX(3px);
+.giorno-header:hover {
+    background-color: #f1f5f9;
 }
 
-.impegno-full-info {
+.giorno-nome {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2c3e50;
+    text-transform: capitalize;
+}
+
+/* Domenica in rosso */
+.giorno-box.domenica .giorno-nome {
+    color: #e74c3c;
+}
+
+.giorno-data {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.giorno-eventi-lista {
+    padding: 12px 18px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
+    list-style: none;
 }
 
-.impegno-full-title {
-    font-size: 1rem;
+.giorno-vuoto {
+    padding: 10px 18px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Singola Card Impegno all'interno del giorno */
+.impegno-item-card {
+    border-radius: 8px;
+    padding: 10px 14px;
+    border-left: 5px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.impegno-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.impegno-titolo {
+    font-size: 0.95rem;
     font-weight: 700;
     color: #1a252f;
 }
 
-.impegno-full-meta {
-    font-size: 0.85rem;
+.impegno-meta {
+    font-size: 0.8rem;
     color: var(--text-muted);
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
 }
 
 .impegno-creator {
     font-weight: 700;
     color: #2c3e50;
-    opacity: 0.85;
 }
 
-.impegno-descrizione {
-    font-size: 0.88rem;
-    color: #4a5568;
-    margin-top: 2px;
-}
-
-.impegno-full-right {
+.impegno-azioni {
     display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.impegno-full-actions {
-    display: flex;
-    gap: 6px;
+    gap: 4px;
 }
 
 .btn-action-icon {
     background: none;
     border: none;
     color: var(--text-muted);
-    font-size: 1rem;
-    padding: 6px 8px;
+    font-size: 0.9rem;
+    padding: 6px;
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: 4px;
     transition: color 0.2s, background-color 0.2s;
 }
 
@@ -270,6 +311,6 @@
 }
 
 .btn-action-icon.delete:hover {
-    color: var(--danger-color);
+    color: #e74c3c;
     background-color: rgba(231, 76, 60, 0.1);
 }
