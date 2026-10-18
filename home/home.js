@@ -51,22 +51,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Caricamento dinamico del foglio di stile per le scadenze se non è ancora stato incluso
-    caricaStileDinamico('../scadenze/stile-scadenze.css', 'css-scadenze');
+    // Caricamento dinamico del foglio di stile per le scadenze con forzatura della cache
+    caricaStileDinamico('../scadenze/stile-scadenze.css?v=2', 'css-scadenze');
 
     initNavigation();
 });
 
 // Funzione ausiliaria per caricare Fogli di Stile CSS esterni dinamicamente
 function caricaStileDinamico(url, idElemento) {
-    if (!document.getElementById(idElemento)) {
+    let link = document.getElementById(idElemento);
+    if (!link) {
         const head = document.getElementsByTagName('head')[0];
-        const link = document.createElement('link');
+        link = document.createElement('link');
         link.id = idElemento;
         link.rel = 'stylesheet';
         link.type = 'text/css';
         link.href = url;
         head.appendChild(link);
+    } else {
+        link.href = url;
     }
 }
 
@@ -151,7 +154,8 @@ async function loadSectionContent(target, container) {
             break;
         case 'scadenze':
             try {
-                const { initScadenzeSection } = await import('../scadenze/scadenze.js');
+                // Aggiunta query string ?v=2 per evitare il caching del file js
+                const { initScadenzeSection } = await import(`../scadenze/scadenze.js?v=${Date.now()}`);
                 await initScadenzeSection(container);
             } catch (err) {
                 console.error("Errore durante il caricamento del modulo Scadenze:", err);
