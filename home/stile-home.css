@@ -261,7 +261,7 @@ body {
     padding: 10px 0;
 }
 
-/* --- LISTE CARD SCADENZE (Sfondi soft / trasparenti) --- */
+/* --- LISTE CARD SCADENZE --- */
 .scadenze-list {
     list-style: none;
     display: flex;
@@ -308,7 +308,6 @@ body {
     font-weight: 600;
 }
 
-/* Variante Rossa (Scadute o <= 7 giorni) */
 .scadenza-item.red {
     background-color: rgba(231, 76, 60, 0.12);
     border-left-color: var(--danger-color);
@@ -317,7 +316,6 @@ body {
     color: #c0392b;
 }
 
-/* Variante Arancione (8-14 giorni) */
 .scadenza-item.orange {
     background-color: rgba(243, 156, 18, 0.12);
     border-left-color: var(--warning-color);
@@ -326,7 +324,6 @@ body {
     color: #d35400;
 }
 
-/* Variante Verde (>= 15 giorni) */
 .scadenza-item.green {
     background-color: rgba(46, 204, 113, 0.12);
     border-left-color: var(--success-color);
@@ -335,7 +332,7 @@ body {
     color: #27ae60;
 }
 
-/* --- LISTE CARD IMPEGNI (Soft/Semi-trasparente) --- */
+/* --- LISTE CARD IMPEGNI --- */
 .impegni-list {
     list-style: none;
     display: flex;
@@ -347,12 +344,35 @@ body {
     padding: 10px 14px;
     border-radius: 8px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.88rem;
-    font-weight: 600;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.9rem;
     color: #2c3e50;
     border-left: 5px solid;
+}
+
+.impegno-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.impegno-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.impegno-creator {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.impegno-details {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #4a5568;
 }
 
 /* --- CARD FOTO & VIDEO --- */
@@ -397,3 +417,37 @@ body {
 }
 
 .ricetta-rating {
+    color: #f1c40f;
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+/* Overlay Mobile */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.4);
+    z-index: 80;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 60px;
+        bottom: 0;
+        left: -250px;
+        width: 250px !important;
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+}
