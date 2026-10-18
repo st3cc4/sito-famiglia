@@ -117,7 +117,7 @@ function initNavigation() {
     loadSectionContent('dashboard', contentArea);
 }
 
-// Funzione globale per attivare una scheda dal menu (usata anche cliccando sulle card della Home)
+// Funzione globale per attivare una scheda dal menu (usata cliccando sulle card)
 window.selezionaScheda = function(targetName) {
     const targetButton = document.querySelector(`.nav-btn[data-target="${targetName}"]`);
     if (targetButton) {
@@ -197,14 +197,20 @@ async function renderDashboard(container) {
         const scadenzeSnapshot = await getDocs(collection(db, "scadenze"));
         const scadenzeList = [];
         const oggi = new Date();
+        oggi.setHours(0, 0, 0, 0);
 
         scadenzeSnapshot.forEach(doc => {
             const data = doc.data();
             const dataScad = new Date(data.data);
+            dataScad.setHours(0, 0, 0, 0);
+            
             const diffTempo = dataScad - oggi;
             const giorniMancanti = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+            
             scadenzeList.push({
                 titolo: data.titolo || 'Senza titolo',
+                importo: data.importo !== undefined ? `€ ${Number(data.importo).toFixed(2)}` : '',
+                dataFormattata: data.data || '',
                 giorniMancanti: giorniMancanti
             });
         });
@@ -249,7 +255,7 @@ async function renderDashboard(container) {
         });
         const primeRicette = ricetteList.slice(0, 3);
 
-        // Foto & Video di esempio (in attesa della collezione media)
+        // Foto & Video di esempio
         const mediaData = [
             'https://picsum.photos/seed/fam1/200',
             'https://picsum.photos/seed/fam2/200',
@@ -258,7 +264,7 @@ async function renderDashboard(container) {
             'https://picsum.photos/seed/fam5/200'
         ];
 
-        // Costruisci l'HTML della Dashboard in verticale con eventi di click sulle card
+        // Costruisci l'HTML della Dashboard
         container.innerHTML = `
             <div class="dashboard-grid">
                 <!-- 1. CARD SCADENZE -->
@@ -271,8 +277,14 @@ async function renderDashboard(container) {
                             <ul class="scadenze-list">
                                 ${scadenzeFiltrate.map(s => `
                                     <li class="scadenza-item ${coloreScadenza}">
-                                        <span>${s.titolo}</span>
-                                        <span>${s.giorniMancanti < 0 ? 'Scaduta' : `Tra ${s.giorniMancanti} gg`}</span>
+                                        <div class="scadenza-row">
+                                            <span class="scadenza-title">${s.titolo}</span>
+                                            <span class="scadenza-amount">${s.importo}</span>
+                                        </div>
+                                        <div class="scadenza-row">
+                                            <span class="scadenza-date">${s.dataFormattata}</span>
+                                            <span class="scadenza-status">${s.giorniMancanti < 0 ? 'Scaduta' : (s.giorniMancanti === 0 ? 'Scade oggi' : `Tra ${s.giorniMancanti} gg`)}</span>
+                                        </div>
                                     </li>
                                 `).join('')}
                             </ul>
