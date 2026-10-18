@@ -180,6 +180,20 @@ function loadSectionContent(target, container) {
     }
 }
 
+// Funzione ausiliaria per convertire colori HEX in formato RGBA trasparente
+function hexToRgba(hex, alpha = 0.12) {
+    let c = hex.replace('#', '');
+    if (c.length === 3) {
+        c = c.split('').map(char => char + char).join('');
+    }
+    const num = parseInt(c, 16);
+    if (isNaN(num)) return `rgba(52, 152, 219, ${alpha})`;
+    const r = (num >> 16) & 255;
+    const g = (num >> 8) & 255;
+    const b = num & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 // --- 5. Logica di Rendering della DASHBOARD con dati reali da Firebase ---
 async function renderDashboard(container) {
     container.innerHTML = `<p style="text-align:center; padding: 20px; color: var(--text-muted);">Caricamento dati in corso...</p>`;
@@ -239,7 +253,8 @@ async function renderDashboard(container) {
             impegniList.push({
                 titolo: data.titolo || 'Impegno',
                 data: data.data || '',
-                coloreUtente: coloreUtente
+                coloreUtente: coloreUtente,
+                bgTrasparente: hexToRgba(coloreUtente, 0.12)
             });
         });
 
@@ -301,9 +316,9 @@ async function renderDashboard(container) {
                         ${impegniList.length > 0 ? `
                             <ul class="impegni-list">
                                 ${impegniList.map(i => `
-                                    <li class="impegno-item" style="background-color: ${i.coloreUtente};">
+                                    <li class="impegno-item" style="background-color: ${i.bgTrasparente}; border-left-color: ${i.coloreUtente};">
                                         <span>${i.titolo}</span>
-                                        <span style="font-size: 0.75rem; opacity: 0.9;">${i.data}</span>
+                                        <span style="font-size: 0.88rem; font-weight: 600; color: #4a5568;">${i.data}</span>
                                     </li>
                                 `).join('')}
                             </ul>
