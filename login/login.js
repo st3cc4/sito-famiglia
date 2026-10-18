@@ -1,6 +1,6 @@
 // Importazione dei moduli Firebase SDK v9+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Configurazione Firebase dal tuo progetto
 const firebaseConfig = {
@@ -19,7 +19,7 @@ const db = getFirestore(app);
 
 // Elementi DOM
 const loginForm = document.getElementById('login-form');
-const usernameSelect = document.getElementById('username');
+const usernameInput = document.getElementById('username');
 const passwordInput = document.getElementById('password');
 const togglePasswordBtn = document.getElementById('toggle-password');
 const eyeIcon = document.getElementById('eye-icon');
@@ -53,39 +53,37 @@ loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     loginError.textContent = '';
 
-    const selectedName = usernameSelect.value;
+    const enteredName = usernameInput.value.trim().toLowerCase();
     const enteredPassword = passwordInput.value.trim();
 
-    if (!selectedName || !enteredPassword) {
-        loginError.textContent = 'Seleziona un nome e inserisci la password.';
+    if (!enteredName || !enteredPassword) {
+        loginError.textContent = 'Inserisci nome e password.';
         return;
     }
 
     try {
-        // Ricerca dell'utente nella collezione "utenti" dove nome è uguale a quello selezionato
+        // Leggiamo tutti gli utenti dalla collezione "utenti" per confrontare il nome senza problemi di maiuscole/minuscole
         const utentiRef = collection(db, "utenti");
-        const q = query(utentiRef, where("nome", "==", selectedName));
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
-            loginError.textContent = 'Utente non trovato nel database.';
-            return;
-        }
+        const querySnapshot = await getDocs(utentiRef);
 
         let userFound = false;
         let userData = null;
 
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.password === enteredPassword) {
-                userFound = true;
-                userData = {
-                    id: doc.id,
-                    nome: data.nome,
-                    colore: data.colore || "#2c3e50",
-                    permessi: data.permessi || {},
-                    ruolo: data.ruolo || "utente"
-                };
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const dbName = (data.nome || "").trim().toLowerCase();
+
+            if (dbName === enteredName) {
+                if (data.password === enteredPassword) {
+                    userFound = true;
+                    userData = {
+                        id: docSnap.id,
+                        nome: data.nome,
+                        colore: data.colore || "#2c3e50",
+                        permessi: data.permessi || {},
+                        ruolo: data.ruolo || "utente"
+                    };
+                }
             }
         });
 
@@ -97,10 +95,10 @@ loginForm.addEventListener('submit', async (e) => {
                 sessionStorage.setItem('famiglia_pwa_user', JSON.stringify(userData));
             }
 
-            // Reindirizzamento alla schermata HOME (Cornice)
+            // Reindirizzamento alla schermata HOME
             window.location.href = 'home.html';
         } else {
-            loginError.textContent = 'Password errata. Riprova.';
+            loginError.textContent = 'Nome o password errati. Riprova.';
         }
 
     } catch (error) {
