@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isAdmin = (userData.ruolo === 'admin' || userData.nome.toLowerCase() === 'paolo');
     sidebarUserRole.textContent = isAdmin ? 'Admin' : 'Utente';
 
-    // Se l'utente è Admin, mostra la voce "Gestione Utenti"
+    // Se l'utente è Admin, mostra la voce "GESTIONE UTENTI"
     if (isAdmin) {
         const adminMenuItem = document.getElementById('admin-menu-item');
         if (adminMenuItem) {
@@ -80,7 +80,7 @@ function initNavigation() {
             const target = button.getAttribute('data-target');
             const navText = button.querySelector('.nav-text').textContent;
             
-            // Formato richiesto: FAMIGLIA - [Nome della scheda]
+            // Formato richiesto: FAMIGLIA - [NOME SCHEDA]
             pageTitle.textContent = `FAMIGLIA - ${navText}`;
 
             // Carica la schermata selezionata sulla tela centrale
