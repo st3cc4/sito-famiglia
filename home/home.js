@@ -1,3 +1,22 @@
+// --- Import SDK di Firebase ---
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// Configurazione Firebase dal tuo progetto
+const firebaseConfig = {
+    apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
+    authDomain: "sito-famiglia.firebaseapp.com",
+    projectId: "sito-famiglia",
+    storageBucket: "sito-famiglia.appspot.com",
+    messagingSenderId: "93216467751",
+    appId: "1:93216467751:web:9930052845521ca5ef895a",
+    measurementId: "G-NYRQJDTWM3"
+};
+
+// Inizializza Firebase e Firestore
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 // --- 1. Controllo Autenticazione e Permessi all'avvio ---
 document.addEventListener('DOMContentLoaded', () => {
     const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
@@ -98,6 +117,14 @@ function initNavigation() {
     loadSectionContent('dashboard', contentArea);
 }
 
+// Funzione globale per attivare una scheda dal menu (usata anche cliccando sulle card della Home)
+window.selezionaScheda = function(targetName) {
+    const targetButton = document.querySelector(`.nav-btn[data-target="${targetName}"]`);
+    if (targetButton) {
+        targetButton.click();
+    }
+};
+
 // Funzione per caricare le differenti schermate nella tela centrale
 function loadSectionContent(target, container) {
     if (!container) return;
@@ -109,7 +136,7 @@ function loadSectionContent(target, container) {
         case 'scadenze':
             container.innerHTML = `
                 <h2>Gestione Scadenze</h2>
-                <p>Sezione per le scadenze e le bollette.</p>
+                <p>Sezione completa per visualizzare e aggiungere tutte le scadenze.</p>
             `;
             break;
         case 'impegni':
@@ -121,13 +148,13 @@ function loadSectionContent(target, container) {
         case 'media':
             container.innerHTML = `
                 <h2>Foto & Video</h2>
-                <p>Raccolta multimediale della famiglia.</p>
+                <p>Raccolta multimediale completa della famiglia.</p>
             `;
             break;
         case 'ricette':
             container.innerHTML = `
                 <h2>Ricettario di Famiglia</h2>
-                <p>Sezione per visualizzare e salvare le ricette preferite.</p>
+                <p>Sezione completa per visualizzare e salvare le ricette preferite.</p>
             `;
             break;
         case 'gestione-utenti':
@@ -153,122 +180,162 @@ function loadSectionContent(target, container) {
     }
 }
 
-// --- 5. Logica di Rendering della DASHBOARD con le Card Riassuntive ---
-function renderDashboard(container) {
-    // Dati di esempio (mock) per le card - in seguito collegati a Firestore
-    const scadenzeData = [
-        { titolo: 'Bolletta Enel', giorniMancanti: 4 }, // Rosso (<= 7)
-        { titolo: 'Assicurazione Auto', giorniMancanti: 12 }, // Arancione (8-14)
-        { titolo: 'Revisione caldaia', giorniMancanti: 20 }  // Verde (>= 15)
-    ];
+// --- 5. Logica di Rendering della DASHBOARD con dati reali da Firebase ---
+async function renderDashboard(container) {
+    container.innerHTML = `<p style="text-align:center; padding: 20px; color: var(--text-muted);">Caricamento dati in corso...</p>`;
 
-    const impegniData = [
-        { titolo: 'Visita Medica', data: 'Questa settimana', coloreUtente: '#3498db' },
-        { titolo: 'Riunione Scuola', data: 'Questa settimana', coloreUtente: '#e67e22' }
-    ];
+    try {
+        // Recupera utenti (per associare i colori ai creatori degli impegni)
+        const utentiSnapshot = await getDocs(collection(db, "utenti"));
+        const utentiCollezioni = {};
+        utentiSnapshot.forEach(doc => {
+            const data = doc.data();
+            utentiCollezioni[data.nome.toLowerCase()] = data.colore || '#3498db';
+        });
 
-    const mediaData = [
-        'https://picsum.photos/seed/fam1/200',
-        'https://picsum.photos/seed/fam2/200',
-        'https://picsum.photos/seed/fam3/200',
-        'https://picsum.photos/seed/fam4/200',
-        'https://picsum.photos/seed/fam5/200'
-    ];
+        // Recupera Scadenze da Firestore
+        const scadenzeSnapshot = await getDocs(collection(db, "scadenze"));
+        const scadenzeList = [];
+        const oggi = new Date();
 
-    const ricetteData = [
-        { titolo: 'Torta di Mele della Nonna', stelle: '★★★★★' },
-        { titolo: 'Lasagne alla Bolognese', stelle: '★★★★★' },
-        { titolo: 'Pizza Fatta in Casa', stelle: '★★★★☆' }
-    ];
+        scadenzeSnapshot.forEach(doc => {
+            const data = doc.data();
+            const dataScad = new Date(data.data);
+            const diffTempo = dataScad - oggi;
+            const giorniMancanti = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+            scadenzeList.push({
+                titolo: data.titolo || 'Senza titolo',
+                giorniMancanti: giorniMancanti
+            });
+        });
 
-    // Calcolo Scadenze con priorità (Rosso <= 7, Arancione 8-14, Verde >= 15)
-    let scadenzeFiltrate = scadenzeData.filter(s => s.giorniMancanti <= 7);
-    let coloreScadenza = 'red';
-    
-    if (scadenzeFiltrate.length === 0) {
-        scadenzeFiltrate = scadenzeData.filter(s => s.giorniMancanti >= 8 && s.giorniMancanti <= 14);
-        coloreScadenza = 'orange';
-    }
-    if (scadenzeFiltrate.length === 0) {
-        scadenzeFiltrate = scadenzeData.filter(s => s.giorniMancanti >= 15);
-        coloreScadenza = 'green';
-    }
+        // Filtro scadenze: Rosso (<=7), Arancione (8-14), Verde (>=15)
+        let scadenzeFiltrate = scadenzeList.filter(s => s.giorniMancanti <= 7);
+        let coloreScadenza = 'red';
 
-    container.innerHTML = `
-        <h2>Benvenuto nella Famiglia</h2>
-        <p style="margin-bottom: 20px; color: var(--text-muted);">Panoramica rapida delle attività di famiglia.</p>
+        if (scadenzeFiltrate.length === 0) {
+            scadenzeFiltrate = scadenzeList.filter(s => s.giorniMancanti >= 8 && s.giorniMancanti <= 14);
+            coloreScadenza = 'orange';
+        }
+        if (scadenzeFiltrate.length === 0) {
+            scadenzeFiltrate = scadenzeList.filter(s => s.giorniMancanti >= 15);
+            coloreScadenza = 'green';
+        }
+
+        // Recupera Impegni (appuntamenti) da Firestore
+        const appuntamentiSnapshot = await getDocs(collection(db, "appuntamenti"));
+        const impegniList = [];
         
-        <div class="dashboard-grid">
-            <!-- 1. CARD SCADENZE -->
-            <div class="card">
-                <div class="card-header">
-                    <h3><i class="fa-solid fa-file-invoice-dollar"></i> SCADENZE</h3>
-                </div>
-                <div class="card-body">
-                    ${scadenzeFiltrate.length > 0 ? `
-                        <ul class="scadenze-list">
-                            ${scadenzeFiltrate.map(s => `
-                                <li class="scadenza-item ${coloreScadenza}">
-                                    <span>${s.titolo}</span>
-                                    <span>Tra ${s.giorniMancanti} gg</span>
-                                </li>
-                            `).join('')}
-                        </ul>
-                    ` : `<p class="card-empty">Nessuna scadenza in evidenza</p>`}
-                </div>
-            </div>
+        appuntamentiSnapshot.forEach(doc => {
+            const data = doc.data();
+            const creatore = (data.creatore || '').toLowerCase();
+            const coloreUtente = utentiCollezioni[creatore] || '#3498db';
+            impegniList.push({
+                titolo: data.titolo || 'Impegno',
+                data: data.data || '',
+                coloreUtente: coloreUtente
+            });
+        });
 
-            <!-- 2. CARD IMPEGNI -->
-            <div class="card">
-                <div class="card-header">
-                    <h3><i class="fa-solid fa-calendar-days"></i> IMPEGNI</h3>
-                </div>
-                <div class="card-body">
-                    ${impegniData.length > 0 ? `
-                        <ul class="impegni-list">
-                            ${impegniData.map(i => `
-                                <li class="impegno-item" style="background-color: ${i.coloreUtente};">
-                                    <span>${i.titolo}</span>
-                                    <span style="font-size: 0.75rem; opacity: 0.9;">${i.data}</span>
-                                </li>
-                            `).join('')}
-                        </ul>
-                    ` : `<p class="card-empty">Nessun impegno per questa settimana</p>`}
-                </div>
-            </div>
+        // Recupera Ricette da Firestore (prime 3)
+        const ricetteSnapshot = await getDocs(collection(db, "ricette"));
+        const ricetteList = [];
+        ricetteSnapshot.forEach(doc => {
+            const data = doc.data();
+            ricetteList.push({
+                titolo: data.nome || 'Ricetta',
+                stelle: '★★★★★'
+            });
+        });
+        const primeRicette = ricetteList.slice(0, 3);
 
-            <!-- 3. CARD FOTO & VIDEO -->
-            <div class="card">
-                <div class="card-header">
-                    <h3><i class="fa-solid fa-photo-film"></i> FOTO & VIDEO</h3>
-                </div>
-                <div class="card-body">
-                    ${mediaData.length > 0 ? `
-                        <div class="media-grid-preview">
-                            ${mediaData.map(img => `<img src="${img}" class="media-thumb" alt="Anteprima media">`).join('')}
-                        </div>
-                    ` : `<p class="card-empty">Nessun contenuto multimediale recente</p>`}
-                </div>
-            </div>
+        // Foto & Video di esempio (in attesa della collezione media)
+        const mediaData = [
+            'https://picsum.photos/seed/fam1/200',
+            'https://picsum.photos/seed/fam2/200',
+            'https://picsum.photos/seed/fam3/200',
+            'https://picsum.photos/seed/fam4/200',
+            'https://picsum.photos/seed/fam5/200'
+        ];
 
-            <!-- 4. CARD RICETTE -->
-            <div class="card">
-                <div class="card-header">
-                    <h3><i class="fa-solid fa-utensils"></i> RICETTE</h3>
+        // Costruisci l'HTML della Dashboard in verticale con eventi di click sulle card
+        container.innerHTML = `
+            <div class="dashboard-grid">
+                <!-- 1. CARD SCADENZE -->
+                <div class="card" onclick="selezionaScheda('scadenze')" style="cursor: pointer;" title="Clicca per aprire Scadenze">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-file-invoice-dollar"></i> SCADENZE</h3>
+                    </div>
+                    <div class="card-body">
+                        ${scadenzeFiltrate.length > 0 ? `
+                            <ul class="scadenze-list">
+                                ${scadenzeFiltrate.map(s => `
+                                    <li class="scadenza-item ${coloreScadenza}">
+                                        <span>${s.titolo}</span>
+                                        <span>${s.giorniMancanti < 0 ? 'Scaduta' : `Tra ${s.giorniMancanti} gg`}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        ` : `<p class="card-empty">Nessuna scadenza in evidenza</p>`}
+                    </div>
                 </div>
-                <div class="card-body">
-                    ${ricetteData.length > 0 ? `
-                        <ul class="ricette-list">
-                            ${ricetteData.map(r => `
-                                <li class="ricetta-item">
-                                    <span>${r.titolo}</span>
-                                    <span class="ricetta-rating">${r.stelle}</span>
-                                </li>
-                            `).join('')}
-                        </ul>
-                    ` : `<p class="card-empty">Nessuna ricetta salvata</p>`}
+
+                <!-- 2. CARD IMPEGNI -->
+                <div class="card" onclick="selezionaScheda('impegni')" style="cursor: pointer;" title="Clicca per aprire Impegni">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-calendar-days"></i> IMPEGNI</h3>
+                    </div>
+                    <div class="card-body">
+                        ${impegniList.length > 0 ? `
+                            <ul class="impegni-list">
+                                ${impegniList.map(i => `
+                                    <li class="impegno-item" style="background-color: ${i.coloreUtente};">
+                                        <span>${i.titolo}</span>
+                                        <span style="font-size: 0.75rem; opacity: 0.9;">${i.data}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        ` : `<p class="card-empty">Nessun impegno in programma</p>`}
+                    </div>
+                </div>
+
+                <!-- 3. CARD FOTO & VIDEO -->
+                <div class="card" onclick="selezionaScheda('media')" style="cursor: pointer;" title="Clicca per aprire Foto & Video">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-photo-film"></i> FOTO & VIDEO</h3>
+                    </div>
+                    <div class="card-body">
+                        ${mediaData.length > 0 ? `
+                            <div class="media-grid-preview">
+                                ${mediaData.map(img => `<img src="${img}" class="media-thumb" alt="Anteprima media">`).join('')}
+                            </div>
+                        ` : `<p class="card-empty">Nessun contenuto multimediale recente</p>`}
+                    </div>
+                </div>
+
+                <!-- 4. CARD RICETTE -->
+                <div class="card" onclick="selezionaScheda('ricette')" style="cursor: pointer;" title="Clicca per aprire Ricette">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-utensils"></i> RICETTE</h3>
+                    </div>
+                    <div class="card-body">
+                        ${primeRicette.length > 0 ? `
+                            <ul class="ricette-list">
+                                ${primeRicette.map(r => `
+                                    <li class="ricetta-item">
+                                        <span>${r.titolo}</span>
+                                        <span class="ricetta-rating">${r.stelle}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        ` : `<p class="card-empty">Nessuna ricetta salvata</p>`}
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
+        `;
+
+    } catch (error) {
+        console.error("Errore nel recupero dei dati da Firebase:", error);
+        container.innerHTML = `<p style="color: red; text-align: center;">Errore durante il caricamento dei dati dal database.</p>`;
+    }
 }
