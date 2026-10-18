@@ -12,19 +12,21 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Mostra il nome dell'utente e il colore nell'header
     const userDisplayName = document.getElementById('user-display-name');
-    userDisplayName.textContent = userData.nome;
-    if (userData.colore) {
-        userDisplayName.style.backgroundColor = userData.colore;
+    if (userDisplayName) {
+        userDisplayName.textContent = userData.nome;
+        if (userData.colore) {
+            userDisplayName.style.backgroundColor = userData.colore;
+        }
     }
 
     // Compila il box utente in basso nella sidebar
     const sidebarUsername = document.getElementById('sidebar-username');
     const sidebarUserRole = document.getElementById('sidebar-user-role');
     
-    sidebarUsername.textContent = userData.nome;
+    if (sidebarUsername) sidebarUsername.textContent = userData.nome;
     
-    const isAdmin = (userData.ruolo === 'admin' || userData.nome.toLowerCase() === 'paolo');
-    sidebarUserRole.textContent = isAdmin ? 'Admin' : 'Utente';
+    const isAdmin = (userData.ruolo === 'admin' || (userData.nome && userData.nome.toLowerCase() === 'paolo'));
+    if (sidebarUserRole) sidebarUserRole.textContent = isAdmin ? 'Admin' : 'Utente';
 
     // Se l'utente è Admin, mostra la voce "GESTIONE UTENTI"
     if (isAdmin) {
@@ -46,24 +48,26 @@ const sidebarOverlay = document.getElementById('sidebar-overlay');
 function toggleSidebar() {
     if (window.innerWidth <= 768) {
         // Su dispositivi mobili apre e chiude il drawer con overlay
-        sidebar.classList.toggle('open');
-        sidebarOverlay.classList.toggle('active');
+        if (sidebar) sidebar.classList.toggle('open');
+        if (sidebarOverlay) sidebarOverlay.classList.toggle('active');
     } else {
         // Su Desktop commuta tra contratta (solo icone) ed espansa
-        sidebar.classList.toggle('collapsed');
+        if (sidebar) sidebar.classList.toggle('collapsed');
     }
 }
 
-btnToggleSidebar.addEventListener('click', toggleSidebar);
-sidebarOverlay.addEventListener('click', toggleSidebar);
+if (btnToggleSidebar) btnToggleSidebar.addEventListener('click', toggleSidebar);
+if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
 
 // --- 3. Gestione Logout ---
 const btnLogout = document.getElementById('btn-logout');
-btnLogout.addEventListener('click', () => {
-    localStorage.removeItem('famiglia_pwa_user');
-    sessionStorage.removeItem('famiglia_pwa_user');
-    window.location.href = '../index.html';
-});
+if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+        localStorage.removeItem('famiglia_pwa_user');
+        sessionStorage.removeItem('famiglia_pwa_user');
+        window.location.href = '../index.html';
+    });
+}
 
 // --- 4. Navigazione Dinamica (La Tela Centrale) ---
 function initNavigation() {
@@ -78,21 +82,32 @@ function initNavigation() {
             button.classList.add('active');
 
             const target = button.getAttribute('data-target');
-            const navText = button.querySelector('.nav-text').textContent;
+            const navTextSpan = button.querySelector('.nav-text');
+            const navText = navTextSpan ? navTextSpan.textContent.trim() : 'HOME';
             
-            // Garantisce sempre il formato: FAMIGLIA - [NOME SCHEDA]
-            pageTitle.textContent = `FAMIGLIA - ${navText.toUpperCase()}`;
+            // Imposta RIGOROSAMENTE l'intestazione nel formato: FAMIGLIA - [NOME SCHEDA]
+            if (pageTitle) {
+                pageTitle.textContent = `FAMIGLIA - ${navText.toUpperCase()}`;
+            }
+
+            // Aggiorna anche il titolo del documento del browser
+            document.title = `FAMIGLIA - ${navText.toUpperCase()}`;
 
             // Carica la schermata selezionata sulla tela centrale
             loadSectionContent(target, contentArea);
 
             // Su mobile chiudi la sidebar al clic
             if (window.innerWidth <= 768) {
-                sidebar.classList.remove('open');
-                sidebarOverlay.classList.remove('active');
+                if (sidebar) sidebar.classList.remove('open');
+                if (sidebarOverlay) sidebarOverlay.classList.remove('active');
             }
         });
     });
+
+    // Imposta il titolo iniziale all'avvio
+    if (pageTitle) {
+        pageTitle.textContent = 'FAMIGLIA - HOME';
+    }
 
     // Carica la dashboard iniziale
     loadSectionContent('dashboard', contentArea);
@@ -100,6 +115,8 @@ function initNavigation() {
 
 // Funzione per caricare le differenti schermate nella tela centrale
 function loadSectionContent(target, container) {
+    if (!container) return;
+
     switch (target) {
         case 'dashboard':
             container.innerHTML = `
