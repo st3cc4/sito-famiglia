@@ -12,7 +12,6 @@
     --warning-color: #f39c12;
     --success-color: #2ecc71;
     --sidebar-width: 250px;
-    --sidebar-collapsed-width: 70px;
     --header-height: 60px;
 }
 
@@ -29,10 +28,9 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    overflow-x: hidden;
 }
 
-/* --- HEADER SUPERIORE FISSO --- */
+/* Header Superiore Fisso */
 .app-header {
     height: var(--header-height);
     background-color: var(--primary-color);
@@ -101,14 +99,14 @@ body {
     opacity: 0.8;
 }
 
-/* --- STRUTTURA PRINCIPALE (SIDEBAR + CONTENUTO) --- */
+/* Struttura Principale Body */
 .app-body {
     display: flex;
     margin-top: var(--header-height);
     min-height: calc(100vh - var(--header-height));
 }
 
-/* SIDEBAR FISSA CON SEZIONE INFERIORE ANCORATA */
+/* Sidebar Fissa */
 .sidebar {
     width: var(--sidebar-width);
     background-color: var(--card-bg);
@@ -121,17 +119,10 @@ body {
     bottom: 0;
     left: 0;
     z-index: 900;
-    transition: width 0.3s ease;
-}
-
-.sidebar.collapsed {
-    width: var(--sidebar-collapsed-width);
-}
-
-/* Parte centrale nav scorrevole se necessario */
-.sidebar-nav-container {
-    flex: 1;
     overflow-y: auto;
+}
+
+.sidebar-nav-container {
     display: flex;
     flex-direction: column;
     gap: 5px;
@@ -171,28 +162,13 @@ body {
     border-left: 4px solid var(--primary-color);
 }
 
-.sidebar.collapsed .nav-text {
-    display: none;
-}
-
-.sidebar.collapsed .nav-btn {
-    justify-content: center;
-    padding: 12px 0;
-}
-
-.sidebar.collapsed .nav-btn.active {
-    border-left: none;
-    background-color: rgba(43, 62, 80, 0.12);
-}
-
-/* PARTE INFERIORE ANCORATA (FIXED FOOTER) */
+/* Footer della Sidebar Ancorato in Basso */
 .sidebar-footer {
     border-top: 1px solid var(--border-color);
     padding: 10px 0;
     background-color: var(--card-bg);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    position: sticky;
+    bottom: 0;
 }
 
 .sidebar-user-box {
@@ -227,33 +203,18 @@ body {
     color: var(--text-muted);
 }
 
-.sidebar.collapsed .sidebar-user-box {
-    justify-content: center;
-    padding: 10px 0;
-    margin: 8px 6px;
-}
-
-.sidebar.collapsed .user-info-text {
-    display: none;
-}
-
-/* --- TELA CENTRALE DINAMICA --- */
+/* Tela Centrale Dinamica */
 .content-area {
     flex: 1;
     margin-left: var(--sidebar-width);
     padding: 25px;
-    transition: margin-left 0.3s ease;
     min-height: calc(100vh - var(--header-height));
 }
 
-.sidebar.collapsed ~ .content-area {
-    margin-left: var(--sidebar-collapsed-width);
-}
-
-/* --- GRID DELLA DASHBOARD HOME --- */
+/* Grid Dashboard Home */
 .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
 }
 
@@ -301,7 +262,7 @@ body {
     padding: 15px 0;
 }
 
-/* SCADENZE IN HOME */
+/* Scadenze in Home */
 .scadenze-list {
     list-style: none;
     display: flex;
@@ -354,7 +315,7 @@ body {
     color: var(--text-muted);
 }
 
-/* IMPEGNI IN HOME */
+/* Impegni in Home */
 .impegni-list {
     list-style: none;
     display: flex;
@@ -392,7 +353,7 @@ body {
     font-weight: 600;
 }
 
-/* RICETTE IN HOME */
+/* Ricette in Home */
 .ricette-list {
     list-style: none;
     display: flex;
@@ -431,7 +392,7 @@ body {
     color: var(--text-muted);
 }
 
-/* FOTO & VIDEO PREVIEW */
+/* Foto & Video Preview */
 .media-grid-preview {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
@@ -445,7 +406,7 @@ body {
     border-radius: 6px;
 }
 
-/* RESPONSIVE DESIGN (MOBILE) */
+/* Responsive per Mobile */
 .sidebar-overlay {
     display: none;
     position: fixed;
@@ -460,7 +421,7 @@ body {
 @media (max-width: 768px) {
     .sidebar {
         transform: translateX(-100%);
-        width: var(--sidebar-width) !important;
+        transition: transform 0.3s ease;
     }
 
     .sidebar.open {
