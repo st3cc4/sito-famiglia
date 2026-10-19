@@ -217,7 +217,7 @@ function formatDataEuropea(dataString) {
     return dataString;
 }
 
-// --- 5. Logica di Rendering della DASHBOARD in ordine: Scadenze, Impegni, Foto & Video, Ricette ---
+// --- 5. Logica di Rendering della DASHBOARD (Mostra solo gli impegni di OGGI) ---
 async function renderDashboard(container) {
     container.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--text-muted);">Caricamento dati in corso...</p>';
 
@@ -264,25 +264,18 @@ async function renderDashboard(container) {
             coloreScadenza = 'green';
         }
 
-        const curr = new Date();
-        const firstDayOfWeek = new Date(curr);
-        const day = curr.getDay();
-        const diff = curr.getDate() - day + (day === 0 ? -6 : 1);
-        firstDayOfWeek.setDate(diff);
-        firstDayOfWeek.setHours(0, 0, 0, 0);
-
-        const lastDayOfWeek = new Date(firstDayOfWeek);
-        lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6);
-        lastDayOfWeek.setHours(23, 59, 59, 999);
+        // --- FILTRO IMPEGNI SOLO PER OGGI ---
+        const annoOggi = oggi.getFullYear();
+        const meseOggi = String(oggi.getMonth() + 1).padStart(2, '0');
+        const giornoOggi = String(oggi.getDate()).padStart(2, '0');
+        const dataOggiIso = annoOggi + '-' + meseOggi + '-' + giornoOggi;
 
         const appuntamentiSnapshot = await getDocs(collection(db, "appuntamenti"));
         const impegniList = [];
         
         appuntamentiSnapshot.forEach(function(doc) {
             const data = doc.data();
-            const dataImpegno = new Date(data.data);
-            
-            if (dataImpegno >= firstDayOfWeek && dataImpegno <= lastDayOfWeek) {
+            if (data.data === dataOggiIso) {
                 const creatore = data.creatore || '';
                 const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
                 
@@ -295,6 +288,11 @@ async function renderDashboard(container) {
                     bgTrasparente: hexToRgba(coloreUtente, 0.12)
                 });
             }
+        });
+
+        // Ordina gli impegni di oggi per orario di inizio
+        impegniList.sort(function(a, b) {
+            return (a.oraInizio || '').localeCompare(b.oraInizio || '');
         });
 
         const ricetteSnapshot = await getDocs(collection(db, "ricette"));
@@ -350,10 +348,10 @@ async function renderDashboard(container) {
                     </div>
                 </div>
 
-                <!-- 2. CARD IMPEGNI -->
+                <!-- 2. CARD IMPEGNI (SOLO OGGI) -->
                 <div class="card" onclick="selezionaScheda('impegni')" style="cursor: pointer;" title="Clicca per aprire Impegni">
                     <div class="card-header">
-                        <h3><i class="fa-solid fa-calendar-days"></i> IMPEGNI</h3>
+                        <h3><i class="fa-solid fa-calendar-days"></i> IMPEGNI DI OGGI (${formatDataEuropea(dataOggiIso)})</h3>
                     </div>
                     <div class="card-body">
                         ${impegniList.length > 0 ? `
@@ -365,13 +363,13 @@ async function renderDashboard(container) {
                                             <span class="impegno-title">${i.titolo}</span>
                                         </div>
                                         <div class="impegno-row-bottom">
-                                            <span class="impegno-datetime">${i.dataFormattata} ore ${i.oraInizio}</span>
+                                            <span class="impegno-datetime">${i.oraInizio ? 'ore ' + i.oraInizio : 'Tutto il giorno'}</span>
                                             <span class="impegno-creator">(${i.creatore})</span>
                                         </div>
                                     </li>`;
                                 }).join('')}
                             </ul>
-                        ` : '<p class="card-empty">Nessun impegno in programma per questa settimana</p>'}
+                        ` : '<p class="card-empty">Nessun impegno in programma per oggi</p>'}
                     </div>
                 </div>
 
