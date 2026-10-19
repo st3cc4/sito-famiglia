@@ -23,7 +23,6 @@ let appuntamentiSettimana = [];
 
 // Funzione principale di inizializzazione della sezione Impegni
 export async function initImpegniSection(container) {
-    // Calcola il lunedì della settimana corrente
     const day = currentWeekStartDate.getDay();
     const diff = currentWeekStartDate.getDate() - day + (day === 0 ? -6 : 1);
     currentWeekStartDate = new Date(currentWeekStartDate.setDate(diff));
@@ -33,7 +32,7 @@ export async function initImpegniSection(container) {
     await caricaEDisegnaSettimana(container);
 }
 
-// Carica la mappa degli utenti e dei loro colori da Firebase
+// Carica gli utenti e i relativi colori da Firebase
 async function caricaUtenti() {
     try {
         const utentiSnapshot = await getDocs(collection(db, "utenti"));
@@ -49,7 +48,7 @@ async function caricaUtenti() {
     }
 }
 
-// Calcola ed estrae i 7 giorni della settimana (Lunedì - Domenica)
+// Calcola i 7 giorni della settimana selezionata (Lunedì - Domenica)
 function getGiorniSettimana(startDate) {
     const giorni = [];
     const nomiGiorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
@@ -88,7 +87,7 @@ function hexToRgba(hex, alpha = 0.12) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-// Carica da Firebase e costruisce l'interfaccia della settimana
+// Disegna l'interfaccia con i giorni e le tessere
 async function caricaEDisegnaSettimana(container) {
     const giorni = getGiorniSettimana(currentWeekStartDate);
     const dataInizioStr = giorni[0].dataFormattata;
@@ -123,7 +122,6 @@ async function caricaEDisegnaSettimana(container) {
         </div>
     `;
 
-    // Eventi Pulsanti Settimana Prec / Succ
     document.getElementById('btn-prev-week').addEventListener('click', () => {
         currentWeekStartDate.setDate(currentWeekStartDate.getDate() - 7);
         caricaEDisegnaSettimana(container);
@@ -134,7 +132,6 @@ async function caricaEDisegnaSettimana(container) {
         caricaEDisegnaSettimana(container);
     });
 
-    // Eventi per aggiungere impegno sui singoli giorni
     container.querySelectorAll('.btn-add-impegno').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const dataIso = e.currentTarget.getAttribute('data-iso');
@@ -142,7 +139,6 @@ async function caricaEDisegnaSettimana(container) {
         });
     });
 
-    // Recupero dati da Firestore per la settimana selezionata
     try {
         const appuntamentiSnapshot = await getDocs(collection(db, "appuntamenti"));
         appuntamentiSettimana = [];
@@ -155,12 +151,10 @@ async function caricaEDisegnaSettimana(container) {
             });
         });
 
-        // Disegna gli impegni in modalità QUADRATINI ORIZZONTALI
         giorni.forEach(g => {
             const bodyEl = document.getElementById(`body-${g.dataIso}`);
             const impegniDelGiorno = appuntamentiSettimana.filter(imp => imp.data === g.dataIso);
 
-            // Ordina per orario di inizio
             impegniDelGiorno.sort((a, b) => (a.oraInizio || '').localeCompare(b.oraInizio || ''));
 
             if (impegniDelGiorno.length === 0) {
@@ -170,7 +164,7 @@ async function caricaEDisegnaSettimana(container) {
                     const creatore = imp.creatore || 'Utente';
                     const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
                     const bgTrasparente = hexToRgba(coloreUtente, 0.12);
-                    const orarioStr = imp.oraInizio ? (imp.oraFine ? `${imp.oraInizio} - ${imp.oraFine}` : `ore ${imp.oraInizio}`) : 'Tutto il giorno';
+                    const orarioStr = imp.oraInizio ? imp.oraInizio : 'Tutto il gg';
 
                     return `
                         <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left-color: ${coloreUtente};">
@@ -192,10 +186,8 @@ async function caricaEDisegnaSettimana(container) {
                     `;
                 }).join('');
 
-                // Collegamento eventi ai quadratini (Modifica ed Eliminazione)
                 bodyEl.querySelectorAll('.impegno-quadratino').forEach(card => {
                     card.addEventListener('click', (e) => {
-                        // Se è stato cliccato il cestino non aprire il pop-up di modifica
                         if (e.target.closest('.delete')) return;
                         const idImp = card.getAttribute('data-id');
                         const impegnoObj = appuntamentiSettimana.find(i => i.id === idImp);
@@ -228,7 +220,7 @@ async function caricaEDisegnaSettimana(container) {
     }
 }
 
-// MODALE / POP-UP PER CREAZIONE E MODIFICA IMPEGNI
+// MODALE DI INSERIMENTO / MODIFICA (Solo Ora di Inizio)
 function apriModaleImpegno(dataIso, impegnoEsistente = null) {
     const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
     const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
@@ -236,7 +228,6 @@ function apriModaleImpegno(dataIso, impegnoEsistente = null) {
     const isModifica = !!impegnoEsistente;
     const modalId = 'modal-impegno';
 
-    // Rimuovi modali precedenti se esistenti
     const prevModal = document.getElementById(modalId);
     if (prevModal) prevModal.remove();
 
@@ -256,15 +247,9 @@ function apriModaleImpegno(dataIso, impegnoEsistente = null) {
                         <label for="imp-data">Data</label>
                         <input type="date" id="imp-data" value="${dataIso}" required>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="imp-ora-inizio">Ora Inizio</label>
-                            <input type="time" id="imp-ora-inizio" value="${isModifica ? (impegnoEsistente.oraInizio || '') : ''}">
-                        </div>
-                        <div class="form-group">
-                            <label for="imp-ora-fine">Ora Fine</label>
-                            <input type="time" id="imp-ora-fine" value="${isModifica ? (impegnoEsistente.oraFine || '') : ''}">
-                        </div>
+                    <div class="form-group">
+                        <label for="imp-ora-inizio">Ora Inizio</label>
+                        <input type="time" id="imp-ora-inizio" value="${isModifica ? (impegnoEsistente.oraInizio || '') : ''}">
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-modal cancel" id="btn-cancel-modal">Annulla</button>
@@ -293,7 +278,6 @@ function apriModaleImpegno(dataIso, impegnoEsistente = null) {
         const titolo = document.getElementById('imp-titolo').value.trim();
         const dataVal = document.getElementById('imp-data').value;
         const oraInizio = document.getElementById('imp-ora-inizio').value;
-        const oraFine = document.getElementById('imp-ora-fine').value;
 
         if (!titolo || !dataVal) {
             alert("Inserisci titolo e data.");
@@ -304,7 +288,6 @@ function apriModaleImpegno(dataIso, impegnoEsistente = null) {
             titolo: titolo,
             data: dataVal,
             oraInizio: oraInizio,
-            oraFine: oraFine,
             creatore: isModifica ? impegnoEsistente.creatore : userData.nome
         };
 
