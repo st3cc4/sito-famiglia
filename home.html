@@ -4,119 +4,101 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FAMIGLIA - HOME</title>
-    <!-- Foglio di stile specifico per la Home -->
-    <link rel="stylesheet" href="home/stile-home.css">
-    <!-- Icone FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Manifest per PWA -->
-    <link rel="manifest" href="manifest.json">
+    
+    <!-- FontAwesome per le Icone -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Foglio di Stile Principale della Home -->
+    <link rel="stylesheet" href="stile-home.css?v=3">
 </head>
 <body>
 
-    <!-- Header / Barra Superiore -->
+    <!-- OVERLAY PER DISPOSITIVI MOBILI -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- HEADER SUPERIORE FISSO -->
     <header class="app-header">
         <div class="header-left">
-            <button id="btn-toggle-sidebar" class="btn-icon" aria-label="Apri Menu">
+            <button class="btn-toggle-sidebar" id="btn-toggle-sidebar" title="Espandi/Contrai Menu">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <h1 id="page-title">FAMIGLIA - HOME</h1>
+            <span class="app-title" id="page-title">FAMIGLIA - HOME</span>
         </div>
         <div class="header-right">
-            <span id="user-display-name" class="user-badge">Utente</span>
-            <button id="btn-logout" class="btn-icon btn-logout" title="Disconnetti">
+            <span class="user-badge" id="user-display-name">Utente</span>
+            <button class="btn-logout" id="btn-logout" title="Esci dall'applicazione">
                 <i class="fa-solid fa-right-from-bracket"></i>
             </button>
         </div>
     </header>
 
-    <!-- Overlay per chiudere la Sidebar su mobile -->
-    <div id="sidebar-overlay" class="sidebar-overlay"></div>
-
-    <!-- Container Principale -->
-    <div class="app-container">
+    <!-- STRUTTURA PRINCIPALE APP -->
+    <div class="app-body">
         
-        <!-- Sidebar / Menu Laterale (Inizia chiusa / solo icone) -->
-        <aside id="sidebar" class="sidebar collapsed">
-            <nav class="nav-menu">
-                <ul class="menu-list top-menu">
-                    <li>
-                        <button class="nav-btn active" data-target="dashboard" title="HOME">
-                            <i class="fa-solid fa-house"></i>
-                            <span class="nav-text">HOME</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button class="nav-btn" data-target="scadenze" title="SCADENZE">
-                            <i class="fa-solid fa-file-invoice-dollar"></i>
-                            <span class="nav-text">SCADENZE</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button class="nav-btn" data-target="impegni" title="IMPEGNI">
-                            <i class="fa-solid fa-calendar-days"></i>
-                            <span class="nav-text">IMPEGNI</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button class="nav-btn" data-target="media" title="FOTO & VIDEO">
-                            <i class="fa-solid fa-photo-film"></i>
-                            <span class="nav-text">FOTO & VIDEO</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button class="nav-btn" data-target="ricette" title="RICETTE">
-                            <i class="fa-solid fa-utensils"></i>
-                            <span class="nav-text">RICETTE</span>
-                        </button>
-                    </li>
-                    <!-- Visibile solo per Admin -->
-                    <li id="admin-menu-item" style="display: none;">
-                        <button class="nav-btn" data-target="gestione-utenti" title="GESTIONE UTENTI">
-                            <i class="fa-solid fa-users-gear"></i>
-                            <span class="nav-text">GESTIONE UTENTI</span>
-                        </button>
-                    </li>
-                </ul>
+        <!-- SIDEBAR BARRA LATERALE -->
+        <aside class="sidebar" id="sidebar">
+            
+            <!-- SEZIONE NAVIGAZIONE SUPERIORE (SCORREVOLE) -->
+            <div class="sidebar-nav-container">
+                <button class="nav-btn active" data-target="dashboard">
+                    <i class="fa-solid fa-house"></i>
+                    <span class="nav-text">HOME</span>
+                </button>
+                <button class="nav-btn" data-target="scadenze">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span class="nav-text">SCADENZE</span>
+                </button>
+                <button class="nav-btn" data-target="impegni">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span class="nav-text">IMPEGNI</span>
+                </button>
+                <button class="nav-btn" data-target="media">
+                    <i class="fa-solid fa-photo-film"></i>
+                    <span class="nav-text">FOTO & VIDEO</span>
+                </button>
+                <button class="nav-btn" data-target="ricette">
+                    <i class="fa-solid fa-utensils"></i>
+                    <span class="nav-text">RICETTE</span>
+                </button>
+                
+                <!-- Menu Gestione Utenti (Visibile solo per Admin) -->
+                <button class="nav-btn" id="admin-menu-item" data-target="gestione-utenti" style="display: none;">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <span class="nav-text">GESTIONE UTENTI</span>
+                </button>
+            </div>
 
-                <!-- Sezione in basso della Sidebar -->
-                <ul class="menu-list bottom-menu">
-                    <li>
-                        <button class="nav-btn" data-target="cambia-password" title="CAMBIA PASSWORD">
-                            <i class="fa-solid fa-key"></i>
-                            <span class="nav-text">CAMBIA PASSWORD</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button class="nav-btn" data-target="cambia-colore" title="CAMBIA COLORE">
-                            <i class="fa-solid fa-palette"></i>
-                            <span class="nav-text">CAMBIA COLORE</span>
-                        </button>
-                    </li>
-                    <!-- Box Info Utente in basso -->
-                    <li class="sidebar-user-info">
-                        <div class="user-info-card">
-                            <i class="fa-solid fa-user-shield user-info-icon"></i>
-                            <div class="user-info-details">
-                                <span id="sidebar-username" class="info-name">Nome</span>
-                                <span id="sidebar-user-role" class="info-role">Ruolo</span>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
-            </nav>
+            <!-- SEZIONE INFERIORE ANCORATA FISSA IN BASSO (FOOTER) -->
+            <div class="sidebar-footer">
+                <button class="nav-btn" data-target="cambia-password">
+                    <i class="fa-solid fa-key"></i>
+                    <span class="nav-text">CAMBIA PASSWORD</span>
+                </button>
+                <button class="nav-btn" data-target="cambia-colore">
+                    <i class="fa-solid fa-palette"></i>
+                    <span class="nav-text">CAMBIA COLORE</span>
+                </button>
+
+                <div class="sidebar-user-box">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <div class="user-info-text">
+                        <span class="user-info-name" id="sidebar-username">Utente</span>
+                        <span class="user-info-role" id="sidebar-user-role">Ruolo</span>
+                    </div>
+                </div>
+            </div>
+
         </aside>
 
-        <!-- TELA CENTRALE -->
-        <main id="main-content" class="main-content">
-            <div id="content-area">
-                <h2>Benvenuto nella Famiglia</h2>
-                <p>Seleziona una voce dal menu per iniziare.</p>
-            </div>
+        <!-- TELA CENTRALE DINAMICA -->
+        <main class="content-area" id="content-area">
+            <!-- Il contenuto dinamico delle schede verrà caricato qui via JS -->
         </main>
 
     </div>
 
-    <!-- Script della Home -->
-    <script type="module" src="home/home.js"></script>
+    <!-- Script JavaScript Principale della Home -->
+    <script type="module" src="home.js?v=3"></script>
+
 </body>
 </html>
