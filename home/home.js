@@ -217,7 +217,7 @@ function formatDataEuropea(dataString) {
     return dataString;
 }
 
-// --- 5. Logica di Rendering della DASHBOARD con dati reali da Firebase ---
+// --- 5. Logica di Rendering della DASHBOARD in ordine: Scadenze, Impegni, Foto & Video, Ricette ---
 async function renderDashboard(container) {
     container.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--text-muted);">Caricamento dati in corso...</p>';
 
