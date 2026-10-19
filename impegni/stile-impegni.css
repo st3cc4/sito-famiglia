@@ -123,7 +123,7 @@
     color: #dc2626;
 }
 
-/* CONTENITORE DEGLI IMPEGNI (DISPOSIZIONE ORIZZONTALE AD APPARIZIONE GRIGLIA/POST-IT) */
+/* CONTENITORE DEGLI IMPEGNI ORIZZONTALI */
 .giorno-body {
     padding: 14px 18px;
     display: flex;
@@ -140,10 +140,10 @@
     width: 100%;
 }
 
-/* QUADRATINO / TESSERA ORIZZONTALE DELL'IMPEGNO */
+/* QUADRATINO COMPATTO DELL'IMPEGNO */
 .impegno-quadratino {
-    width: 200px;
-    min-height: 95px;
+    width: 165px;
+    min-height: 85px;
     padding: 10px 12px;
     border-radius: 10px;
     border-left: 5px solid #3498db;
@@ -165,8 +165,7 @@
 .impegno-quadratino-top {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding-right: 20px; /* Spazio per non sovrapporsi alle icone */
+    gap: 2px;
 }
 
 .impegno-quadratino-titolo {
@@ -191,7 +190,7 @@
 }
 
 .impegno-quadratino-ora {
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     color: #475569;
     font-weight: 600;
     display: flex;
@@ -201,7 +200,7 @@
 
 .impegno-quadratino-azioni {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
 }
 
@@ -211,7 +210,7 @@
     color: #94a3b8;
     cursor: pointer;
     font-size: 0.85rem;
-    padding: 4px;
+    padding: 2px 4px;
     transition: color 0.2s;
 }
 
@@ -237,7 +236,7 @@
     background-color: #ffffff;
     border-radius: 12px;
     width: 90%;
-    max-width: 450px;
+    max-width: 420px;
     padding: 24px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
@@ -285,15 +284,6 @@
     font-size: 0.9rem;
 }
 
-.form-row {
-    display: flex;
-    gap: 12px;
-}
-
-.form-row .form-group {
-    flex: 1;
-}
-
 .modal-footer {
     display: flex;
     justify-content: flex-end;
@@ -323,6 +313,6 @@
 /* ADATTAMENTO MOBILE */
 @media (max-width: 600px) {
     .impegno-quadratino {
-        width: 100%; /* Sui telefoni si allargano per occupare l'intera riga */
+        width: 145px; /* Dimensioni ottimizzate per cellulare */
     }
 }
