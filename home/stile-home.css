@@ -250,11 +250,13 @@ body {
     margin-left: var(--sidebar-collapsed-width);
 }
 
-/* --- GRID DELLA DASHBOARD HOME --- */
+/* --- DISPOSIZIONE VERTICALE IN FILA INDIANA DELLE CARD (SCADENZE -> IMPEGNI -> FOTO & VIDEO -> RICETTE) --- */
 .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 20px;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 .card {
