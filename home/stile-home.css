@@ -108,7 +108,7 @@ body {
     min-height: calc(100vh - var(--header-height));
 }
 
-/* SIDEBAR FISSA CON SEZIONE INFERIORE ANCORATA */
+/* SIDEBAR FISSA CON SEZIONE INFERIORE ANCORATA IN BASSO */
 .sidebar {
     width: var(--sidebar-width);
     background-color: var(--card-bg);
@@ -128,7 +128,7 @@ body {
     width: var(--sidebar-collapsed-width);
 }
 
-/* Parte centrale nav scorrevole se necessario */
+/* Parte centrale navigazione (scorrevole se necessario) */
 .sidebar-nav-container {
     flex: 1;
     overflow-y: auto;
@@ -185,7 +185,7 @@ body {
     background-color: rgba(43, 62, 80, 0.12);
 }
 
-/* PARTE INFERIORE ANCORATA (FIXED FOOTER) */
+/* PARTE INFERIORE ANCORATA FISSA IN BASSO (FOOTER) */
 .sidebar-footer {
     border-top: 1px solid var(--border-color);
     padding: 10px 0;
