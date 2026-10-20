@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
     caricaStileDinamico('../gestione-utenti/stile-gestione-utenti.css?v=2', 'css-gestione-utenti');
     caricaStileDinamico('../cambia-password/stile-cambia-password.css?v=2', 'css-cambia-password');
     caricaStileDinamico('../cambia-colore/stile-cambia-colore.css?v=2', 'css-cambia-colore');
+    caricaStileDinamico('../ricette/stile-ricette.css?v=2', 'css-ricette');
 
     initNavigation();
 });
@@ -359,7 +360,6 @@ async function renderDashboard(container) {
             });
         });
 
-        // Ordina le ricette per valutazione decrescente e prende le PRIME 4
         ricetteList.sort((a, b) => b.valutazioneNum - a.valutazioneNum);
         const top4Ricette = ricetteList.slice(0, 4);
 
@@ -446,7 +446,7 @@ async function renderDashboard(container) {
                 </div>
                 ` : ''}
 
-                <!-- 4. CARD RICETTE (LE TOP 4 MIGLIORI) -->
+                <!-- 4. CARD RICETTE -->
                 ${permessi.ricette !== false ? `
                 <div class="card" onclick="selezionaScheda('ricette')" style="cursor: pointer;" title="Clicca per aprire Ricette">
                     <div class="card-header">
