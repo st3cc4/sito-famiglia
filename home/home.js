@@ -193,7 +193,13 @@ async function loadSectionContent(target, container) {
             container.innerHTML = '<h2>Foto & Video</h2><p>Raccolta multimediale completa della famiglia.</p>';
             break;
         case 'ricette':
-            container.innerHTML = '<h2>Ricettario di Famiglia</h2><p>Sezione completa per visualizzare e salvare le ricette preferite.</p>';
+            try {
+                const moduloRicette = await import('../ricette/ricette.js?v=' + Date.now());
+                await moduloRicette.initRicetteSection(container);
+            } catch (err) {
+                console.error("Errore caricamento modulo Ricette:", err);
+                container.innerHTML = '<p style="color:red; text-align:center;">Impossibile caricare la sezione Ricette.</p>';
+            }
             break;
         case 'gestione-utenti':
             try {
@@ -345,12 +351,17 @@ async function renderDashboard(container) {
 
             ricetteList.push({
                 titolo: data.nome || data.titolo || 'Ricetta',
+                valutazioneNum: valNum,
                 stelle: stelleStr,
                 creatore: creatore,
                 coloreUtente: coloreUtente,
                 bgTrasparente: hexToRgba(coloreUtente, 0.12)
             });
         });
+
+        // Ordina le ricette per valutazione decrescente e prende le PRIME 4
+        ricetteList.sort((a, b) => b.valutazioneNum - a.valutazioneNum);
+        const top4Ricette = ricetteList.slice(0, 4);
 
         const mediaData = [
             'https://picsum.photos/seed/fam1/200',
@@ -435,16 +446,16 @@ async function renderDashboard(container) {
                 </div>
                 ` : ''}
 
-                <!-- 4. CARD RICETTE (TESSERE ORIZZONTALI COMPATTE) -->
+                <!-- 4. CARD RICETTE (LE TOP 4 MIGLIORI) -->
                 ${permessi.ricette !== false ? `
                 <div class="card" onclick="selezionaScheda('ricette')" style="cursor: pointer;" title="Clicca per aprire Ricette">
                     <div class="card-header">
-                        <h3><i class="fa-solid fa-utensils"></i> RICETTE</h3>
+                        <h3><i class="fa-solid fa-utensils"></i> RICETTE PREFERITE</h3>
                     </div>
                     <div class="card-body">
-                        ${ricetteList.length > 0 ? `
+                        ${top4Ricette.length > 0 ? `
                             <div class="ricette-grid-home">
-                                ${ricetteList.map(function(r) {
+                                ${top4Ricette.map(function(r) {
                                     return `
                                     <div class="ricetta-quadratino-home" style="background-color: ${r.bgTrasparente}; border-left-color:${r.coloreUtente};">
                                         <div class="ricetta-quadratino-top">
