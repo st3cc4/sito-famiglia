@@ -1,0 +1,153 @@
+/* --- STILI CAMBIA COLORE --- */
+
+.cambia-colore-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.colore-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    width: 100%;
+    overflow: hidden;
+}
+
+.colore-card-header {
+    padding: 18px 24px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.colore-card-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2b3e50;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.colore-card-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* TAVOLOZZA DI COLORI PREDEFINITI */
+.color-presets-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.color-presets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 10px;
+}
+
+.color-preset-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.color-preset-btn:hover {
+    transform: scale(1.1);
+}
+
+.color-preset-btn.selected {
+    border-color: #1e293b;
+    transform: scale(1.15);
+}
+
+/* SELETTORE PERSONALIZZATO */
+.color-picker-custom-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: #f8fafc;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.color-picker-custom-input {
+    width: 50px;
+    height: 40px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 2px;
+}
+
+/* ANTEPRIMA DEL COLORE */
+.color-preview-box {
+    padding: 16px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    transition: background-color 0.2s;
+}
+
+.colore-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-salva-colore {
+    background-color: #2b3e50;
+    color: #ffffff;
+    border: none;
+    padding: 11px 22px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-salva-colore:hover {
+    background-color: #1e2b37;
+}
+
+.colore-msg {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    text-align: center;
+    display: none;
+}
+
+.colore-msg.success {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+    display: block;
+}
+
+.colore-msg.error {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    display: block;
+}
