@@ -1,7 +1,7 @@
 // --- Import SDK Firebase ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
-    getFirestore, collection, query, where, getDocs, doc, updateDoc 
+    getFirestore, collection, getDocs, doc, updateDoc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -73,39 +73,37 @@ export async function initCambiaPasswordSection(container) {
             return;
         }
 
-        const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
-        if (!savedUser) {
+        const savedUserStr = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
+        if (!savedUserStr) {
             alert("Sessione scaduta. Effettua nuovamente il login.");
             window.location.href = '../index.html';
             return;
         }
 
-        const userData = JSON.parse(savedUser);
+        const userData = JSON.parse(savedUserStr);
 
         try {
-            // Cerca l'utente su Firestore tramite username o nome
-            const utentiRef = collection(db, "utenti");
-            let q = query(utentiRef, where("username", "==", userData.username));
-            let querySnapshot = await getDocs(q);
+            // Recupera la collezione utenti per cercare il profilo corrente in modo sicuro
+            const utentiSnapshot = await getDocs(collection(db, "utenti"));
+            let userDocRef = null;
+            let userDataDb = null;
 
-            if (querySnapshot.empty && userData.nome) {
-                q = query(utentiRef, where("nome", "==", userData.nome));
-                querySnapshot = await getDocs(q);
-            }
+            utentiSnapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                const matchNome = userData.nome && data.nome && data.nome.toLowerCase() === userData.nome.toLowerCase();
+                const matchUsername = userData.username && data.username && data.username.toLowerCase() === userData.username.toLowerCase();
+                
+                if (matchUsername || matchNome) {
+                    userDocRef = doc(db, "utenti", docSnap.id);
+                    userDataDb = data;
+                }
+            });
 
-            if (querySnapshot.empty) {
+            if (!userDocRef || !userDataDb) {
                 msgBox.textContent = "Utente non trovato nel database.";
                 msgBox.classList.add('error');
                 return;
             }
-
-            let userDocRef = null;
-            let userDataDb = null;
-
-            querySnapshot.forEach(docSnap => {
-                userDocRef = doc(db, "utenti", docSnap.id);
-                userDataDb = docSnap.data();
-            });
 
             // Verifica password attuale
             if (userDataDb.password && userDataDb.password !== pwdAttuale) {
@@ -118,6 +116,14 @@ export async function initCambiaPasswordSection(container) {
             await updateDoc(userDocRef, {
                 password: pwdNuova
             });
+
+            // Aggiorna anche la memoria locale di sessione
+            userData.password = pwdNuova;
+            if (localStorage.getItem('famiglia_pwa_user')) {
+                localStorage.setItem('famiglia_pwa_user', JSON.stringify(userData));
+            } else {
+                sessionStorage.setItem('famiglia_pwa_user', JSON.stringify(userData));
+            }
 
             msgBox.textContent = "Password aggiornata con successo!";
             msgBox.classList.add('success');
