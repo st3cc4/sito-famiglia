@@ -66,6 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
     caricaStileDinamico('../cambia-password/stile-cambia-password.css?v=2', 'css-cambia-password');
     caricaStileDinamico('../cambia-colore/stile-cambia-colore.css?v=2', 'css-cambia-colore');
     caricaStileDinamico('../ricette/stile-ricette.css?v=2', 'css-ricette');
+    caricaStileDinamico('../media/stile-media.css?v=2', 'css-media');
 
     initNavigation();
 });
@@ -191,7 +192,13 @@ async function loadSectionContent(target, container) {
             }
             break;
         case 'media':
-            container.innerHTML = '<h2>Foto & Video</h2><p>Raccolta multimediale completa della famiglia.</p>';
+            try {
+                const moduloMedia = await import('../media/media.js?v=' + Date.now());
+                await moduloMedia.initMediaSection(container);
+            } catch (err) {
+                console.error("Errore caricamento modulo Media:", err);
+                container.innerHTML = '<p style="color:red; text-align:center;">Impossibile caricare la sezione Foto & Video.</p>';
+            }
             break;
         case 'ricette':
             try {
@@ -363,13 +370,27 @@ async function renderDashboard(container) {
         ricetteList.sort((a, b) => b.valutazioneNum - a.valutazioneNum);
         const top4Ricette = ricetteList.slice(0, 4);
 
-        const mediaData = [
-            'https://picsum.photos/seed/fam1/200',
-            'https://picsum.photos/seed/fam2/200',
-            'https://picsum.photos/seed/fam3/200',
-            'https://picsum.photos/seed/fam4/200',
-            'https://picsum.photos/seed/fam5/200'
-        ];
+        // Recupero foto recenti per la Home
+        const mediaSnapshot = await getDocs(collection(db, "media"));
+        let mediaData = [];
+        mediaSnapshot.forEach(function(doc) {
+            const data = doc.data();
+            if (data.url && data.tipo !== 'video') {
+                mediaData.push(data.url);
+            }
+        });
+
+        if (mediaData.length === 0) {
+            mediaData = [
+                'https://picsum.photos/seed/fam1/200',
+                'https://picsum.photos/seed/fam2/200',
+                'https://picsum.photos/seed/fam3/200',
+                'https://picsum.photos/seed/fam4/200',
+                'https://picsum.photos/seed/fam5/200'
+            ];
+        } else {
+            mediaData = mediaData.slice(0, 5);
+        }
 
         container.innerHTML = `
             <div class="dashboard-grid">
