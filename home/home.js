@@ -340,7 +340,6 @@ async function renderDashboard(container) {
             const creatore = data.creatore || '';
             const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
 
-            // Calcolo stelle per punteggio (valutazione numerica da 1 a 5 o di default 5)
             const valNum = Number(data.valutazione || 5);
             const stelleStr = '★'.repeat(valNum) + '☆'.repeat(5 - valNum);
 
@@ -461,3 +460,12 @@ async function renderDashboard(container) {
                         ` : '<p class="card-empty">Nessuna ricetta salvata</p>'}
                     </div>
                 </div>
+                ` : ''}
+            </div>
+        `;
+
+    } catch (error) {
+        console.error("Errore nel recupero dei dati da Firebase:", error);
+        container.innerHTML = '<p style="color: red; text-align: center;">Errore durante il caricamento dei dati dal database.</p>';
+    }
+}
