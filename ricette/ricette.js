@@ -148,7 +148,6 @@ function renderGrigliaRicette(filtro) {
         `;
     }).join('');
 
-    // Eventi Clic per visualizzare o eliminare ricetta
     gridEl.querySelectorAll('.ricetta-card-single').forEach(card => {
         card.addEventListener('click', (e) => {
             if (e.target.closest('.delete')) return;
@@ -176,7 +175,7 @@ function renderGrigliaRicette(filtro) {
     });
 }
 
-// MODALE DI VISUALIZZAZIONE DETTAGLIATA
+// MODALE DI VISUALIZZAZIONE DETTAGLIATA RICETTA
 function apriModaleVisualizzaRicetta(r) {
     const modalId = 'modal-view-ricetta';
     const prevModal = document.getElementById(modalId);
@@ -184,6 +183,28 @@ function apriModaleVisualizzaRicetta(r) {
 
     const valNum = Number(r.valutazione || 5);
     const stelleStr = '★'.repeat(valNum) + '☆'.repeat(5 - valNum);
+
+    // Parsing ingredienti (se array o stringa)
+    let ingredientiList = [];
+    if (Array.isArray(r.listaIngredienti) && r.listaIngredienti.length > 0) {
+        ingredientiList = r.listaIngredienti;
+    } else if (r.ingredienti) {
+        ingredientiList = r.ingredienti.split(',').map(item => {
+            const parti = item.split('-');
+            return {
+                nome: parti[0] ? parti[0].trim() : item.trim(),
+                quantita: parti[1] ? parti[1].trim() : ''
+            };
+        });
+    }
+
+    // Parsing passaggi
+    let passaggiList = [];
+    if (Array.isArray(r.listaPassaggi) && r.listaPassaggi.length > 0) {
+        passaggiList = r.listaPassaggi.filter(p => p.trim().length > 0);
+    } else if (r.preparazione) {
+        passaggiList = r.preparazione.split('\n').filter(p => p.trim().length > 0);
+    }
 
     const modalHtml = `
         <div class="modal-overlay" id="${modalId}">
@@ -201,23 +222,31 @@ function apriModaleVisualizzaRicetta(r) {
                         ${stelleStr}
                     </div>
 
-                    ${r.ingredienti ? `
+                    ${ingredientiList.length > 0 ? `
                         <div class="ricetta-dettaglio-section">
                             <h4><i class="fa-solid fa-basket-shopping"></i> Ingredienti</h4>
-                            <div class="ricetta-dettaglio-testo">${r.ingredienti}</div>
+                            <ol class="ricetta-list-numerata">
+                                ${ingredientiList.map(ing => `
+                                    <li><strong>${ing.nome}</strong> ${ing.quantita ? ` - <em>${ing.quantita}</em>` : ''}</li>
+                                `).join('')}
+                            </ol>
                         </div>
                     ` : ''}
 
-                    ${r.preparazione ? `
+                    ${passaggiList.length > 0 ? `
                         <div class="ricetta-dettaglio-section">
                             <h4><i class="fa-solid fa-list-check"></i> Preparazione</h4>
-                            <div class="ricetta-dettaglio-testo">${r.preparazione}</div>
+                            <ol class="ricetta-list-numerata">
+                                ${passaggiList.map(pas => `
+                                    <li>${pas}</li>
+                                `).join('')}
+                            </ol>
                         </div>
                     ` : ''}
                 </div>
 
                 <div class="modal-footer" style="margin-top: 20px;">
-                    <button type="button" class="btn-modal cancel" id="btn-edit-from-view" style="background-color: #2b3e50; color: white;">Modifica</button>
+                    <button type="button" class="btn-modal save" id="btn-edit-from-view">Modifica</button>
                     <button type="button" class="btn-modal cancel" id="btn-close-view-footer">Chiudi</button>
                 </div>
             </div>
@@ -236,7 +265,7 @@ function apriModaleVisualizzaRicetta(r) {
     });
 }
 
-// MODALE DI INSERIMENTO / MODIFICA RICETTA
+// MODALE DI INSERIMENTO / MODIFICA RICETTA CON RIGHE DINAMICHE
 function apriModaleFormRicetta(ricettaEsistente = null) {
     const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
     const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
@@ -247,21 +276,44 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
     const prevModal = document.getElementById(modalId);
     if (prevModal) prevModal.remove();
 
+    // Inizializzazione dati ingredienti
+    let ingredientiIniziali = [{ nome: '', quantita: '' }];
+    if (isModifica) {
+        if (Array.isArray(ricettaEsistente.listaIngredienti) && ricettaEsistente.listaIngredienti.length > 0) {
+            ingredientiIniziali = ricettaEsistente.listaIngredienti;
+        } else if (ricettaEsistente.ingredienti) {
+            ingredientiIniziali = ricettaEsistente.ingredienti.split(',').map(item => {
+                const parti = item.split('-');
+                return { nome: parti[0] ? parti[0].trim() : item.trim(), quantita: parti[1] ? parti[1].trim() : '' };
+            });
+        }
+    }
+
+    // Inizializzazione dati passaggi (di default 3 righe se nuovo)
+    let passaggiIniziali = ['', '', ''];
+    if (isModifica) {
+        if (Array.isArray(ricettaEsistente.listaPassaggi) && ricettaEsistente.listaPassaggi.length > 0) {
+            passaggiIniziali = ricettaEsistente.listaPassaggi;
+        } else if (ricettaEsistente.preparazione) {
+            passaggiIniziali = ricettaEsistente.preparazione.split('\n');
+        }
+    }
+
     const modalHtml = `
         <div class="modal-overlay" id="${modalId}">
-            <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-content" style="max-width: 540px; max-height: 90vh; overflow-y: auto;">
                 <div class="modal-header">
                     <h3>${isModifica ? 'Modifica Ricetta' : 'Nuova Ricetta'}</h3>
                     <button class="btn-close-modal" id="btn-close-modal">&times;</button>
                 </div>
                 <form id="form-ricetta">
-                    <div class="form-group">
-                        <label for="ric-nome">Nome della Ricetta</label>
-                        <input type="text" id="ric-nome" value="${isModifica ? (ricettaEsistente.nome || ricettaEsistente.titolo || '') : ''}" required placeholder="Es. Pasta alla Carbonara">
-                    </div>
-
+                    <!-- NOME E CATEGORIA SULLA STESSA RIGA -->
                     <div class="form-row">
-                        <div class="form-group">
+                        <div class="form-group" style="flex: 2;">
+                            <label for="ric-nome">Nome della Ricetta</label>
+                            <input type="text" id="ric-nome" value="${isModifica ? (ricettaEsistente.nome || ricettaEsistente.titolo || '') : ''}" required placeholder="Es. Pasta alla Carbonara">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
                             <label for="ric-categoria">Categoria</label>
                             <select id="ric-categoria">
                                 <option value="Primo" ${isModifica && ricettaEsistente.categoria === 'Primo' ? 'selected' : ''}>Primo</option>
@@ -271,26 +323,40 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
                                 <option value="Altro" ${isModifica && ricettaEsistente.categoria === 'Altro' ? 'selected' : ''}>Altro</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="ric-valutazione">Valutazione</label>
-                            <select id="ric-valutazione">
-                                <option value="5" ${isModifica && Number(ricettaEsistente.valutazione) === 5 ? 'selected' : ''}>★★★★★ (5/5)</option>
-                                <option value="4" ${isModifica && Number(ricettaEsistente.valutazione) === 4 ? 'selected' : ''}>★★★★☆ (4/5)</option>
-                                <option value="3" ${isModifica && Number(ricettaEsistente.valutazione) === 3 ? 'selected' : ''}>★★★☆☆ (3/5)</option>
-                                <option value="2" ${isModifica && Number(ricettaEsistente.valutazione) === 2 ? 'selected' : ''}>★★☆☆☆ (2/5)</option>
-                                <option value="1" ${isModifica && Number(ricettaEsistente.valutazione) === 1 ? 'selected' : ''}>★☆☆☆☆ (1/5)</option>
-                            </select>
+                    </div>
+
+                    <!-- INGREDIENTI DINAMICI -->
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label>Ingredienti</label>
+                        <div id="container-ingredienti">
+                            ${ingredientiIniziali.map(ing => creaRigaIngredienteHtml(ing.nome, ing.quantita)).join('')}
                         </div>
+                        <button type="button" class="btn-add-dynamic" id="btn-add-ingrediente">
+                            <i class="fa-solid fa-plus"></i> Aggiungi un ingrediente
+                        </button>
                     </div>
 
-                    <div class="form-group">
-                        <label for="ric-ingredienti">Ingredienti</label>
-                        <textarea id="ric-ingredienti" rows="3" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;" placeholder="Es. 400g di spaghetti, 200g guanciale, 4 tuorli...">${isModifica ? (ricettaEsistente.ingredienti || '') : ''}</textarea>
+                    <!-- PASSAGGI DINAMICI -->
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label>Preparazione / Passaggi</label>
+                        <div id="container-passaggi">
+                            ${passaggiIniziali.map(pas => creaRigaPassaggioHtml(pas)).join('')}
+                        </div>
+                        <button type="button" class="btn-add-dynamic" id="btn-add-passaggio">
+                            <i class="fa-solid fa-plus"></i> Aggiungi un passaggio
+                        </button>
                     </div>
 
-                    <div class="form-group">
-                        <label for="ric-preparazione">Preparazione / Passaggi</label>
-                        <textarea id="ric-preparazione" rows="4" style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem;" placeholder="Descrivi le fasi di preparazione...">${isModifica ? (ricettaEsistente.preparazione || '') : ''}</textarea>
+                    <!-- VALUTAZIONE A STELLE IN BASSO A DESTRA -->
+                    <div class="form-group" style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 15px;">
+                        <label for="ric-valutazione" style="margin-bottom: 0;">Valutazione:</label>
+                        <select id="ric-valutazione" style="width: auto; padding: 6px 10px;">
+                            <option value="5" ${isModifica && Number(ricettaEsistente.valutazione) === 5 ? 'selected' : ''}>★★★★★ (5/5)</option>
+                            <option value="4" ${isModifica && Number(ricettaEsistente.valutazione) === 4 ? 'selected' : ''}>★★★★☆ (4/5)</option>
+                            <option value="3" ${isModifica && Number(ricettaEsistente.valutazione) === 3 ? 'selected' : ''}>★★★☆☆ (3/5)</option>
+                            <option value="2" ${isModifica && Number(ricettaEsistente.valutazione) === 2 ? 'selected' : ''}>★★☆☆☆ (2/5)</option>
+                            <option value="1" ${isModifica && Number(ricettaEsistente.valutazione) === 1 ? 'selected' : ''}>★☆☆☆☆ (1/5)</option>
+                        </select>
                     </div>
 
                     <div class="modal-footer">
@@ -309,31 +375,67 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
     const btnCancel = document.getElementById('btn-cancel-modal');
     const form = document.getElementById('form-ricetta');
 
+    const containerIng = document.getElementById('container-ingredienti');
+    const containerPas = document.getElementById('container-passaggi');
+
+    // Gestore aggiunta riga ingrediente
+    document.getElementById('btn-add-ingrediente').addEventListener('click', () => {
+        containerIng.insertAdjacentHTML('beforeend', creaRigaIngredienteHtml());
+        aggiornaEventiRimuovi(containerIng);
+    });
+
+    // Gestore aggiunta riga passaggio
+    document.getElementById('btn-add-passaggio').addEventListener('click', () => {
+        containerPas.insertAdjacentHTML('beforeend', creaRigaPassaggioHtml());
+        aggiornaEventiRimuovi(containerPas);
+    });
+
+    aggiornaEventiRimuovi(containerIng);
+    aggiornaEventiRimuovi(containerPas);
+
     const chiudiModale = () => modalEl.remove();
 
     btnClose.addEventListener('click', chiudiModale);
     btnCancel.addEventListener('click', chiudiModale);
 
+    // Salvataggio form
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const nome = document.getElementById('ric-nome').value.trim();
         const categoria = document.getElementById('ric-categoria').value;
         const valutazione = document.getElementById('ric-valutazione').value;
-        const ingredienti = document.getElementById('ric-ingredienti').value.trim();
-        const preparazione = document.getElementById('ric-preparazione').value.trim();
 
         if (!nome) {
             alert("Inserisci il nome della ricetta.");
             return;
         }
 
+        // Estrazione ingredienti
+        const listaIngredienti = [];
+        containerIng.querySelectorAll('.dynamic-row').forEach(row => {
+            const ingNome = row.querySelector('.input-ingrediente').value.trim();
+            const ingQty = row.querySelector('.input-quantita').value.trim();
+            if (ingNome) {
+                listaIngredienti.push({ nome: ingNome, quantita: ingQty });
+            }
+        });
+
+        // Estrazione passaggi
+        const listaPassaggi = [];
+        containerPas.querySelectorAll('.dynamic-row').forEach(row => {
+            const pasTxt = row.querySelector('.input-passaggio').value.trim();
+            if (pasTxt) {
+                listaPassaggi.push(pasTxt);
+            }
+        });
+
         const payload = {
             nome: nome,
             categoria: categoria,
             valutazione: Number(valutazione),
-            ingredienti: ingredienti,
-            preparazione: preparazione,
+            listaIngredienti: listaIngredienti,
+            listaPassaggi: listaPassaggi,
             creatore: isModifica ? ricettaEsistente.creatore : userData.nome
         };
 
@@ -352,5 +454,33 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
             console.error("Errore salvataggio ricetta:", err);
             alert("Si è verificato un errore durante il salvataggio della ricetta.");
         }
+    });
+}
+
+function creaRigaIngredienteHtml(nome = '', quantita = '') {
+    return `
+        <div class="dynamic-row">
+            <input type="text" class="input-ingrediente" value="${nome}" placeholder="Ingrediente (es. Farina 00)">
+            <input type="text" class="input-quantita" value="${quantita}" placeholder="Quantità (es. 100 gr)">
+            <button type="button" class="btn-remove-row" title="Rimuovi"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+    `;
+}
+
+function creaRigaPassaggioHtml(testo = '') {
+    return `
+        <div class="dynamic-row">
+            <input type="text" class="input-passaggio" value="${testo}" placeholder="Descrivi il passaggio...">
+            <button type="button" class="btn-remove-row" title="Rimuovi"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+    `;
+}
+
+function aggiornaEventiRimuovi(container) {
+    container.querySelectorAll('.btn-remove-row').forEach(btn => {
+        btn.onclick = (e) => {
+            const row = e.currentTarget.closest('.dynamic-row');
+            if (row) row.remove();
+        };
     });
 }
