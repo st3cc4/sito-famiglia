@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Caricamento dinamico dei fogli di stile esterni
     caricaStileDinamico('../scadenze/stile-scadenze.css?v=2', 'css-scadenze');
     caricaStileDinamico('../impegni/stile-impegni.css?v=2', 'css-impegni');
+    caricaStileDinamico('../gestione-utenti/stile-gestione-utenti.css?v=2', 'css-gestione-utenti');
 
     initNavigation();
 });
@@ -158,7 +159,7 @@ async function loadSectionContent(target, container) {
                 const moduloScadenze = await import('../scadenze/scadenze.js?v=' + Date.now());
                 await moduloScadenze.initScadenzeSection(container);
             } catch (err) {
-                console.error("Errore durante il caricamento del modulo Scadenze:", err);
+                console.error("Errore caricamento modulo Scadenze:", err);
                 container.innerHTML = '<p style="color:red; text-align:center;">Impossibile caricare la sezione Scadenze.</p>';
             }
             break;
@@ -167,7 +168,7 @@ async function loadSectionContent(target, container) {
                 const moduloImpegni = await import('../impegni/impegni.js?v=' + Date.now());
                 await moduloImpegni.initImpegniSection(container);
             } catch (err) {
-                console.error("Errore durante il caricamento del modulo Impegni:", err);
+                console.error("Errore caricamento modulo Impegni:", err);
                 container.innerHTML = '<p style="color:red; text-align:center;">Impossibile caricare la sezione Impegni.</p>';
             }
             break;
@@ -178,7 +179,13 @@ async function loadSectionContent(target, container) {
             container.innerHTML = '<h2>Ricettario di Famiglia</h2><p>Sezione completa per visualizzare e salvare le ricette preferite.</p>';
             break;
         case 'gestione-utenti':
-            container.innerHTML = '<h2>Gestione Utenti (Pannello Admin)</h2><p>Qui l amministrazione può gestire gli utenti, i ruoli e i permessi.</p>';
+            try {
+                const moduloGestioneUtenti = await import('../gestione-utenti/gestione-utenti.js?v=' + Date.now());
+                await moduloGestioneUtenti.initGestioneUtentiSection(container);
+            } catch (err) {
+                console.error("Errore caricamento modulo Gestione Utenti:", err);
+                container.innerHTML = '<p style="color:red; text-align:center;">Impossibile caricare la sezione Gestione Utenti.</p>';
+            }
             break;
         case 'cambia-password':
             container.innerHTML = '<h2>Cambia Password</h2><p>Pannello per aggiornare la propria password di accesso.</p>';
@@ -191,7 +198,7 @@ async function loadSectionContent(target, container) {
     }
 }
 
-// Funzione ausiliaria per convertire colori HEX in formato RGBA trasparente
+// Convertitore colore HEX -> RGBA Trasparente
 function hexToRgba(hex, alpha) {
     const a = alpha !== undefined ? alpha : 0.12;
     if (!hex) return "rgba(52, 152, 219, " + a + ")";
@@ -207,7 +214,7 @@ function hexToRgba(hex, alpha) {
     return "rgba(" + r + ", " + g + ", " + b + ", " + a + ")";
 }
 
-// Funzione ausiliaria per formattare la data in formato europeo (GG-MM-AAAA)
+// Formattatore Data Europea GG-MM-AAAA
 function formatDataEuropea(dataString) {
     if (!dataString) return '';
     const parti = dataString.split('-');
@@ -217,7 +224,7 @@ function formatDataEuropea(dataString) {
     return dataString;
 }
 
-// --- 5. Logica di Rendering della DASHBOARD (Impegni di oggi in quadratini orizzontali) ---
+// --- 5. Logica di Rendering della DASHBOARD ---
 async function renderDashboard(container) {
     container.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--text-muted);">Caricamento dati in corso...</p>';
 
@@ -264,7 +271,6 @@ async function renderDashboard(container) {
             coloreScadenza = 'green';
         }
 
-        // --- FILTRO IMPEGNI SOLO PER OGGI ---
         const annoOggi = oggi.getFullYear();
         const meseOggi = String(oggi.getMonth() + 1).padStart(2, '0');
         const giornoOggi = String(oggi.getDate()).padStart(2, '0');
@@ -290,7 +296,6 @@ async function renderDashboard(container) {
             }
         });
 
-        // Ordina gli impegni di oggi per orario di inizio
         impegniList.sort(function(a, b) {
             return (a.oraInizio || '').localeCompare(b.oraInizio || '');
         });
