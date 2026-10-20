@@ -217,7 +217,7 @@ function formatDataEuropea(dataString) {
     return dataString;
 }
 
-// --- 5. Logica di Rendering della DASHBOARD (Mostra solo gli impegni di OGGI) ---
+// --- 5. Logica di Rendering della DASHBOARD (Impegni di oggi in quadratini orizzontali) ---
 async function renderDashboard(container) {
     container.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--text-muted);">Caricamento dati in corso...</p>';
 
@@ -348,27 +348,29 @@ async function renderDashboard(container) {
                     </div>
                 </div>
 
-                <!-- 2. CARD IMPEGNI (SOLO OGGI) -->
+                <!-- 2. CARD IMPEGNI DI OGGI (QUADRATINI ORIZZONTALI COMPATTI) -->
                 <div class="card" onclick="selezionaScheda('impegni')" style="cursor: pointer;" title="Clicca per aprire Impegni">
                     <div class="card-header">
                         <h3><i class="fa-solid fa-calendar-days"></i> IMPEGNI DI OGGI (${formatDataEuropea(dataOggiIso)})</h3>
                     </div>
                     <div class="card-body">
                         ${impegniList.length > 0 ? `
-                            <ul class="impegni-list">
+                            <div class="impegni-grid-home">
                                 ${impegniList.map(function(i) {
                                     return `
-                                    <li class="impegno-item" style="background-color: ${i.bgTrasparente}; border-left-color: ${i.coloreUtente};">
-                                        <div class="impegno-row-top">
-                                            <span class="impegno-title">${i.titolo}</span>
+                                    <div class="impegno-quadratino-home" style="background-color: ${i.bgTrasparente}; border-left-color: ${i.coloreUtente};">
+                                        <div class="impegno-quadratino-top">
+                                            <span class="impegno-quadratino-titolo">${i.titolo}</span>
+                                            <span class="impegno-quadratino-creatore">(${i.creatore})</span>
                                         </div>
-                                        <div class="impegno-row-bottom">
-                                            <span class="impegno-datetime">${i.oraInizio ? 'ore ' + i.oraInizio : 'Tutto il giorno'}</span>
-                                            <span class="impegno-creator">(${i.creatore})</span>
+                                        <div class="impegno-quadratino-bottom">
+                                            <span class="impegno-quadratino-ora">
+                                                <i class="fa-regular fa-clock"></i> ${i.oraInizio ? i.oraInizio : 'Tutto il gg'}
+                                            </span>
                                         </div>
-                                    </li>`;
+                                    </div>`;
                                 }).join('')}
-                            </ul>
+                            </div>
                         ` : '<p class="card-empty">Nessun impegno in programma per oggi</p>'}
                     </div>
                 </div>
