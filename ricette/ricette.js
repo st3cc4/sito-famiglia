@@ -184,7 +184,7 @@ function apriModaleVisualizzaRicetta(r) {
     const valNum = Number(r.valutazione || 5);
     const stelleStr = '★'.repeat(valNum) + '☆'.repeat(5 - valNum);
 
-    // Parsing ingredienti (se array o stringa)
+    // Parsing ingredienti
     let ingredientiList = [];
     if (Array.isArray(r.listaIngredienti) && r.listaIngredienti.length > 0) {
         ingredientiList = r.listaIngredienti;
@@ -265,7 +265,7 @@ function apriModaleVisualizzaRicetta(r) {
     });
 }
 
-// MODALE DI INSERIMENTO / MODIFICA RICETTA CON RIGHE DINAMICHE
+// MODALE DI INSERIMENTO / MODIFICA RICETTA CON LAYOUT AGGIORNATO
 function apriModaleFormRicetta(ricettaEsistente = null) {
     const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
     const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
@@ -289,7 +289,7 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
         }
     }
 
-    // Inizializzazione dati passaggi (di default 3 righe se nuovo)
+    // Inizializzazione dati passaggi (3 righe predefinite se nuovo)
     let passaggiIniziali = ['', '', ''];
     if (isModifica) {
         if (Array.isArray(ricettaEsistente.listaPassaggi) && ricettaEsistente.listaPassaggi.length > 0) {
@@ -301,19 +301,19 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
 
     const modalHtml = `
         <div class="modal-overlay" id="${modalId}">
-            <div class="modal-content" style="max-width: 540px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-content" style="max-width: 560px; max-height: 90vh; overflow-y: auto;">
                 <div class="modal-header">
                     <h3>${isModifica ? 'Modifica Ricetta' : 'Nuova Ricetta'}</h3>
                     <button class="btn-close-modal" id="btn-close-modal">&times;</button>
                 </div>
                 <form id="form-ricetta">
-                    <!-- NOME E CATEGORIA SULLA STESSA RIGA -->
-                    <div class="form-row">
-                        <div class="form-group" style="flex: 2;">
+                    <!-- NOME E CATEGORIA AFFIANCATI -->
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+                        <div class="form-group" style="flex: 2; min-width: 200px; margin-bottom: 0;">
                             <label for="ric-nome">Nome della Ricetta</label>
                             <input type="text" id="ric-nome" value="${isModifica ? (ricettaEsistente.nome || ricettaEsistente.titolo || '') : ''}" required placeholder="Es. Pasta alla Carbonara">
                         </div>
-                        <div class="form-group" style="flex: 1;">
+                        <div class="form-group" style="flex: 1; min-width: 120px; margin-bottom: 0;">
                             <label for="ric-categoria">Categoria</label>
                             <select id="ric-categoria">
                                 <option value="Primo" ${isModifica && ricettaEsistente.categoria === 'Primo' ? 'selected' : ''}>Primo</option>
@@ -347,21 +347,22 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
                         </button>
                     </div>
 
-                    <!-- VALUTAZIONE A STELLE IN BASSO A DESTRA -->
-                    <div class="form-group" style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 15px;">
-                        <label for="ric-valutazione" style="margin-bottom: 0;">Valutazione:</label>
-                        <select id="ric-valutazione" style="width: auto; padding: 6px 10px;">
-                            <option value="5" ${isModifica && Number(ricettaEsistente.valutazione) === 5 ? 'selected' : ''}>★★★★★ (5/5)</option>
-                            <option value="4" ${isModifica && Number(ricettaEsistente.valutazione) === 4 ? 'selected' : ''}>★★★★☆ (4/5)</option>
-                            <option value="3" ${isModifica && Number(ricettaEsistente.valutazione) === 3 ? 'selected' : ''}>★★★☆☆ (3/5)</option>
-                            <option value="2" ${isModifica && Number(ricettaEsistente.valutazione) === 2 ? 'selected' : ''}>★★☆☆☆ (2/5)</option>
-                            <option value="1" ${isModifica && Number(ricettaEsistente.valutazione) === 1 ? 'selected' : ''}>★☆☆☆☆ (1/5)</option>
-                        </select>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn-modal cancel" id="btn-cancel-modal">Annulla</button>
-                        <button type="submit" class="btn-modal save">Salva Ricetta</button>
+                    <!-- FOOTER CON VALUTAZIONE A SINISTRA E PULSANTI A DESTRA -->
+                    <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 10px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label for="ric-valutazione" style="margin-bottom: 0; font-size: 0.88rem; font-weight: 600; color: #334155;">Valutazione:</label>
+                            <select id="ric-valutazione" style="width: auto; padding: 6px 10px; font-size: 0.88rem; border-radius: 6px; border: 1px solid #cbd5e1;">
+                                <option value="5" ${isModifica && Number(ricettaEsistente.valutazione) === 5 ? 'selected' : ''}>★★★★★ (5/5)</option>
+                                <option value="4" ${isModifica && Number(ricettaEsistente.valutazione) === 4 ? 'selected' : ''}>★★★★☆ (4/5)</option>
+                                <option value="3" ${isModifica && Number(ricettaEsistente.valutazione) === 3 ? 'selected' : ''}>★★★☆☆ (3/5)</option>
+                                <option value="2" ${isModifica && Number(ricettaEsistente.valutazione) === 2 ? 'selected' : ''}>★★☆☆☆ (2/5)</option>
+                                <option value="1" ${isModifica && Number(ricettaEsistente.valutazione) === 1 ? 'selected' : ''}>★☆☆☆☆ (1/5)</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <button type="button" class="btn-modal cancel" id="btn-cancel-modal">Annulla</button>
+                            <button type="submit" class="btn-modal save">Salva Ricetta</button>
+                        </div>
                     </div>
                 </form>
             </div>
