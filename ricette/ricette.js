@@ -148,6 +148,7 @@ function renderGrigliaRicette(filtro) {
         `;
     }).join('');
 
+    // Eventi Clic sicuri su ogni Card per aprire la modale
     gridEl.querySelectorAll('.ricetta-card-single').forEach(card => {
         card.addEventListener('click', (e) => {
             if (e.target.closest('.delete')) return;
@@ -175,7 +176,7 @@ function renderGrigliaRicette(filtro) {
     });
 }
 
-// MODALE DI VISUALIZZAZIONE DETTAGLIATA RICETTA
+// MODALE DI VISUALIZZAZIONE DETTAGLIATA RICETTA (SUPPORTA TUTTI I FORMATI DATI)
 function apriModaleVisualizzaRicetta(r) {
     const modalId = 'modal-view-ricetta';
     const prevModal = document.getElementById(modalId);
@@ -184,11 +185,11 @@ function apriModaleVisualizzaRicetta(r) {
     const valNum = Number(r.valutazione || 5);
     const stelleStr = '★'.repeat(valNum) + '☆'.repeat(5 - valNum);
 
-    // Parsing ingredienti
+    // Gestione sicura ingredienti
     let ingredientiList = [];
     if (Array.isArray(r.listaIngredienti) && r.listaIngredienti.length > 0) {
         ingredientiList = r.listaIngredienti;
-    } else if (r.ingredienti) {
+    } else if (typeof r.ingredienti === 'string' && r.ingredienti.trim().length > 0) {
         ingredientiList = r.ingredienti.split(',').map(item => {
             const parti = item.split('-');
             return {
@@ -198,11 +199,11 @@ function apriModaleVisualizzaRicetta(r) {
         });
     }
 
-    // Parsing passaggi
+    // Gestione sicura passaggi
     let passaggiList = [];
     if (Array.isArray(r.listaPassaggi) && r.listaPassaggi.length > 0) {
-        passaggiList = r.listaPassaggi.filter(p => p.trim().length > 0);
-    } else if (r.preparazione) {
+        passaggiList = r.listaPassaggi.filter(p => typeof p === 'string' && p.trim().length > 0);
+    } else if (typeof r.preparazione === 'string' && r.preparazione.trim().length > 0) {
         passaggiList = r.preparazione.split('\n').filter(p => p.trim().length > 0);
     }
 
@@ -231,7 +232,7 @@ function apriModaleVisualizzaRicetta(r) {
                                 `).join('')}
                             </ol>
                         </div>
-                    ` : ''}
+                    ` : '<p style="font-style:italic; color:#94a3b8;">Nessun ingrediente specificato.</p>'}
 
                     ${passaggiList.length > 0 ? `
                         <div class="ricetta-dettaglio-section">
@@ -245,7 +246,7 @@ function apriModaleVisualizzaRicetta(r) {
                     ` : ''}
                 </div>
 
-                <div class="modal-footer" style="margin-top: 20px;">
+                <div class="modal-footer" style="margin-top: 20px; display:flex; justify-content:flex-end; gap:8px;">
                     <button type="button" class="btn-modal save" id="btn-edit-from-view">Modifica</button>
                     <button type="button" class="btn-modal cancel" id="btn-close-view-footer">Chiudi</button>
                 </div>
@@ -265,7 +266,7 @@ function apriModaleVisualizzaRicetta(r) {
     });
 }
 
-// MODALE DI INSERIMENTO / MODIFICA RICETTA CON LAYOUT AGGIORNATO
+// MODALE FORM INSERIMENTO / MODIFICA RICETTA
 function apriModaleFormRicetta(ricettaEsistente = null) {
     const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
     const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
@@ -276,12 +277,11 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
     const prevModal = document.getElementById(modalId);
     if (prevModal) prevModal.remove();
 
-    // Inizializzazione dati ingredienti
     let ingredientiIniziali = [{ nome: '', quantita: '' }];
     if (isModifica) {
         if (Array.isArray(ricettaEsistente.listaIngredienti) && ricettaEsistente.listaIngredienti.length > 0) {
             ingredientiIniziali = ricettaEsistente.listaIngredienti;
-        } else if (ricettaEsistente.ingredienti) {
+        } else if (typeof ricettaEsistente.ingredienti === 'string' && ricettaEsistente.ingredienti.trim().length > 0) {
             ingredientiIniziali = ricettaEsistente.ingredienti.split(',').map(item => {
                 const parti = item.split('-');
                 return { nome: parti[0] ? parti[0].trim() : item.trim(), quantita: parti[1] ? parti[1].trim() : '' };
@@ -289,12 +289,11 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
         }
     }
 
-    // Inizializzazione dati passaggi (3 righe predefinite se nuovo)
     let passaggiIniziali = ['', '', ''];
     if (isModifica) {
         if (Array.isArray(ricettaEsistente.listaPassaggi) && ricettaEsistente.listaPassaggi.length > 0) {
             passaggiIniziali = ricettaEsistente.listaPassaggi;
-        } else if (ricettaEsistente.preparazione) {
+        } else if (typeof ricettaEsistente.preparazione === 'string' && ricettaEsistente.preparazione.trim().length > 0) {
             passaggiIniziali = ricettaEsistente.preparazione.split('\n');
         }
     }
@@ -307,7 +306,6 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
                     <button class="btn-close-modal" id="btn-close-modal">&times;</button>
                 </div>
                 <form id="form-ricetta">
-                    <!-- NOME E CATEGORIA AFFIANCATI -->
                     <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
                         <div class="form-group" style="flex: 2; min-width: 200px; margin-bottom: 0;">
                             <label for="ric-nome">Nome della Ricetta</label>
@@ -325,7 +323,6 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
                         </div>
                     </div>
 
-                    <!-- INGREDIENTI DINAMICI -->
                     <div class="form-group" style="margin-top: 10px;">
                         <label>Ingredienti</label>
                         <div id="container-ingredienti">
@@ -336,7 +333,6 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
                         </button>
                     </div>
 
-                    <!-- PASSAGGI DINAMICI -->
                     <div class="form-group" style="margin-top: 15px;">
                         <label>Preparazione / Passaggi</label>
                         <div id="container-passaggi">
@@ -347,7 +343,6 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
                         </button>
                     </div>
 
-                    <!-- FOOTER CON VALUTAZIONE A SINISTRA E PULSANTI A DESTRA -->
                     <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 10px; flex-wrap: wrap;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <label for="ric-valutazione" style="margin-bottom: 0; font-size: 0.88rem; font-weight: 600; color: #334155;">Valutazione:</label>
@@ -379,13 +374,11 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
     const containerIng = document.getElementById('container-ingredienti');
     const containerPas = document.getElementById('container-passaggi');
 
-    // Gestore aggiunta riga ingrediente
     document.getElementById('btn-add-ingrediente').addEventListener('click', () => {
         containerIng.insertAdjacentHTML('beforeend', creaRigaIngredienteHtml());
         aggiornaEventiRimuovi(containerIng);
     });
 
-    // Gestore aggiunta riga passaggio
     document.getElementById('btn-add-passaggio').addEventListener('click', () => {
         containerPas.insertAdjacentHTML('beforeend', creaRigaPassaggioHtml());
         aggiornaEventiRimuovi(containerPas);
@@ -399,7 +392,6 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
     btnClose.addEventListener('click', chiudiModale);
     btnCancel.addEventListener('click', chiudiModale);
 
-    // Salvataggio form
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -412,7 +404,6 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
             return;
         }
 
-        // Estrazione ingredienti
         const listaIngredienti = [];
         containerIng.querySelectorAll('.dynamic-row').forEach(row => {
             const ingNome = row.querySelector('.input-ingrediente').value.trim();
@@ -422,7 +413,6 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
             }
         });
 
-        // Estrazione passaggi
         const listaPassaggi = [];
         containerPas.querySelectorAll('.dynamic-row').forEach(row => {
             const pasTxt = row.querySelector('.input-passaggio').value.trim();
