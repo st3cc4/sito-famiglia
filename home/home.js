@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
     caricaStileDinamico('../impegni/stile-impegni.css?v=2', 'css-impegni');
     caricaStileDinamico('../gestione-utenti/stile-gestione-utenti.css?v=2', 'css-gestione-utenti');
     caricaStileDinamico('../cambia-password/stile-cambia-password.css?v=2', 'css-cambia-password');
+    caricaStileDinamico('../cambia-colore/stile-cambia-colore.css?v=2', 'css-cambia-colore');
 
     initNavigation();
 });
@@ -213,7 +214,13 @@ async function loadSectionContent(target, container) {
             }
             break;
         case 'cambia-colore':
-            container.innerHTML = '<h2>Cambia Colore</h2><p>Pannello per personalizzare il proprio colore utente.</p>';
+            try {
+                const moduloCambiaColore = await import('../cambia-colore/cambia-colore.js?v=' + Date.now());
+                await moduloCambiaColore.initCambiaColoreSection(container);
+            } catch (err) {
+                console.error("Errore caricamento modulo Cambia Colore:", err);
+                container.innerHTML = '<p style="color:red; text-align:center;">Impossibile caricare la sezione Cambia Colore.</p>';
+            }
             break;
         default:
             container.innerHTML = '<h2>Sezione non trovata</h2>';
