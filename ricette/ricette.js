@@ -148,7 +148,6 @@ function renderGrigliaRicette(filtro) {
         `;
     }).join('');
 
-    // Eventi Clic sicuri su ogni Card per aprire la modale
     gridEl.querySelectorAll('.ricetta-card-single').forEach(card => {
         card.addEventListener('click', (e) => {
             if (e.target.closest('.delete')) return;
@@ -176,7 +175,66 @@ function renderGrigliaRicette(filtro) {
     });
 }
 
-// MODALE DI VISUALIZZAZIONE DETTAGLIATA RICETTA (SUPPORTA TUTTI I FORMATI DATI)
+// ESTRAZIONE STRUTTURATA DEGLI INGREDIENTI
+function estraiIngredientiDaDoc(r) {
+    let ris = [];
+    
+    // 1. Se nel DB c'è il campo "ingredienti" ed è un Array
+    if (Array.isArray(r.ingredienti)) {
+        r.ingredienti.forEach(item => {
+            if (typeof item === 'string') {
+                const parti = item.split(' - ');
+                ris.push({
+                    nome: parti[0] ? parti[0].trim() : item,
+                    quantita: parti[1] ? parti[1].trim() : ''
+                });
+            } else if (item && typeof item === 'object') {
+                ris.push({ nome: item.nome || '', quantita: item.quantita || '' });
+            }
+        });
+    } 
+    // 2. Se nel DB c'è "listaIngredienti"
+    else if (Array.isArray(r.listaIngredienti)) {
+        ris = r.listaIngredienti;
+    }
+    // 3. Se nel DB "ingredienti" è una stringa separata da virgole
+    else if (typeof r.ingredienti === 'string' && r.ingredienti.trim().length > 0) {
+        r.ingredienti.split(',').forEach(item => {
+            const parti = item.split(' - ');
+            ris.push({
+                nome: parti[0] ? parti[0].trim() : item.trim(),
+                quantita: parti[1] ? parti[1].trim() : ''
+            });
+        });
+    }
+
+    return ris;
+}
+
+// ESTRAZIONE STRUTTURATA DEI PASSAGGI / PROCEDIMENTO
+function estraiPassaggiDaDoc(r) {
+    let ris = [];
+
+    // 1. Se nel DB c'è "procedimento" ed è un Array
+    if (Array.isArray(r.procedimento)) {
+        ris = r.procedimento.filter(p => typeof p === 'string' && p.trim().length > 0);
+    }
+    // 2. Se nel DB c'è "listaPassaggi"
+    else if (Array.isArray(r.listaPassaggi)) {
+        ris = r.listaPassaggi.filter(p => typeof p === 'string' && p.trim().length > 0);
+    }
+    // 3. Se nel DB "preparazione" o "procedimento" è una stringa multilinea
+    else {
+        const testo = r.preparazione || r.procedimento;
+        if (typeof testo === 'string' && testo.trim().length > 0) {
+            ris = testo.split('\n').filter(p => p.trim().length > 0);
+        }
+    }
+
+    return ris;
+}
+
+// MODALE DI VISUALIZZAZIONE DETTAGLIATA RICETTA
 function apriModaleVisualizzaRicetta(r) {
     const modalId = 'modal-view-ricetta';
     const prevModal = document.getElementById(modalId);
@@ -185,27 +243,8 @@ function apriModaleVisualizzaRicetta(r) {
     const valNum = Number(r.valutazione || 5);
     const stelleStr = '★'.repeat(valNum) + '☆'.repeat(5 - valNum);
 
-    // Gestione sicura ingredienti
-    let ingredientiList = [];
-    if (Array.isArray(r.listaIngredienti) && r.listaIngredienti.length > 0) {
-        ingredientiList = r.listaIngredienti;
-    } else if (typeof r.ingredienti === 'string' && r.ingredienti.trim().length > 0) {
-        ingredientiList = r.ingredienti.split(',').map(item => {
-            const parti = item.split('-');
-            return {
-                nome: parti[0] ? parti[0].trim() : item.trim(),
-                quantita: parti[1] ? parti[1].trim() : ''
-            };
-        });
-    }
-
-    // Gestione sicura passaggi
-    let passaggiList = [];
-    if (Array.isArray(r.listaPassaggi) && r.listaPassaggi.length > 0) {
-        passaggiList = r.listaPassaggi.filter(p => typeof p === 'string' && p.trim().length > 0);
-    } else if (typeof r.preparazione === 'string' && r.preparazione.trim().length > 0) {
-        passaggiList = r.preparazione.split('\n').filter(p => p.trim().length > 0);
-    }
+    const ingredientiList = estraiIngredientiDaDoc(r);
+    const passaggiList = estraiPassaggiDaDoc(r);
 
     const modalHtml = `
         <div class="modal-overlay" id="${modalId}">
@@ -232,7 +271,7 @@ function apriModaleVisualizzaRicetta(r) {
                                 `).join('')}
                             </ol>
                         </div>
-                    ` : '<p style="font-style:italic; color:#94a3b8;">Nessun ingrediente specificato.</p>'}
+                    ` : '<p style="font-style:italic; color:#94a3b8; padding: 10px;">Nessun ingrediente specificato.</p>'}
 
                     ${passaggiList.length > 0 ? `
                         <div class="ricetta-dettaglio-section">
@@ -277,25 +316,14 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
     const prevModal = document.getElementById(modalId);
     if (prevModal) prevModal.remove();
 
-    let ingredientiIniziali = [{ nome: '', quantita: '' }];
-    if (isModifica) {
-        if (Array.isArray(ricettaEsistente.listaIngredienti) && ricettaEsistente.listaIngredienti.length > 0) {
-            ingredientiIniziali = ricettaEsistente.listaIngredienti;
-        } else if (typeof ricettaEsistente.ingredienti === 'string' && ricettaEsistente.ingredienti.trim().length > 0) {
-            ingredientiIniziali = ricettaEsistente.ingredienti.split(',').map(item => {
-                const parti = item.split('-');
-                return { nome: parti[0] ? parti[0].trim() : item.trim(), quantita: parti[1] ? parti[1].trim() : '' };
-            });
-        }
+    let ingredientiIniziali = isModifica ? estraiIngredientiDaDoc(ricettaEsistente) : [];
+    if (ingredientiIniziali.length === 0) {
+        ingredientiIniziali = [{ nome: '', quantita: '' }];
     }
 
-    let passaggiIniziali = ['', '', ''];
-    if (isModifica) {
-        if (Array.isArray(ricettaEsistente.listaPassaggi) && ricettaEsistente.listaPassaggi.length > 0) {
-            passaggiIniziali = ricettaEsistente.listaPassaggi;
-        } else if (typeof ricettaEsistente.preparazione === 'string' && ricettaEsistente.preparazione.trim().length > 0) {
-            passaggiIniziali = ricettaEsistente.preparazione.split('\n');
-        }
+    let passaggiIniziali = isModifica ? estraiPassaggiDaDoc(ricettaEsistente) : [];
+    if (passaggiIniziali.length === 0) {
+        passaggiIniziali = ['', '', ''];
     }
 
     const modalHtml = `
@@ -404,12 +432,15 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
             return;
         }
 
+        // Salviamo sia l'array strutturato per il nuovo form, sia l'array di stringhe "Farina 00 - 500 gr" per mantenere piena compatibilità con Firestore
         const listaIngredienti = [];
+        const arrayStringheIngredienti = [];
         containerIng.querySelectorAll('.dynamic-row').forEach(row => {
             const ingNome = row.querySelector('.input-ingrediente').value.trim();
             const ingQty = row.querySelector('.input-quantita').value.trim();
             if (ingNome) {
                 listaIngredienti.push({ nome: ingNome, quantita: ingQty });
+                arrayStringheIngredienti.push(ingQty ? `${ingNome} - ${ingQty}` : ingNome);
             }
         });
 
@@ -425,6 +456,8 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
             nome: nome,
             categoria: categoria,
             valutazione: Number(valutazione),
+            ingredienti: arrayStringheIngredienti,
+            procedimento: listaPassaggi,
             listaIngredienti: listaIngredienti,
             listaPassaggi: listaPassaggi,
             creatore: isModifica ? ricettaEsistente.creatore : userData.nome
