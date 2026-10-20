@@ -158,7 +158,65 @@
     color: #e74c3c;
 }
 
-/* MODALE DI VISUALIZZAZIONE COMPLETA RICETTA */
+/* STRUTTURA RIGHE DINAMICHE FORM INGREDIENTI E PASSAGGI */
+.dynamic-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.dynamic-row input {
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.88rem;
+}
+
+.dynamic-row .input-ingrediente {
+    flex: 2;
+}
+
+.dynamic-row .input-quantita {
+    flex: 1;
+}
+
+.dynamic-row .input-passaggio {
+    flex: 1;
+}
+
+.btn-remove-row {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 4px;
+}
+
+.btn-remove-row:hover {
+    color: #dc2626;
+}
+
+.btn-add-dynamic {
+    background: none;
+    border: none;
+    color: #0284c7;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 0;
+    margin-top: 2px;
+}
+
+.btn-add-dynamic:hover {
+    text-decoration: underline;
+}
+
+/* LISTE NUMERATE IN MODALE DETTAGLIO */
 .ricetta-dettaglio-box {
     display: flex;
     flex-direction: column;
@@ -175,17 +233,23 @@
 .ricetta-dettaglio-section h4 {
     font-size: 0.9rem;
     color: #2b3e50;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
     gap: 6px;
 }
 
-.ricetta-dettaglio-testo {
+.ricetta-list-numerata {
+    margin-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
     font-size: 0.9rem;
     color: #334155;
-    white-space: pre-line;
-    line-height: 1.5;
+}
+
+.ricetta-list-numerata li {
+    line-height: 1.4;
 }
 
 @media (max-width: 600px) {
@@ -204,6 +268,14 @@
     }
 
     .ricetta-card-single {
-        width: 155px; /* Adattamento compatto per smartphone */
+        width: 155px;
+    }
+
+    .dynamic-row {
+        flex-wrap: wrap;
+    }
+
+    .dynamic-row .input-quantita {
+        max-width: 100px;
     }
 }
