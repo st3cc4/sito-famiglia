@@ -17,7 +17,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- 1. Controllo Autenticazione e Permessi all'avvio ---
+// --- 1. Controllo Autenticazione e Permessi Schede all'avvio ---
 document.addEventListener('DOMContentLoaded', function() {
     const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
     
@@ -51,6 +51,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // GESTIONE VISIBILITA' DELLE SCHEDE NELLA SIDEBAR IN BASE AI PERMESSI
+    const permessi = userData.permessi || { scadenze: true, impegni: true, media: true, ricette: true };
+
+    aggiornaVisibilitaTastoSidebar('scadenze', permessi.scadenze !== false);
+    aggiornaVisibilitaTastoSidebar('impegni', permessi.impegni !== false);
+    aggiornaVisibilitaTastoSidebar('media', permessi.media !== false);
+    aggiornaVisibilitaTastoSidebar('ricette', permessi.ricette !== false);
+
     // Caricamento dinamico dei fogli di stile esterni
     caricaStileDinamico('../scadenze/stile-scadenze.css?v=2', 'css-scadenze');
     caricaStileDinamico('../impegni/stile-impegni.css?v=2', 'css-impegni');
@@ -58,6 +66,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     initNavigation();
 });
+
+function aggiornaVisibilitaTastoSidebar(targetName, visibile) {
+    const btn = document.querySelector(`.nav-btn[data-target="${targetName}"]`);
+    if (btn) {
+        btn.style.display = visibile ? 'flex' : 'none';
+    }
+}
 
 // Funzione ausiliaria per caricare Fogli di Stile CSS esterni dinamicamente
 function caricaStileDinamico(url, idElemento) {
@@ -141,7 +156,7 @@ function initNavigation() {
 // Funzione globale per attivare una scheda dal menu
 window.selezionaScheda = function(targetName) {
     const targetButton = document.querySelector('.nav-btn[data-target="' + targetName + '"]');
-    if (targetButton) {
+    if (targetButton && targetButton.style.display !== 'none') {
         targetButton.click();
     }
 };
@@ -191,7 +206,7 @@ async function loadSectionContent(target, container) {
             container.innerHTML = '<h2>Cambia Password</h2><p>Pannello per aggiornare la propria password di accesso.</p>';
             break;
         case 'cambia-colore':
-            container.innerHTML = '<h2>Cambia Colore</h2><p>Pannello per personalizzare il proprio colore utente.</p>';
+            container.innerHTML = '<h2>Cambia Color</h2><p>Pannello per personalizzare il proprio colore utente.</p>';
             break;
         default:
             container.innerHTML = '<h2>Sezione non trovata</h2>';
@@ -227,6 +242,10 @@ function formatDataEuropea(dataString) {
 // --- 5. Logica di Rendering della DASHBOARD ---
 async function renderDashboard(container) {
     container.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--text-muted);">Caricamento dati in corso...</p>';
+
+    const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
+    const userData = savedUser ? JSON.parse(savedUser) : {};
+    const permessi = userData.permessi || { scadenze: true, impegni: true, media: true, ricette: true };
 
     try {
         const utentiSnapshot = await getDocs(collection(db, "utenti"));
@@ -328,6 +347,7 @@ async function renderDashboard(container) {
         container.innerHTML = `
             <div class="dashboard-grid">
                 <!-- 1. CARD SCADENZE -->
+                ${permessi.scadenze !== false ? `
                 <div class="card" onclick="selezionaScheda('scadenze')" style="cursor: pointer;" title="Clicca per aprire Scadenze">
                     <div class="card-header">
                         <h3><i class="fa-solid fa-file-invoice-dollar"></i> SCADENZE</h3>
@@ -352,8 +372,10 @@ async function renderDashboard(container) {
                         ` : '<p class="card-empty">Nessuna scadenza in evidenza</p>'}
                     </div>
                 </div>
+                ` : ''}
 
-                <!-- 2. CARD IMPEGNI DI OGGI (QUADRATINI ORIZZONTALI COMPATTI) -->
+                <!-- 2. CARD IMPEGNI DI OGGI -->
+                ${permessi.impegni !== false ? `
                 <div class="card" onclick="selezionaScheda('impegni')" style="cursor: pointer;" title="Clicca per aprire Impegni">
                     <div class="card-header">
                         <h3><i class="fa-solid fa-calendar-days"></i> IMPEGNI DI OGGI (${formatDataEuropea(dataOggiIso)})</h3>
@@ -363,7 +385,7 @@ async function renderDashboard(container) {
                             <div class="impegni-grid-home">
                                 ${impegniList.map(function(i) {
                                     return `
-                                    <div class="impegno-quadratino-home" style="background-color: ${i.bgTrasparente}; border-left-color: ${i.coloreUtente};">
+                                    <div class="impegno-quadratino-home" style="background-color: ${i.bgTrasparente}; border-left-color:${i.coloreUtente};">
                                         <div class="impegno-quadratino-top">
                                             <span class="impegno-quadratino-titolo">${i.titolo}</span>
                                             <span class="impegno-quadratino-creatore">(${i.creatore})</span>
@@ -379,8 +401,10 @@ async function renderDashboard(container) {
                         ` : '<p class="card-empty">Nessun impegno in programma per oggi</p>'}
                     </div>
                 </div>
+                ` : ''}
 
                 <!-- 3. CARD FOTO & VIDEO -->
+                ${permessi.media !== false ? `
                 <div class="card" onclick="selezionaScheda('media')" style="cursor: pointer;" title="Clicca per aprire Foto & Video">
                     <div class="card-header">
                         <h3><i class="fa-solid fa-photo-film"></i> FOTO & VIDEO</h3>
@@ -393,8 +417,10 @@ async function renderDashboard(container) {
                         ` : '<p class="card-empty">Nessun contenuto multimediale recente</p>'}
                     </div>
                 </div>
+                ` : ''}
 
                 <!-- 4. CARD RICETTE -->
+                ${permessi.ricette !== false ? `
                 <div class="card" onclick="selezionaScheda('ricette')" style="cursor: pointer;" title="Clicca per aprire Ricette">
                     <div class="card-header">
                         <h3><i class="fa-solid fa-utensils"></i> RICETTE</h3>
@@ -404,7 +430,7 @@ async function renderDashboard(container) {
                             <ul class="ricette-list">
                                 ${primeRicette.map(function(r) {
                                     return `
-                                    <li class="ricetta-item" style="background-color: ${r.bgTrasparente}; border-left-color: ${r.coloreUtente};">
+                                    <li class="ricetta-item" style="background-color: ${r.bgTrasparente}; border-left-color:${r.coloreUtente};">
                                         <div class="ricetta-row-top">
                                             <span class="ricetta-title">${r.titolo}</span>
                                             <span class="ricetta-rating">${r.stelle}</span>
@@ -418,6 +444,7 @@ async function renderDashboard(container) {
                         ` : '<p class="card-empty">Nessuna ricetta salvata</p>'}
                     </div>
                 </div>
+                ` : ''}
             </div>
         `;
 
