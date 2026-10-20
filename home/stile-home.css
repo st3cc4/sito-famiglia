@@ -250,7 +250,7 @@ body {
     margin-left: var(--sidebar-collapsed-width);
 }
 
-/* --- DISPOSIZIONE VERTICALE IN FILA INDIANA DELLE CARD (SCADENZE -> IMPEGNI -> FOTO & VIDEO -> RICETTE) --- */
+/* --- DISPOSIZIONE VERTICALE DELLE CARD IN HOME --- */
 .dashboard-grid {
     display: flex;
     flex-direction: column;
@@ -356,42 +356,67 @@ body {
     color: var(--text-muted);
 }
 
-/* IMPEGNI IN HOME */
-.impegni-list {
-    list-style: none;
+/* IMPEGNI IN HOME (GRIGLIA DI TESSERE ORIZZONTALI COMPATTE) */
+.impegni-grid-home {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-start;
 }
 
-.impegno-item {
-    padding: 10px 14px;
-    border-radius: 8px;
-    border-left: 4px solid var(--border-color);
+.impegno-quadratino-home {
+    width: 165px;
+    min-height: 85px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border-left: 5px solid #3498db;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-}
-
-.impegno-row-top {
-    display: flex;
     justify-content: space-between;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+    transition: transform 0.15s, box-shadow 0.15s;
+    background-color: #ffffff;
 }
 
-.impegno-title {
+.impegno-quadratino-home:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(0,0,0,0.08);
+}
+
+.impegno-quadratino-top {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.impegno-quadratino-titolo {
     font-weight: 700;
     font-size: 0.9rem;
+    color: #1e293b;
+    word-break: break-word;
+    line-height: 1.2;
 }
 
-.impegno-row-bottom {
+.impegno-quadratino-creatore {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.impegno-quadratino-bottom {
     display: flex;
     justify-content: space-between;
-    font-size: 0.78rem;
-    color: var(--text-muted);
+    align-items: flex-end;
+    margin-top: 8px;
 }
 
-.impegno-creator {
+.impegno-quadratino-ora {
+    font-size: 0.8rem;
+    color: #475569;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 /* RICETTE IN HOME */
@@ -476,5 +501,9 @@ body {
     .content-area {
         margin-left: 0 !important;
         padding: 15px;
+    }
+
+    .impegno-quadratino-home {
+        width: 145px;
     }
 }
