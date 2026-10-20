@@ -1,0 +1,168 @@
+/* --- STILI GESTIONE UTENTI (PANNELLO ADMIN) --- */
+
+.admin-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+    padding-bottom: 30px;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.admin-header h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2b3e50;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-add-user {
+    background-color: #2b3e50;
+    color: #ffffff;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+}
+
+.btn-add-user:hover {
+    background-color: #1e2b37;
+}
+
+/* LISTA SCHEDE UTENTI */
+.utenti-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.user-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    position: relative;
+}
+
+.user-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #1e293b;
+}
+
+.user-username {
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.user-role-badge {
+    align-self: flex-start;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.user-role-badge.admin {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.user-role-badge.utente {
+    background-color: #e0f2fe;
+    color: #0284c7;
+}
+
+.user-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 10px;
+}
+
+.btn-user-action {
+    background: none;
+    border: none;
+    color: #64748b;
+    padding: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.btn-user-action.edit:hover {
+    color: #2563eb;
+    background-color: #eff6ff;
+}
+
+.btn-user-action.delete:hover {
+    color: #dc2626;
+    background-color: #fef2f2;
+}
+
+/* POP-UP MODALE GESTIONE UTENTE */
+.color-picker-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.color-picker-input {
+    width: 50px;
+    height: 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 2px;
+}
