@@ -340,15 +340,18 @@ async function renderDashboard(container) {
             const creatore = data.creatore || '';
             const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
 
+            // Calcolo stelle per punteggio (valutazione numerica da 1 a 5 o di default 5)
+            const valNum = Number(data.valutazione || 5);
+            const stelleStr = '★'.repeat(valNum) + '☆'.repeat(5 - valNum);
+
             ricetteList.push({
-                titolo: data.nome || 'Ricetta',
-                stelle: '★★★★★',
+                titolo: data.nome || data.titolo || 'Ricetta',
+                stelle: stelleStr,
                 creatore: creatore,
                 coloreUtente: coloreUtente,
                 bgTrasparente: hexToRgba(coloreUtente, 0.12)
             });
         });
-        const primeRicette = ricetteList.slice(0, 3);
 
         const mediaData = [
             'https://picsum.photos/seed/fam1/200',
@@ -433,37 +436,28 @@ async function renderDashboard(container) {
                 </div>
                 ` : ''}
 
-                <!-- 4. CARD RICETTE -->
+                <!-- 4. CARD RICETTE (TESSERE ORIZZONTALI COMPATTE) -->
                 ${permessi.ricette !== false ? `
                 <div class="card" onclick="selezionaScheda('ricette')" style="cursor: pointer;" title="Clicca per aprire Ricette">
                     <div class="card-header">
                         <h3><i class="fa-solid fa-utensils"></i> RICETTE</h3>
                     </div>
                     <div class="card-body">
-                        ${primeRicette.length > 0 ? `
-                            <ul class="ricette-list">
-                                ${primeRicette.map(function(r) {
+                        ${ricetteList.length > 0 ? `
+                            <div class="ricette-grid-home">
+                                ${ricetteList.map(function(r) {
                                     return `
-                                    <li class="ricetta-item" style="background-color: ${r.bgTrasparente}; border-left-color:${r.coloreUtente};">
-                                        <div class="ricetta-row-top">
-                                            <span class="ricetta-title">${r.titolo}</span>
-                                            <span class="ricetta-rating">${r.stelle}</span>
+                                    <div class="ricetta-quadratino-home" style="background-color: ${r.bgTrasparente}; border-left-color:${r.coloreUtente};">
+                                        <div class="ricetta-quadratino-top">
+                                            <span class="ricetta-quadratino-titolo">${r.titolo}</span>
+                                            <span class="ricetta-quadratino-creatore">(${r.creatore})</span>
                                         </div>
-                                        <div class="ricetta-row-bottom">
-                                            <span class="ricetta-creator">(${r.creatore})</span>
+                                        <div class="ricetta-quadratino-bottom">
+                                            <span class="ricetta-quadratino-stelle">${r.stelle}</span>
                                         </div>
-                                    </li>`;
+                                    </div>`;
                                 }).join('')}
-                            </ul>
+                            </div>
                         ` : '<p class="card-empty">Nessuna ricetta salvata</p>'}
                     </div>
                 </div>
-                ` : ''}
-            </div>
-        `;
-
-    } catch (error) {
-        console.error("Errore nel recupero dei dati da Firebase:", error);
-        container.innerHTML = '<p style="color: red; text-align: center;">Errore durante il caricamento dei dati dal database.</p>';
-    }
-}
