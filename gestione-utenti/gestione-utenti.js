@@ -74,6 +74,16 @@ async function caricaEDisegnaUtenti(container) {
             const iniziale = u.nome ? u.nome.charAt(0).toUpperCase() : 'U';
             const colore = u.colore || '#3498db';
             const ruolo = u.ruolo || 'utente';
+            
+            // Permessi schede (se non definiti, di default sono abilitati)
+            const permessi = u.permessi || { scadenze: true, impegni: true, media: true, ricette: true };
+
+            const schedeAbilitate = [
+                permessi.scadenze !== false ? 'Scadenze' : null,
+                permessi.impegni !== false ? 'Impegni' : null,
+                permessi.media !== false ? 'Foto & Video' : null,
+                permessi.ricette !== false ? 'Ricette' : null
+            ].filter(Boolean);
 
             return `
                 <div class="user-card" data-id="${u.id}">
@@ -86,7 +96,19 @@ async function caricaEDisegnaUtenti(container) {
                             <span class="user-username">Username: ${u.username || '-'}</span>
                         </div>
                     </div>
-                    <span class="user-role-badge ${ruolo}">${ruolo.toUpperCase()}</span>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <span class="user-role-badge ${ruolo}">${ruolo.toUpperCase()}</span>
+                    </div>
+                    
+                    <div style="font-size: 0.78rem; color: #64748b; margin-top: 4px;">
+                        <strong>Schede visibili:</strong>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+                            ${schedeAbilitate.length > 0 
+                                ? schedeAbilitate.map(s => `<span style="background-color: #f1f5f9; color: #334155; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0;">${s}</span>`).join('')
+                                : '<span style="color: #94a3b8; font-style: italic;">Nessuna scheda abilitata</span>'}
+                        </div>
+                    </div>
+
                     <div class="user-card-actions">
                         <button class="btn-user-action edit" data-id="${u.id}" title="Modifica Utente">
                             <i class="fa-solid fa-pen-to-square"></i>
@@ -137,7 +159,7 @@ async function caricaEDisegnaUtenti(container) {
     }
 }
 
-// POP-UP MODALE PER CREARE O MODIFICARE UN UTENTE
+// POP-UP MODALE PER CREARE O MODIFICARE UN UTENTE CON SELEZIONE SCHEDE
 function apriModaleUtente(utenteEsistente = null) {
     const isModifica = !!utenteEsistente;
     const modalId = 'modal-utente';
@@ -145,9 +167,16 @@ function apriModaleUtente(utenteEsistente = null) {
     const prevModal = document.getElementById(modalId);
     if (prevModal) prevModal.remove();
 
+    const permessiObj = (utenteEsistente && utenteEsistente.permessi) ? utenteEsistente.permessi : {
+        scadenze: true,
+        impegni: true,
+        media: true,
+        ricette: true
+    };
+
     const modalHtml = `
         <div class="modal-overlay" id="${modalId}">
-            <div class="modal-content">
+            <div class="modal-content" style="max-width: 480px;">
                 <div class="modal-header">
                     <h3>${isModifica ? 'Modifica Utente' : 'Nuovo Utente'}</h3>
                     <button class="btn-close-modal" id="btn-close-modal">&times;</button>
@@ -179,6 +208,26 @@ function apriModaleUtente(utenteEsistente = null) {
                             <span style="font-size: 0.85rem; color: #64748b;">Scegli il colore identificativo</span>
                         </div>
                     </div>
+
+                    <!-- SELEZIONE SCHEDE ACCESSIBILI -->
+                    <div class="form-group" style="margin-top: 10px; background-color: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <label style="margin-bottom: 8px; display: block; color: #2b3e50;">Schede Visibili</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.88rem;">
+                            <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                <input type="checkbox" id="perm-scadenze" ${permessiObj.scadenze !== false ? 'checked' : ''}> Scadenze
+                            </label>
+                            <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                <input type="checkbox" id="perm-impegni" ${permessiObj.impegni !== false ? 'checked' : ''}> Impegni
+                            </label>
+                            <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                <input type="checkbox" id="perm-media" ${permessiObj.media !== false ? 'checked' : ''}> Foto & Video
+                            </label>
+                            <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                <input type="checkbox" id="perm-ricette" ${permessiObj.ricette !== false ? 'checked' : ''}> Ricette
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn-modal cancel" id="btn-cancel-modal">Annulla</button>
                         <button type="submit" class="btn-modal save">Salva</button>
@@ -209,11 +258,19 @@ function apriModaleUtente(utenteEsistente = null) {
         const ruolo = document.getElementById('usr-ruolo').value;
         const colore = document.getElementById('usr-colore').value;
 
+        const permessi = {
+            scadenze: document.getElementById('perm-scadenze').checked,
+            impegni: document.getElementById('perm-impegni').checked,
+            media: document.getElementById('perm-media').checked,
+            ricette: document.getElementById('perm-ricette').checked
+        };
+
         const payload = {
             nome: nome,
             username: username,
             ruolo: ruolo,
-            colore: colore
+            colore: colore,
+            permessi: permessi
         };
 
         if (password) {
