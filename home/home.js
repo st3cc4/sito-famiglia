@@ -63,6 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
     caricaStileDinamico('../scadenze/stile-scadenze.css?v=2', 'css-scadenze');
     caricaStileDinamico('../impegni/stile-impegni.css?v=2', 'css-impegni');
     caricaStileDinamico('../gestione-utenti/stile-gestione-utenti.css?v=2', 'css-gestione-utenti');
+    caricaStileDinamico('../cambia-password/stile-cambia-password.css?v=2', 'css-cambia-password');
 
     initNavigation();
 });
@@ -203,10 +204,16 @@ async function loadSectionContent(target, container) {
             }
             break;
         case 'cambia-password':
-            container.innerHTML = '<h2>Cambia Password</h2><p>Pannello per aggiornare la propria password di accesso.</p>';
+            try {
+                const moduloCambiaPwd = await import('../cambia-password/cambia-password.js?v=' + Date.now());
+                await moduloCambiaPwd.initCambiaPasswordSection(container);
+            } catch (err) {
+                console.error("Errore caricamento modulo Cambia Password:", err);
+                container.innerHTML = '<p style="color:red; text-align:center;">Impossibile caricare la sezione Cambia Password.</p>';
+            }
             break;
         case 'cambia-colore':
-            container.innerHTML = '<h2>Cambia Color</h2><p>Pannello per personalizzare il proprio colore utente.</p>';
+            container.innerHTML = '<h2>Cambia Colore</h2><p>Pannello per personalizzare il proprio colore utente.</p>';
             break;
         default:
             container.innerHTML = '<h2>Sezione non trovata</h2>';
