@@ -128,7 +128,7 @@ body {
     width: var(--sidebar-collapsed-width);
 }
 
-/* Parte centrale navigazione (scorrevole se necessario) */
+/* Parte centrale navigazione */
 .sidebar-nav-container {
     flex: 1;
     overflow-y: auto;
@@ -356,15 +356,17 @@ body {
     color: var(--text-muted);
 }
 
-/* IMPEGNI IN HOME (GRIGLIA DI TESSERE ORIZZONTALI COMPATTE) */
-.impegni-grid-home {
+/* GRIGLIA DI TESSERE ORIZZONTALI COMPATTE (USATA SIA PER IMPEGNI CHE PER RICETTE) */
+.impegni-grid-home,
+.ricette-grid-home {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     align-items: flex-start;
 }
 
-.impegno-quadratino-home {
+.impegno-quadratino-home,
+.ricetta-quadratino-home {
     width: 165px;
     min-height: 85px;
     padding: 10px 12px;
@@ -378,18 +380,21 @@ body {
     background-color: #ffffff;
 }
 
-.impegno-quadratino-home:hover {
+.impegno-quadratino-home:hover,
+.ricetta-quadratino-home:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 12px rgba(0,0,0,0.08);
 }
 
-.impegno-quadratino-top {
+.impegno-quadratino-top,
+.ricetta-quadratino-top {
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
 
-.impegno-quadratino-titolo {
+.impegno-quadratino-titolo,
+.ricetta-quadratino-titolo {
     font-weight: 700;
     font-size: 0.9rem;
     color: #1e293b;
@@ -397,13 +402,15 @@ body {
     line-height: 1.2;
 }
 
-.impegno-quadratino-creatore {
+.impegno-quadratino-creatore,
+.ricetta-quadratino-creatore {
     font-size: 0.72rem;
     font-weight: 600;
     color: #64748b;
 }
 
-.impegno-quadratino-bottom {
+.impegno-quadratino-bottom,
+.ricetta-quadratino-bottom {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
@@ -419,43 +426,10 @@ body {
     gap: 4px;
 }
 
-/* RICETTE IN HOME */
-.ricette-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.ricetta-item {
-    padding: 10px 14px;
-    border-radius: 8px;
-    border-left: 4px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.ricetta-row-top {
-    display: flex;
-    justify-content: space-between;
-}
-
-.ricetta-title {
-    font-weight: 700;
-    font-size: 0.9rem;
-}
-
-.ricetta-rating {
+.ricetta-quadratino-stelle {
     color: #f1c40f;
     font-size: 0.8rem;
-}
-
-.ricetta-row-bottom {
-    display: flex;
-    justify-content: flex-end;
-    font-size: 0.78rem;
-    color: var(--text-muted);
+    letter-spacing: 1px;
 }
 
 /* FOTO & VIDEO PREVIEW */
@@ -503,7 +477,8 @@ body {
         padding: 15px;
     }
 
-    .impegno-quadratino-home {
+    .impegno-quadratino-home,
+    .ricetta-quadratino-home {
         width: 145px;
     }
 }
