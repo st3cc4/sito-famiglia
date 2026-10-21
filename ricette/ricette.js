@@ -134,7 +134,7 @@ function renderGrigliaRicette(filtro) {
                 <div class="ricetta-card-top">
                     <span class="ricetta-card-categoria">${r.categoria || 'Generale'}</span>
                     <span class="ricetta-card-titolo">${r.nome || r.titolo || 'Ricetta'}</span>
-                    <span class="ricetta-card-creatore">di ${creatore}</span>
+                    <span class="ricetta-card-creatore">(${creatore})</span>
                 </div>
                 <div class="ricetta-card-bottom">
                     <span class="ricetta-card-stelle">${stelleStr}</span>
@@ -179,7 +179,6 @@ function renderGrigliaRicette(filtro) {
 function estraiIngredientiDaDoc(r) {
     let ris = [];
     
-    // 1. Se nel DB c'è il campo "ingredienti" ed è un Array
     if (Array.isArray(r.ingredienti)) {
         r.ingredienti.forEach(item => {
             if (typeof item === 'string') {
@@ -192,13 +191,9 @@ function estraiIngredientiDaDoc(r) {
                 ris.push({ nome: item.nome || '', quantita: item.quantita || '' });
             }
         });
-    } 
-    // 2. Se nel DB c'è "listaIngredienti"
-    else if (Array.isArray(r.listaIngredienti)) {
+    } else if (Array.isArray(r.listaIngredienti)) {
         ris = r.listaIngredienti;
-    }
-    // 3. Se nel DB "ingredienti" è una stringa separata da virgole
-    else if (typeof r.ingredienti === 'string' && r.ingredienti.trim().length > 0) {
+    } else if (typeof r.ingredienti === 'string' && r.ingredienti.trim().length > 0) {
         r.ingredienti.split(',').forEach(item => {
             const parti = item.split(' - ');
             ris.push({
@@ -215,16 +210,11 @@ function estraiIngredientiDaDoc(r) {
 function estraiPassaggiDaDoc(r) {
     let ris = [];
 
-    // 1. Se nel DB c'è "procedimento" ed è un Array
     if (Array.isArray(r.procedimento)) {
         ris = r.procedimento.filter(p => typeof p === 'string' && p.trim().length > 0);
-    }
-    // 2. Se nel DB c'è "listaPassaggi"
-    else if (Array.isArray(r.listaPassaggi)) {
+    } else if (Array.isArray(r.listaPassaggi)) {
         ris = r.listaPassaggi.filter(p => typeof p === 'string' && p.trim().length > 0);
-    }
-    // 3. Se nel DB "preparazione" o "procedimento" è una stringa multilinea
-    else {
+    } else {
         const testo = r.preparazione || r.procedimento;
         if (typeof testo === 'string' && testo.trim().length > 0) {
             ris = testo.split('\n').filter(p => p.trim().length > 0);
@@ -251,17 +241,16 @@ function apriModaleVisualizzaRicetta(r) {
             <div class="modal-content" style="max-width: 550px;">
                 <div class="modal-header">
                     <div>
-                        <h3 style="margin-bottom: 2px;">${r.nome || r.titolo || 'Ricetta'}</h3>
-                        <span style="font-size: 0.8rem; color: #64748b;">di ${r.creatore || 'Utente'} • ${r.categoria || 'Generale'}</span>
+                        <h3 style="margin-bottom: 4px;">${r.nome || r.titolo || 'Ricetta'}</h3>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">(${r.creatore || 'Utente'})</span>
+                            <span style="color: #f1c40f; font-size: 0.95rem; letter-spacing: 1px;">${stelleStr}</span>
+                        </div>
                     </div>
                     <button class="btn-close-modal" id="btn-close-view">&times;</button>
                 </div>
                 
-                <div class="ricetta-dettaglio-box">
-                    <div style="color: #f1c40f; font-size: 1.1rem; letter-spacing: 2px;">
-                        ${stelleStr}
-                    </div>
-
+                <div class="ricetta-dettaglio-box" style="margin-top: 15px;">
                     ${ingredientiList.length > 0 ? `
                         <div class="ricetta-dettaglio-section">
                             <h4><i class="fa-solid fa-basket-shopping"></i> Ingredienti</h4>
@@ -432,7 +421,6 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
             return;
         }
 
-        // Salviamo sia l'array strutturato per il nuovo form, sia l'array di stringhe "Farina 00 - 500 gr" per mantenere piena compatibilità con Firestore
         const listaIngredienti = [];
         const arrayStringheIngredienti = [];
         containerIng.querySelectorAll('.dynamic-row').forEach(row => {
