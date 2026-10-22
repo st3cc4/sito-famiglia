@@ -19,10 +19,10 @@ const db = getFirestore(app);
 
 // --- 1. Controllo Autenticazione e Permessi Schede all'avvio ---
 document.addEventListener('DOMContentLoaded', function() {
-    const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
+    const savedUser = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
     
     if (!savedUser) {
-        window.location.href = '../index.html';
+        window.location.replace('./index.html');
         return;
     }
 
@@ -115,9 +115,9 @@ if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
 const btnLogout = document.getElementById('btn-logout');
 if (btnLogout) {
     btnLogout.addEventListener('click', function() {
-        localStorage.removeItem('famiglia_pwa_user');
-        sessionStorage.removeItem('famiglia_pwa_user');
-        window.location.href = '../index.html';
+        localStorage.removeItem('famiglia_session');
+        sessionStorage.removeItem('famiglia_session');
+        window.location.replace('../index.html');
     });
 }
 
@@ -153,6 +153,7 @@ function initNavigation() {
     if (pageTitle) {
         pageTitle.textContent = 'FAMIGLIA - HOME';
     }
+    document.title = 'FAMIGLIA - HOME';
 
     loadSectionContent('dashboard', contentArea);
 }
@@ -271,7 +272,7 @@ function formatDataEuropea(dataString) {
 async function renderDashboard(container) {
     container.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--text-muted);">Caricamento dati in corso...</p>';
 
-    const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
+    const savedUser = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
     const userData = savedUser ? JSON.parse(savedUser) : {};
     const permessi = userData.permessi || { scadenze: true, impegni: true, media: true, ricette: true };
 
@@ -370,7 +371,6 @@ async function renderDashboard(container) {
         ricetteList.sort((a, b) => b.valutazioneNum - a.valutazioneNum);
         const top4Ricette = ricetteList.slice(0, 4);
 
-        // Recupero foto recenti per la Home
         const mediaSnapshot = await getDocs(collection(db, "media"));
         let mediaData = [];
         mediaSnapshot.forEach(function(doc) {
