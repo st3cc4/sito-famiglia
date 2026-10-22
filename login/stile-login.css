@@ -1,7 +1,3 @@
-/* ==========================================
-   STILI DEDICATI ALLA SCHERMATA DI LOGIN
-   ========================================== */
-
 * {
     box-sizing: border-box;
     margin: 0;
@@ -9,133 +5,86 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body.login-body {
-    background: linear-gradient(135deg, #2c3e50, #4ca1af);
-    min-height: 100vh;
+body {
+    background-color: #f4f6f9;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    height: 100vh;
+    color: #333;
 }
 
 .login-container {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 400px;
 }
 
-.login-card {
-    background: #ffffff;
-    padding: 30px 25px;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+.login-header {
     text-align: center;
-}
-
-.login-card h2 {
-    color: #333333;
-    margin-bottom: 8px;
-    font-size: 26px;
-}
-
-.login-subtitle {
-    color: #666666;
-    font-size: 14px;
     margin-bottom: 25px;
 }
 
-.input-group {
-    margin-bottom: 20px;
-    text-align: left;
+.login-header h2 {
+    color: #2b3e50;
+    margin-bottom: 8px;
+    font-size: 24px;
 }
 
-.input-group label {
+.login-header p {
+    color: #666;
+    font-size: 14px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
     display: block;
     margin-bottom: 8px;
-    color: #444444;
     font-weight: 600;
     font-size: 14px;
+    color: #444;
 }
 
-.input-group select,
-.input-group input[type="password"],
-.input-group input[type="text"] {
+.form-group input {
     width: 100%;
-    padding: 12px 14px;
-    border: 1px solid #cccccc;
-    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
     font-size: 15px;
     outline: none;
-    transition: border-color 0.3s;
-    background-color: #f9f9f9;
+    transition: border-color 0.2s;
 }
 
-.input-group select:focus,
-.input-group input:focus {
-    border-color: #4ca1af;
-    background-color: #ffffff;
+.form-group input:focus {
+    border-color: #2b3e50;
 }
 
-.password-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.password-wrapper input {
-    padding-right: 45px;
-}
-
-.toggle-pwd-btn {
-    position: absolute;
-    right: 10px;
-    background: transparent;
-    border: none;
-    color: #777777;
-    cursor: pointer;
-    padding: 8px;
-    font-size: 16px;
-}
-
-.toggle-pwd-btn:hover {
-    color: #333333;
-}
-
-.remember-group {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    margin-bottom: 20px;
-    font-size: 14px;
-    color: #555555;
-}
-
-.remember-group input[type="checkbox"] {
-    margin-right: 8px;
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
+.error-msg {
+    color: #e74c3c;
+    font-size: 13px;
+    margin-bottom: 15px;
+    text-align: center;
 }
 
 .btn-login {
     width: 100%;
     padding: 12px;
-    background: #2c3e50;
-    color: #ffffff;
+    background-color: #2b3e50;
+    color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: background-color 0.2s;
 }
 
 .btn-login:hover {
-    background: #1a252f;
-}
-
-.error-message {
-    margin-top: 15px;
-    color: #e74c3c;
-    font-size: 14px;
-    min-height: 20px;
+    background-color: #1a252f;
 }
