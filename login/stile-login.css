@@ -65,6 +65,51 @@ body {
     border-color: #2b3e50;
 }
 
+/* Wrapper per il campo password e il bottone occhio */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrapper input {
+    padding-right: 45px;
+}
+
+.btn-eye {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 16px;
+}
+
+.btn-eye:hover {
+    color: #2b3e50;
+}
+
+.form-group-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.form-group-checkbox input {
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.form-group-checkbox label {
+    font-size: 14px;
+    color: #444;
+    cursor: pointer;
+    user-select: none;
+}
+
 .error-msg {
     color: #e74c3c;
     font-size: 13px;
