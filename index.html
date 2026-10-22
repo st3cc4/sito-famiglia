@@ -2,51 +2,34 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FAMIGLIA - LOGIN</title>
-    <!-- Foglio di stile specifico per il Login dalla cartella login -->
-    <link rel="stylesheet" href="login/stile-login.css">
-    <!-- Icone FontAwesome per la password -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Manifest per la PWA -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FAMIGLIA - Login</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2b3e50">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="login-body">
-
+<body>
     <div class="login-container">
-        <div class="login-card">
-            <h2>Accedi al Sito Famiglia</h2>
-            <p class="login-subtitle">Inserisci le tue credenziali per accedere</p>
-
-            <form id="login-form">
-                <div class="input-group">
-                    <label for="username">Nome Utente</label>
-                    <input type="text" id="username" placeholder="Inserisci il tuo nome" required autocomplete="username">
-                </div>
-
-                <div class="input-group">
-                    <label for="password">Password</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="password" placeholder="Inserisci password" required autocomplete="current-password">
-                        <button type="button" id="toggle-password" class="toggle-pwd-btn">
-                            <i class="fa-solid fa-eye" id="eye-icon"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="remember-group">
-                    <label>
-                        <input type="checkbox" id="remember-me" checked> Ricordami su questo dispositivo
-                    </label>
-                </div>
-
-                <button type="submit" class="btn-login">Accedi</button>
-                <div id="login-error" class="error-message"></div>
-            </form>
+        <div class="login-header">
+            <h2><i class="fa-solid fa-house-chimney"></i> FAMIGLIA</h2>
+            <p>Inserisci la password per accedere</p>
         </div>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required placeholder="La tua password">
+            </div>
+            <div id="error-msg" class="error-msg" style="display: none;">Password errata. Riprova.</div>
+            <button type="submit" class="btn-login">Accedi</button>
+        </form>
     </div>
 
-    <!-- Script di gestione del login dalla cartella login -->
-    <script type="module" src="login/login.js"></script>
+    <script type="module" src="login.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js');
+        }
+    </script>
 </body>
 </html>
