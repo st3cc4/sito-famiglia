@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (utenteTrovato) {
                 localStorage.setItem('famiglia_pwa_user', JSON.stringify(utenteTrovato));
-                window.location.href = './home/home.html';
+                window.location.href = '../home/home.html';
             } else {
                 errorMsg.style.display = 'block';
             }
