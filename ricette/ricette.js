@@ -25,7 +25,7 @@ export async function initRicetteSection(container) {
     await caricaEDisegnaRicette(container);
 }
 
-// Carica utenti e relativi colori
+// Carica utenti e colori
 async function caricaUtenti() {
     try {
         const utentiSnapshot = await getDocs(collection(db, "utenti"));
@@ -52,6 +52,17 @@ function hexToRgba(hex, alpha = 0.12) {
     const g = (num >> 8) & 255;
     const b = num & 255;
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// Calcola la media stelle dalle valutazioni degli utenti
+function calcolaMediaValutazione(valutazioniObj, valPredefinita = 5) {
+    if (!valutazioniObj || typeof valutazioniObj !== 'object') {
+        return Number(valPredefinita) || 5;
+    }
+    const valori = Object.values(valutazioniObj).map(v => Number(v)).filter(v => !isNaN(v));
+    if (valori.length === 0) return Number(valPredefinita) || 5;
+    const somma = valori.reduce((acc, curr) => acc + curr, 0);
+    return Math.round(somma / valori.length);
 }
 
 // Carica da Firestore e disegna le ricette
@@ -95,8 +106,12 @@ async function caricaEDisegnaRicette(container) {
             });
         });
 
-        // Ordina per valutazione decrescente
-        listaRicette.sort((a, b) => Number(b.valutazione || 5) - Number(a.valutazione || 5));
+        // Ordina per media valutazione decrescente
+        listaRicette.sort((a, b) => {
+            const medA = calcolaMediaValutazione(a.valutazioniUtenti, a.valutazione);
+            const medB = calcolaMediaValutazione(b.valutazioniUtenti, b.valutazione);
+            return medB - medA;
+        });
 
         renderGrigliaRicette('');
 
@@ -126,7 +141,7 @@ function renderGrigliaRicette(filtro) {
         const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
         const bgTrasparente = hexToRgba(coloreUtente, 0.12);
         
-        const valNum = Number(r.valutazione || 5);
+        const valNum = calcolaMediaValutazione(r.valutazioniUtenti, r.valutazione);
         const stelleStr = '★'.repeat(valNum) + '☆'.repeat(5 - valNum);
 
         return `
@@ -175,18 +190,13 @@ function renderGrigliaRicette(filtro) {
     });
 }
 
-// ESTRAZIONE STRUTTURATA DEGLI INGREDIENTI
 function estraiIngredientiDaDoc(r) {
     let ris = [];
-    
     if (Array.isArray(r.ingredienti)) {
         r.ingredienti.forEach(item => {
             if (typeof item === 'string') {
                 const parti = item.split(' - ');
-                ris.push({
-                    nome: parti[0] ? parti[0].trim() : item,
-                    quantita: parti[1] ? parti[1].trim() : ''
-                });
+                ris.push({ nome: parti[0] ? parti[0].trim() : item, quantita: parti[1] ? parti[1].trim() : '' });
             } else if (item && typeof item === 'object') {
                 ris.push({ nome: item.nome || '', quantita: item.quantita || '' });
             }
@@ -196,20 +206,14 @@ function estraiIngredientiDaDoc(r) {
     } else if (typeof r.ingredienti === 'string' && r.ingredienti.trim().length > 0) {
         r.ingredienti.split(',').forEach(item => {
             const parti = item.split(' - ');
-            ris.push({
-                nome: parti[0] ? parti[0].trim() : item.trim(),
-                quantita: parti[1] ? parti[1].trim() : ''
-            });
+            ris.push({ nome: parti[0] ? parti[0].trim() : item.trim(), quantita: parti[1] ? parti[1].trim() : '' });
         });
     }
-
     return ris;
 }
 
-// ESTRAZIONE STRUTTURATA DEI PASSAGGI / PROCEDIMENTO
 function estraiPassaggiDaDoc(r) {
     let ris = [];
-
     if (Array.isArray(r.procedimento)) {
         ris = r.procedimento.filter(p => typeof p === 'string' && p.trim().length > 0);
     } else if (Array.isArray(r.listaPassaggi)) {
@@ -220,18 +224,23 @@ function estraiPassaggiDaDoc(r) {
             ris = testo.split('\n').filter(p => p.trim().length > 0);
         }
     }
-
     return ris;
 }
 
-// MODALE DI VISUALIZZAZIONE DETTAGLIATA RICETTA
+// MODALE DETTAGLIO RICETTA CON VALUTAZIONE PERSONALE UTENTE
 function apriModaleVisualizzaRicetta(r) {
+    const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
+    const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
+    const nomeUtenteCorrente = (userData.nome || 'Utente').toLowerCase();
+
     const modalId = 'modal-view-ricetta';
     const prevModal = document.getElementById(modalId);
     if (prevModal) prevModal.remove();
 
-    const valNum = Number(r.valutazione || 5);
-    const stelleStr = '★'.repeat(valNum) + '☆'.repeat(5 - valNum);
+    const valutazioniObj = r.valutazioniUtenti || {};
+    const votoPersonaleUtente = Number(valutazioniObj[nomeUtenteCorrente] || 0);
+    const mediaVal = calcolaMediaValutazione(valutazioniObj, r.valutazione);
+    const stelleStrMedia = '★'.repeat(mediaVal) + '☆'.repeat(5 - mediaVal);
 
     const ingredientiList = estraiIngredientiDaDoc(r);
     const passaggiList = estraiPassaggiDaDoc(r);
@@ -241,16 +250,26 @@ function apriModaleVisualizzaRicetta(r) {
             <div class="modal-content" style="max-width: 550px;">
                 <div class="modal-header">
                     <div>
-                        <h3 style="margin-bottom: 4px;">${r.nome || r.titolo || 'Ricetta'}</h3>
+                        <h3 style="margin-bottom: 4px; font-size: 1.25rem;">${r.nome || r.titolo || 'Ricetta'}</h3>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">(${r.creatore || 'Utente'})</span>
-                            <span style="color: #f1c40f; font-size: 0.95rem; letter-spacing: 1px;">${stelleStr}</span>
+                            <span style="font-size: 0.88rem; color: #64748b; font-weight: 600;">(${r.creatore || 'Utente'})</span>
+                            <span style="color: #f1c40f; font-size: 0.95rem; letter-spacing: 1px;" title="Media valutazione">${stelleStrMedia}</span>
                         </div>
                     </div>
                     <button class="btn-close-modal" id="btn-close-view">&times;</button>
                 </div>
                 
-                <div class="ricetta-dettaglio-box" style="margin-top: 15px;">
+                <div class="ricetta-dettaglio-box" style="margin-top: 12px;">
+                    <!-- VALUTAZIONE PERSONALE DEGLI ALTRI UTENTI -->
+                    <div class="rating-interactive-box">
+                        <span style="font-size: 0.88rem; font-weight: 600; color: #78350f;">Il tuo voto:</span>
+                        <div id="stars-container-user">
+                            ${[1, 2, 3, 4, 5].map(starIndex => `
+                                <span class="star-rating-btn ${starIndex <= votoPersonaleUtente ? 'active' : ''}" data-value="${starIndex}">★</span>
+                            `).join('')}
+                        </div>
+                    </div>
+
                     ${ingredientiList.length > 0 ? `
                         <div class="ricetta-dettaglio-section">
                             <h4><i class="fa-solid fa-basket-shopping"></i> Ingredienti</h4>
@@ -287,14 +306,45 @@ function apriModaleVisualizzaRicetta(r) {
     const modalEl = document.getElementById(modalId);
     document.getElementById('btn-close-view').addEventListener('click', () => modalEl.remove());
     document.getElementById('btn-close-view-footer').addEventListener('click', () => modalEl.remove());
-    
+
+    // Clic sulle stelle per esprimere la valutazione personalizzata
+    const starBtns = modalEl.querySelectorAll('.star-rating-btn');
+    starBtns.forEach(star => {
+        star.addEventListener('click', async () => {
+            const valVoto = Number(star.getAttribute('data-value'));
+            
+            const valutazioniAggiornate = r.valutazioniUtenti || {};
+            valutazioniAggiornate[nomeUtenteCorrente] = valVoto;
+
+            try {
+                await updateDoc(doc(db, "ricette", r.id), {
+                    valutazioniUtenti: valutazioniAggiornate
+                });
+                r.valutazioniUtenti = valutazioniAggiornate;
+                
+                // Aggiorna le stelle visivamente
+                starBtns.forEach(s => {
+                    const v = Number(s.getAttribute('data-value'));
+                    if (v <= valVoto) s.classList.add('active');
+                    else s.classList.remove('active');
+                });
+
+                const contentArea = document.getElementById('content-area');
+                await caricaEDisegnaRicette(contentArea);
+
+            } catch (err) {
+                console.error("Errore salvataggio voto:", err);
+            }
+        });
+    });
+
     document.getElementById('btn-edit-from-view').addEventListener('click', () => {
         modalEl.remove();
         apriModaleFormRicetta(r);
     });
 }
 
-// MODALE FORM INSERIMENTO / MODIFICA RICETTA
+// MODALE FORM INSERIMENTO / MODIFICA RICETTA (SENZA VALUTAZIONE PREDEFINITA)
 function apriModaleFormRicetta(ricettaEsistente = null) {
     const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
     const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
@@ -360,21 +410,9 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
                         </button>
                     </div>
 
-                    <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 10px; flex-wrap: wrap;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <label for="ric-valutazione" style="margin-bottom: 0; font-size: 0.88rem; font-weight: 600; color: #334155;">Valutazione:</label>
-                            <select id="ric-valutazione" style="width: auto; padding: 6px 10px; font-size: 0.88rem; border-radius: 6px; border: 1px solid #cbd5e1;">
-                                <option value="5" ${isModifica && Number(ricettaEsistente.valutazione) === 5 ? 'selected' : ''}>★★★★★ (5/5)</option>
-                                <option value="4" ${isModifica && Number(ricettaEsistente.valutazione) === 4 ? 'selected' : ''}>★★★★☆ (4/5)</option>
-                                <option value="3" ${isModifica && Number(ricettaEsistente.valutazione) === 3 ? 'selected' : ''}>★★★☆☆ (3/5)</option>
-                                <option value="2" ${isModifica && Number(ricettaEsistente.valutazione) === 2 ? 'selected' : ''}>★★☆☆☆ (2/5)</option>
-                                <option value="1" ${isModifica && Number(ricettaEsistente.valutazione) === 1 ? 'selected' : ''}>★☆☆☆☆ (1/5)</option>
-                            </select>
-                        </div>
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <button type="button" class="btn-modal cancel" id="btn-cancel-modal">Annulla</button>
-                            <button type="submit" class="btn-modal save">Salva Ricetta</button>
-                        </div>
+                    <div class="modal-footer" style="display: flex; justify-content: flex-end; align-items: center; margin-top: 20px; gap: 8px;">
+                        <button type="button" class="btn-modal cancel" id="btn-cancel-modal">Annulla</button>
+                        <button type="submit" class="btn-modal save">Salva Ricetta</button>
                     </div>
                 </form>
             </div>
@@ -414,7 +452,6 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
 
         const nome = document.getElementById('ric-nome').value.trim();
         const categoria = document.getElementById('ric-categoria').value;
-        const valutazione = document.getElementById('ric-valutazione').value;
 
         if (!nome) {
             alert("Inserisci il nome della ricetta.");
@@ -443,12 +480,12 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
         const payload = {
             nome: nome,
             categoria: categoria,
-            valutazione: Number(valutazione),
             ingredienti: arrayStringheIngredienti,
             procedimento: listaPassaggi,
             listaIngredienti: listaIngredienti,
             listaPassaggi: listaPassaggi,
-            creatore: isModifica ? ricettaEsistente.creatore : userData.nome
+            creatore: isModifica ? ricettaEsistente.creatore : userData.nome,
+            valutazioniUtenti: isModifica ? (ricettaEsistente.valutazioniUtenti || {}) : {}
         };
 
         try {
