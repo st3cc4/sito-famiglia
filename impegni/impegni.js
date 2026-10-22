@@ -87,10 +87,20 @@ async function caricaEDisegnaSettimana(container) {
 
     container.innerHTML = `
         <div class="impegni-container">
+            <!-- TASTO HOME E TITOLO (stile Scadenze) -->
+            <div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 16px 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <button class="btn-modal cancel" id="btn-torna-home" style="display: flex; align-items: center; gap: 6px; font-weight: 600; cursor: pointer;">
+                    <i class="fa-solid fa-arrow-left"></i> Home
+                </button>
+                <h2 style="font-size: 1.1rem; font-weight: 700; color: #2b3e50; margin: 0;"><i class="fa-solid fa-calendar-days"></i> GESTIONE IMPEGNI</h2>
+                <div style="width: 75px;"></div>
+            </div>
+
+            <!-- HEADER NAVIGAZIONE SETTIMANA -->
             <div class="impegni-header">
-                <button class="btn-settimana" id="btn-sett-prec"><i class="fa-solid fa-chevron-left"></i> Sett. Prec.</button>
-                <div class="settimana-titolo" id="titolo-settimana">${testoSettimana}</div>
-                <button class="btn-settimana" id="btn-sett-succ">Sett. Succ. <i class="fa-solid fa-chevron-right"></i></button>
+                <button class="btn-week-nav" id="btn-sett-prec"><i class="fa-solid fa-chevron-left"></i> Sett. Prec.</button>
+                <div class="current-week-label" id="titolo-settimana">${testoSettimana}</div>
+                <button class="btn-week-nav" id="btn-sett-succ">Sett. Succ. <i class="fa-solid fa-chevron-right"></i></button>
             </div>
 
             <div class="giorni-list" id="giorni-container">
@@ -98,6 +108,14 @@ async function caricaEDisegnaSettimana(container) {
             </div>
         </div>
     `;
+
+    document.getElementById('btn-torna-home').addEventListener('click', () => {
+        if (window.selezionaScheda) {
+            window.selezionaScheda('dashboard');
+        } else {
+            window.location.reload();
+        }
+    });
 
     document.getElementById('btn-sett-prec').addEventListener('click', () => {
         dataInizioSettimana.setDate(dataInizioSettimana.getDate() - 7);
@@ -133,6 +151,7 @@ function disegnaGiorniSettimana(appuntamenti) {
     if (!giorniContainer) return;
 
     const nomiGiorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+    const classiCSSGiorni = ['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica'];
     let htmlGiorni = '';
 
     for (let i = 0; i < 7; i++) {
@@ -141,20 +160,19 @@ function disegnaGiorniSettimana(appuntamenti) {
 
         const dataIso = formatDateIso(dataGiorno);
         const dataLeggibile = `${nomiGiorni[i]} (${formatDateShort(dataGiorno)})`;
+        const classeGiorno = classiCSSGiorni[i];
 
         const impegniDelGiorno = appuntamenti.filter(app => app.data === dataIso);
         impegniDelGiorno.sort((a, b) => (a.oraInizio || '').localeCompare(b.oraInizio || ''));
 
         htmlGiorni += `
-            <div class="giorno-card">
-                <div class="giorno-header">
+            <div class="giorno-card ${classeGiorno}">
+                <!-- L'intera intestazione è cliccabile per aggiungere l'impegno, senza scritta Aggiungi -->
+                <div class="giorno-header btn-add-giorno" data-date="${dataIso}" style="cursor: pointer;" title="Clicca per aggiungere un impegno">
                     <span class="giorno-titolo">${dataLeggibile}</span>
-                    <button class="btn-add-impegno" data-date="${dataIso}">
-                        <i class="fa-solid fa-plus-circle"></i> Aggiungi
-                    </button>
                 </div>
-                <div class="impegni-grid-day">
-                    ${impegniDelGiorno.map(imp => {
+                <div class="giorno-body">
+                    ${impegniDelGiorno.length > 0 ? impegniDelGiorno.map(imp => {
                         const creatore = imp.creatore || 'Utente';
                         const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
                         const bgTrasparente = hexToRgba(coloreUtente, 0.12);
@@ -174,13 +192,15 @@ function disegnaGiorniSettimana(appuntamenti) {
                                     <span class="impegno-quadratino-ora">
                                         <i class="fa-regular fa-clock"></i> ${orarioStr}
                                     </span>
-                                    <button class="btn-delete-impegno" data-id="${imp.id}" title="Elimina">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
+                                    <div class="impegno-quadratino-azioni">
+                                        <button class="btn-icon-quadratino delete btn-delete-impegno" data-id="${imp.id}" title="Elimina">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         `;
-                    }).join('')}
+                    }).join('') : '<span class="giorno-empty">Nessun impegno in programma</span>'}
                 </div>
             </div>
         `;
@@ -188,13 +208,15 @@ function disegnaGiorniSettimana(appuntamenti) {
 
     giorniContainer.innerHTML = htmlGiorni;
 
-    giorniContainer.querySelectorAll('.btn-add-impegno').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+    // Evento click sull'intestazione del giorno per aprire il modale di aggiunta
+    giorniContainer.querySelectorAll('.btn-add-giorno').forEach(headerEl => {
+        headerEl.addEventListener('click', (e) => {
             const dateIso = e.currentTarget.getAttribute('data-date');
             apriModaleFormImpegno(null, dateIso);
         });
     });
 
+    // Evento click sul quadratino dell'impegno per modificarlo
     giorniContainer.querySelectorAll('.impegno-quadratino').forEach(card => {
         card.addEventListener('click', (e) => {
             if (e.target.closest('.btn-delete-impegno')) return;
@@ -204,6 +226,7 @@ function disegnaGiorniSettimana(appuntamenti) {
         });
     });
 
+    // Evento eliminazione impegno
     giorniContainer.querySelectorAll('.btn-delete-impegno').forEach(btnDel => {
         btnDel.addEventListener('click', async (e) => {
             e.stopPropagation();
@@ -236,7 +259,7 @@ function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '')
 
     const modalHtml = `
         <div class="modal-overlay" id="${modalId}">
-            <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-content">
                 <div class="modal-header">
                     <h3>${isModifica ? 'Modifica Impegno' : 'Nuovo Impegno'}</h3>
                     <button class="btn-close-modal" id="btn-close-impegno">&times;</button>
@@ -244,7 +267,7 @@ function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '')
                 <form id="form-impegno">
                     <div class="form-group">
                         <label for="imp-titolo">Titolo / Descrizione</label>
-                        <input type="text" id="imp-titolo" value="${isModifica ? impegnoEsistente.titolo || '' : ''}" required placeholder="Es. Turno di lavoro, Visita medica...">
+                        <input type="text" id="imp-titolo" value="${isModifica ? impegnoEsistente.titolo || '' : ''}" required placeholder="Es. Turno di lavoro, Visita...">
                     </div>
 
                     <div class="form-group">
@@ -252,18 +275,18 @@ function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '')
                         <input type="date" id="imp-data" value="${dataVal}" required>
                     </div>
 
-                    <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
-                        <div class="form-group" style="flex: 1; min-width: 130px; margin-bottom: 0;">
+                    <div style="display: flex; gap: 10px;">
+                        <div class="form-group" style="flex: 1;">
                             <label for="imp-ora-inizio">Ora Inizio</label>
                             <input type="time" id="imp-ora-inizio" value="${isModifica ? impegnoEsistente.oraInizio || '' : ''}">
                         </div>
-                        <div class="form-group" style="flex: 1; min-width: 130px; margin-bottom: 0;">
+                        <div class="form-group" style="flex: 1;">
                             <label for="imp-ora-fine">Ora Fine</label>
                             <input type="time" id="imp-ora-fine" value="${isModifica ? impegnoEsistente.oraFine || '' : ''}">
                         </div>
                     </div>
 
-                    <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 8px;">
+                    <div class="modal-footer">
                         <button type="button" class="btn-modal cancel" id="btn-cancel-impegno">Annulla</button>
                         <button type="submit" class="btn-modal save">Salva</button>
                     </div>
