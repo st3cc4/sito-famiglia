@@ -1,4 +1,3 @@
-// --- Import SDK di Firebase ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
     getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc 
@@ -25,7 +24,6 @@ export async function initRicetteSection(container) {
     await caricaEDisegnaRicette(container);
 }
 
-// Carica utenti e colori
 async function caricaUtenti() {
     try {
         const utentiSnapshot = await getDocs(collection(db, "utenti"));
@@ -41,7 +39,6 @@ async function caricaUtenti() {
     }
 }
 
-// Convertitore colore HEX -> RGBA Trasparente
 function hexToRgba(hex, alpha = 0.12) {
     if (!hex) return `rgba(52, 152, 219, ${alpha})`;
     let c = hex.replace('#', '');
@@ -54,7 +51,6 @@ function hexToRgba(hex, alpha = 0.12) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-// Calcola la media stelle dalle valutazioni degli utenti
 function calcolaMediaValutazione(valutazioniObj, valPredefinita = 5) {
     if (!valutazioniObj || typeof valutazioniObj !== 'object') {
         return Number(valPredefinita) || 5;
@@ -65,7 +61,6 @@ function calcolaMediaValutazione(valutazioniObj, valPredefinita = 5) {
     return Math.round(somma / valori.length);
 }
 
-// Carica da Firestore e disegna le ricette
 async function caricaEDisegnaRicette(container) {
     container.innerHTML = `
         <div class="ricette-container">
@@ -106,7 +101,6 @@ async function caricaEDisegnaRicette(container) {
             });
         });
 
-        // Ordina per media valutazione decrescente
         listaRicette.sort((a, b) => {
             const medA = calcolaMediaValutazione(a.valutazioniUtenti, a.valutazione);
             const medB = calcolaMediaValutazione(b.valutazioniUtenti, b.valutazione);
@@ -227,7 +221,6 @@ function estraiPassaggiDaDoc(r) {
     return ris;
 }
 
-// MODALE DETTAGLIO RICETTA CON VALUTAZIONE PERSONALE UTENTE
 function apriModaleVisualizzaRicetta(r) {
     const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
     const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
@@ -260,7 +253,6 @@ function apriModaleVisualizzaRicetta(r) {
                 </div>
                 
                 <div class="ricetta-dettaglio-box" style="margin-top: 12px;">
-                    <!-- VALUTAZIONE PERSONALE DEGLI ALTRI UTENTI -->
                     <div class="rating-interactive-box">
                         <span style="font-size: 0.88rem; font-weight: 600; color: #78350f;">Il tuo voto:</span>
                         <div id="stars-container-user">
@@ -307,12 +299,10 @@ function apriModaleVisualizzaRicetta(r) {
     document.getElementById('btn-close-view').addEventListener('click', () => modalEl.remove());
     document.getElementById('btn-close-view-footer').addEventListener('click', () => modalEl.remove());
 
-    // Clic sulle stelle per esprimere la valutazione personalizzata
     const starBtns = modalEl.querySelectorAll('.star-rating-btn');
     starBtns.forEach(star => {
         star.addEventListener('click', async () => {
             const valVoto = Number(star.getAttribute('data-value'));
-            
             const valutazioniAggiornate = r.valutazioniUtenti || {};
             valutazioniAggiornate[nomeUtenteCorrente] = valVoto;
 
@@ -322,7 +312,6 @@ function apriModaleVisualizzaRicetta(r) {
                 });
                 r.valutazioniUtenti = valutazioniAggiornate;
                 
-                // Aggiorna le stelle visivamente
                 starBtns.forEach(s => {
                     const v = Number(s.getAttribute('data-value'));
                     if (v <= valVoto) s.classList.add('active');
@@ -344,7 +333,6 @@ function apriModaleVisualizzaRicetta(r) {
     });
 }
 
-// MODALE FORM INSERIMENTO / MODIFICA RICETTA (SENZA VALUTAZIONE PREDEFINITA)
 function apriModaleFormRicetta(ricettaEsistente = null) {
     const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
     const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
