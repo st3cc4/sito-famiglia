@@ -9,7 +9,6 @@
     padding-bottom: 30px;
 }
 
-/* HEADER CON RICERCA E AGGIUNTA */
 .ricette-header {
     display: flex;
     justify-content: space-between;
@@ -69,7 +68,6 @@
     background-color: #1e2b37;
 }
 
-/* GRIGLIA QUADRATINI / TESSERE RICETTE */
 .ricette-grid-main {
     display: flex;
     flex-wrap: wrap;
@@ -158,7 +156,6 @@
     color: #e74c3c;
 }
 
-/* STRUTTURA RIGHE DINAMICHE FORM INGREDIENTI E PASSAGGI */
 .dynamic-row {
     display: flex;
     gap: 8px;
@@ -216,7 +213,6 @@
     text-decoration: underline;
 }
 
-/* LISTE IN MODALE DETTAGLIO - TESTI PIÙ GRANDI PER MOBILE */
 .ricetta-dettaglio-box {
     display: flex;
     flex-direction: column;
@@ -245,7 +241,7 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    font-size: 1.02rem; /* TESTO INGRANDITO */
+    font-size: 1.02rem;
     color: #1e293b;
 }
 
@@ -253,7 +249,6 @@
     line-height: 1.5;
 }
 
-/* VALUTAZIONE STELLE INTERATTIVA */
 .rating-interactive-box {
     display: flex;
     align-items: center;
@@ -284,21 +279,17 @@
         flex-direction: column;
         align-items: stretch;
     }
-    
     .ricette-actions {
         justify-content: space-between;
     }
-
     .search-ricette-input {
         max-width: 100%;
         flex: 1;
     }
-
     .ricetta-card-single {
         width: 155px;
     }
-
     .ricetta-list-numerata {
-        font-size: 1rem; /* GRANDE E LEGGIBILE SU MOBILE */
+        font-size: 1rem;
     }
 }
