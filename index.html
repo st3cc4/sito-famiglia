@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FAMIGLIA - Login</title>
+    <title>Famiglia - Login</title>
     <link rel="stylesheet" href="./login/stile-login.css">
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#2b3e50">
@@ -13,7 +13,7 @@
     <div class="login-container">
         <div class="login-header">
             <h2><i class="fa-solid fa-house-chimney"></i> FAMIGLIA</h2>
-            <p>Inserisci nome utente e password</p>
+            <p>Inserisci le tue credenziali per accedere</p>
         </div>
         <form id="login-form">
             <div class="form-group">
@@ -22,9 +22,20 @@
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" required placeholder="La tua password">
+                <div class="password-wrapper">
+                    <input type="password" id="password" required placeholder="La tua password">
+                    <button type="button" id="toggle-password" class="btn-eye">
+                        <i class="fa-solid fa-eye" id="eye-icon"></i>
+                    </button>
+                </div>
             </div>
-            <div id="error-msg" class="error-msg" style="display: none;">Credenziali errate. Riprova.</div>
+            
+            <div class="form-group-checkbox">
+                <input type="checkbox" id="remember-me">
+                <label for="remember-me">Ricordami</label>
+            </div>
+
+            <div id="error-msg" class="error-msg" style="display: none;"></div>
             <button type="submit" class="btn-login">Accedi</button>
         </form>
     </div>
