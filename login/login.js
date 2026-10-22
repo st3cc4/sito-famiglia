@@ -9,84 +9,91 @@ const errorMsg = document.getElementById('error-msg');
 const togglePasswordBtn = document.getElementById('toggle-password');
 const eyeIcon = document.getElementById('eye-icon');
 
-// 1. Controllo all'avvio: se l'utente aveva scelto "Ricordami", effettua l'accesso automatico
+// Controllo sessione all'avvio: reindirizza solo se c'è una sessione attiva valida
 window.addEventListener('DOMContentLoaded', () => {
-    const savedSession = localStorage.getItem('famiglia_session');
+    const savedSession = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
     if (savedSession) {
         try {
             const userData = JSON.parse(savedSession);
             if (userData && userData.nome) {
-                // Reindirizzamento automatico alla home
-                window.location.href = '../home.html';
-                return;
+                window.location.replace('./home.html');
             }
         } catch (e) {
             localStorage.removeItem('famiglia_session');
+            sessionStorage.removeItem('famiglia_session');
         }
     }
 });
 
-// 2. Gestione Mostra/Nascondi Password
-togglePasswordBtn.addEventListener('click', () => {
-    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-    passwordInput.setAttribute('type', type);
-    
-    if (type === 'text') {
-        eyeIcon.classList.remove('fa-eye');
-        eyeIcon.classList.add('fa-eye-slash');
-    } else {
-        eyeIcon.classList.remove('fa-eye-slash');
-        eyeIcon.classList.add('fa-eye');
-    }
-});
+// Mostra o nascondi la password
+if (togglePasswordBtn) {
+    togglePasswordBtn.addEventListener('click', () => {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        if (type === 'text') {
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash');
+        } else {
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+        }
+    });
+}
 
-// 3. Gestione invio form di login
-loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const usernameVal = usernameInput.value.trim();
-    const passwordVal = passwordInput.value.trim();
+// Gestione invio modulo di login
+if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const usernameVal = usernameInput.value.trim();
+        const passwordVal = passwordInput.value.trim();
 
-    errorMsg.style.display = 'none';
+        if (errorMsg) errorMsg.style.display = 'none';
 
-    try {
-        // Formatta la prima lettera maiuscola per coincidere con l'ID del documento su Firestore (es. "Paolo")
-        const docId = usernameVal.charAt(0).toUpperCase() + usernameVal.slice(1).toLowerCase();
-        const userRef = doc(db, "utenti", docId);
-        const userSnap = await getDoc(userRef);
+        try {
+            // Formattazione ID per Firestore (es. "Paolo")
+            const docId = usernameVal.charAt(0).toUpperCase() + usernameVal.slice(1).toLowerCase();
+            const userRef = doc(db, "utenti", docId);
+            const userSnap = await getDoc(userRef);
 
-        if (userSnap.exists()) {
-            const userData = userSnap.data();
-            
-            // Verifica della password
-            if (userData.password === passwordVal) {
-                const sessionData = {
-                    nome: userData.nome,
-                    ruolo: userData.ruolo,
-                    permessi: userData.permessi
-                };
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                
+                if (userData.password === passwordVal) {
+                    const sessionData = {
+                        nome: userData.nome || docId,
+                        ruolo: userData.ruolo || 'user',
+                        permessi: userData.permessi || {}
+                    };
 
-                // Se "Ricordami" è spuntato, salviamo in localStorage per i prossimi accessi
-                if (rememberMeCheckbox.checked) {
-                    localStorage.setItem('famiglia_session', JSON.stringify(sessionData));
+                    // Se "Ricordami" è spuntato salva in localStorage, altrimenti in sessionStorage
+                    if (rememberMeCheckbox && rememberMeCheckbox.checked) {
+                        localStorage.setItem('famiglia_session', JSON.stringify(sessionData));
+                    } else {
+                        sessionStorage.setItem('famiglia_session', JSON.stringify(sessionData));
+                    }
+
+                    // Vai alla home
+                    window.location.replace('./home.html');
                 } else {
-                    // Altrimenti salviamo solo per la sessione corrente del browser (sessionStorage)
-                    sessionStorage.setItem('famiglia_session', JSON.stringify(sessionData));
+                    if (errorMsg) {
+                        errorMsg.textContent = "Password errata. Riprova.";
+                        errorMsg.style.display = 'block';
+                    }
                 }
-
-                // Vai alla home
-                window.location.href = '../home.html';
             } else {
-                errorMsg.textContent = "Password errata. Riprova.";
+                if (errorMsg) {
+                    errorMsg.textContent = "Utente non trovato.";
+                    errorMsg.style.display = 'block';
+                }
+            }
+        } catch (error) {
+            console.error("Errore di accesso:", error);
+            if (errorMsg) {
+                errorMsg.textContent = "Errore di connessione al database.";
                 errorMsg.style.display = 'block';
             }
-        } else {
-            errorMsg.textContent = "Utente non trovato.";
-            errorMsg.style.display = 'block';
         }
-    } catch (error) {
-        console.error("Errore di accesso:", error);
-        errorMsg.textContent = "Errore di connessione al database.";
-        errorMsg.style.display = 'block';
-    }
-});
+    });
+}
