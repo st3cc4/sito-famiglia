@@ -1,108 +1,53 @@
-// Importazione dei moduli Firebase SDK v9+
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Configurazione Firebase dal tuo progetto
 const firebaseConfig = {
     apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
     authDomain: "sito-famiglia.firebaseapp.com",
     projectId: "sito-famiglia",
-    storageBucket: "sito-famiglia.firebasestorage.app",
-    messagingSenderId: "932164677551",
-    appId: "1:932164677551:web:9930052845521ca5ef895a",
-    measurementId: "G-NYRQDTWM3"
+    storageBucket: "sito-famiglia.appspot.com",
+    messagingSenderId: "93216467751",
+    appId: "1:93216467751:web:9930052845521ca5ef895a",
+    measurementId: "G-NYRQJDTWM3"
 };
 
-// Inizializzazione Firebase e Firestore
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Elementi DOM
-const loginForm = document.getElementById('login-form');
-const usernameInput = document.getElementById('username');
-const passwordInput = document.getElementById('password');
-const togglePasswordBtn = document.getElementById('toggle-password');
-const eyeIcon = document.getElementById('eye-icon');
-const rememberMeCheckbox = document.getElementById('remember-me');
-const loginError = document.getElementById('login-error');
-
-// --- 1. Controllo Accesso Automatico all'avvio ---
 document.addEventListener('DOMContentLoaded', () => {
-    const savedUser = localStorage.getItem('famiglia_pwa_user');
-    if (savedUser) {
-        // Se c'è un utente salvato, vai direttamente alla HOME
-        window.location.href = 'home.html';
-    }
-});
+    const loginForm = document.getElementById('login-form');
+    const passwordInput = document.getElementById('password');
+    const errorMsg = document.getElementById('error-msg');
 
-// --- 2. Mostra / Nascondi Password ---
-togglePasswordBtn.addEventListener('click', () => {
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        eyeIcon.classList.remove('fa-eye');
-        eyeIcon.classList.add('fa-eye-slash');
-    } else {
-        passwordInput.type = 'password';
-        eyeIcon.classList.remove('fa-eye-slash');
-        eyeIcon.classList.add('fa-eye');
-    }
-});
+    if (!loginForm) return;
 
-// --- 3. Gestione Submit del Form di Login ---
-loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    loginError.textContent = '';
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pwdInserita = passwordInput.value.trim();
+        errorMsg.style.display = 'none';
 
-    const enteredName = usernameInput.value.trim().toLowerCase();
-    const enteredPassword = passwordInput.value.trim();
+        try {
+            const utentiSnapshot = await getDocs(collection(db, "utenti"));
+            let utenteTrovato = null;
 
-    if (!enteredName || !enteredPassword) {
-        loginError.textContent = 'Inserisci nome e password.';
-        return;
-    }
-
-    try {
-        // Leggiamo tutti gli utenti dalla collezione "utenti" per confrontare il nome senza problemi di maiuscole/minuscole
-        const utentiRef = collection(db, "utenti");
-        const querySnapshot = await getDocs(utentiRef);
-
-        let userFound = false;
-        let userData = null;
-
-        querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const dbName = (data.nome || "").trim().toLowerCase();
-
-            if (dbName === enteredName) {
-                if (data.password === enteredPassword) {
-                    userFound = true;
-                    userData = {
-                        id: docSnap.id,
-                        nome: data.nome,
-                        colore: data.colore || "#2c3e50",
-                        permessi: data.permessi || {},
-                        ruolo: data.ruolo || "utente"
-                    };
+            utentiSnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                if (data.password === pwdInserita) {
+                    utenteTrovato = { id: docSnap.id, ...data };
                 }
-            }
-        });
+            });
 
-        if (userFound) {
-            // Salviamo i dati dell'utente per la sessione corrente o permanente
-            if (rememberMeCheckbox.checked) {
-                localStorage.setItem('famiglia_pwa_user', JSON.stringify(userData));
+            if (utenteTrovato) {
+                localStorage.setItem('famiglia_pwa_user', JSON.stringify(utenteTrovato));
+                window.location.href = './home/home.html';
             } else {
-                sessionStorage.setItem('famiglia_pwa_user', JSON.stringify(userData));
+                errorMsg.style.display = 'block';
             }
 
-            // Reindirizzamento alla schermata HOME
-            window.location.href = 'home.html';
-        } else {
-            loginError.textContent = 'Nome o password errati. Riprova.';
+        } catch (err) {
+            console.error("Errore durante il login:", err);
+            errorMsg.textContent = "Errore di connessione. Riprova.";
+            errorMsg.style.display = 'block';
         }
-
-    } catch (error) {
-        console.error("Errore durante il login:", error);
-        loginError.textContent = 'Si è verificato un errore di connessione.';
-    }
+    });
 });
