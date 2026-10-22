@@ -274,6 +274,92 @@
     transform: scale(1.15);
 }
 
+/* --- MODALI (SCORRIMENTO E ALTEZZA FISSA) --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-content {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 550px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 10px;
+}
+
+.btn-close-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #64748b;
+    line-height: 1;
+}
+
+.btn-close-modal:hover {
+    color: #1e293b;
+}
+
+.modal-footer {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 15px;
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.btn-modal {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    font-size: 0.9rem;
+}
+
+.btn-modal.save {
+    background-color: #2b3e50;
+    color: white;
+}
+
+.btn-modal.save:hover {
+    background-color: #1a252f;
+}
+
+.btn-modal.cancel {
+    background-color: #e2e8f0;
+    color: #334155;
+}
+
+.btn-modal.cancel:hover {
+    background-color: #cbd5e1;
+}
+
 @media (max-width: 600px) {
     .ricette-header {
         flex-direction: column;
