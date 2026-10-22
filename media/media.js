@@ -1,4 +1,3 @@
-// --- Import SDK di Firebase ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
     getFirestore, collection, getDocs, addDoc, doc, deleteDoc 
@@ -58,7 +57,6 @@ function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-// Funzione di compressione automatica delle immagini pesanti
 function comprimiImmagine(file, maxWidth = 1200, maxHeight = 1200, qualita = 0.7) {
     return new Promise((resolve) => {
         const reader = new FileReader();
@@ -142,7 +140,6 @@ async function caricaEDisegnaMedia(container) {
         });
 
         categorieEsistenti = Array.from(catMap).sort();
-
         renderGrigliaMedia('');
 
     } catch (err) {
@@ -342,7 +339,6 @@ function apriModaleFormMedia() {
         fileTipo = file.type.startsWith('video/') ? 'video' : 'foto';
 
         if (fileTipo === 'foto') {
-            // Compressione automatica dell'immagine prima del salvataggio
             fileDataFormatted = await comprimiImmagine(file);
             txtFileSelected.textContent = `Pronto: ${file.name}`;
         } else {
