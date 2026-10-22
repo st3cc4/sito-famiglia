@@ -25,16 +25,7 @@
         </form>
     </div>
 
-    <script type="module" src="./login.js"></script>
-    <script>
-        // Cancella eventuali Service Worker vecchi bloccati in cache
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for (let registration of registrations) {
-                    registration.unregister();
-                }
-            });
-        }
-    </script>
+    <!-- Percorso corretto verso la sottocartella login -->
+    <script type="module" src="./login/login.js"></script>
 </body>
 </html>
