@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FAMIGLIA - Login</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#2b3e50">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -25,10 +25,15 @@
         </form>
     </div>
 
-    <script type="module" src="login.js"></script>
+    <script type="module" src="./login.js"></script>
     <script>
+        // Cancella eventuali Service Worker vecchi bloccati in cache
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW non registrato:', err));
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for (let registration of registrations) {
+                    registration.unregister();
+                }
+            });
         }
     </script>
 </body>
