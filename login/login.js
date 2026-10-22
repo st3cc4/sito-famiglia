@@ -1,53 +1,52 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { db } from '../home/firebase-config.js'; // Assicurati che il percorso del config di firebase sia corretto
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
-    authDomain: "sito-famiglia.firebaseapp.com",
-    projectId: "sito-famiglia",
-    storageBucket: "sito-famiglia.appspot.com",
-    messagingSenderId: "93216467751",
-    appId: "1:93216467751:web:9930052845521ca5ef895a",
-    measurementId: "G-NYRQJDTWM3"
-};
+const loginForm = document.getElementById('login-form');
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
+const errorMsg = document.getElementById('error-msg');
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const username = usernameInput.value.trim().toLowerCase(); // Normalizza minuscolo come in Firestore
+    const password = passwordInput.value.trim();
 
-document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('login-form');
-    const passwordInput = document.getElementById('password');
-    const errorMsg = document.getElementById('error-msg');
+    errorMsg.style.display = 'none';
 
-    if (!loginForm) return;
+    try {
+        // Cerchiamo il documento nella collezione 'utenti' usando il nome inserito (es. "paolo")
+        // Dalla tua struttura, l'id del documento sembra essere il nome con l'iniziale maiuscola o minuscola. 
+        // Proviamo a capitalizzare la prima lettera o a cercarlo direttamente.
+        const docId = username.charAt(0).toUpperCase() + username.slice(1);
+        const userRef = doc(db, "utenti", docId);
+        const userSnap = await getDoc(userRef);
 
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const pwdInserita = passwordInput.value.trim();
-        errorMsg.style.display = 'none';
+        if (userSnap.exists()) {
+            const userData = userSnap.data();
+            
+            // Verifica della password salvata su Firestore
+            if (userData.password === password) {
+                // Salviamo la sessione localmente
+                localStorage.setItem('famiglia_user', JSON.stringify({
+                    nome: userData.nome,
+                    ruolo: userData.ruolo,
+                    permessi: userData.permessi
+                }));
 
-        try {
-            const utentiSnapshot = await getDocs(collection(db, "utenti"));
-            let utenteTrovato = null;
-
-            utentiSnapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                if (data.password === pwdInserita) {
-                    utenteTrovato = { id: docSnap.id, ...data };
-                }
-            });
-
-            if (utenteTrovato) {
-                localStorage.setItem('famiglia_pwa_user', JSON.stringify(utenteTrovato));
-                window.location.href = '../home/home.html';
+                // Reindirizzamento alla home
+                window.location.href = '../home.html';
             } else {
+                errorMsg.textContent = "Password errata.";
                 errorMsg.style.display = 'block';
             }
-
-        } catch (err) {
-            console.error("Errore durante il login:", err);
-            errorMsg.textContent = "Errore di connessione. Riprova.";
+        } else {
+            errorMsg.textContent = "Utente non trovato.";
             errorMsg.style.display = 'block';
         }
-    });
+    } catch (error) {
+        console.error("Errore durante il login:", error);
+        errorMsg.textContent = "Errore di connessione al database.";
+        errorMsg.style.display = 'block';
+    }
 });
