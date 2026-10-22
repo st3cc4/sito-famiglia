@@ -26,7 +26,6 @@ export async function initMediaSection(container) {
     await caricaEDisegnaMedia(container);
 }
 
-// Carica utenti e colori
 async function caricaUtenti() {
     try {
         const utentiSnapshot = await getDocs(collection(db, "utenti"));
@@ -42,7 +41,6 @@ async function caricaUtenti() {
     }
 }
 
-// Convertitore colore HEX -> RGBA Trasparente
 function hexToRgba(hex, alpha = 0.12) {
     if (!hex) return `rgba(52, 152, 219, ${alpha})`;
     let c = hex.replace('#', '');
@@ -55,20 +53,55 @@ function hexToRgba(hex, alpha = 0.12) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-// Capitalize prima lettera
 function capitalize(str) {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-// Carica da Firestore e disegna i media
+// Funzione di compressione automatica delle immagini pesanti
+function comprimiImmagine(file, maxWidth = 1200, maxHeight = 1200, qualita = 0.7) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const dataUrlCompressed = canvas.toDataURL('image/jpeg', qualita);
+                resolve(dataUrlCompressed);
+            };
+        };
+    });
+}
+
 async function caricaEDisegnaMedia(container) {
     container.innerHTML = `
         <div class="media-container">
             <div class="media-header">
                 <h2><i class="fa-solid fa-photo-film"></i> FOTO E VIDEO</h2>
                 <div class="media-actions">
-                    <input type="text" id="search-media" class="search-media-input" placeholder="Cerca foto o video...">
+                    <input type="text" id="search-media" class="search-media-input" placeholder="Cerca categoria...">
                     <button class="btn-add-media" id="btn-nuovo-media">
                         <i class="fa-solid fa-circle-plus"></i> Carica Foto/Video
                     </button>
@@ -123,9 +156,8 @@ function renderGrigliaMedia(filtro) {
     if (!gridEl) return;
 
     const mediaFiltrati = listaMedia.filter(m => {
-        const tit = (m.titolo || '').toLowerCase();
         const cat = (m.categoria || '').toLowerCase();
-        return tit.includes(filtro) || cat.includes(filtro);
+        return cat.includes(filtro);
     });
 
     if (mediaFiltrati.length === 0) {
@@ -144,13 +176,13 @@ function renderGrigliaMedia(filtro) {
                 <div class="media-preview-box">
                     ${isVideo 
                         ? `<video src="${m.url}" preload="metadata"></video><span class="media-badge-type"><i class="fa-solid fa-play"></i> Video</span>`
-                        : `<img src="${m.url}" alt="${m.titolo}" loading="lazy"><span class="media-badge-type"><i class="fa-solid fa-image"></i> Foto</span>`
+                        : `<img src="${m.url}" alt="${m.categoria}" loading="lazy"><span class="media-badge-type"><i class="fa-solid fa-image"></i> Foto</span>`
                     }
                 </div>
                 <div class="media-card-info">
-                    <span class="media-card-title">${m.titolo || 'Senza titolo'}</span>
+                    <span class="media-card-title">${m.categoria}</span>
                     <div class="media-card-footer">
-                        <span>(${creatore}) • ${m.categoria}</span>
+                        <span>(${creatore})</span>
                         <button class="btn-delete-media" title="Elimina" data-id="${m.id}">
                             <i class="fa-solid fa-trash-can"></i>
                         </button>
@@ -187,7 +219,6 @@ function renderGrigliaMedia(filtro) {
     });
 }
 
-// MODALE DI VISUALIZZAZIONE FULL SCREEN
 function apriModaleVisualizzaMedia(m) {
     const modalId = 'modal-view-media';
     const prevModal = document.getElementById(modalId);
@@ -200,8 +231,8 @@ function apriModaleVisualizzaMedia(m) {
             <div class="modal-content" style="max-width: 750px; text-align: center;">
                 <div class="modal-header">
                     <div>
-                        <h3 style="margin-bottom: 2px;">${m.titolo || 'Dettaglio Media'}</h3>
-                        <span style="font-size: 0.8rem; color: #64748b;">di ${m.creatore || 'Utente'} • Categoria: ${m.categoria || 'Generale'}</span>
+                        <h3 style="margin-bottom: 2px;">${m.categoria}</h3>
+                        <span style="font-size: 0.8rem; color: #64748b;">Caricato da ${m.creatore || 'Utente'}</span>
                     </div>
                     <button class="btn-close-modal" id="btn-close-view-media">&times;</button>
                 </div>
@@ -209,7 +240,7 @@ function apriModaleVisualizzaMedia(m) {
                 <div class="media-view-box">
                     ${isVideo 
                         ? `<video src="${m.url}" controls autoplay class="media-view-display"></video>`
-                        : `<img src="${m.url}" alt="${m.titolo}" class="media-view-display">`
+                        : `<img src="${m.url}" alt="${m.categoria}" class="media-view-display">`
                     }
                 </div>
 
@@ -227,7 +258,6 @@ function apriModaleVisualizzaMedia(m) {
     document.getElementById('btn-close-view-media-footer').addEventListener('click', () => modalEl.remove());
 }
 
-// MODALE DI CARICAMENTO FOTO/VIDEO DA DISPOSITIVO NATIVO
 function apriModaleFormMedia() {
     const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
     const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
@@ -247,13 +277,7 @@ function apriModaleFormMedia() {
                 </div>
                 <form id="form-media">
                     <div class="form-group">
-                        <label for="med-titolo">Titolo / Descrizione</label>
-                        <input type="text" id="med-titolo" required placeholder="Es. Compleanno Elena, Vacanza...">
-                    </div>
-
-                    <!-- SCELTA CATEGORIA ESISTENTE O NUOVA -->
-                    <div class="form-group">
-                        <label for="med-cat-select">Categoria</label>
+                        <label for="med-cat-select">Categoria / Album</label>
                         <select id="med-cat-select">
                             ${optionsCat}
                             <option value="__NUOVA__">+ Crea Nuova Categoria...</option>
@@ -265,7 +289,6 @@ function apriModaleFormMedia() {
                         <input type="text" id="med-nuova-cat" placeholder="Es. Vacanze, Feste..." value="${categorieEsistenti.length === 0 ? 'Generale' : ''}">
                     </div>
 
-                    <!-- CARICAMENTO DA TELEFONO / DISPOSITIVO -->
                     <div class="form-group">
                         <label>Seleziona Foto o Video dal Dispositivo</label>
                         <div class="file-upload-box" id="box-file-upload">
@@ -277,7 +300,7 @@ function apriModaleFormMedia() {
 
                     <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 8px;">
                         <button type="button" class="btn-modal cancel" id="btn-cancel-media">Annulla</button>
-                        <button type="submit" class="btn-modal save">Salva</button>
+                        <button type="submit" class="btn-modal save" id="btn-save-media">Salva</button>
                     </div>
                 </form>
             </div>
@@ -296,8 +319,9 @@ function apriModaleFormMedia() {
     const boxUpload = document.getElementById('box-file-upload');
     const inputFile = document.getElementById('input-file-native');
     const txtFileSelected = document.getElementById('txt-file-selected');
+    const btnSave = document.getElementById('btn-save-media');
 
-    let fileBase64 = '';
+    let fileDataFormatted = '';
     let fileTipo = 'foto';
 
     catSelect.addEventListener('change', () => {
@@ -310,18 +334,25 @@ function apriModaleFormMedia() {
 
     boxUpload.addEventListener('click', () => inputFile.click());
 
-    inputFile.addEventListener('change', (e) => {
+    inputFile.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        txtFileSelected.textContent = `Selezionato: ${file.name}`;
+        txtFileSelected.textContent = `Ottimizzazione: ${file.name}...`;
         fileTipo = file.type.startsWith('video/') ? 'video' : 'foto';
 
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            fileBase64 = event.target.result;
-        };
-        reader.readAsDataURL(file);
+        if (fileTipo === 'foto') {
+            // Compressione automatica dell'immagine prima del salvataggio
+            fileDataFormatted = await comprimiImmagine(file);
+            txtFileSelected.textContent = `Pronto: ${file.name}`;
+        } else {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                fileDataFormatted = event.target.result;
+                txtFileSelected.textContent = `Pronto: ${file.name}`;
+            };
+            reader.readAsDataURL(file);
+        }
     });
 
     const chiudiModale = () => modalEl.remove();
@@ -332,25 +363,25 @@ function apriModaleFormMedia() {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const titolo = document.getElementById('med-titolo').value.trim();
         let categoria = '';
-
         if (catSelect.value === '__NUOVA__' || categorieEsistenti.length === 0) {
             categoria = capitalize(document.getElementById('med-nuova-cat').value.trim());
         } else {
             categoria = catSelect.value;
         }
 
-        if (!titolo || !categoria || !fileBase64) {
-            alert("Seleziona una foto o video prima di salvare.");
+        if (!categoria || !fileDataFormatted) {
+            alert("Seleziona prima una foto o video dal dispositivo.");
             return;
         }
 
+        btnSave.disabled = true;
+        btnSave.textContent = 'Salvataggio...';
+
         const payload = {
-            titolo: titolo,
             categoria: categoria,
             tipo: fileTipo,
-            url: fileBase64,
+            url: fileDataFormatted,
             creatore: userData.nome,
             dataCreazione: new Date().toISOString()
         };
@@ -364,6 +395,8 @@ function apriModaleFormMedia() {
         } catch (err) {
             console.error("Errore salvataggio media:", err);
             alert("Si è verificato un errore durante il salvataggio.");
+            btnSave.disabled = false;
+            btnSave.textContent = 'Salva';
         }
     });
 }
