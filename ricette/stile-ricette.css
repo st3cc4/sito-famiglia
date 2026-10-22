@@ -104,7 +104,7 @@
 }
 
 .ricetta-card-categoria {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     font-weight: 700;
     color: #64748b;
     text-transform: uppercase;
@@ -113,14 +113,14 @@
 
 .ricetta-card-titolo {
     font-weight: 700;
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     color: #1e293b;
     word-break: break-word;
-    line-height: 1.2;
+    line-height: 1.25;
 }
 
 .ricetta-card-creatore {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: #64748b;
 }
@@ -134,7 +134,7 @@
 
 .ricetta-card-stelle {
     color: #f1c40f;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     letter-spacing: 1px;
 }
 
@@ -216,7 +216,7 @@
     text-decoration: underline;
 }
 
-/* LISTE NUMERATE IN MODALE DETTAGLIO */
+/* LISTE IN MODALE DETTAGLIO - TESTI PIÙ GRANDI PER MOBILE */
 .ricetta-dettaglio-box {
     display: flex;
     flex-direction: column;
@@ -225,31 +225,58 @@
 
 .ricetta-dettaglio-section {
     background-color: #f8fafc;
-    padding: 14px;
-    border-radius: 8px;
+    padding: 16px;
+    border-radius: 10px;
     border: 1px solid #e2e8f0;
 }
 
 .ricetta-dettaglio-section h4 {
-    font-size: 0.9rem;
+    font-size: 1.05rem;
+    font-weight: 700;
     color: #2b3e50;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 
 .ricetta-list-numerata {
-    margin-left: 20px;
+    margin-left: 22px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    font-size: 0.9rem;
-    color: #334155;
+    gap: 10px;
+    font-size: 1.02rem; /* TESTO INGRANDITO */
+    color: #1e293b;
 }
 
 .ricetta-list-numerata li {
-    line-height: 1.4;
+    line-height: 1.5;
+}
+
+/* VALUTAZIONE STELLE INTERATTIVA */
+.rating-interactive-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #fffbeb;
+    border: 1px solid #fef3c7;
+    padding: 10px 14px;
+    border-radius: 8px;
+}
+
+.star-rating-btn {
+    font-size: 1.4rem;
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: color 0.15s, transform 0.1s;
+}
+
+.star-rating-btn.active, .star-rating-btn:hover {
+    color: #f59e0b;
+}
+
+.star-rating-btn:hover {
+    transform: scale(1.15);
 }
 
 @media (max-width: 600px) {
@@ -271,11 +298,7 @@
         width: 155px;
     }
 
-    .dynamic-row {
-        flex-wrap: wrap;
-    }
-
-    .dynamic-row .input-quantita {
-        max-width: 100px;
+    .ricetta-list-numerata {
+        font-size: 1rem; /* GRANDE E LEGGIBILE SU MOBILE */
     }
 }
