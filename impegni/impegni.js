@@ -17,28 +17,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let currentWeekStartDate = new Date();
 let utentiCollezioni = {};
-let appuntamentiSettimana = [];
+let dataInizioSettimana = getLunedimorning(new Date());
 
-// Funzione principale di inizializzazione della sezione Impegni
 export async function initImpegniSection(container) {
-    const day = currentWeekStartDate.getDay();
-    const diff = currentWeekStartDate.getDate() - day + (day === 0 ? -6 : 1);
-    currentWeekStartDate = new Date(currentWeekStartDate.setDate(diff));
-    currentWeekStartDate.setHours(0, 0, 0, 0);
-
     await caricaUtenti();
     await caricaEDisegnaSettimana(container);
 }
 
-// Carica gli utenti e i relativi colori da Firebase
 async function caricaUtenti() {
     try {
         const utentiSnapshot = await getDocs(collection(db, "utenti"));
         utentiCollezioni = {};
-        utentiSnapshot.forEach(doc => {
-            const data = doc.data();
+        utentiSnapshot.forEach(docSnap => {
+            const data = docSnap.data();
             if (data.nome) {
                 utentiCollezioni[data.nome.toLowerCase()] = data.colore || '#3498db';
             }
@@ -48,33 +40,33 @@ async function caricaUtenti() {
     }
 }
 
-// Calcola i 7 giorni della settimana selezionata (Lunedì - Domenica)
-function getGiorniSettimana(startDate) {
-    const giorni = [];
-    const nomiGiorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
-    const classiGiorni = ['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica'];
-
-    for (let i = 0; i < 7; i++) {
-        const d = new Date(startDate);
-        d.setDate(startDate.getDate() + i);
-        
-        const anno = d.getFullYear();
-        const mese = String(d.getMonth() + 1).padStart(2, '0');
-        const giorno = String(d.getDate()).padStart(2, '0');
-        const dataIso = `${anno}-${mese}-${giorno}`;
-        const dataFormattata = `${giorno}-${mese}-${anno}`;
-
-        giorni.push({
-            nomeGiorno: nomiGiorni[i],
-            classeGiorno: classiGiorni[i],
-            dataIso: dataIso,
-            dataFormattata: dataFormattata
-        });
-    }
-    return giorni;
+function getLunedimorning(d) {
+    const date = new Date(d);
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    const lunedi = new Date(date.setDate(diff));
+    lunedi.setHours(0, 0, 0, 0);
+    return lunedi;
 }
 
-// Convertitore colore HEX -> RGBA Trasparente
+function formatDateIso(d) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function formatDateShort(d) {
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${day}/${month}`;
+}
+
+function capitalize(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 function hexToRgba(hex, alpha = 0.12) {
     if (!hex) return `rgba(52, 152, 219, ${alpha})`;
     let c = hex.replace('#', '');
@@ -87,172 +79,192 @@ function hexToRgba(hex, alpha = 0.12) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-// Disegna l'interfaccia con i giorni e le tessere
 async function caricaEDisegnaSettimana(container) {
-    const giorni = getGiorniSettimana(currentWeekStartDate);
-    const dataInizioStr = giorni[0].dataFormattata;
-    const dataFineStr = giorni[6].dataFormattata;
+    const domenica = new Date(dataInizioSettimana);
+    domenica.setDate(domenica.getDate() + 6);
+
+    const testoSettimana = `${formatDateShort(dataInizioSettimana)} - ${formatDateShort(domenica)}`;
 
     container.innerHTML = `
         <div class="impegni-container">
             <div class="impegni-header">
-                <h2>IMPEGNI SETTIMANALI</h2>
-                <div class="week-nav">
-                    <button class="btn-week-nav" id="btn-prev-week"><i class="fa-solid fa-chevron-left"></i> Sett. Prec.</button>
-                    <span class="current-week-label">${dataInizioStr} al ${dataFineStr}</span>
-                    <button class="btn-week-nav" id="btn-next-week">Sett. Succ. <i class="fa-solid fa-chevron-right"></i></button>
-                </div>
+                <button class="btn-settimana" id="btn-sett-prec"><i class="fa-solid fa-chevron-left"></i> Sett. Prec.</button>
+                <div class="settimana-titolo" id="titolo-settimana">${testoSettimana}</div>
+                <button class="btn-settimana" id="btn-sett-succ">Sett. Succ. <i class="fa-solid fa-chevron-right"></i></button>
             </div>
 
-            <div class="giorni-list">
-                ${giorni.map(g => `
-                    <div class="giorno-card ${g.classeGiorno}" data-iso="${g.dataIso}">
-                        <div class="giorno-header">
-                            <span class="giorno-titolo">${g.nomeGiorno} (${g.dataFormattata})</span>
-                            <button class="btn-add-impegno" data-iso="${g.dataIso}">
-                                <i class="fa-solid fa-circle-plus"></i> Aggiungi
-                            </button>
-                        </div>
-                        <div class="giorno-body" id="body-${g.dataIso}">
-                            <p class="giorno-empty">Caricamento in corso...</p>
-                        </div>
-                    </div>
-                `).join('')}
+            <div class="giorni-list" id="giorni-container">
+                <p style="color: #64748b; padding: 20px;">Caricamento impegni in corso...</p>
             </div>
         </div>
     `;
 
-    document.getElementById('btn-prev-week').addEventListener('click', () => {
-        currentWeekStartDate.setDate(currentWeekStartDate.getDate() - 7);
+    document.getElementById('btn-sett-prec').addEventListener('click', () => {
+        dataInizioSettimana.setDate(dataInizioSettimana.getDate() - 7);
         caricaEDisegnaSettimana(container);
     });
 
-    document.getElementById('btn-next-week').addEventListener('click', () => {
-        currentWeekStartDate.setDate(currentWeekStartDate.getDate() + 7);
+    document.getElementById('btn-sett-succ').addEventListener('click', () => {
+        dataInizioSettimana.setDate(dataInizioSettimana.getDate() + 7);
         caricaEDisegnaSettimana(container);
-    });
-
-    container.querySelectorAll('.btn-add-impegno').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const dataIso = e.currentTarget.getAttribute('data-iso');
-            apriModaleImpegno(dataIso);
-        });
     });
 
     try {
         const appuntamentiSnapshot = await getDocs(collection(db, "appuntamenti"));
-        appuntamentiSettimana = [];
+        const tuttiAppuntamenti = [];
 
         appuntamentiSnapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            appuntamentiSettimana.push({
+            tuttiAppuntamenti.push({
                 id: docSnap.id,
-                ...data
+                ...docSnap.data()
             });
         });
 
-        giorni.forEach(g => {
-            const bodyEl = document.getElementById(`body-${g.dataIso}`);
-            const impegniDelGiorno = appuntamentiSettimana.filter(imp => imp.data === g.dataIso);
+        disegnaGiorniSettimana(tuttiAppuntamenti);
 
-            impegniDelGiorno.sort((a, b) => (a.oraInizio || '').localeCompare(b.oraInizio || ''));
+    } catch (err) {
+        console.error("Errore caricamento appuntamenti:", err);
+        document.getElementById('giorni-container').innerHTML = '<p style="color:red;">Errore durante il caricamento degli impegni.</p>';
+    }
+}
 
-            if (impegniDelGiorno.length === 0) {
-                bodyEl.innerHTML = `<p class="giorno-empty">Nessun impegno in programma</p>`;
-            } else {
-                bodyEl.innerHTML = impegniDelGiorno.map(imp => {
-                    const creatore = imp.creatore || 'Utente';
-                    const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
-                    const bgTrasparente = hexToRgba(coloreUtente, 0.12);
-                    const orarioStr = imp.oraInizio ? imp.oraInizio : 'Tutto il gg';
+function disegnaGiorniSettimana(appuntamenti) {
+    const giorniContainer = document.getElementById('giorni-container');
+    if (!giorniContainer) return;
 
-                    return `
-                        <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left-color: ${coloreUtente};">
-                            <div class="impegno-quadratino-top">
-                                <span class="impegno-quadratino-titolo">${imp.titolo || 'Impegno'}</span>
-                                <span class="impegno-quadratino-creatore">(${creatore})</span>
-                            </div>
-                            <div class="impegno-quadratino-bottom">
-                                <span class="impegno-quadratino-ora">
-                                    <i class="fa-regular fa-clock"></i> ${orarioStr}
-                                </span>
-                                <div class="impegno-quadratino-azioni">
-                                    <button class="btn-icon-quadratino delete" title="Elimina impegno" data-id="${imp.id}">
+    const nomiGiorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+    let htmlGiorni = '';
+
+    for (let i = 0; i < 7; i++) {
+        const dataGiorno = new Date(dataInizioSettimana);
+        dataGiorno.setDate(dataGiorno.getDate() + i);
+
+        const dataIso = formatDateIso(dataGiorno);
+        const dataLeggibile = `${nomiGiorni[i]} (${formatDateShort(dataGiorno)})`;
+
+        const impegniDelGiorno = appuntamenti.filter(app => app.data === dataIso);
+        impegniDelGiorno.sort((a, b) => (a.oraInizio || '').localeCompare(b.oraInizio || ''));
+
+        htmlGiorni += `
+            <div class="giorno-card">
+                <div class="giorno-header">
+                    <span class="giorno-titolo">${dataLeggibile}</span>
+                    <button class="btn-add-impegno" data-date="${dataIso}">
+                        <i class="fa-solid fa-plus-circle"></i> Aggiungi
+                    </button>
+                </div>
+                <div class="impegni-grid-day">
+                    ${impegniDelGiorno.map(imp => {
+                        const creatore = imp.creatore || 'Utente';
+                        const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
+                        const bgTrasparente = hexToRgba(coloreUtente, 0.12);
+                        
+                        let orarioStr = imp.oraInizio || 'Tutto il gg';
+                        if (imp.oraInizio && imp.oraFine) {
+                            orarioStr = `${imp.oraInizio} - ${imp.oraFine}`;
+                        }
+
+                        return `
+                            <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left-color: ${coloreUtente};">
+                                <div class="impegno-quadratino-top">
+                                    <span class="impegno-quadratino-titolo">${capitalize(imp.titolo)}</span>
+                                    <span class="impegno-quadratino-creatore">(${creatore})</span>
+                                </div>
+                                <div class="impegno-quadratino-bottom">
+                                    <span class="impegno-quadratino-ora">
+                                        <i class="fa-regular fa-clock"></i> ${orarioStr}
+                                    </span>
+                                    <button class="btn-delete-impegno" data-id="${imp.id}" title="Elimina">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                    `;
-                }).join('');
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    }
 
-                bodyEl.querySelectorAll('.impegno-quadratino').forEach(card => {
-                    card.addEventListener('click', (e) => {
-                        if (e.target.closest('.delete')) return;
-                        const idImp = card.getAttribute('data-id');
-                        const impegnoObj = appuntamentiSettimana.find(i => i.id === idImp);
-                        if (impegnoObj) {
-                            apriModaleImpegno(impegnoObj.data, impegnoObj);
-                        }
-                    });
-                });
+    giorniContainer.innerHTML = htmlGiorni;
 
-                bodyEl.querySelectorAll('.btn-icon-quadratino.delete').forEach(btnDel => {
-                    btnDel.addEventListener('click', async (e) => {
-                        e.stopPropagation();
-                        const idImp = btnDel.getAttribute('data-id');
-                        if (confirm("Sei sicuro di voler eliminare questo impegno?")) {
-                            try {
-                                await deleteDoc(doc(db, "appuntamenti", idImp));
-                                await caricaEDisegnaSettimana(container);
-                            } catch (err) {
-                                console.error("Errore durante la cancellazione:", err);
-                                alert("Impossibile eliminare l'impegno.");
-                            }
-                        }
-                    });
-                });
+    giorniContainer.querySelectorAll('.btn-add-impegno').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const dateIso = e.currentTarget.getAttribute('data-date');
+            apriModaleFormImpegno(null, dateIso);
+        });
+    });
+
+    giorniContainer.querySelectorAll('.impegno-quadratino').forEach(card => {
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('.btn-delete-impegno')) return;
+            const idImp = card.getAttribute('data-id');
+            const impObj = appuntamenti.find(a => a.id === idImp);
+            if (impObj) apriModaleFormImpegno(impObj);
+        });
+    });
+
+    giorniContainer.querySelectorAll('.btn-delete-impegno').forEach(btnDel => {
+        btnDel.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const idImp = btnDel.getAttribute('data-id');
+            if (confirm("Sei sicuro di voler eliminare questo impegno?")) {
+                try {
+                    await deleteDoc(doc(db, "appuntamenti", idImp));
+                    const contentArea = document.getElementById('content-area');
+                    await caricaEDisegnaSettimana(contentArea);
+                } catch (err) {
+                    console.error("Errore cancellazione impegno:", err);
+                    alert("Impossibile eliminare l'impegno.");
+                }
             }
         });
-
-    } catch (err) {
-        console.error("Errore durante il caricamento impegni:", err);
-    }
+    });
 }
 
-// MODALE DI INSERIMENTO / MODIFICA (Solo Ora di Inizio)
-function apriModaleImpegno(dataIso, impegnoEsistente = null) {
+function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '') {
     const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
     const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
 
     const isModifica = !!impegnoEsistente;
-    const modalId = 'modal-impegno';
+    const modalId = 'modal-form-impegno';
 
     const prevModal = document.getElementById(modalId);
     if (prevModal) prevModal.remove();
 
+    const dataVal = isModifica ? impegnoEsistente.data : (dataPredefinitaIso || formatDateIso(new Date()));
+
     const modalHtml = `
         <div class="modal-overlay" id="${modalId}">
-            <div class="modal-content">
+            <div class="modal-content" style="max-width: 480px;">
                 <div class="modal-header">
                     <h3>${isModifica ? 'Modifica Impegno' : 'Nuovo Impegno'}</h3>
-                    <button class="btn-close-modal" id="btn-close-modal">&times;</button>
+                    <button class="btn-close-modal" id="btn-close-impegno">&times;</button>
                 </div>
                 <form id="form-impegno">
                     <div class="form-group">
                         <label for="imp-titolo">Titolo / Descrizione</label>
-                        <input type="text" id="imp-titolo" value="${isModifica ? impegnoEsistente.titolo : ''}" required placeholder="Es. Turno, Visita medica, Calcio...">
+                        <input type="text" id="imp-titolo" value="${isModifica ? impegnoEsistente.titolo || '' : ''}" required placeholder="Es. Turno di lavoro, Visita medica...">
                     </div>
+
                     <div class="form-group">
                         <label for="imp-data">Data</label>
-                        <input type="date" id="imp-data" value="${dataIso}" required>
+                        <input type="date" id="imp-data" value="${dataVal}" required>
                     </div>
-                    <div class="form-group">
-                        <label for="imp-ora-inizio">Ora Inizio</label>
-                        <input type="time" id="imp-ora-inizio" value="${isModifica ? (impegnoEsistente.oraInizio || '') : ''}">
+
+                    <div style="display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+                        <div class="form-group" style="flex: 1; min-width: 130px; margin-bottom: 0;">
+                            <label for="imp-ora-inizio">Ora Inizio</label>
+                            <input type="time" id="imp-ora-inizio" value="${isModifica ? impegnoEsistente.oraInizio || '' : ''}">
+                        </div>
+                        <div class="form-group" style="flex: 1; min-width: 130px; margin-bottom: 0;">
+                            <label for="imp-ora-fine">Ora Fine</label>
+                            <input type="time" id="imp-ora-fine" value="${isModifica ? impegnoEsistente.oraFine || '' : ''}">
+                        </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn-modal cancel" id="btn-cancel-modal">Annulla</button>
+
+                    <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 8px;">
+                        <button type="button" class="btn-modal cancel" id="btn-cancel-impegno">Annulla</button>
                         <button type="submit" class="btn-modal save">Salva</button>
                     </div>
                 </form>
@@ -263,8 +275,8 @@ function apriModaleImpegno(dataIso, impegnoEsistente = null) {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
 
     const modalEl = document.getElementById(modalId);
-    const btnClose = document.getElementById('btn-close-modal');
-    const btnCancel = document.getElementById('btn-cancel-modal');
+    const btnClose = document.getElementById('btn-close-impegno');
+    const btnCancel = document.getElementById('btn-cancel-impegno');
     const form = document.getElementById('form-impegno');
 
     const chiudiModale = () => modalEl.remove();
@@ -275,19 +287,21 @@ function apriModaleImpegno(dataIso, impegnoEsistente = null) {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const titolo = document.getElementById('imp-titolo').value.trim();
-        const dataVal = document.getElementById('imp-data').value;
+        const titolo = capitalize(document.getElementById('imp-titolo').value.trim());
+        const data = document.getElementById('imp-data').value;
         const oraInizio = document.getElementById('imp-ora-inizio').value;
+        const oraFine = document.getElementById('imp-ora-fine').value;
 
-        if (!titolo || !dataVal) {
-            alert("Inserisci titolo e data.");
+        if (!titolo || !data) {
+            alert("Compila i campi richiesti.");
             return;
         }
 
         const payload = {
             titolo: titolo,
-            data: dataVal,
+            data: data,
             oraInizio: oraInizio,
+            oraFine: oraFine,
             creatore: isModifica ? impegnoEsistente.creatore : userData.nome
         };
 
@@ -303,7 +317,7 @@ function apriModaleImpegno(dataIso, impegnoEsistente = null) {
             await caricaEDisegnaSettimana(contentArea);
 
         } catch (err) {
-            console.error("Errore durante il salvataggio:", err);
+            console.error("Errore salvataggio impegno:", err);
             alert("Si è verificato un errore durante il salvataggio.");
         }
     });
