@@ -87,20 +87,20 @@ async function caricaEDisegnaSettimana(container) {
 
     container.innerHTML = `
         <div class="impegni-container">
-            <!-- TASTO HOME E TITOLO (stile Scadenze) -->
-            <div style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 16px 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                <button class="btn-modal cancel" id="btn-torna-home" style="display: flex; align-items: center; gap: 6px; font-weight: 600; cursor: pointer;">
-                    <i class="fa-solid fa-arrow-left"></i> Home
-                </button>
-                <h2 style="font-size: 1.1rem; font-weight: 700; color: #2b3e50; margin: 0;"><i class="fa-solid fa-calendar-days"></i> GESTIONE IMPEGNI</h2>
-                <div style="width: 75px;"></div>
-            </div>
-
-            <!-- HEADER NAVIGAZIONE SETTIMANA -->
+            <!-- HEADER UNICO CON TASTO HOME, SETTIMANA E FRECCE (Prec. / Succ.) -->
             <div class="impegni-header">
-                <button class="btn-week-nav" id="btn-sett-prec"><i class="fa-solid fa-chevron-left"></i> Sett. Prec.</button>
-                <div class="current-week-label" id="titolo-settimana">${testoSettimana}</div>
-                <button class="btn-week-nav" id="btn-sett-succ">Sett. Succ. <i class="fa-solid fa-chevron-right"></i></button>
+                <div class="week-nav-left">
+                    <button class="btn-week-nav" id="btn-torna-home">
+                        <i class="fa-solid fa-arrow-left"></i> Home
+                    </button>
+                </div>
+                <div class="week-nav-center">
+                    <div class="current-week-label" id="titolo-settimana">${testoSettimana}</div>
+                </div>
+                <div class="week-nav-right">
+                    <button class="btn-week-nav" id="btn-sett-prec"><i class="fa-solid fa-chevron-left"></i> Prec.</button>
+                    <button class="btn-week-nav" id="btn-sett-succ">Succ. <i class="fa-solid fa-chevron-right"></i></button>
+                </div>
             </div>
 
             <div class="giorni-list" id="giorni-container">
