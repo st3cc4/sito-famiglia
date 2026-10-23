@@ -87,18 +87,16 @@ async function caricaEDisegnaSettimana(container) {
 
     container.innerHTML = `
         <div class="impegni-container">
-            <!-- HEADER UNICO CON TASTO HOME, SETTIMANA E FRECCE (Prec. / Succ.) -->
+            <!-- HEADER CON TASTO HOME A SINISTRA E NAVIGAZIONE SETTIMANA (PREC. - DATA - SUCC.) A DESTRA -->
             <div class="impegni-header">
                 <div class="week-nav-left">
                     <button class="btn-week-nav" id="btn-torna-home">
                         <i class="fa-solid fa-arrow-left"></i> Home
                     </button>
                 </div>
-                <div class="week-nav-center">
-                    <div class="current-week-label" id="titolo-settimana">${testoSettimana}</div>
-                </div>
                 <div class="week-nav-right">
                     <button class="btn-week-nav" id="btn-sett-prec"><i class="fa-solid fa-chevron-left"></i> Prec.</button>
+                    <div class="current-week-label" id="titolo-settimana">${testoSettimana}</div>
                     <button class="btn-week-nav" id="btn-sett-succ">Succ. <i class="fa-solid fa-chevron-right"></i></button>
                 </div>
             </div>
@@ -246,7 +244,7 @@ function disegnaGiorniSettimana(appuntamenti) {
 }
 
 function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '') {
-    const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
+    const savedUser = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
     const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
 
     const isModifica = !!impegnoEsistente;
