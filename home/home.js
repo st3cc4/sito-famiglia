@@ -31,11 +31,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const userDisplayName = document.getElementById('user-display-name');
     if (userDisplayName) {
         userDisplayName.textContent = userData.nome;
-        // Applica il colore scelto dall'utente come sfondo del badge del nome
         if (userData.colore) {
             userDisplayName.style.backgroundColor = userData.colore;
         } else {
-            userDisplayName.style.backgroundColor = '#3498db'; // Colore di fallback predefinito
+            userDisplayName.style.backgroundColor = '#3498db';
         }
     }
 
