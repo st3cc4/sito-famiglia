@@ -19,7 +19,7 @@ const db = getFirestore(app);
 
 // Inizializzazione della sezione Cambia Colore
 export async function initCambiaColoreSection(container) {
-    const savedUserStr = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
+    const savedUserStr = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
     const userData = savedUserStr ? JSON.parse(savedUserStr) : { nome: 'Utente', colore: '#3498db' };
 
     const coloreAttuale = userData.colore || '#3498db';
@@ -132,12 +132,12 @@ export async function initCambiaColoreSection(container) {
                 colore: coloreSelezionato
             });
 
-            // Aggiorna sessione locale
+            // Aggiorna sessione locale con la chiave corretta 'famiglia_session'
             userData.colore = coloreSelezionato;
-            if (localStorage.getItem('famiglia_pwa_user')) {
-                localStorage.setItem('famiglia_pwa_user', JSON.stringify(userData));
+            if (localStorage.getItem('famiglia_session')) {
+                localStorage.setItem('famiglia_session', JSON.stringify(userData));
             } else {
-                sessionStorage.setItem('famiglia_pwa_user', JSON.stringify(userData));
+                sessionStorage.setItem('famiglia_session', JSON.stringify(userData));
             }
 
             // Aggiorna subito il badge nell'header della Home
