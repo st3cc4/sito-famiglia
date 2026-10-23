@@ -1,4 +1,4 @@
-// --- STILI CAMBIA COLORE ---
+/* --- STILI CAMBIA COLORE --- */
 
 .cambia-colore-container {
     display: flex;
@@ -94,7 +94,7 @@
     padding: 2px;
 }
 
-/* ANTEPRIMA RIDOTTA E AFFIANCATA AL PULSANTE */
+/* ANTEPRIMA PIÙ CORTA E AFFIANCATA AL PULSANTE A DESTRA */
 .color-preview-box {
     padding: 10px 16px;
     border-radius: 8px;
@@ -106,7 +106,7 @@
     font-size: 0.9rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.06);
     transition: background-color 0.2s;
-    flex: 1;
+    width: 220px;
 }
 
 .colore-azione-row {
