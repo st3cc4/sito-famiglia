@@ -52,8 +52,8 @@ if (loginForm) {
         if (errorMsg) errorMsg.style.display = 'none';
 
         try {
-            // Converte l'username in minuscolo per corrispondere all'ID del documento su Firestore
-            const docId = usernameVal.toLowerCase();
+            // Mantiene l'esatta formattazione inserita o adatta la prima lettera maiuscola per l'ID di Firestore
+            const docId = usernameVal.charAt(0).toUpperCase() + usernameVal.slice(1);
             const userRef = doc(db, "utenti", docId);
             const userSnap = await getDoc(userRef);
 
