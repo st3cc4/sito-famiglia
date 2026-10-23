@@ -302,6 +302,27 @@ function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '')
     const btnCancel = document.getElementById('btn-cancel-impegno');
     const form = document.getElementById('form-impegno');
 
+    // --- LOGICA AGGIUNTA: Auto-incremento di 1 ora all'ora di inizio ---
+    const inputOraInizio = document.getElementById('imp-ora-inizio');
+    const inputOraFine = document.getElementById('imp-ora-fine');
+
+    inputOraInizio.addEventListener('change', () => {
+        const valInizio = inputOraInizio.value;
+        if (valInizio && (!inputOraFine.value || !isModifica)) {
+            const parti = valInizio.split(':');
+            let ore = parseInt(parti[0], 10);
+            let minuti = parseInt(parti[1], 10);
+
+            // Aggiungiamo 1 ora
+            ore = (ore + 1) % 24;
+            const oreStr = String(ore).padStart(2, '0');
+            const minStr = String(minuti).padStart(2, '0');
+
+            inputOraFine.value = `${oreStr}:${minStr}`;
+        }
+    });
+    // -----------------------------------------------------------------
+
     const chiudiModale = () => modalEl.remove();
 
     btnClose.addEventListener('click', chiudiModale);
