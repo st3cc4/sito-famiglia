@@ -52,8 +52,8 @@ if (loginForm) {
         if (errorMsg) errorMsg.style.display = 'none';
 
         try {
-            // Formattazione ID per Firestore (es. "Paolo")
-            const docId = usernameVal.charAt(0).toUpperCase() + usernameVal.slice(1).toLowerCase();
+            // Converte l'username in minuscolo per corrispondere all'ID del documento su Firestore
+            const docId = usernameVal.toLowerCase();
             const userRef = doc(db, "utenti", docId);
             const userSnap = await getDoc(userRef);
 
@@ -62,9 +62,10 @@ if (loginForm) {
                 
                 if (userData.password === passwordVal) {
                     const sessionData = {
-                        nome: userData.nome || docId,
+                        nome: userData.nome || usernameVal,
                         ruolo: userData.ruolo || 'user',
-                        permessi: userData.permessi || {}
+                        permessi: userData.permessi || {},
+                        colore: userData.colore || '#3498db'
                     };
 
                     // Se "Ricordami" è spuntato salva in localStorage, altrimenti in sessionStorage
