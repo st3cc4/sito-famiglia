@@ -28,8 +28,8 @@ export async function initCambiaPasswordSection(container) {
                 <div class="password-card-body">
                     <form id="form-cambia-password">
                         <div class="form-group-password">
-                            <label for="pwd-nuova">Nuova Password</label>
-                            <input type="text" id="pwd-nuova" required placeholder="Inserisci la nuova password in chiaro">
+                            <label for="pwd-nuova">Inserisci nuova password</label>
+                            <input type="text" id="pwd-nuova" required placeholder="Inserisci nuova password">
                         </div>
                         <div class="password-footer">
                             <button type="submit" class="btn-salva-password">Aggiorna Password</button>
