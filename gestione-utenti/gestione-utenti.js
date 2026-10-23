@@ -21,7 +21,7 @@ let listaUtenti = [];
 
 // Funzione principale di inizializzazione della sezione Gestione Utenti
 export async function initGestioneUtentiSection(container) {
-    const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
+    const savedUser = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
     const userData = savedUser ? JSON.parse(savedUser) : {};
 
     const isAdmin = (userData.ruolo === 'admin' || (userData.nome && userData.nome.toLowerCase() === 'paolo'));
