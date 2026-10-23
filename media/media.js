@@ -57,6 +57,20 @@ function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+function formattaDataLeggibile(dataIsoStr) {
+    if (!dataIsoStr) return 'Data non specificata';
+    try {
+        const d = new Date(dataIsoStr);
+        if (isNaN(d.getTime())) return dataIsoStr.split('T')[0];
+        
+        const options = { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' };
+        let formatted = d.toLocaleDateString('it-IT', options);
+        return capitalize(formatted);
+    } catch (e) {
+        return dataIsoStr;
+    }
+}
+
 function comprimiImmagine(file, maxWidth = 1200, maxHeight = 1200, qualita = 0.7) {
     return new Promise((resolve) => {
         const reader = new FileReader();
@@ -106,7 +120,7 @@ async function caricaEDisegnaMedia(container) {
                 </div>
             </div>
 
-            <div class="media-grid-gallery" id="media-grid-container">
+            <div id="media-gruppi-container" style="display: flex; flex-direction: column; gap: 20px;">
                 <p style="color: #64748b; padding: 20px;">Caricamento in corso...</p>
             </div>
         </div>
@@ -135,22 +149,26 @@ async function caricaEDisegnaMedia(container) {
             listaMedia.push({
                 id: docSnap.id,
                 ...data,
-                categoria: cat
+                categoria: cat,
+                dataCreazione: data.dataCreazione || new Date().toISOString()
             });
         });
+
+        // Ordina dal più recente al meno recente
+        listaMedia.sort((a, b) => new Date(b.dataCreazione) - new Date(a.dataCreazione));
 
         categorieEsistenti = Array.from(catMap).sort();
         renderGrigliaMedia('');
 
     } catch (err) {
         console.error("Errore caricamento media:", err);
-        document.getElementById('media-grid-container').innerHTML = '<p style="color:red;">Errore durante il caricamento dei file.</p>';
+        document.getElementById('media-gruppi-container').innerHTML = '<p style="color:red;">Errore durante il caricamento dei file.</p>';
     }
 }
 
 function renderGrigliaMedia(filtro) {
-    const gridEl = document.getElementById('media-grid-container');
-    if (!gridEl) return;
+    const gruppiContainer = document.getElementById('media-gruppi-container');
+    if (!gruppiContainer) return;
 
     const mediaFiltrati = listaMedia.filter(m => {
         const cat = (m.categoria || '').toLowerCase();
@@ -158,38 +176,75 @@ function renderGrigliaMedia(filtro) {
     });
 
     if (mediaFiltrati.length === 0) {
-        gridEl.innerHTML = '<p style="color:#94a3b8; font-style:italic;">Nessun file presente.</p>';
+        gruppiContainer.innerHTML = '<p style="color:#94a3b8; font-style:italic; padding: 10px;">Nessun file presente.</p>';
         return;
     }
 
-    gridEl.innerHTML = mediaFiltrati.map(m => {
-        const creatore = m.creatore || 'Utente';
-        const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
-        const bgTrasparente = hexToRgba(coloreUtente, 0.12);
-        const isVideo = m.tipo === 'video' || (m.url && m.url.startsWith('data:video/'));
+    // Raggruppa i media per data (YYYY-MM-DD estratta da dataCreazione)
+    const gruppiPerData = {};
+    mediaFiltrati.forEach(m => {
+        let dataIsoKey = 'Altro';
+        if (m.dataCreazione) {
+            dataIsoKey = m.dataCreazione.split('T')[0];
+        }
+        if (!gruppiPerData[dataIsoKey]) {
+            gruppiPerData[dataIsoKey] = [];
+        }
+        gruppiPerData[dataIsoKey].push(m);
+    });
 
-        return `
-            <div class="media-card-item" data-id="${m.id}" style="background-color: ${bgTrasparente}; border-left-color: ${coloreUtente};">
-                <div class="media-preview-box">
-                    ${isVideo 
-                        ? `<video src="${m.url}" preload="metadata"></video><span class="media-badge-type"><i class="fa-solid fa-play"></i> Video</span>`
-                        : `<img src="${m.url}" alt="${m.categoria}" loading="lazy"><span class="media-badge-type"><i class="fa-solid fa-image"></i> Foto</span>`
-                    }
+    // Ordina le date in modo discendente (più recenti prima)
+    const dateOrdinate = Object.keys(gruppiPerData).sort((a, b) => b.localeCompare(a));
+
+    let htmlGruppi = '';
+
+    dateOrdinate.forEach(dataKey => {
+        const elementiDelGiorno = gruppiPerData[dataKey];
+        const titoloDataLeggibile = dataKey === 'Altro' ? 'Altro' : formattaDataLeggibile(dataKey);
+
+        htmlGruppi += `
+            <div class="card" style="margin-bottom: 0;">
+                <div class="card-header">
+                    <h3><i class="fa-regular fa-calendar"></i> ${titoloDataLeggibile}</h3>
                 </div>
-                <div class="media-card-info">
-                    <span class="media-card-title">${m.categoria}</span>
-                    <div class="media-card-footer">
-                        <span>(${creatore})</span>
-                        <button class="btn-delete-media" title="Elimina" data-id="${m.id}">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
+                <div class="card-body">
+                    <div class="media-grid-gallery">
+                        ${elementiDelGiorno.map(m => {
+                            const creatore = m.creatore || 'Utente';
+                            const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
+                            const bgTrasparente = hexToRgba(coloreUtente, 0.12);
+                            const isVideo = m.tipo === 'video' || (m.url && m.url.startsWith('data:video/'));
+
+                            return `
+                                <div class="media-card-item" data-id="${m.id}" style="background-color: ${bgTrasparente}; border-left-color: ${coloreUtente};">
+                                    <div class="media-preview-box">
+                                        ${isVideo 
+                                            ? `<video src="${m.url}" preload="metadata"></video><span class="media-badge-type"><i class="fa-solid fa-play"></i> Video</span>`
+                                            : `<img src="${m.url}" alt="${m.categoria}" loading="lazy"><span class="media-badge-type"><i class="fa-solid fa-image"></i> Foto</span>`
+                                        }
+                                    </div>
+                                    <div class="media-card-info">
+                                        <span class="media-card-title">${m.categoria}</span>
+                                        <div class="media-card-footer">
+                                            <span>(${creatore})</span>
+                                            <button class="btn-delete-media" title="Elimina" data-id="${m.id}">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 </div>
             </div>
         `;
-    }).join('');
+    });
 
-    gridEl.querySelectorAll('.media-card-item').forEach(card => {
+    gruppiContainer.innerHTML = htmlGruppi;
+
+    // Eventi click sulle card per visualizzare il media
+    gruppiContainer.querySelectorAll('.media-card-item').forEach(card => {
         card.addEventListener('click', (e) => {
             if (e.target.closest('.btn-delete-media')) return;
             const idM = card.getAttribute('data-id');
@@ -198,7 +253,8 @@ function renderGrigliaMedia(filtro) {
         });
     });
 
-    gridEl.querySelectorAll('.btn-delete-media').forEach(btnDel => {
+    // Eventi eliminazione media
+    gruppiContainer.querySelectorAll('.btn-delete-media').forEach(btnDel => {
         btnDel.addEventListener('click', async (e) => {
             e.stopPropagation();
             const idM = btnDel.getAttribute('data-id');
@@ -256,7 +312,7 @@ function apriModaleVisualizzaMedia(m) {
 }
 
 function apriModaleFormMedia() {
-    const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
+    const savedUser = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
     const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
 
     const modalId = 'modal-form-media';
@@ -378,7 +434,7 @@ function apriModaleFormMedia() {
             categoria: categoria,
             tipo: fileTipo,
             url: fileDataFormatted,
-            creatore: userData.nome,
+            creatore: userData.nome || 'Utente',
             dataCreazione: new Date().toISOString()
         };
 
