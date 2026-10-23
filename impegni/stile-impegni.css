@@ -9,7 +9,7 @@
     padding-bottom: 30px;
 }
 
-/* HEADER CON NAVIGAZIONE SETTIMANA */
+/* HEADER CON NAVIGAZIONE SETTIMANA E TASTO HOME */
 .impegni-header {
     display: flex;
     justify-content: space-between;
@@ -19,18 +19,24 @@
     border-radius: 12px;
     border: 1px solid #e2e8f0;
     box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
-.impegni-header h2 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #2b3e50;
-}
-
-.week-nav {
+.week-nav-left {
     display: flex;
     align-items: center;
-    gap: 12px;
+}
+
+.week-nav-center {
+    display: flex;
+    align-items: center;
+}
+
+.week-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .btn-week-nav {
@@ -98,29 +104,6 @@
 
 .giorno-card.domenica .giorno-titolo {
     color: #dc2626; /* Domenica in Rosso */
-}
-
-.btn-add-impegno {
-    background: none;
-    border: none;
-    color: #475569;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 8px;
-    border-radius: 6px;
-    transition: background-color 0.2s;
-}
-
-.btn-add-impegno:hover {
-    background-color: rgba(0,0,0,0.05);
-}
-
-.giorno-card.domenica .btn-add-impegno {
-    color: #dc2626;
 }
 
 /* CONTENITORE DEGLI IMPEGNI ORIZZONTALI */
@@ -312,7 +295,16 @@
 
 /* ADATTAMENTO MOBILE */
 @media (max-width: 600px) {
+    .impegni-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .week-nav-left, .week-nav-center, .week-nav-right {
+        justify-content: center;
+        width: 100%;
+    }
     .impegno-quadratino {
-        width: 145px; /* Dimensioni ottimizzate per cellulare */
+        width: 145px;
     }
 }
