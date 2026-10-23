@@ -65,7 +65,7 @@ async function caricaEDisegnaRicette(container) {
     container.innerHTML = `
         <div class="ricette-container">
             <div class="ricette-header">
-                <h2><i class="fa-solid fa-utensils"></i> RICETTARIO DI FAMIGLIA</h2>
+                <h2><i class="fa-solid fa-utensils"></i> RICETTE</h2>
                 <div class="ricette-actions">
                     <input type="text" id="search-ricette" class="search-ricette-input" placeholder="Cerca ricetta...">
                     <button class="btn-add-ricetta" id="btn-nuova-ricetta">
@@ -222,7 +222,7 @@ function estraiPassaggiDaDoc(r) {
 }
 
 function apriModaleVisualizzaRicetta(r) {
-    const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
+    const savedUser = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
     const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
     const nomeUtenteCorrente = (userData.nome || 'Utente').toLowerCase();
 
@@ -266,8 +266,7 @@ function apriModaleVisualizzaRicetta(r) {
                         <div class="ricetta-dettaglio-section">
                             <h4><i class="fa-solid fa-basket-shopping"></i> Ingredienti</h4>
                             <ol class="ricetta-list-numerata">
-                                ${ingredientiList.map(ing => `
-                                    <li><strong>${ing.nome}</strong> ${ing.quantita ? ` - <em>${ing.quantita}</em>` : ''}</li>
+                                ${ingredientiList.map(ing => ` <li><strong>${ing.nome}</strong> ${ing.quantita ? ` - <em>${ing.quantita}</em>` : ''}</li>
                                 `).join('')}
                             </ol>
                         </div>
@@ -334,7 +333,7 @@ function apriModaleVisualizzaRicetta(r) {
 }
 
 function apriModaleFormRicetta(ricettaEsistente = null) {
-    const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
+    const savedUser = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
     const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
 
     const isModifica = !!ricettaEsistente;
@@ -478,46 +477,4 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
 
         try {
             if (isModifica) {
-                await updateDoc(doc(db, "ricette", ricettaEsistente.id), payload);
-            } else {
-                await addDoc(collection(db, "ricette"), payload);
-            }
-
-            chiudiModale();
-            const contentArea = document.getElementById('content-area');
-            await caricaEDisegnaRicette(contentArea);
-
-        } catch (err) {
-            console.error("Errore salvataggio ricetta:", err);
-            alert("Si è verificato un errore durante il salvataggio della ricetta.");
-        }
-    });
-}
-
-function creaRigaIngredienteHtml(nome = '', quantita = '') {
-    return `
-        <div class="dynamic-row">
-            <input type="text" class="input-ingrediente" value="${nome}" placeholder="Ingrediente (es. Farina 00)">
-            <input type="text" class="input-quantita" value="${quantita}" placeholder="Quantità (es. 100 gr)">
-            <button type="button" class="btn-remove-row" title="Rimuovi"><i class="fa-solid fa-trash-can"></i></button>
-        </div>
-    `;
-}
-
-function creaRigaPassaggioHtml(testo = '') {
-    return `
-        <div class="dynamic-row">
-            <input type="text" class="input-passaggio" value="${testo}" placeholder="Descrivi il passaggio...">
-            <button type="button" class="btn-remove-row" title="Rimuovi"><i class="fa-solid fa-trash-can"></i></button>
-        </div>
-    `;
-}
-
-function aggiornaEventiRimuovi(container) {
-    container.querySelectorAll('.btn-remove-row').forEach(btn => {
-        btn.onclick = (e) => {
-            const row = e.currentTarget.closest('.dynamic-row');
-            if (row) row.remove();
-        };
-    });
-}
+                await updateDoc(doc(db, "ricette", ricettaEsistente
