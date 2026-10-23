@@ -1,4 +1,4 @@
-/* --- STILI CAMBIA COLORE --- */
+// --- STILI CAMBIA COLORE ---
 
 .cambia-colore-container {
     display: flex;
@@ -94,18 +94,26 @@
     padding: 2px;
 }
 
-/* ANTEPRIMA DEL COLORE */
+/* ANTEPRIMA RIDOTTA E AFFIANCATA AL PULSANTE */
 .color-preview-box {
-    padding: 16px;
-    border-radius: 10px;
+    padding: 10px 16px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     color: #ffffff;
     font-weight: 700;
-    font-size: 0.95rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    font-size: 0.9rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
     transition: background-color 0.2s;
+    flex: 1;
+}
+
+.colore-azione-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 5px;
 }
 
 .colore-footer {
@@ -117,12 +125,13 @@
     background-color: #2b3e50;
     color: #ffffff;
     border: none;
-    padding: 11px 22px;
+    padding: 10px 20px;
     border-radius: 8px;
     font-weight: 600;
     font-size: 0.9rem;
     cursor: pointer;
     transition: background-color 0.2s;
+    white-space: nowrap;
 }
 
 .btn-salva-colore:hover {
