@@ -28,16 +28,8 @@ export async function initCambiaPasswordSection(container) {
                 <div class="password-card-body">
                     <form id="form-cambia-password">
                         <div class="form-group-password">
-                            <label for="pwd-attuale">Password Attuale</label>
-                            <input type="password" id="pwd-attuale" required placeholder="Inserisci la password corrente">
-                        </div>
-                        <div class="form-group-password">
                             <label for="pwd-nuova">Nuova Password</label>
-                            <input type="password" id="pwd-nuova" required placeholder="Inserisci la nuova password">
-                        </div>
-                        <div class="form-group-password">
-                            <label for="pwd-conferma">Conferma Nuova Password</label>
-                            <input type="password" id="pwd-conferma" required placeholder="Ripeti la nuova password">
+                            <input type="text" id="pwd-nuova" required placeholder="Inserisci la nuova password in chiaro">
                         </div>
                         <div class="password-footer">
                             <button type="submit" class="btn-salva-password">Aggiorna Password</button>
@@ -57,15 +49,7 @@ export async function initCambiaPasswordSection(container) {
         msgBox.className = 'password-msg';
         msgBox.textContent = '';
 
-        const pwdAttuale = document.getElementById('pwd-attuale').value;
-        const pwdNuova = document.getElementById('pwd-nuova').value;
-        const pwdConferma = document.getElementById('pwd-conferma').value;
-
-        if (pwdNuova !== pwdConferma) {
-            msgBox.textContent = "Le nuove password non coincidono.";
-            msgBox.classList.add('error');
-            return;
-        }
+        const pwdNuova = document.getElementById('pwd-nuova').value.trim();
 
         if (pwdNuova.length < 4) {
             msgBox.textContent = "La nuova password deve contenere almeno 4 caratteri.";
@@ -73,7 +57,7 @@ export async function initCambiaPasswordSection(container) {
             return;
         }
 
-        const savedUserStr = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
+        const savedUserStr = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
         if (!savedUserStr) {
             alert("Sessione scaduta. Effettua nuovamente il login.");
             window.location.href = '../index.html';
@@ -105,13 +89,6 @@ export async function initCambiaPasswordSection(container) {
                 return;
             }
 
-            // Verifica password attuale
-            if (userDataDb.password && userDataDb.password !== pwdAttuale) {
-                msgBox.textContent = "La password attuale non è corretta.";
-                msgBox.classList.add('error');
-                return;
-            }
-
             // Aggiorna la password su Firestore
             await updateDoc(userDocRef, {
                 password: pwdNuova
@@ -119,10 +96,10 @@ export async function initCambiaPasswordSection(container) {
 
             // Aggiorna anche la memoria locale di sessione
             userData.password = pwdNuova;
-            if (localStorage.getItem('famiglia_pwa_user')) {
-                localStorage.setItem('famiglia_pwa_user', JSON.stringify(userData));
+            if (localStorage.getItem('famiglia_session')) {
+                localStorage.setItem('famiglia_session', JSON.stringify(userData));
             } else {
-                sessionStorage.setItem('famiglia_pwa_user', JSON.stringify(userData));
+                sessionStorage.setItem('famiglia_session', JSON.stringify(userData));
             }
 
             msgBox.textContent = "Password aggiornata con successo!";
