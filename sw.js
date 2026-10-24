@@ -1,31 +1,30 @@
-// Service Worker per Famiglia - Versione sicura
-const CACHE_NAME = 'famiglia-cache-v3';
+const CACHE_NAME = 'famiglia-cache-v1';
 const urlsToCache = [
-  '/',
-  '/index.html'
+  './index.html',
+  './home.html',
+  './manifest.json'
 ];
 
-// Installazione del Service Worker
-self.addEventListener('install', event => {
+// Installazione del Service Worker e caching dei file principali
+self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
+      .then((cache) => {
+        console.log('Cache aperta con successo');
         return cache.addAll(urlsToCache);
-      })
-      .catch(err => {
-        console.log('Errore durante l\'installazione della cache:', err);
       })
   );
   self.skipWaiting();
 });
 
 // Attivazione e pulizia delle vecchie cache
-self.addEventListener('activate', event => {
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
+    caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map(cacheName => {
+        cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
+            console.log('Eliminazione vecchia cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -35,35 +34,13 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Gestione delle richieste con fallback sicuro (evita blocchi Failed to fetch)
-self.addEventListener('fetch', event => {
-  // Ignora richieste non GET o relative a estensioni del browser
-  if (event.request.method !== 'GET' || event.request.url.startsWith('chrome-extension://')) {
-    return;
-  }
-
+// Intercettazione delle richieste di rete
+self.addEventListener('fetch', (event) => {
   event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        return response;
-      })
-      .catch(() => {
-        // Se la rete fallisce, prova a recuperare dalla cache
-        return caches.match(event.request).then(cachedResponse => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          // Se è una richiesta di navigazione, restituisce index.html come fallback
-          if (event.request.mode === 'navigate') {
-            return caches.match('/index.html');
-          }
-          // Fallback generico per evitare crash
-          return new Response('Connessione assente o risorsa non disponibile', {
-            status: 503,
-            statusText: 'Service Unavailable',
-            headers: { 'Content-Type': 'text/plain; charset=utf-8' }
-          });
-        });
+    caches.match(event.request)
+      .then((response) => {
+        // Restituisce la risorsa dalla cache se presente, altrimenti la scarica dalla rete
+        return response || fetch(event.request);
       })
   );
 });
