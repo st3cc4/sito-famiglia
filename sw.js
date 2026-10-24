@@ -1,4 +1,4 @@
-const CACHE_NAME = 'famiglia-cache-v1';
+const CACHE_NAME = 'famiglia-cache-v2';
 const urlsToCache = [
   './index.html',
   './home.html',
@@ -39,8 +39,34 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Restituisce la risorsa dalla cache se presente, altrimenti la scarica dalla rete
         return response || fetch(event.request);
       })
+  );
+});
+
+// Gestione delle notifiche push locali ricevute dall'app
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'MOSTRA_NOTIFICA') {
+    const { titolo, corpo } = event.data;
+    const options = {
+      body: corpo,
+      icon: './assets/icon-192.png',
+      badge: './assets/icon-192.png',
+      vibrate: [200, 100, 200]
+    };
+    self.registration.showNotification(titolo, options);
+  }
+});
+
+// Gestione del click sulla notifica per riportare l'utente sull'app
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      if (windowClients.length > 0) {
+        return windowClients[0].focus();
+      }
+      return clients.openWindow('./home.html');
+    })
   );
 });
