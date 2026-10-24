@@ -23,6 +23,7 @@ let dataInizioSettimana = getLunedimorning(new Date());
 export async function initImpegniSection(container) {
     await caricaUtenti();
     await caricaEDisegnaSettimana(container);
+    avviaControlloPromemoriaImpegni();
 }
 
 async function caricaUtenti() {
@@ -79,6 +80,42 @@ function hexToRgba(hex, alpha = 0.12) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+// --- Controllo Promemoria 2 Ore e 30 Minuti Prima ---
+async function avviaControlloPromemoriaImpegni() {
+    try {
+        const snapshot = await getDocs(collection(db, "appuntamenti"));
+        const adesso = new Date();
+        const oggiIso = formatDateIso(adesso);
+
+        snapshot.forEach(docSnap => {
+            const app = docSnap.data();
+            if (app.data === oggiIso && app.oraInizio) {
+                const [ore, minuti] = app.oraInizio.split(':').map(Number);
+                const dataEvento = new Date();
+                dataEvento.setHours(ore, minuti, 0, 0);
+
+                const diffMinuti = (dataEvento - adesso) / (1000 * 60);
+
+                // Controlla se mancano circa 2 ore e 30 minuti (150 minuti, con un range di tolleranza di 2 minuti)
+                if (diffMinuti >= 148 && diffMinuti <= 152) {
+                    const chiaveNotifica = `promemoria_inviato_${docSnap.id}_${oggiIso}`;
+                    if (!localStorage.getItem(chiaveNotifica)) {
+                        if (typeof window.inviaNotificaFamiglia === 'function') {
+                            window.inviaNotificaFamiglia(
+                                "⏰ Promemoria Impegno",
+                                `L'impegno "${app.titolo}" inserito da ${app.creatore || 'Famiglia'} inizierà tra circa 2 ore e mezza (${app.oraInizio}).`
+                            );
+                        }
+                        localStorage.setItem(chiaveNotifica, 'true');
+                    }
+                }
+            }
+        });
+    } catch (e) {
+        console.error("Errore nel controllo promemoria impegni:", e);
+    }
+}
+
 async function caricaEDisegnaSettimana(container) {
     const domenica = new Date(dataInizioSettimana);
     domenica.setDate(domenica.getDate() + 6);
@@ -87,7 +124,7 @@ async function caricaEDisegnaSettimana(container) {
 
     container.innerHTML = `
         <div class="impegni-container">
-            <!-- HEADER CON TASTO HOME A SINISTRA E NAVIGAZIONE SETTIMANA (PREC. - DATA - SUCC.) A DESTRA -->
+            <!-- HEADER CON TASTO HOME A SINISTRA E NAVIGAZIONE SETTIMANA -->
             <div class="impegni-header">
                 <div class="week-nav-left">
                     <button class="btn-week-nav" id="btn-torna-home">
@@ -165,7 +202,6 @@ function disegnaGiorniSettimana(appuntamenti) {
 
         htmlGiorni += `
             <div class="giorno-card ${classeGiorno}">
-                <!-- L'intera intestazione è cliccabile per aggiungere l'impegno, senza scritta Aggiungi -->
                 <div class="giorno-header btn-add-giorno" data-date="${dataIso}" style="cursor: pointer;" title="Clicca per aggiungere un impegno">
                     <span class="giorno-titolo">${dataLeggibile}</span>
                 </div>
@@ -206,7 +242,6 @@ function disegnaGiorniSettimana(appuntamenti) {
 
     giorniContainer.innerHTML = htmlGiorni;
 
-    // Evento click sull'intestazione del giorno per aprire il modale di aggiunta
     giorniContainer.querySelectorAll('.btn-add-giorno').forEach(headerEl => {
         headerEl.addEventListener('click', (e) => {
             const dateIso = e.currentTarget.getAttribute('data-date');
@@ -214,7 +249,6 @@ function disegnaGiorniSettimana(appuntamenti) {
         });
     });
 
-    // Evento click sul quadratino dell'impegno per modificarlo
     giorniContainer.querySelectorAll('.impegno-quadratino').forEach(card => {
         card.addEventListener('click', (e) => {
             if (e.target.closest('.btn-delete-impegno')) return;
@@ -224,7 +258,6 @@ function disegnaGiorniSettimana(appuntamenti) {
         });
     });
 
-    // Evento eliminazione impegno
     giorniContainer.querySelectorAll('.btn-delete-impegno').forEach(btnDel => {
         btnDel.addEventListener('click', async (e) => {
             e.stopPropagation();
@@ -284,6 +317,13 @@ function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '')
                         </div>
                     </div>
 
+                    <!-- Pulsante Sincronizzazione Google Calendar -->
+                    <div class="form-group" style="margin-top: 10px;">
+                        <button type="button" id="btn-gcalendar" class="btn-primary" style="background-color: #4285F4; width: 100%; justify-content: center; gap: 8px;">
+                            <i class="fa-brands fa-google"></i> Aggiungi a Google Calendar
+                        </button>
+                    </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn-modal cancel" id="btn-cancel-impegno">Annulla</button>
                         <button type="submit" class="btn-modal save">Salva</button>
@@ -299,8 +339,8 @@ function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '')
     const btnClose = document.getElementById('btn-close-impegno');
     const btnCancel = document.getElementById('btn-cancel-impegno');
     const form = document.getElementById('form-impegno');
+    const btnGCalendar = document.getElementById('btn-gcalendar');
 
-    // --- LOGICA AGGIUNTA: Auto-incremento di 1 ora all'ora di inizio ---
     const inputOraInizio = document.getElementById('imp-ora-inizio');
     const inputOraFine = document.getElementById('imp-ora-fine');
 
@@ -311,7 +351,6 @@ function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '')
             let ore = parseInt(parti[0], 10);
             let minuti = parseInt(parti[1], 10);
 
-            // Aggiungiamo 1 ora
             ore = (ore + 1) % 24;
             const oreStr = String(ore).padStart(2, '0');
             const minStr = String(minuti).padStart(2, '0');
@@ -319,7 +358,32 @@ function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '')
             inputOraFine.value = `${oreStr}:${minStr}`;
         }
     });
-    // -----------------------------------------------------------------
+
+    // --- Integrazione Google Calendar ---
+    btnGCalendar.addEventListener('click', () => {
+        const titoloVal = document.getElementById('imp-titolo').value.trim() || 'Impegno Famiglia';
+        const dataValG = document.getElementById('imp-data').value;
+        const oraInizioVal = document.getElementById('imp-ora-inizio').value;
+        const oraFineVal = document.getElementById('imp-ora-fine').value;
+
+        let dataOraInizioIso = dataValG.replace(/-/g, '');
+        let dataOraFineIso = dataValG.replace(/-/g, '');
+
+        if (oraInizioVal) {
+            dataOraInizioIso += 'T' + oraInizioVal.replace(':', '') + '00';
+        } else {
+            dataOraInizioIso += 'T090000';
+        }
+
+        if (oraFineVal) {
+            dataOraFineIso += 'T' + oraFineVal.replace(':', '') + '00';
+        } else {
+            dataOraFineIso += 'T100000';
+        }
+
+        const urlCalendar = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(titoloVal)}&dates=${dataOraInizioIso}/${dataOraFineIso}&details=${encodeURIComponent('Inserito tramite Portale Famiglia')}`;
+        window.open(urlCalendar, '_blank');
+    });
 
     const chiudiModale = () => modalEl.remove();
 
@@ -333,6 +397,7 @@ function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '')
         const data = document.getElementById('imp-data').value;
         const oraInizio = document.getElementById('imp-ora-inizio').value;
         const oraFine = document.getElementById('imp-ora-fine').value;
+        const creatoreCorrente = isModifica ? impegnoEsistente.creatore : userData.nome;
 
         if (!titolo || !data) {
             alert("Compila i campi richiesti.");
@@ -344,7 +409,7 @@ function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '')
             data: data,
             oraInizio: oraInizio,
             oraFine: oraFine,
-            creatore: isModifica ? impegnoEsistente.creatore : userData.nome
+            creatore: creatoreCorrente
         };
 
         try {
@@ -352,6 +417,12 @@ function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '')
                 await updateDoc(doc(db, "appuntamenti", impegnoEsistente.id), payload);
             } else {
                 await addDoc(collection(db, "appuntamenti"), payload);
+                if (typeof window.inviaNotificaFamiglia === 'function') {
+                    window.inviaNotificaFamiglia(
+                        "📅 Nuovo Impegno Aggiunto",
+                        `"${titolo}" aggiunto da ${creatoreCorrente} per il giorno ${formatDateShort(new Date(data))}.`
+                    );
+                }
             }
 
             chiudiModale();
