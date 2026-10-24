@@ -17,6 +17,23 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// --- Funzione Globale per Inviare Notifiche Push sul Telefono con l'Autore ---
+window.inviaNotificaFamiglia = function(titoloNotifica, corpoNotifica) {
+    if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+        navigator.serviceWorker.ready.then((registration) => {
+            registration.active.postMessage({
+                type: 'MOSTRA_NOTIFICA',
+                titolo: titoloNotifica,
+                corpo: corpoNotifica
+            });
+        });
+    }
+};
+
+let scadenzeGlobal = [];
+let filtroAttivo = 'tutte';
+let idInModifica = null;
+
 // --- 1. Controllo Autenticazione e Permessi Schede all'avvio ---
 document.addEventListener('DOMContentLoaded', function() {
     const savedUser = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
