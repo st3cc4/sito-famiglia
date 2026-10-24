@@ -93,7 +93,7 @@ export async function initScadenzeSection(container) {
     await caricaScadenze(container);
 }
 
-// --- Caricamento Dati da Firebase ---
+// --- Caricamento Dati da Firebase e Controllo Avvisi 7 Giorni ---
 async function caricaScadenze(container) {
     const listContainer = container.querySelector('#scadenze-list-container');
     
@@ -112,8 +112,10 @@ async function caricaScadenze(container) {
             const giorniMancanti = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
 
             let classeColore = 'green';
-            if (giorniMancanti <= 7) {
-                classeColore = 'red';
+            if (giorniMancanti < 0) {
+                classeColore = 'red'; // Scaduta
+            } else if (giorniMancanti <= 7) {
+                classeColore = 'warning-7days'; // Ultimi 7 giorni (Urcente)
             } else if (giorniMancanti >= 8 && giorniMancanti <= 14) {
                 classeColore = 'orange';
             }
@@ -134,12 +136,30 @@ async function caricaScadenze(container) {
         scadenzeGlobal.sort((a, b) => new Date(a.dataGrezza) - new Date(b.dataGrezza));
 
         renderListaScadenze(listContainer, container);
+        controllaAvvisoGiornaliero7Giorni();
 
     } catch (error) {
         console.error("Errore nel caricamento delle scadenze:", error);
         if (listContainer) {
             listContainer.innerHTML = `<p style="color: red; text-align: center;">Errore durante il caricamento dei dati.</p>`;
         }
+    }
+}
+
+// --- Funzione per l'avviso giornaliero sugli ultimi 7 giorni ---
+function controllaAvvisoGiornaliero7Giorni() {
+    const oggiStringa = new Date().toISOString().slice(0, 10);
+    const ultimoAvviso = localStorage.getItem('famiglia_ultimo_avviso_scadenze');
+
+    // Mostra l'avviso una sola volta al giorno
+    if (ultimoAvviso === oggiStringa) return;
+
+    const scadenzeUrgenti = scadenzeGlobal.filter(s => s.giorniMancanti >= 0 && s.giorniMancanti <= 7);
+
+    if (scadenzeUrgenti.length > 0) {
+        const elencoTesto = scadenzeUrgenti.map(s => `- ${s.titolo} (Scade il ${s.dataFormattata})`).join('\n');
+        alert(`⚠️ ATTENZIONE: Ci sono ${scadenzeUrgenti.length} scadenza/e negli ultimi 7 giorni:\n\n${elencoTesto}`);
+        localStorage.setItem('famiglia_ultimo_avviso_scadenze', oggiStringa);
     }
 }
 
@@ -169,6 +189,7 @@ function renderListaScadenze(listContainer, container) {
                         <div class="scadenza-full-meta">
                             <span><i class="fa-regular fa-calendar"></i> ${s.dataFormattata}</span>
                             <span><strong>${s.giorniMancanti < 0 ? 'Scaduta' : (s.giorniMancanti === 0 ? 'Scade Oggi' : `Tra ${s.giorniMancanti} gg`)}</strong></span>
+                            ${s.giorniMancanti >= 0 && s.giorniMancanti <= 7 ? '<span class="badge-warning-7days"><i class="fa-solid fa-triangle-exclamation"></i> In Scadenza</span>' : ''}
                             ${s.creatore ? `<span class="scadenza-creator">(${s.creatore})</span>` : ''}
                         </div>
                     </div>
