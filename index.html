@@ -109,7 +109,6 @@
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            // Mostra il banner se l'utente non lo ha già chiuso in questa sessione
             if (!sessionStorage.getItem('pwa_prompt_closed')) {
                 installBanner.style.display = 'flex';
             }
@@ -136,6 +135,19 @@
             installBanner.style.display = 'none';
             console.log('PWA installata con successo');
         });
+
+        // Registrazione del Service Worker per la PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((reg) => {
+                        console.log('Service Worker registrato con successo, scope:', reg.scope);
+                    })
+                    .catch((err) => {
+                        console.error('Registrazione Service Worker fallita:', err);
+                    });
+            });
+        }
     </script>
 </body>
 </html>
