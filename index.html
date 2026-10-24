@@ -9,50 +9,26 @@
     <meta name="theme-color" content="#2b3e50">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Stile per il banner/pop-up di installazione PWA */
-        .pwa-install-banner {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #2b3e50;
-            color: #ffffff;
-            padding: 12px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        /* Stile per il pulsante di installazione PWA (inizialmente nascosto) */
+        .btn-install-pwa {
             display: none;
-            align-items: center;
-            gap: 15px;
-            z-index: 9999;
-            font-size: 0.9rem;
-            max-width: 90%;
-            width: 400px;
-            animation: slideUp 0.3s ease-out;
-        }
-        .pwa-install-banner button {
-            background-color: #ffffff;
-            color: #2b3e50;
+            width: 100%;
+            background-color: #27ae60;
+            color: #ffffff;
             border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            white-space: nowrap;
+            margin-top: 15px;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
             transition: background-color 0.2s;
         }
-        .pwa-install-banner button:hover {
-            background-color: #e2e8f0;
-        }
-        .pwa-install-close {
-            background: transparent !important;
-            color: #94a3b8 !important;
-            font-size: 1.1rem;
-            padding: 4px !important;
-            cursor: pointer;
-        }
-        @keyframes slideUp {
-            from { transform: translate(-50%, 50px); opacity: 0; }
-            to { transform: translate(-50%, 0); opacity: 1; }
+        .btn-install-pwa:hover {
+            background-color: #219653;
         }
     </style>
 </head>
@@ -84,59 +60,52 @@
 
             <div id="error-msg" class="error-msg" style="display: none;"></div>
             <button type="submit" class="btn-login">Accedi</button>
-        </form>
-    </div>
 
-    <!-- Banner Pop-up Installazione PWA -->
-    <div id="pwa-install-banner" class="pwa-install-banner">
-        <i class="fa-solid fa-cloud-arrow-down" style="font-size: 1.5rem;"></i>
-        <div style="flex-grow: 1;">
-            <strong>Installa App Famiglia</strong>
-            <div style="font-size: 0.8rem; color: #cbd5e1;">Aggiungila alla schermata Home</div>
-        </div>
-        <button id="pwa-install-btn">Installa</button>
-        <button id="pwa-close-btn" class="pwa-install-close"><i class="fa-solid fa-xmark"></i></button>
+            <!-- Pulsante Installa App (apparirà solo se non installata) -->
+            <button type="button" id="btn-install-pwa" class="btn-install-pwa">
+                <i class="fa-solid fa-cloud-arrow-down"></i> Installa App Famiglia
+            </button>
+        </form>
     </div>
 
     <script type="module" src="./login/login.js"></script>
     <script>
-        // Logica per gestire il prompt di installazione PWA
+        // Logica per gestire la comparsa del pulsante di installazione PWA
         let deferredPrompt;
-        const installBanner = document.getElementById('pwa-install-banner');
-        const installBtn = document.getElementById('pwa-install-btn');
-        const closeBtn = document.getElementById('pwa-close-btn');
+        const installBtn = document.getElementById('btn-install-pwa');
 
         window.addEventListener('beforeinstallprompt', (e) => {
+            // Impedisce al browser di mostrare il prompt automatico standard
             e.preventDefault();
             deferredPrompt = e;
-            if (!sessionStorage.getItem('pwa_prompt_closed')) {
-                installBanner.style.display = 'flex';
+            // Mostra il nostro pulsante personalizzato
+            if (installBtn) {
+                installBtn.style.display = 'flex';
             }
         });
 
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('Utente ha accettato l\'installazione PWA');
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        console.log('Utente ha accettato l\'installazione');
+                    }
+                    deferredPrompt = null;
+                    installBtn.style.display = 'none';
                 }
-                deferredPrompt = null;
-                installBanner.style.display = 'none';
-            }
-        });
-
-        closeBtn.addEventListener('click', () => {
-            installBanner.style.display = 'none';
-            sessionStorage.setItem('pwa_prompt_closed', 'true');
-        });
+            });
+        }
 
         window.addEventListener('appinstalled', () => {
-            installBanner.style.display = 'none';
+            if (installBtn) {
+                installBtn.style.display = 'none';
+            }
             console.log('PWA installata con successo');
         });
 
-        // Registrazione del Service Worker per la PWA
+        // Registrazione del Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
