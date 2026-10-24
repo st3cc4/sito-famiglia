@@ -1,21 +1,20 @@
 {
+  "name": "Famiglia - Portale",
   "short_name": "Famiglia",
-  "name": "Sito Famiglia PWA",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#2b3e50",
+  "theme_color": "#2b3e50",
   "icons": [
     {
-      "src": "icone/icona_famiglia_192x192.png",
-      "type": "image/png",
-      "sizes": "192x192"
+      "src": "./assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
     },
     {
-      "src": "icone/icona_famiglia_512x512.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "src": "./assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
-  ],
-  "start_url": "./index.html",
-  "background_color": "#F4F6F9",
-  "theme_color": "#4A90E2",
-  "display": "standalone",
-  "orientation": "portrait"
+  ]
 }
