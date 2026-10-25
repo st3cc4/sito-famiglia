@@ -60,10 +60,23 @@ if (loginForm) {
         }
 
         try {
-            // Converte l'input in minuscolo per trovare correttamente l'ID del documento su Firestore (es. "elena")
-            const docId = usernameVal.toLowerCase();
-            const userRef = doc(db, "utenti", docId);
-            const userSnap = await getDoc(userRef);
+            // 1. Prova a cercare con l'esatto valore inserito
+            let userRef = doc(db, "utenti", usernameVal);
+            let userSnap = await getDoc(userRef);
+
+            // 2. Se non lo trova, prova con la prima lettera maiuscola (es. "paolo" -> "Paolo")
+            if (!userSnap.exists()) {
+                const docIdCapitalized = usernameVal.charAt(0).toUpperCase() + usernameVal.slice(1).toLowerCase();
+                userRef = doc(db, "utenti", docIdCapitalized);
+                userSnap = await getDoc(userRef);
+            }
+
+            // 3. Se ancora non lo trova, prova tutto in minuscolo
+            if (!userSnap.exists()) {
+                const docIdLower = usernameVal.toLowerCase();
+                userRef = doc(db, "utenti", docIdLower);
+                userSnap = await getDoc(userRef);
+            }
 
             if (userSnap.exists()) {
                 const userData = userSnap.data();
