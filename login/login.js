@@ -60,15 +60,10 @@ if (loginForm) {
         }
 
         try {
-            // Cerchiamo prima con l'esatto nome inserito, poi proviamo la prima maiuscola come fallback
-            let userRef = doc(db, "utenti", usernameVal);
-            let userSnap = await getDoc(userRef);
-
-            if (!userSnap.exists()) {
-                const docIdAlt = usernameVal.charAt(0).toUpperCase() + usernameVal.slice(1);
-                userRef = doc(db, "utenti", docIdAlt);
-                userSnap = await getDoc(userRef);
-            }
+            // Converte l'input in minuscolo per trovare correttamente l'ID del documento su Firestore (es. "elena")
+            const docId = usernameVal.toLowerCase();
+            const userRef = doc(db, "utenti", docId);
+            const userSnap = await getDoc(userRef);
 
             if (userSnap.exists()) {
                 const userData = userSnap.data();
