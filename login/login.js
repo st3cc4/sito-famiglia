@@ -51,11 +51,24 @@ if (loginForm) {
 
         if (errorMsg) errorMsg.style.display = 'none';
 
+        if (!usernameVal || !passwordVal) {
+            if (errorMsg) {
+                errorMsg.textContent = "Inserisci nome utente e password.";
+                errorMsg.style.display = 'block';
+            }
+            return;
+        }
+
         try {
-            // Mantiene l'esatta formattazione inserita o adatta la prima lettera maiuscola per l'ID di Firestore
-            const docId = usernameVal.charAt(0).toUpperCase() + usernameVal.slice(1);
-            const userRef = doc(db, "utenti", docId);
-            const userSnap = await getDoc(userRef);
+            // Cerchiamo prima con l'esatto nome inserito, poi proviamo la prima maiuscola come fallback
+            let userRef = doc(db, "utenti", usernameVal);
+            let userSnap = await getDoc(userRef);
+
+            if (!userSnap.exists()) {
+                const docIdAlt = usernameVal.charAt(0).toUpperCase() + usernameVal.slice(1);
+                userRef = doc(db, "utenti", docIdAlt);
+                userSnap = await getDoc(userRef);
+            }
 
             if (userSnap.exists()) {
                 const userData = userSnap.data();
@@ -85,14 +98,14 @@ if (loginForm) {
                 }
             } else {
                 if (errorMsg) {
-                    errorMsg.textContent = "Utente non trovato.";
+                    errorMsg.textContent = `Utente "${usernameVal}" non trovato nel database.`;
                     errorMsg.style.display = 'block';
                 }
             }
         } catch (error) {
             console.error("Errore di accesso:", error);
             if (errorMsg) {
-                errorMsg.textContent = "Errore di connessione al database.";
+                errorMsg.textContent = "Errore di connessione: " + error.message;
                 errorMsg.style.display = 'block';
             }
         }
