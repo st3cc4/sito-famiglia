@@ -92,7 +92,7 @@ async function caricaEDisegnaUtenti(container) {
                         </div>
                         <div class="user-details">
                             <span class="user-name">${u.nome || 'Senza nome'}</span>
-                            <span class="user-username">ID / Username: ${u.id}</span>
+                            <span class="user-username">Username: ${u.username || u.id}</span>
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
@@ -157,6 +157,7 @@ async function caricaEDisegnaUtenti(container) {
     }
 }
 
+// POP-UP MODALE PER CREARE O MODIFICARE UN UTENTE SENZA CAMPO USERNAME MANUALE
 function apriModaleUtente(utenteEsistente = null) {
     const isModifica = !!utenteEsistente;
     const modalId = 'modal-utente';
@@ -182,10 +183,7 @@ function apriModaleUtente(utenteEsistente = null) {
                     <div class="form-group">
                         <label for="usr-nome">Nome Completo</label>
                         <input type="text" id="usr-nome" value="${isModifica ? (utenteEsistente.nome || '') : ''}" required placeholder="Es. Elena">
-                    </div>
-                    <div class="form-group">
-                        <label for="usr-username">Username (Usato come ID e per il Login)</label>
-                        <input type="text" id="usr-username" value="${isModifica ? (utenteEsistente.username || utenteEsistente.id || '') : ''}" required placeholder="Es. elena">
+                        <small style="color: #64748b; font-size: 0.75rem; margin-top: 4px; display: block;">Lo username per il login sarà generato automaticamente in minuscolo.</small>
                     </div>
                     <div class="form-group">
                         <label for="usr-password">Password ${isModifica ? '(Lascia vuoto per non modificare)' : ''}</label>
@@ -206,6 +204,7 @@ function apriModaleUtente(utenteEsistente = null) {
                         </div>
                     </div>
 
+                    <!-- SELEZIONE SCHEDE ACCESSIBILI -->
                     <div class="form-group" style="margin-top: 10px; background-color: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
                         <label style="margin-bottom: 8px; display: block; color: #2b3e50;">Schede Visibili</label>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.88rem;">
@@ -248,8 +247,18 @@ function apriModaleUtente(utenteEsistente = null) {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const nome = document.getElementById('usr-nome').value.trim();
-        const username = document.getElementById('usr-username').value.trim().toLowerCase();
+        const inputNome = document.getElementById('usr-nome').value.trim();
+        if (!inputNome) {
+            alert("Inserisci un nome valido.");
+            return;
+        }
+
+        // 1. Nome in Capitalize (prima lettera maiuscola, resto minuscolo o conservando la formattazione pulita)
+        const nome = inputNome.charAt(0).toUpperCase() + inputNome.slice(1).toLowerCase();
+        
+        // 2. Username e ID in minuscolo (tolower)
+        const username = inputNome.toLowerCase();
+
         const password = document.getElementById('usr-password').value;
         const ruolo = document.getElementById('usr-ruolo').value;
         const colore = document.getElementById('usr-colore').value;
@@ -277,17 +286,16 @@ function apriModaleUtente(utenteEsistente = null) {
         }
 
         try {
-            // FORZIAMO L'USO DELL'USERNAME COME ID DEL DOCUMENTO SU FIREBASE
             const docId = username;
 
             if (isModifica) {
                 if (utenteEsistente.id !== docId) {
                     await deleteDoc(doc(db, "utenti", utenteEsistente.id));
                 }
+                await setDoc(doc(db, "utenti", docId), payload, { merge: true });
+            } else {
+                await setDoc(doc(db, "utenti", docId), payload);
             }
-
-            // setDoc salverà il documento usando esattamente l'username come ID (es. "prova")
-            await setDoc(doc(db, "utenti", docId), payload, { merge: true });
 
             chiudiModale();
             const contentArea = document.getElementById('content-area');
