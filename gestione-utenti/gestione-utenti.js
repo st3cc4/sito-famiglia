@@ -1,7 +1,7 @@
 // --- Import SDK Firebase ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
-    getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc 
+    getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -93,7 +93,7 @@ async function caricaEDisegnaUtenti(container) {
                         </div>
                         <div class="user-details">
                             <span class="user-name">${u.nome || 'Senza nome'}</span>
-                            <span class="user-username">Username: ${u.username || '-'}</span>
+                            <span class="user-username">ID / Username: ${u.id}</span>
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
@@ -187,8 +187,8 @@ function apriModaleUtente(utenteEsistente = null) {
                         <input type="text" id="usr-nome" value="${isModifica ? (utenteEsistente.nome || '') : ''}" required placeholder="Es. Elena">
                     </div>
                     <div class="form-group">
-                        <label for="usr-username">Username (Login)</label>
-                        <input type="text" id="usr-username" value="${isModifica ? (utenteEsistente.username || '') : ''}" required placeholder="Es. elena">
+                        <label for="usr-username">Username (Usato come ID e per il Login)</label>
+                        <input type="text" id="usr-username" value="${isModifica ? (utenteEsistente.username || utenteEsistente.id || '') : ''}" required placeholder="Es. elena">
                     </div>
                     <div class="form-group">
                         <label for="usr-password">Password ${isModifica ? '(Lascia vuoto per non modificare)' : ''}</label>
@@ -275,13 +275,24 @@ function apriModaleUtente(utenteEsistente = null) {
 
         if (password) {
             payload.password = password;
+        } else if (!isModifica) {
+            alert("Inserisci una password per il nuovo utente.");
+            return;
         }
 
         try {
+            // Utilizziamo l'username come ID personalizzato del documento su Firebase (es. "samu" o "prova")
+            const docId = username;
+
             if (isModifica) {
-                await updateDoc(doc(db, "utenti", utenteEsistente.id), payload);
+                // Se l'ID è cambiato, eliminiamo il vecchio documento con il vecchio ID e creiamo quello nuovo
+                if (utenteEsistente.id !== docId) {
+                    await deleteDoc(doc(db, "utenti", utenteEsistente.id));
+                }
+                // setDoc aggiorna o crea il documento con l'ID personalizzato
+                await setDoc(doc(db, "utenti", docId), payload, { merge: true });
             } else {
-                await addDoc(collection(db, "utenti"), payload);
+                await setDoc(doc(db, "utenti", docId), payload);
             }
 
             chiudiModale();
