@@ -110,11 +110,16 @@ function comprimiImmagine(file, maxWidth = 1200, maxHeight = 1200, qualita = 0.7
 async function caricaEDisegnaMedia(container) {
     container.innerHTML = `
         <div class="media-container">
-            <div class="media-header">
-                <h2><i class="fa-solid fa-photo-film"></i> FOTO E VIDEO</h2>
-                <div class="media-actions">
+            <div class="section-header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <div class="header-left-group" style="display: flex; align-items: center; gap: 12px;">
+                    <button id="btn-torna-home" class="btn-outline" title="Torna alla Home">
+                        <i class="fa-solid fa-arrow-left"></i> Home
+                    </button>
+                    <h2 style="margin: 0;"><i class="fa-solid fa-photo-film"></i> FOTO E VIDEO</h2>
+                </div>
+                <div class="media-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                     <input type="text" id="search-media" class="search-media-input" placeholder="Cerca categoria...">
-                    <button class="btn-add-media" id="btn-nuovo-media">
+                    <button class="btn-add-media btn-primary" id="btn-nuovo-media">
                         <i class="fa-solid fa-circle-plus"></i> Carica Foto/Video
                     </button>
                 </div>
@@ -125,6 +130,16 @@ async function caricaEDisegnaMedia(container) {
             </div>
         </div>
     `;
+
+    // Pulsante Torna alla Home
+    const btnTornaHome = container.querySelector('#btn-torna-home');
+    if (btnTornaHome) {
+        btnTornaHome.addEventListener('click', () => {
+            if (typeof window.selezionaScheda === 'function') {
+                window.selezionaScheda('dashboard');
+            }
+        });
+    }
 
     document.getElementById('btn-nuovo-media').addEventListener('click', () => {
         apriModaleFormMedia();
