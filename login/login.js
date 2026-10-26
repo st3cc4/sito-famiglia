@@ -1,5 +1,5 @@
 import { db } from '../home/firebase-config.js';
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const loginForm = document.getElementById('login-form');
 const usernameInput = document.getElementById('username');
@@ -46,7 +46,7 @@ if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const usernameVal = usernameInput.value.trim();
+        const usernameVal = usernameInput.value.trim().toLowerCase();
         const passwordVal = passwordInput.value.trim();
 
         if (errorMsg) errorMsg.style.display = 'none';
@@ -60,56 +60,43 @@ if (loginForm) {
         }
 
         try {
-            // 1. Prova a cercare con l'esatto valore inserito
-            let userRef = doc(db, "utenti", usernameVal);
-            let userSnap = await getDoc(userRef);
+            // Cerchiamo l'utente nella collezione confrontando il campo 'username' o 'nome'
+            const utentiRef = collection(db, "utenti");
+            
+            // Prima proviamo a cercare per username esatto minuscolo
+            let q = query(utentiRef, where("username", "==", usernameVal));
+            let querySnapshot = await getDocs(q);
 
-            // 2. Se non lo trova, prova con la prima lettera maiuscola (es. "paolo" -> "Paolo")
-            if (!userSnap.exists()) {
-                const docIdCapitalized = usernameVal.charAt(0).toUpperCase() + usernameVal.slice(1).toLowerCase();
-                userRef = doc(db, "utenti", docIdCapitalized);
-                userSnap = await getDoc(userRef);
-            }
-
-            // 3. Se ancora non lo trova, prova tutto in minuscolo
-            if (!userSnap.exists()) {
-                const docIdLower = usernameVal.toLowerCase();
-                userRef = doc(db, "utenti", docIdLower);
-                userSnap = await getDoc(userRef);
-            }
-
-            if (userSnap.exists()) {
-                const userData = userSnap.data();
+            // Se non trovato, proviamo a cercare per il campo 'nome' (ignorando le maiuscole/minuscole logicamente)
+            if (querySnapshot.empty) {
+                const utentiAll = await getDocs(utentiRef);
+                let utenteTrovato = null;
                 
-                if (userData.password === passwordVal) {
-                    const sessionData = {
-                        nome: userData.nome || usernameVal,
-                        ruolo: userData.ruolo || 'user',
-                        permessi: userData.permessi || {},
-                        colore: userData.colore || '#3498db'
-                    };
-
-                    // Se "Ricordami" è spuntato salva in localStorage, altrimenti in sessionStorage
-                    if (rememberMeCheckbox && rememberMeCheckbox.checked) {
-                        localStorage.setItem('famiglia_session', JSON.stringify(sessionData));
-                    } else {
-                        sessionStorage.setItem('famiglia_session', JSON.stringify(sessionData));
+                utentiAll.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data.username && data.username.toLowerCase() === usernameVal) {
+                        utenteTrovato = data;
+                    } else if (data.nome && data.nome.toLowerCase() === usernameVal) {
+                        utenteTrovato = data;
                     }
+                });
 
-                    // Vai alla home
-                    window.location.replace('./home.html');
-                } else {
-                    if (errorMsg) {
-                        errorMsg.textContent = "Password errata. Riprova.";
-                        errorMsg.style.display = 'block';
-                    }
+                if (utenteTrovato) {
+                    elaboraLogin(utenteTrovato, passwordVal);
+                    return;
                 }
+            }
+
+            if (!querySnapshot.empty) {
+                const userData = querySnapshot.docs[0].data();
+                elaboraLogin(userData, passwordVal);
             } else {
                 if (errorMsg) {
-                    errorMsg.textContent = `Utente "${usernameVal}" non trovato nel database.`;
+                    errorMsg.textContent = `Utente "${usernameInput.value}" non trovato nel database.`;
                     errorMsg.style.display = 'block';
                 }
             }
+
         } catch (error) {
             console.error("Errore di accesso:", error);
             if (errorMsg) {
@@ -118,4 +105,28 @@ if (loginForm) {
             }
         }
     });
+}
+
+function elaboraLogin(userData, passwordVal) {
+    if (userData.password === passwordVal) {
+        const sessionData = {
+            nome: userData.nome || userData.username || 'Utente',
+            ruolo: userData.ruolo || 'user',
+            permessi: userData.permessi || {},
+            colore: userData.colore || '#3498db'
+        };
+
+        if (rememberMeCheckbox && rememberMeCheckbox.checked) {
+            localStorage.setItem('famiglia_session', JSON.stringify(sessionData));
+        } else {
+            sessionStorage.setItem('famiglia_session', JSON.stringify(sessionData));
+        }
+
+        window.location.replace('./home.html');
+    } else {
+        if (errorMsg) {
+            errorMsg.textContent = "Password errata. Riprova.";
+            errorMsg.style.display = 'block';
+        }
+    }
 }
