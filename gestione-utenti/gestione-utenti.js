@@ -36,17 +36,34 @@ export async function initGestioneUtentiSection(container) {
 async function caricaEDisegnaUtenti(container) {
     container.innerHTML = `
         <div class="admin-container">
-            <div class="admin-header">
-                <h2><i class="fa-solid fa-users-gear"></i> GESTIONE UTENTI</h2>
-                <button class="btn-add-user" id="btn-nuovo-utente">
-                    <i class="fa-solid fa-user-plus"></i> Nuovo Utente
-                </button>
+            <div class="section-header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <div class="header-left-group" style="display: flex; align-items: center; gap: 12px;">
+                    <button id="btn-torna-home" class="btn-outline" title="Torna alla Home">
+                        <i class="fa-solid fa-arrow-left"></i> Home
+                    </button>
+                    <h2 style="margin: 0;"><i class="fa-solid fa-users-gear"></i> GESTIONE UTENTI</h2>
+                </div>
+                <div class="admin-actions" style="display: flex; align-items: center; gap: 10px;">
+                    <button class="btn-add-user btn-primary" id="btn-nuovo-utente">
+                        <i class="fa-solid fa-user-plus"></i> Nuovo Utente
+                    </button>
+                </div>
             </div>
             <div class="utenti-grid" id="utenti-grid-container">
                 <p style="color: #64748b;">Caricamento utenti in corso...</p>
             </div>
         </div>
     `;
+
+    // Pulsante Torna alla Home
+    const btnTornaHome = container.querySelector('#btn-torna-home');
+    if (btnTornaHome) {
+        btnTornaHome.addEventListener('click', () => {
+            if (typeof window.selezionaScheda === 'function') {
+                window.selezionaScheda('dashboard');
+            }
+        });
+    }
 
     document.getElementById('btn-nuovo-utente').addEventListener('click', () => {
         apriModaleUtente();
