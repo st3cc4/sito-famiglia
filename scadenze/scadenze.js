@@ -312,7 +312,7 @@ function setupEventListeners(container) {
             const importo = parseFloat(container.querySelector('#scadenza-importo').value);
             const dataScad = container.querySelector('#scadenza-data').value;
 
-            const savedUser = localStorage.getItem('famiglia_pwa_user') || sessionStorage.getItem('famiglia_pwa_user');
+            const savedUser = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
             const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
 
             try {
