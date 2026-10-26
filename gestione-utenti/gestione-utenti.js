@@ -72,7 +72,7 @@ async function caricaEDisegnaUtenti(container) {
 
         gridContainer.innerHTML = listaUtenti.map(u => {
             const iniziale = u.nome ? u.nome.charAt(0).toUpperCase() : 'U';
-            const colore = u.colore || '#3498db';
+            const colore = u.colore || '#95a5a6'; // Grigio standard di default
             const ruolo = u.ruolo || 'utente';
             
             const permessi = u.permessi || { scadenze: true, impegni: true, media: true, ricette: true };
@@ -157,7 +157,7 @@ async function caricaEDisegnaUtenti(container) {
     }
 }
 
-// POP-UP MODALE PER CREARE O MODIFICARE UN UTENTE SENZA CAMPO USERNAME MANUALE
+// POP-UP MODALE PER CREARE O MODIFICARE UN UTENTE SENZA CAMPO USERNAME E COLORE MANUALE
 function apriModaleUtente(utenteEsistente = null) {
     const isModifica = !!utenteEsistente;
     const modalId = 'modal-utente';
@@ -195,13 +195,6 @@ function apriModaleUtente(utenteEsistente = null) {
                             <option value="utente" ${isModifica && utenteEsistente.ruolo === 'utente' ? 'selected' : ''}>Utente</option>
                             <option value="admin" ${isModifica && utenteEsistente.ruolo === 'admin' ? 'selected' : ''}>Admin</option>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="usr-colore">Colore Distintivo</label>
-                        <div class="color-picker-wrapper">
-                            <input type="color" id="usr-colore" class="color-picker-input" value="${isModifica ? (utenteEsistente.colore || '#3498db') : '#e74c3c'}">
-                            <span style="font-size: 0.85rem; color: #64748b;">Scegli il colore identificativo</span>
-                        </div>
                     </div>
 
                     <!-- SELEZIONE SCHEDE ACCESSIBILI -->
@@ -253,7 +246,7 @@ function apriModaleUtente(utenteEsistente = null) {
             return;
         }
 
-        // 1. Nome in Capitalize (prima lettera maiuscola, resto minuscolo o conservando la formattazione pulita)
+        // 1. Nome in Capitalize (prima lettera maiuscola, resto minuscolo)
         const nome = inputNome.charAt(0).toUpperCase() + inputNome.slice(1).toLowerCase();
         
         // 2. Username e ID in minuscolo (tolower)
@@ -261,7 +254,9 @@ function apriModaleUtente(utenteEsistente = null) {
 
         const password = document.getElementById('usr-password').value;
         const ruolo = document.getElementById('usr-ruolo').value;
-        const colore = document.getElementById('usr-colore').value;
+        
+        // Colore grigio standard di default (#95a5a6), preservando quello esistente in modifica se presente
+        const colore = isModifica && utenteEsistente.colore ? utenteEsistente.colore : '#95a5a6';
 
         const permessi = {
             scadenze: document.getElementById('perm-scadenze').checked,
