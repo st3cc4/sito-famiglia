@@ -1,3 +1,4 @@
+// --- Import SDK di Firebase ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
     getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc 
@@ -496,6 +497,14 @@ function apriModaleFormRicetta(ricettaEsistente = null) {
                 await updateDoc(doc(db, "ricette", ricettaEsistente.id), payload);
             } else {
                 await addDoc(collection(db, "ricette"), payload);
+
+                // Invia notifica di nuova ricetta inserita
+                if (typeof window.inviaNotificaFamiglia === 'function') {
+                    window.inviaNotificaFamiglia(
+                        "🍳 Nuova Ricetta Aggiunta",
+                        `"${nome}" (${categoria}) aggiunta da ${userData.nome}.`
+                    );
+                }
             }
 
             chiudiModale();
