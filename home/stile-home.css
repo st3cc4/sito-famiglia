@@ -141,7 +141,7 @@ body {
 .nav-btn {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 16px; /* Aumentato leggermente per distanziare uniformemente l'icona dal testo */
     padding: 12px 20px;
     background: none;
     border: none;
@@ -157,8 +157,11 @@ body {
 
 .nav-btn i {
     font-size: 1.1rem;
-    width: 24px;
+    min-width: 24px; /* Larghezza fissa per bloccare lo spazio dell'icona ed evitare disallineamenti */
     text-align: center;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .nav-btn:hover,
@@ -178,6 +181,7 @@ body {
 .sidebar.collapsed .nav-btn {
     justify-content: center;
     padding: 12px 0;
+    gap: 0; /* Annulla il gap a menu chiuso per centrare perfettamente l'icona */
 }
 
 .sidebar.collapsed .nav-btn.active {
