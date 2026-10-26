@@ -75,7 +75,6 @@ async function caricaEDisegnaUtenti(container) {
             const colore = u.colore || '#3498db';
             const ruolo = u.ruolo || 'utente';
             
-            // Permessi schede (se non definiti, di default sono abilitati)
             const permessi = u.permessi || { scadenze: true, impegni: true, media: true, ricette: true };
 
             const schedeAbilitate = [
@@ -121,7 +120,6 @@ async function caricaEDisegnaUtenti(container) {
             `;
         }).join('');
 
-        // Eventi per modifica ed eliminazione
         gridContainer.querySelectorAll('.btn-user-action.edit').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const idUtente = e.currentTarget.getAttribute('data-id');
@@ -159,7 +157,6 @@ async function caricaEDisegnaUtenti(container) {
     }
 }
 
-// POP-UP MODALE PER CREARE O MODIFICARE UN UTENTE CON SELEZIONE SCHEDE
 function apriModaleUtente(utenteEsistente = null) {
     const isModifica = !!utenteEsistente;
     const modalId = 'modal-utente';
@@ -209,7 +206,6 @@ function apriModaleUtente(utenteEsistente = null) {
                         </div>
                     </div>
 
-                    <!-- SELEZIONE SCHEDE ACCESSIBILI -->
                     <div class="form-group" style="margin-top: 10px; background-color: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
                         <label style="margin-bottom: 8px; display: block; color: #2b3e50;">Schede Visibili</label>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.88rem;">
@@ -281,19 +277,17 @@ function apriModaleUtente(utenteEsistente = null) {
         }
 
         try {
-            // Utilizziamo l'username come ID personalizzato del documento su Firebase (es. "samu" o "prova")
+            // FORZIAMO L'USO DELL'USERNAME COME ID DEL DOCUMENTO SU FIREBASE
             const docId = username;
 
             if (isModifica) {
-                // Se l'ID è cambiato, eliminiamo il vecchio documento con il vecchio ID e creiamo quello nuovo
                 if (utenteEsistente.id !== docId) {
                     await deleteDoc(doc(db, "utenti", utenteEsistente.id));
                 }
-                // setDoc aggiorna o crea il documento con l'ID personalizzato
-                await setDoc(doc(db, "utenti", docId), payload, { merge: true });
-            } else {
-                await setDoc(doc(db, "utenti", docId), payload);
             }
+
+            // setDoc salverà il documento usando esattamente l'username come ID (es. "prova")
+            await setDoc(doc(db, "utenti", docId), payload, { merge: true });
 
             chiudiModale();
             const contentArea = document.getElementById('content-area');
