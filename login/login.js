@@ -1,5 +1,5 @@
 import { db } from '../home/firebase-config.js';
-import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const loginForm = document.getElementById('login-form');
 const usernameInput = document.getElementById('username');
@@ -60,36 +60,34 @@ if (loginForm) {
         }
 
         try {
-            // Cerchiamo l'utente nella collezione confrontando il campo 'username' o 'nome'
-            const utentiRef = collection(db, "utenti");
-            
-            // Prima proviamo a cercare per username esatto minuscolo
-            let q = query(utentiRef, where("username", "==", usernameVal));
-            let querySnapshot = await getDocs(q);
+            // L'ID del documento su Firestore corrisponde allo username in minuscolo
+            const userRef = doc(db, "utenti", usernameVal);
+            const userSnap = await getDoc(userRef);
 
-            // Se non trovato, proviamo a cercare per il campo 'nome' (ignorando le maiuscole/minuscole logicamente)
-            if (querySnapshot.empty) {
-                const utentiAll = await getDocs(utentiRef);
-                let utenteTrovato = null;
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
                 
-                utentiAll.forEach(docSnap => {
-                    const data = docSnap.data();
-                    if (data.username && data.username.toLowerCase() === usernameVal) {
-                        utenteTrovato = data;
-                    } else if (data.nome && data.nome.toLowerCase() === usernameVal) {
-                        utenteTrovato = data;
+                if (userData.password === passwordVal) {
+                    const sessionData = {
+                        nome: userData.nome || usernameVal,
+                        ruolo: userData.ruolo || 'user',
+                        permessi: userData.permessi || {},
+                        colore: userData.colore || '#3498db'
+                    };
+
+                    if (rememberMeCheckbox && rememberMeCheckbox.checked) {
+                        localStorage.setItem('famiglia_session', JSON.stringify(sessionData));
+                    } else {
+                        sessionStorage.setItem('famiglia_session', JSON.stringify(sessionData));
                     }
-                });
 
-                if (utenteTrovato) {
-                    elaboraLogin(utenteTrovato, passwordVal);
-                    return;
+                    window.location.replace('./home.html');
+                } else {
+                    if (errorMsg) {
+                        errorMsg.textContent = "Password errata. Riprova.";
+                        errorMsg.style.display = 'block';
+                    }
                 }
-            }
-
-            if (!querySnapshot.empty) {
-                const userData = querySnapshot.docs[0].data();
-                elaboraLogin(userData, passwordVal);
             } else {
                 if (errorMsg) {
                     errorMsg.textContent = `Utente "${usernameInput.value}" non trovato nel database.`;
@@ -105,28 +103,4 @@ if (loginForm) {
             }
         }
     });
-}
-
-function elaboraLogin(userData, passwordVal) {
-    if (userData.password === passwordVal) {
-        const sessionData = {
-            nome: userData.nome || userData.username || 'Utente',
-            ruolo: userData.ruolo || 'user',
-            permessi: userData.permessi || {},
-            colore: userData.colore || '#3498db'
-        };
-
-        if (rememberMeCheckbox && rememberMeCheckbox.checked) {
-            localStorage.setItem('famiglia_session', JSON.stringify(sessionData));
-        } else {
-            sessionStorage.setItem('famiglia_session', JSON.stringify(sessionData));
-        }
-
-        window.location.replace('./home.html');
-    } else {
-        if (errorMsg) {
-            errorMsg.textContent = "Password errata. Riprova.";
-            errorMsg.style.display = 'block';
-        }
-    }
 }
