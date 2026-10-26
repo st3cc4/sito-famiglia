@@ -30,6 +30,18 @@
         .btn-install-pwa:hover {
             background-color: #219653;
         }
+
+        /* Nasconde l'icona nativa del browser per la password ed evita lo sdoppiamento */
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear {
+            display: none;
+        }
+        input[type="password"]::-webkit-credentials-auto-fill-button {
+            visibility: hidden;
+            pointer-events: none;
+            position: absolute;
+            right: 0;
+        }
     </style>
 </head>
 <body>
