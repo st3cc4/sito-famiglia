@@ -64,11 +64,16 @@ function calcolaMediaValutazione(valutazioniObj, valPredefinita = 5) {
 async function caricaEDisegnaRicette(container) {
     container.innerHTML = `
         <div class="ricette-container">
-            <div class="ricette-header">
-                <h2><i class="fa-solid fa-utensils"></i> RICETTE</h2>
-                <div class="ricette-actions">
+            <div class="section-header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <div class="header-left-group" style="display: flex; align-items: center; gap: 12px;">
+                    <button id="btn-torna-home" class="btn-outline" title="Torna alla Home">
+                        <i class="fa-solid fa-arrow-left"></i> Home
+                    </button>
+                    <h2 style="margin: 0;"><i class="fa-solid fa-utensils"></i> RICETTE</h2>
+                </div>
+                <div class="ricette-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                     <input type="text" id="search-ricette" class="search-ricette-input" placeholder="Cerca ricetta...">
-                    <button class="btn-add-ricetta" id="btn-nuova-ricetta">
+                    <button class="btn-add-ricetta btn-primary" id="btn-nuova-ricetta">
                         <i class="fa-solid fa-circle-plus"></i> Nuova Ricetta
                     </button>
                 </div>
@@ -79,6 +84,16 @@ async function caricaEDisegnaRicette(container) {
             </div>
         </div>
     `;
+
+    // Pulsante Torna alla Home
+    const btnTornaHome = container.querySelector('#btn-torna-home');
+    if (btnTornaHome) {
+        btnTornaHome.addEventListener('click', () => {
+            if (typeof window.selezionaScheda === 'function') {
+                window.selezionaScheda('dashboard');
+            }
+        });
+    }
 
     document.getElementById('btn-nuova-ricetta').addEventListener('click', () => {
         apriModaleFormRicetta();
