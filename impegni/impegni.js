@@ -416,8 +416,18 @@ function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '')
         try {
             if (isModifica) {
                 await updateDoc(doc(db, "appuntamenti", impegnoEsistente.id), payload);
+                
+                // Invia notifica di aggiornamento impegno
+                if (typeof window.inviaNotificaFamiglia === 'function') {
+                    window.inviaNotificaFamiglia(
+                        "📅 Impegno Aggiornato",
+                        `L'impegno "${titolo}" è stato modificato da ${creatoreCorrente}.`
+                    );
+                }
             } else {
                 await addDoc(collection(db, "appuntamenti"), payload);
+                
+                // Invia notifica di nuovo impegno aggiunto
                 if (typeof window.inviaNotificaFamiglia === 'function') {
                     window.inviaNotificaFamiglia(
                         "📅 Nuovo Impegno Aggiunto",
