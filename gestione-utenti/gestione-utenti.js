@@ -72,7 +72,7 @@ async function caricaEDisegnaUtenti(container) {
 
         gridContainer.innerHTML = listaUtenti.map(u => {
             const iniziale = u.nome ? u.nome.charAt(0).toUpperCase() : 'U';
-            const colore = u.colore || '#95a5a6'; // Grigio standard di default
+            const colore = u.colore || '#95a5a6';
             const ruolo = u.ruolo || 'utente';
             
             const permessi = u.permessi || { scadenze: true, impegni: true, media: true, ricette: true };
@@ -157,7 +157,7 @@ async function caricaEDisegnaUtenti(container) {
     }
 }
 
-// POP-UP MODALE PER CREARE O MODIFICARE UN UTENTE SENZA CAMPO USERNAME E COLORE MANUALE
+// POP-UP MODALE PER CREARE O MODIFICARE UN UTENTE CON PASSWORD PRECOMPILATA
 function apriModaleUtente(utenteEsistente = null) {
     const isModifica = !!utenteEsistente;
     const modalId = 'modal-utente';
@@ -171,6 +171,8 @@ function apriModaleUtente(utenteEsistente = null) {
         media: true,
         ricette: true
     };
+
+    const passwordPrecompilata = (utenteEsistente && utenteEsistente.password) ? utenteEsistente.password : '';
 
     const modalHtml = `
         <div class="modal-overlay" id="${modalId}">
@@ -186,8 +188,8 @@ function apriModaleUtente(utenteEsistente = null) {
                         <small style="color: #64748b; font-size: 0.75rem; margin-top: 4px; display: block;">Lo username per il login sarà generato automaticamente in minuscolo.</small>
                     </div>
                     <div class="form-group">
-                        <label for="usr-password">Password ${isModifica ? '(Lascia vuoto per non modificare)' : ''}</label>
-                        <input type="password" id="usr-password" ${isModifica ? '' : 'required'} placeholder="Password di accesso">
+                        <label for="usr-password">Password</label>
+                        <input type="text" id="usr-password" value="${passwordPrecompilata}" required placeholder="Password di accesso">
                     </div>
                     <div class="form-group">
                         <label for="usr-ruolo">Ruolo</label>
@@ -246,16 +248,11 @@ function apriModaleUtente(utenteEsistente = null) {
             return;
         }
 
-        // 1. Nome in Capitalize (prima lettera maiuscola, resto minuscolo)
         const nome = inputNome.charAt(0).toUpperCase() + inputNome.slice(1).toLowerCase();
-        
-        // 2. Username e ID in minuscolo (tolower)
         const username = inputNome.toLowerCase();
 
-        const password = document.getElementById('usr-password').value;
+        const password = document.getElementById('usr-password').value.trim();
         const ruolo = document.getElementById('usr-ruolo').value;
-        
-        // Colore grigio standard di default (#95a5a6), preservando quello esistente in modifica se presente
         const colore = isModifica && utenteEsistente.colore ? utenteEsistente.colore : '#95a5a6';
 
         const permessi = {
@@ -268,17 +265,11 @@ function apriModaleUtente(utenteEsistente = null) {
         const payload = {
             nome: nome,
             username: username,
+            password: password,
             ruolo: ruolo,
             colore: colore,
             permessi: permessi
         };
-
-        if (password) {
-            payload.password = password;
-        } else if (!isModifica) {
-            alert("Inserisci una password per il nuovo utente.");
-            return;
-        }
 
         try {
             const docId = username;
