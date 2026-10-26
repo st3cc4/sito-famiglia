@@ -323,6 +323,14 @@ function setupEventListeners(container) {
                         importo: importo,
                         data: dataScad
                     });
+
+                    // Invia notifica di aggiornamento scadenza
+                    if (typeof window.inviaNotificaFamiglia === 'function') {
+                        window.inviaNotificaFamiglia(
+                            'Famiglia - Scadenza Aggiornata', 
+                            `${userData.nome} ha modificato la scadenza: ${titolo}`
+                        );
+                    }
                 } else {
                     await addDoc(collection(db, "scadenze"), {
                         titolo: titolo,
@@ -331,6 +339,14 @@ function setupEventListeners(container) {
                         creatore: userData.nome,
                         creatoIl: new Date().toISOString()
                     });
+
+                    // Invia notifica di nuova scadenza inserita
+                    if (typeof window.inviaNotificaFamiglia === 'function') {
+                        window.inviaNotificaFamiglia(
+                            'Famiglia - Nuova Scadenza', 
+                            `${userData.nome} ha aggiunto la scadenza: ${titolo} (€ ${importo.toFixed(2)})`
+                        );
+                    }
                 }
 
                 resetForm(container);
