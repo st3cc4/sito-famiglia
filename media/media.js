@@ -455,6 +455,15 @@ function apriModaleFormMedia() {
 
         try {
             await addDoc(collection(db, "media"), payload);
+
+            // Invia notifica di nuovo contenuto multimediale caricato
+            if (typeof window.inviaNotificaFamiglia === 'function') {
+                window.inviaNotificaFamiglia(
+                    "📷 Nuovo Contenuto Multimediale",
+                    `${userData.nome || 'Un utente'} ha caricato un nuovo file (${fileTipo}) nell'album "${categoria}".`
+                );
+            }
+
             chiudiModale();
             const contentArea = document.getElementById('content-area');
             await caricaEDisegnaMedia(contentArea);
