@@ -125,15 +125,16 @@ async function caricaEDisegnaSettimana(container) {
     container.innerHTML = `
         <div class="impegni-container">
             <!-- HEADER CON TASTO HOME A SINISTRA E NAVIGAZIONE SETTIMANA -->
-            <div class="impegni-header">
-                <div class="week-nav-left">
-                    <button class="btn-week-nav" id="btn-torna-home">
+            <div class="section-header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <div class="header-left-group" style="display: flex; align-items: center; gap: 12px;">
+                    <button id="btn-torna-home" class="btn-outline" title="Torna alla Home">
                         <i class="fa-solid fa-arrow-left"></i> Home
                     </button>
+                    <h2 style="margin: 0;"><i class="fa-solid fa-calendar-days"></i> IMPEGNI</h2>
                 </div>
-                <div class="week-nav-right">
+                <div class="week-nav-right" style="display: flex; align-items: center; gap: 10px;">
                     <button class="btn-week-nav" id="btn-sett-prec"><i class="fa-solid fa-chevron-left"></i> Prec.</button>
-                    <div class="current-week-label" id="titolo-settimana">${testoSettimana}</div>
+                    <div class="current-week-label" id="titolo-settimana" style="font-weight: 600;">${testoSettimana}</div>
                     <button class="btn-week-nav" id="btn-sett-succ">Succ. <i class="fa-solid fa-chevron-right"></i></button>
                 </div>
             </div>
