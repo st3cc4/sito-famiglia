@@ -30,6 +30,20 @@ window.inviaNotificaFamiglia = function(titoloNotifica, corpoNotifica) {
     }
 };
 
+// --- Funzione per Richiedere il Permesso delle Notifiche Push ---
+async function inizializzaNotifichePush() {
+    if ('Notification' in window && 'serviceWorker' in navigator) {
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                console.log('Permesso per le notifiche push accordato.');
+            }
+        } catch (error) {
+            console.error('Errore durante la richiesta dei permessi di notifica:', error);
+        }
+    }
+}
+
 let scadenzeGlobal = [];
 let filtroAttivo = 'tutte';
 let idInModifica = null;
@@ -88,6 +102,9 @@ document.addEventListener('DOMContentLoaded', function() {
     caricaStileDinamico('../media/stile-media.css?v=2', 'css-media');
 
     initNavigation();
+
+    // Attiva la richiesta dei permessi per le notifiche push in modo non intrusivo
+    setTimeout(inizializzaNotifichePush, 2000);
 });
 
 function aggiornaVisibilitaTastoSidebar(targetName, visibile) {
