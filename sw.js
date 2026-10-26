@@ -1,72 +1,64 @@
-const CACHE_NAME = 'famiglia-cache-v2';
-const urlsToCache = [
-  './index.html',
-  './home.html',
-  './manifest.json'
-];
+// --- SERVICE WORKER CON SUPPORTO PUSH NOTIFICATIONS ---
 
-// Installazione del Service Worker e caching dei file principali
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Cache aperta con successo');
-        return cache.addAll(urlsToCache);
-      })
-  );
-  self.skipWaiting();
+    console.log('Service Worker installato con successo.');
+    self.skipWaiting();
 });
 
-// Attivazione e pulizia delle vecchie cache
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Eliminazione vecchia cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
-  self.clients.claim();
+    console.log('Service Worker attivato.');
+    return self.clients.claim();
 });
 
-// Intercettazione delle richieste di rete
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        return response || fetch(event.request);
-      })
-  );
-});
-
-// Gestione delle notifiche push locali ricevute dall'app
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'MOSTRA_NOTIFICA') {
-    const { titolo, corpo } = event.data;
-    const options = {
-      body: corpo,
-      icon: './assets/icon-192.png',
-      badge: './assets/icon-192.png',
-      vibrate: [200, 100, 200]
+// Intercetta l'evento push proveniente dal server/database
+self.addEventListener('push', (event) => {
+    let notificationData = {
+        title: 'Famiglia - Portale',
+        body: 'Hai una nuova notifica.',
+        icon: './favicon.ico',
+        url: './home.html'
     };
-    self.registration.showNotification(titolo, options);
-  }
+
+    if (event.data) {
+        try {
+            notificationData = event.data.json();
+        } catch (e) {
+            notificationData.body = event.data.text();
+        }
+    }
+
+    const options = {
+        body: notificationData.body,
+        icon: notificationData.icon || './favicon.ico',
+        badge: './favicon.ico',
+        vibrate: [200, 100, 200],
+        data: {
+            url: notificationData.url || './home.html'
+        }
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(notificationData.title, options)
+    );
 });
 
-// Gestione del click sulla notifica per riportare l'utente sull'app
+// Gestisce il click dell'utente sulla notifica (apre l'app)
 self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      if (windowClients.length > 0) {
-        return windowClients[0].focus();
-      }
-      return clients.openWindow('./home.html');
-    })
-  );
+    event.notification.close();
+    const targetUrl = event.notification.data.url || './home.html';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+            // Se l'app è già aperta in una scheda, portala in primo piano
+            for (let client of windowClients) {
+                if (client.url.includes('home.html') && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            // Altrimenti apri una nuova finestra/scheda sull'indirizzo dell'app
+            if (clients.openWindow) {
+                return clients.openWindow(targetUrl);
+            }
+        })
+    );
 });
