@@ -322,7 +322,8 @@ async function renderDashboard(container) {
                 titolo: data.titolo || 'Senza titolo',
                 importo: data.importo !== undefined ? '€ ' + Number(data.importo).toFixed(2) : '',
                 dataFormattata: formatDataEuropea(data.data),
-                giorniMancanti: giorniMancanti
+                giorniMancanti: giorniMancanti,
+                creatore: data.creatore || ''
             });
         });
 
@@ -430,7 +431,9 @@ async function renderDashboard(container) {
                                             <span class="scadenza-amount">${s.importo}</span>
                                         </div>
                                         <div class="scadenza-row">
-                                            <span class="scadenza-date">${s.dataFormattata}</span>
+                                            <span class="scadenza-date">
+                                                ${s.dataFormattata} ${s.creatore ? `<span style="font-size: 0.85em; opacity: 0.8;">(${s.creatore})</span>` : ''}
+                                            </span>
                                             <span class="scadenza-status">${s.giorniMancanti < 0 ? 'Scaduta' : (s.giorniMancanti === 0 ? 'Scade oggi' : 'Tra ' + s.giorniMancanti + ' gg')}</span>
                                         </div>
                                     </li>`;
