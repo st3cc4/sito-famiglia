@@ -1,4 +1,4 @@
-// --- SERVICE WORKER CON SUPPORTO PUSH NOTIFICATIONS ---
+// --- SERVICE WORKER CON SUPPORTO PUSH E MESSAGGI DIRETTI ---
 
 self.addEventListener('install', (event) => {
     console.log('Service Worker installato con successo.');
@@ -8,6 +8,25 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
     console.log('Service Worker attivato.');
     return self.clients.claim();
+});
+
+// Ascolta i messaggi inviati direttamente dalla pagina (es. test da console o azioni locali)
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'MOSTRA_NOTIFICA') {
+        const title = event.data.titolo || 'Famiglia - Portale';
+        const options = {
+            body: event.data.corpo || 'Hai una nuova notifica.',
+            icon: './favicon.ico',
+            badge: './favicon.ico',
+            vibrate: [200, 100, 200],
+            data: {
+                url: './home.html'
+            }
+        };
+        event.waitUntil(
+            self.registration.showNotification(title, options)
+        );
+    }
 });
 
 // Intercetta l'evento push proveniente dal server/database
@@ -49,13 +68,11 @@ self.addEventListener('notificationclick', (event) => {
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-            // Se l'app è già aperta in una scheda, portala in primo piano
             for (let client of windowClients) {
                 if (client.url.includes('home.html') && 'focus' in client) {
                     return client.focus();
                 }
             }
-            // Altrimenti apri una nuova finestra/scheda sull'indirizzo dell'app
             if (clients.openWindow) {
                 return clients.openWindow(targetUrl);
             }
