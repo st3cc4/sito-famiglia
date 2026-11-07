@@ -123,7 +123,8 @@ async function caricaEDisegnaScadenze(container) {
             });
         });
 
-        listaScadenze.sort((a, b) => new Date(a.dataScadenza || '9999-12-31') - new Date(b.dataScadenza || '9999-12-31'));
+        // Ordinamento basato sul campo corretto "data"
+        listaScadenze.sort((a, b) => new Date(a.data || '9999-12-31') - new Date(b.data || '9999-12-31'));
         renderTabellaScadenze('');
 
     } catch (err) {
@@ -158,10 +159,10 @@ function renderTabellaScadenze(filtro) {
         if (s.pagata) {
             statoClasse = 'green';
             statoTesto = 'Pagata / Risolta';
-        } else if (s.dataScadenza) {
+        } else if (s.data) {
             const oggi = new Date();
             oggi.setHours(0,0,0,0);
-            const dataScad = new Date(s.dataScadenza);
+            const dataScad = new Date(s.data);
             dataScad.setHours(0,0,0,0);
 
             if (!isNaN(dataScad.getTime())) {
@@ -196,12 +197,15 @@ function renderTabellaScadenze(filtro) {
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.05); flex-wrap: wrap; gap: 8px;">
                     <div>
-                        <span style="font-size: 0.82rem; font-weight: 600; color: #475569;"><i class="fa-regular fa-calendar"></i> ${formattaDataLeggibile(s.dataScadenza)}</span>
+                        <span style="font-size: 0.82rem; font-weight: 600; color: #475569;"><i class="fa-regular fa-calendar"></i> ${formattaDataLeggibile(s.data)}</span>
                         <span style="margin-left: 10px; font-size: 0.82rem; font-weight: bold;" class="scadenza-status">${statoTesto}</span>
                     </div>
                     <div style="display: flex; gap: 8px;">
                         <button class="btn-outline btn-toggle-pagata" data-id="${s.id}" data-pagata="${s.pagata ? 'true' : 'false'}" style="padding: 4px 10px; font-size: 0.8rem;">
                             ${s.pagata ? '<i class="fa-solid fa-rotate-left"></i> Segna da pagare' : '<i class="fa-solid fa-check"></i> Segna Pagata'}
+                        </button>
+                        <button class="btn-outline btn-edit-scadenza" data-id="${s.id}" title="Modifica" style="padding: 4px 8px; font-size: 0.8rem; color: #3498db; border-color: #3498db;">
+                            <i class="fa-solid fa-pen-to-square"></i>
                         </button>
                         <button class="btn-outline btn-delete-scadenza" data-id="${s.id}" title="Elimina" style="padding: 4px 8px; font-size: 0.8rem; color: #e74c3c; border-color: #e74c3c;">
                             <i class="fa-solid fa-trash-can"></i>
@@ -214,6 +218,7 @@ function renderTabellaScadenze(filtro) {
 
     container.innerHTML = html;
 
+    // Segna pagata / da pagare
     container.querySelectorAll('.btn-toggle-pagata').forEach(btn => {
         btn.addEventListener('click', async () => {
             const idS = btn.getAttribute('data-id');
@@ -229,6 +234,18 @@ function renderTabellaScadenze(filtro) {
         });
     });
 
+    // Modifica scadenza
+    container.querySelectorAll('.btn-edit-scadenza').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const idS = btn.getAttribute('data-id');
+            const scadObj = listaScadenze.find(item => item.id === idS);
+            if (scadObj) {
+                apriModaleFormScadenza(scadObj);
+            }
+        });
+    });
+
+    // Elimina scadenza
     container.querySelectorAll('.btn-delete-scadenza').forEach(btn => {
         btn.addEventListener('click', async () => {
             const idS = btn.getAttribute('data-id');
@@ -246,7 +263,7 @@ function renderTabellaScadenze(filtro) {
     });
 }
 
-function apriModaleFormScadenza() {
+function apriModaleFormScadenza(scadenzaEsistente = null) {
     const savedUser = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
     const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
 
@@ -254,14 +271,19 @@ function apriModaleFormScadenza() {
     const prevModal = document.getElementById(modalId);
     if (prevModal) prevModal.remove();
 
+    const isEdit = scadenzaEsistente !== null;
+    const titoloModal = isEdit ? "Modifica Scadenza" : "Nuova Scadenza / Bolletta";
+    const testoPulsanteSalva = isEdit ? "Aggiorna Scadenza" : "Salva Scadenza";
+
     const modalHtml = `
         <div class="modal-overlay" id="${modalId}">
             <div class="modal-content" style="max-width: 500px;">
                 <div class="modal-header">
-                    <h3>Nuova Scadenza / Bolletta</h3>
+                    <h3>${titoloModal}</h3>
                     <button class="btn-close-modal" id="btn-close-form-scad">&times;</button>
                 </div>
                 
+                ${!isEdit ? `
                 <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-bottom: 15px; text-align: center;">
                     <p style="font-size: 0.85rem; color: #475569; margin-bottom: 8px;"><i class="fa-solid fa-wand-magic-sparkles" style="color: #3498db;"></i> Hai una bolletta o un avviso cartaceo?</p>
                     <button type="button" id="btn-scansiona-ocr" class="btn-outline" style="font-size: 0.85rem; width: 100%;">
@@ -270,26 +292,27 @@ function apriModaleFormScadenza() {
                     <input type="file" id="input-ocr-file" accept="image/*" style="display: none;">
                     <div id="ocr-status" style="font-size: 0.78rem; color: #64748b; margin-top: 6px;"></div>
                 </div>
+                ` : ''}
 
                 <form id="form-scadenza">
                     <div class="form-group" style="margin-bottom: 12px;">
                         <label for="scad-titolo">Titolo / Nome Scadenza</label>
-                        <input type="text" id="scad-titolo" required placeholder="Es. Enel Energia, Affitto, Assicurazione..." style="width:100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                        <input type="text" id="scad-titolo" required value="${isEdit ? (scadenzaEsistente.titolo || '') : ''}" placeholder="Es. Enel Energia, Affitto..." style="width:100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
                     </div>
 
                     <div class="form-group" style="margin-bottom: 12px;">
                         <label for="scad-importo">Importo (€)</label>
-                        <input type="number" step="0.01" id="scad-importo" required placeholder="0.00" style="width:100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                        <input type="number" step="0.01" id="scad-importo" required value="${isEdit ? (scadenzaEsistente.importo || '') : ''}" placeholder="0.00" style="width:100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
                     </div>
 
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label for="scad-data">Data di Scadenza</label>
-                        <input type="date" id="scad-data" required style="width:100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                        <input type="date" id="scad-data" required value="${isEdit ? (scadenzaEsistente.data || '') : ''}" style="width:100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
                     </div>
 
                     <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px;">
                         <button type="button" class="btn-modal cancel" id="btn-cancel-scad">Annulla</button>
-                        <button type="submit" class="btn-modal save" id="btn-save-scad">Salva Scadenza</button>
+                        <button type="submit" class="btn-modal save" id="btn-save-scad">${testoPulsanteSalva}</button>
                     </div>
                 </form>
             </div>
@@ -302,68 +325,70 @@ function apriModaleFormScadenza() {
     document.getElementById('btn-close-form-scad').addEventListener('click', () => modalEl.remove());
     document.getElementById('btn-cancel-scad').addEventListener('click', () => modalEl.remove());
 
-    const btnOcr = document.getElementById('btn-scansiona-ocr');
-    const inputOcr = document.getElementById('input-ocr-file');
-    const ocrStatus = document.getElementById('ocr-status');
+    if (!isEdit) {
+        const btnOcr = document.getElementById('btn-scansiona-ocr');
+        const inputOcr = document.getElementById('input-ocr-file');
+        const ocrStatus = document.getElementById('ocr-status');
 
-    btnOcr.addEventListener('click', () => inputOcr.click());
+        btnOcr.addEventListener('click', () => inputOcr.click());
 
-    inputOcr.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+        inputOcr.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
 
-        ocrStatus.textContent = "Caricamento libreria OCR e analisi in corso...";
-        btnOcr.disabled = true;
+            ocrStatus.textContent = "Caricamento libreria OCR e analisi in corso...";
+            btnOcr.disabled = true;
 
-        try {
-            if (!window.Tesseract) {
-                await new Promise((resolve, reject) => {
-                    const script = document.createElement('script');
-                    script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-                    script.onload = resolve;
-                    script.onerror = reject;
-                    document.head.appendChild(script);
-                });
-            }
-
-            ocrStatus.textContent = "Lettura del testo dalla foto...";
-            const worker = await Tesseract.createWorker('ita+eng');
-            const ret = await worker.recognize(file);
-            await worker.terminate();
-
-            const testoRiconosciuto = ret.data.text;
-            ocrStatus.textContent = "Analisi dati completata!";
-            btnOcr.disabled = false;
-
-            // Estrazione automatica Importo
-            const regexImporto = /(?:totale|eur|€)\s*[:\.]?\s*(\d+[.,]\d{2})/i;
-            const matchImporto = testoRiconosciuto.match(regexImporto);
-            if (matchImporto && matchImporto[1]) {
-                document.getElementById('scad-importo').value = matchImporto[1].replace(',', '.');
-            } else {
-                const numeriTrovati = testoRiconosciuto.match(/\b\d+[.,]\d{2}\b/g);
-                if (numeriTrovati && numeriTrovati.length > 0) {
-                    document.getElementById('scad-importo').value = numeriTrovati[numeriTrovati.length - 1].replace(',', '.');
+            try {
+                if (!window.Tesseract) {
+                    await new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
                 }
-            }
 
-            // Estrazione automatica Data
-            const regexData = /\b(0[1-9]|[12]\d|3[01])[\/\-\.](0[1-9]|1[0-2])[\/\-\.](\d{2,4})\b/;
-            const matchData = testoRiconosciuto.match(regexData);
-            if (matchData) {
-                let anno = matchData[3];
-                if (anno.length === 2) anno = '20' + anno;
-                const mese = matchData.match(regexData)[2] || matchData[2];
-                const giorno = matchData[1];
-                document.getElementById('scad-data').value = `${anno}-${mese}-${giorno}`;
-            }
+                ocrStatus.textContent = "Lettura del testo dalla foto...";
+                const worker = await Tesseract.createWorker('ita+eng');
+                const ret = await worker.recognize(file);
+                await worker.terminate();
 
-        } catch (err) {
-            console.error("Errore OCR:", err);
-            ocrStatus.textContent = "Errore durante la lettura dell'immagine.";
-            btnOcr.disabled = false;
-        }
-    });
+                const testoRiconosciuto = ret.data.text;
+                ocrStatus.textContent = "Analisi dati completata!";
+                btnOcr.disabled = false;
+
+                // Estrazione automatica Importo
+                const regexImporto = /(?:totale|eur|€)\s*[:\.]?\s*(\d+[.,]\d{2})/i;
+                const matchImporto = testoRiconosciuto.match(regexImporto);
+                if (matchImporto && matchImporto[1]) {
+                    document.getElementById('scad-importo').value = matchImporto[1].replace(',', '.');
+                } else {
+                    const numeriTrovati = testoRiconosciuto.match(/\b\d+[.,]\d{2}\b/g);
+                    if (numeriTrovati && numeriTrovati.length > 0) {
+                        document.getElementById('scad-importo').value = numeriTrovati[numeriTrovati.length - 1].replace(',', '.');
+                    }
+                }
+
+                // Estrazione automatica Data
+                const regexData = /\b(0[1-9]|[12]\d|3[01])[\/\-\.](0[1-9]|1[0-2])[\/\-\.](\d{2,4})\b/;
+                const matchData = testoRiconosciuto.match(regexData);
+                if (matchData) {
+                    let anno = matchData[3];
+                    if (anno.length === 2) anno = '20' + anno;
+                    const mese = matchData[2];
+                    const giorno = matchData[1];
+                    document.getElementById('scad-data').value = `${anno}-${mese}-${giorno}`;
+                }
+
+            } catch (err) {
+                console.error("Errore OCR:", err);
+                ocrStatus.textContent = "Errore durante la lettura dell'immagine.";
+                btnOcr.disabled = false;
+            }
+        });
+    }
 
     const form = document.getElementById('form-scadenza');
     form.addEventListener('submit', async (e) => {
@@ -378,23 +403,33 @@ function apriModaleFormScadenza() {
             return;
         }
 
-        const payload = {
-            titolo: titolo,
-            importo: importo,
-            dataScadenza: dataScadenza,
-            pagata: false,
-            creatore: userData.nome || 'Utente',
-            dataCreazione: new Date().toISOString()
-        };
-
         try {
-            await addDoc(collection(db, "scadenze"), payload);
+            if (isEdit) {
+                // Aggiornamento documento esistente su Firestore
+                await updateDoc(doc(db, "scadenze", scadenzaEsistente.id), {
+                    titolo: titolo,
+                    importo: importo,
+                    data: dataScadenza
+                });
+            } else {
+                // Creazione nuovo documento su Firestore (con campo "data")
+                const payload = {
+                    titolo: titolo,
+                    importo: importo,
+                    data: dataScadenza,
+                    pagata: false,
+                    creatore: userData.nome || 'Utente',
+                    creatoIl: new Date().toISOString()
+                };
 
-            if (typeof window.inviaNotificaFamiglia === 'function') {
-                window.inviaNotificaFamiglia(
-                    "📅 Nuova Scadenza Inserita",
-                    `${userData.nome || 'Un utente'} ha aggiunto la scadenza "${titolo}" di € ${importo.toFixed(2)}.`
-                );
+                await addDoc(collection(db, "scadenze"), payload);
+
+                if (typeof window.inviaNotificaFamiglia === 'function') {
+                    window.inviaNotificaFamiglia(
+                        "📅 Nuova Scadenza Inserita",
+                        `${userData.nome || 'Un utente'} ha aggiunto la scadenza "${titolo}" di € ${importo.toFixed(2)}.`
+                    );
+                }
             }
 
             modalEl.remove();
@@ -402,7 +437,7 @@ function apriModaleFormScadenza() {
             await caricaEDisegnaScadenze(contentArea);
 
         } catch (err) {
-            console.error("Errore salvataggio scadenza:", err);
+            console.error("Errore salvataggio/modifica scadenza:", err);
             alert("Errore durante il salvataggio.");
         }
     });
