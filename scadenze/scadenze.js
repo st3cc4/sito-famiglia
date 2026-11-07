@@ -1,8 +1,8 @@
-// --- Import SDK di Firebase ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { 
+    getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Configurazione Firebase dal tuo progetto
 const firebaseConfig = {
     apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
     authDomain: "sito-famiglia.firebaseapp.com",
@@ -13,269 +13,88 @@ const firebaseConfig = {
     measurementId: "G-NYRQJDTWM3"
 };
 
-// Inizializza Firebase e Firestore
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let scadenzeGlobal = [];
-let filtroAttivo = 'tutte';
-let idInModifica = null;
+let utentiCollezioni = {};
+let listaScadenze = [];
 
-// Funzione ausiliaria per formattare la data in formato europeo (GG-MM-AAAA)
-function formatDataEuropea(dataString) {
-    if (!dataString) return '';
-    const parti = dataString.split('-');
-    if (parti.length === 3) {
-        return `${parti[2]}-${parti[1]}-${parti[0]}`;
-    }
-    return dataString;
+export async function initScadenzeSection(container) {
+    await caricaUtenti();
+    await caricaEDisegnaScadenze(container);
 }
 
-// --- Render Principale della Sezione Scadenze ---
-export async function initScadenzeSection(container) {
+async function caricaUtenti() {
+    try {
+        const utentiSnapshot = await getDocs(collection(db, "utenti"));
+        utentiCollezioni = {};
+        utentiSnapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            if (data.nome) {
+                utentiCollezioni[data.nome.toLowerCase()] = data.colore || '#3498db';
+            }
+        });
+    } catch (e) {
+        console.error("Errore caricamento utenti:", e);
+    }
+}
+
+function hexToRgba(hex, alpha = 0.12) {
+    if (!hex) return `rgba(52, 152, 219, ${alpha})`;
+    let c = hex.replace('#', '');
+    if (c.length === 3) c = c.split('').map(char => char + char).join('');
+    const num = parseInt(c, 16);
+    if (isNaN(num)) return `rgba(52, 152, 219, ${alpha})`;
+    const r = (num >> 16) & 255;
+    const g = (num >> 8) & 255;
+    const b = num & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function capitalize(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+function formattaDataLeggibile(dataIsoStr) {
+    if (!dataIsoStr) return 'Data non specificata';
+    try {
+        const d = new Date(dataIsoStr);
+        if (isNaN(d.getTime())) return dataIsoStr.split('T')[0];
+        
+        const options = { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' };
+        let formatted = d.toLocaleDateString('it-IT', options);
+        return capitalize(formatted);
+    } catch (e) {
+        return dataIsoStr;
+    }
+}
+
+async function caricaEDisegnaScadenze(container) {
     container.innerHTML = `
         <div class="scadenze-container">
-            <!-- Header della sezione con Pulsante Home e Nuova Scadenza -->
-            <div class="section-header-actions">
-                <div class="header-left-group">
+            <div class="section-header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <div class="header-left-group" style="display: flex; align-items: center; gap: 12px;">
                     <button id="btn-torna-home" class="btn-outline" title="Torna alla Home">
                         <i class="fa-solid fa-arrow-left"></i> Home
                     </button>
-                    <h2><i class="fa-solid fa-file-invoice-dollar"></i> GESTIONE SCADENZE</h2>
+                    <h2 style="margin: 0;"><i class="fa-solid fa-file-invoice-dollar"></i> GESTIONE SCADENZE</h2>
                 </div>
-                <div class="header-buttons-right">
-                    <button id="btn-toggle-form" class="btn-primary">
-                        Nuova Scadenza
+                <div class="scadenze-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <input type="text" id="search-scadenze" class="search-media-input" placeholder="Cerca scadenza...">
+                    <button class="btn-add-media btn-primary" id="btn-nuova-scadenza">
+                        <i class="fa-solid fa-circle-plus"></i> Nuova Scadenza
                     </button>
                 </div>
             </div>
 
-            <!-- Form per l'inserimento / modifica della scadenza -->
-            <div id="form-scadenza-card" class="form-card" style="display: none;">
-                <h3 id="form-scadenza-title">Nuova Scadenza</h3>
-                <form id="form-nuova-scadenza">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="scadenza-titolo">Titolo / Descrizione *</label>
-                            <input type="text" id="scadenza-titolo" placeholder="Es. Bolletta Luce, Assicurazione..." required>
-                        </div>
-                        <div class="form-group">
-                            <label for="scadenza-importo">Importo (€) *</label>
-                            <input type="number" step="0.01" id="scadenza-importo" placeholder="0.00" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="scadenza-data">Data di Scadenza *</label>
-                            <input type="date" id="scadenza-data" required>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="btn-annulla-form" class="btn-secondary">Annulla</button>
-                        <button type="submit" id="btn-salva-scadenza" class="btn-primary">Salva Scadenza</button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Barra dei Filtri -->
-            <div class="filter-bar">
-                <button class="filter-btn active" data-filter="tutte">Tutte</button>
-                <button class="filter-btn" data-filter="urgenti">In Scadenza (<=7 gg)</button>
-                <button class="filter-btn" data-filter="scadute">Scadute</button>
-            </div>
-
-            <!-- Lista delle Scadenze -->
-            <div id="scadenze-list-container">
-                <p style="text-align:center; padding: 20px; color: var(--text-muted);">Caricamento scadenze...</p>
+            <div id="scadenze-lista-container" style="display: flex; flex-direction: column; gap: 15px;">
+                <p style="color: #64748b; padding: 20px;">Caricamento in corso...</p>
             </div>
         </div>
     `;
 
-    setupEventListeners(container);
-    await caricaScadenze(container);
-}
-
-// --- Caricamento Dati da Firebase e Controllo Avvisi 7 Giorni ---
-async function caricaScadenze(container) {
-    const listContainer = container.querySelector('#scadenze-list-container');
-    
-    try {
-        const scadenzeSnapshot = await getDocs(collection(db, "scadenze"));
-        scadenzeGlobal = [];
-        const oggi = new Date();
-        oggi.setHours(0, 0, 0, 0);
-
-        scadenzeSnapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            const dataScad = new Date(data.data);
-            dataScad.setHours(0, 0, 0, 0);
-
-            const diffTempo = dataScad - oggi;
-            const giorniMancanti = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
-
-            let classeColore = 'green';
-            if (giorniMancanti < 0) {
-                classeColore = 'red'; // Scaduta
-            } else if (giorniMancanti <= 7) {
-                classeColore = 'warning-7days'; // Ultimi 7 giorni (Urcente)
-            } else if (giorniMancanti >= 8 && giorniMancanti <= 14) {
-                classeColore = 'orange';
-            }
-
-            scadenzeGlobal.push({
-                id: docSnap.id,
-                titolo: data.titolo || 'Senza Titolo',
-                importo: data.importo !== undefined ? Number(data.importo) : 0,
-                dataGrezza: data.data || '',
-                dataFormattata: formatDataEuropea(data.data),
-                giorniMancanti: giorniMancanti,
-                classeColore: classeColore,
-                creatore: data.creatore || ''
-            });
-        });
-
-        // Ordina le scadenze per data
-        scadenzeGlobal.sort((a, b) => new Date(a.dataGrezza) - new Date(b.dataGrezza));
-
-        renderListaScadenze(listContainer, container);
-        controllaAvvisoGiornaliero7Giorni();
-
-    } catch (error) {
-        console.error("Errore nel caricamento delle scadenze:", error);
-        if (listContainer) {
-            listContainer.innerHTML = `<p style="color: red; text-align: center;">Errore durante il caricamento dei dati.</p>`;
-        }
-    }
-}
-
-// --- Funzione per l'avviso giornaliero sugli ultimi 7 giorni ---
-function controllaAvvisoGiornaliero7Giorni() {
-    const oggiStringa = new Date().toISOString().slice(0, 10);
-    const ultimoAvviso = localStorage.getItem('famiglia_ultimo_avviso_scadenze');
-
-    // Mostra l'avviso una sola volta al giorno
-    if (ultimoAvviso === oggiStringa) return;
-
-    const scadenzeUrgenti = scadenzeGlobal.filter(s => s.giorniMancanti >= 0 && s.giorniMancanti <= 7);
-
-    if (scadenzeUrgenti.length > 0) {
-        const elencoTesto = scadenzeUrgenti.map(s => `- ${s.titolo} (Scade il ${s.dataFormattata})`).join('\n');
-        alert(`⚠️ ATTENZIONE: Ci sono ${scadenzeUrgenti.length} scadenza/e negli ultimi 7 giorni:\n\n${elencoTesto}`);
-        localStorage.setItem('famiglia_ultimo_avviso_scadenze', oggiStringa);
-    }
-}
-
-// --- Rendering della Lista Filtrata ---
-function renderListaScadenze(listContainer, container) {
-    if (!listContainer) return;
-
-    let listaFiltrata = scadenzeGlobal;
-
-    if (filtroAttivo === 'urgenti') {
-        listaFiltrata = scadenzeGlobal.filter(s => s.giorniMancanti >= 0 && s.giorniMancanti <= 7);
-    } else if (filtroAttivo === 'scadute') {
-        listaFiltrata = scadenzeGlobal.filter(s => s.giorniMancanti < 0);
-    }
-
-    if (listaFiltrata.length === 0) {
-        listContainer.innerHTML = `<p class="card-empty">Nessuna scadenza trovata per questo filtro.</p>`;
-        return;
-    }
-
-    listContainer.innerHTML = `
-        <ul class="scadenze-full-list">
-            ${listaFiltrata.map(s => `
-                <li class="scadenza-full-card ${s.classeColore}">
-                    <div class="scadenza-full-info">
-                        <span class="scadenza-full-title">${s.titolo}</span>
-                        <div class="scadenza-full-meta">
-                            <span><i class="fa-regular fa-calendar"></i> ${s.dataFormattata}</span>
-                            <span><strong>${s.giorniMancanti < 0 ? 'Scaduta' : (s.giorniMancanti === 0 ? 'Scade Oggi' : `Tra ${s.giorniMancanti} gg`)}</strong></span>
-                            ${s.giorniMancanti >= 0 && s.giorniMancanti <= 7 ? '<span class="badge-warning-7days"><i class="fa-solid fa-triangle-exclamation"></i> In Scadenza</span>' : ''}
-                            ${s.creatore ? `<span class="scadenza-creator">(${s.creatore})</span>` : ''}
-                        </div>
-                    </div>
-                    <div class="scadenza-full-right">
-                        <span class="scadenza-full-amount">€ ${s.importo.toFixed(2)}</span>
-                        <div class="scadenza-full-actions">
-                            <button class="btn-action-icon edit" data-id="${s.id}" title="Modifica Scadenza">
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <button class="btn-action-icon delete" data-id="${s.id}" title="Elimina Scadenza">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </div>
-                    </div>
-                </li>
-            `).join('')}
-        </ul>
-    `;
-
-    // Event listener per il pulsante MODIFICA
-    const editButtons = listContainer.querySelectorAll('.btn-action-icon.edit');
-    editButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const scadenzaId = btn.getAttribute('data-id');
-            apriModificaForm(scadenzaId, container);
-        });
-    });
-
-    // Event listener per il pulsante ELIMINA
-    const deleteButtons = listContainer.querySelectorAll('.btn-action-icon.delete');
-    deleteButtons.forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const scadenzaId = btn.getAttribute('data-id');
-            if (confirm('Sei sicuro di voler eliminare questa scadenza?')) {
-                await eliminaScadenza(scadenzaId, listContainer, container);
-            }
-        });
-    });
-}
-
-// --- Funzione per Aprire il Form in Modalità Modifica ---
-function apriModificaForm(id, container) {
-    const item = scadenzeGlobal.find(s => s.id === id);
-    if (!item) return;
-
-    idInModifica = id;
-
-    const formCard = container.querySelector('#form-scadenza-card');
-    const formTitle = container.querySelector('#form-scadenza-title');
-    const btnSalva = container.querySelector('#btn-salva-scadenza');
-
-    container.querySelector('#scadenza-titolo').value = item.titolo;
-    container.querySelector('#scadenza-importo').value = item.importo;
-    container.querySelector('#scadenza-data').value = item.dataGrezza;
-
-    if (formTitle) formTitle.textContent = 'Modifica Scadenza';
-    if (btnSalva) btnSalva.textContent = 'Aggiorna Scadenza';
-
-    formCard.style.display = 'flex';
-    formCard.scrollIntoView({ behavior: 'smooth' });
-}
-
-// --- Reset del Form in Modalità Inserimento ---
-function resetForm(container) {
-    idInModifica = null;
-    const formCard = container.querySelector('#form-scadenza-card');
-    const form = container.querySelector('#form-nuova-scadenza');
-    const formTitle = container.querySelector('#form-scadenza-title');
-    const btnSalva = container.querySelector('#btn-salva-scadenza');
-
-    if (form) form.reset();
-    if (formTitle) formTitle.textContent = 'Nuova Scadenza';
-    if (btnSalva) btnSalva.textContent = 'Salva Scadenza';
-    if (formCard) formCard.style.display = 'none';
-}
-
-// --- Gestione Eventi (Form, Filtri e Ritorno Home) ---
-function setupEventListeners(container) {
     const btnTornaHome = container.querySelector('#btn-torna-home');
-    const btnToggleForm = container.querySelector('#btn-toggle-form');
-    const formCard = container.querySelector('#form-scadenza-card');
-    const btnAnnulla = container.querySelector('#btn-annulla-form');
-    const form = container.querySelector('#form-nuova-scadenza');
-    const listContainer = container.querySelector('#scadenze-list-container');
-
-    // Pulsante Torna alla Home
     if (btnTornaHome) {
         btnTornaHome.addEventListener('click', () => {
             if (typeof window.selezionaScheda === 'function') {
@@ -284,102 +103,322 @@ function setupEventListeners(container) {
         });
     }
 
-    // Mostra/Nascondi Form
-    if (btnToggleForm) {
-        btnToggleForm.addEventListener('click', () => {
-            const isHidden = formCard.style.display === 'none';
-            if (isHidden) {
-                resetForm(container);
-                formCard.style.display = 'flex';
-            } else {
-                resetForm(container);
-            }
+    document.getElementById('btn-nuova-scadenza').addEventListener('click', () => {
+        apriModaleFormScadenza();
+    });
+
+    const searchInput = document.getElementById('search-scadenze');
+    searchInput.addEventListener('input', (e) => {
+        const queryStr = e.target.value.toLowerCase().trim();
+        renderTabellaScadenze(queryStr);
+    });
+
+    try {
+        const snap = await getDocs(collection(db, "scadenze"));
+        listaScadenze = [];
+        snap.forEach(docSnap => {
+            listaScadenze.push({
+                id: docSnap.id,
+                ...docSnap.data()
+            });
         });
+
+        // Ordina per data di scadenza (dalla più vicina alla più lontana)
+        listaScadenze.sort((a, b) => new Date(a.dataScadenza || '9999-12-31') - new Date(b.dataScadenza || '9999-12-31'));
+        renderTabellaScadenze('');
+
+    } catch (err) {
+        console.error("Errore caricamento scadenze:", err);
+        document.getElementById('scadenze-lista-container').innerHTML = '<p style="color:red;">Errore durante il caricamento delle scadenze.</p>';
+    }
+}
+
+function renderTabellaScadenze(filtro) {
+    const container = document.getElementById('scadenze-lista-container');
+    if (!container) return;
+
+    const filtrate = listaScadenze.filter(s => {
+        const titolo = (s.titolo || '').toLowerCase();
+        const categoria = (s.categoria || '').toLowerCase();
+        return titolo.includes(filtro) || categoria.includes(filtro);
+    });
+
+    if (filtrate.length === 0) {
+        container.innerHTML = '<p style="color:#94a3b8; font-style:italic; padding: 10px;">Nessuna scadenza trovata.</p>';
+        return;
     }
 
-    if (btnAnnulla) {
-        btnAnnulla.addEventListener('click', () => {
-            resetForm(container);
-        });
-    }
+    let html = '';
+    filtrate.forEach(s => {
+        const creatore = s.creatore || 'Utente';
+        const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
+        const bgTrasparente = hexToRgba(coloreUtente, 0.12);
+        
+        const oggi = new Date();
+        oggi.setHours(0,0,0,0);
+        const dataScad = new Date(s.dataScadenza);
+        dataScad.setHours(0,0,0,0);
 
-    // Invio Form (Nuovo Inserimento oppure Modifica)
-    if (form) {
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const titolo = container.querySelector('#scadenza-titolo').value.trim();
-            const importo = parseFloat(container.querySelector('#scadenza-importo').value);
-            const dataScad = container.querySelector('#scadenza-data').value;
+        const diffGiorni = Math.ceil((dataScad - oggi) / (1000 * 60 * 60 * 24));
+        
+        let statoClasse = 'green';
+        let statoTesto = `Scade tra ${diffGiorni} giorni`;
+        if (s.pagata) {
+            statoClasse = 'green';
+            statoTesto = 'Pagata / Risolta';
+        } else if (diffGiorni < 0) {
+            statoClasse = 'red';
+            statoTesto = `Scaduta da ${Math.abs(diffGiorni)} giorni!`;
+        } else if (diffGiorni === 0) {
+            statoClasse = 'red';
+            statoTesto = 'Scade OGGI!';
+        } else if (diffGiorni <= 5) {
+            statoClasse = 'orange';
+            statoTesto = `Scade tra ${diffGiorni} giorni`;
+        }
 
-            const savedUser = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
-            const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
+        html += `
+            <div class="scadenza-item ${statoClasse}" style="background-color: ${bgTrasparente}; border-left-color: ${coloreUtente}; padding: 15px; border-radius: 8px; border-left-width: 5px; border-style: solid; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: gap; gap: 10px;">
+                    <div>
+                        <h4 style="margin: 0 0 4px 0; font-size: 1rem; color: #1e293b;">${s.titolo}</h4>
+                        <span style="font-size: 0.85rem; color: #64748b;">Categoria: <strong>${s.categoria || 'Generale'}</strong> | Inserito da: (${creatore})</span>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-size: 1.1rem; font-weight: bold; color: #1e293b;">€ ${Number(s.importo || 0).toFixed(2)}</span>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.05); flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <span style="font-size: 0.82rem; font-weight: 600; color: #475569;"><i class="fa-regular fa-calendar"></i> ${formattaDataLeggibile(s.dataScadenza)}</span>
+                        <span style="margin-left: 10px; font-size: 0.82rem; font-weight: bold;" class="scadenza-status">${statoTesto}</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-outline btn-toggle-pagata" data-id="${s.id}" data-pagata="${s.pagata ? 'true' : 'false'}" style="padding: 4px 10px; font-size: 0.8rem;">
+                            ${s.pagata ? '<i class="fa-solid fa-rotate-left"></i> Segna da pagare' : '<i class="fa-solid fa-check"></i> Segna Pagata'}
+                        </button>
+                        <button class="btn-outline btn-delete-scadenza" data-id="${s.id}" title="Elimina" style="padding: 4px 8px; font-size: 0.8rem; color: #e74c3c; border-color: #e74c3c;">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
 
+    container.innerHTML = html;
+
+    // Eventi pulsanti Segna come pagata / da pagare
+    container.querySelectorAll('.btn-toggle-pagata').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const idS = btn.getAttribute('data-id');
+            const statoAttuale = btn.getAttribute('data-pagata') === 'true';
             try {
-                if (idInModifica) {
-                    const scadenzaRef = doc(db, "scadenze", idInModifica);
-                    await updateDoc(scadenzaRef, {
-                        titolo: titolo,
-                        importo: importo,
-                        data: dataScad
-                    });
-
-                    // Invia notifica di aggiornamento scadenza
-                    if (typeof window.inviaNotificaFamiglia === 'function') {
-                        window.inviaNotificaFamiglia(
-                            'Famiglia - Scadenza Aggiornata', 
-                            `${userData.nome} ha modificato la scadenza: ${titolo}`
-                        );
-                    }
-                } else {
-                    await addDoc(collection(db, "scadenze"), {
-                        titolo: titolo,
-                        importo: importo,
-                        data: dataScad,
-                        creatore: userData.nome,
-                        creatoIl: new Date().toISOString()
-                    });
-
-                    // Invia notifica di nuova scadenza inserita
-                    if (typeof window.inviaNotificaFamiglia === 'function') {
-                        window.inviaNotificaFamiglia(
-                            'Famiglia - Nuova Scadenza', 
-                            `${userData.nome} ha aggiunto la scadenza: ${titolo} (€ ${importo.toFixed(2)})`
-                        );
-                    }
-                }
-
-                resetForm(container);
-                await caricaScadenze(container);
-
+                await updateDoc(doc(db, "scadenze", idS), { pagata: !statoAttuale });
+                const contentArea = document.getElementById('content-area');
+                await caricaEDisegnaScadenze(contentArea);
             } catch (err) {
-                console.error("Errore durante il salvataggio della scadenza:", err);
-                alert("Errore durante il salvataggio. Riprova.");
+                console.error("Errore aggiornamento scadenza:", err);
+                alert("Impossibile aggiornare lo stato.");
             }
         });
-    }
+    });
 
-    // Gestione Filtri
-    const filterButtons = container.querySelectorAll('.filter-btn');
-    filterButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            filterButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            filtroAttivo = btn.getAttribute('data-filter');
-            renderListaScadenze(listContainer, container);
+    // Eventi eliminazione
+    container.querySelectorAll('.btn-delete-scadenza').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const idS = btn.getAttribute('data-id');
+            if (confirm("Vuoi eliminare questa scadenza?")) {
+                try {
+                    await deleteDoc(doc(db, "scadenze", idS));
+                    const contentArea = document.getElementById('content-area');
+                    await caricaEDisegnaScadenze(contentArea);
+                } catch (err) {
+                    console.error("Errore eliminazione scadenza:", err);
+                    alert("Impossibile eliminare.");
+                }
+            }
         });
     });
 }
 
-// --- Funzione Elimina Scadenza ---
-async function eliminaScadenza(id, listContainer, container) {
-    try {
-        await deleteDoc(doc(db, "scadenze", id));
-        scadenzeGlobal = scadenzeGlobal.filter(s => s.id !== id);
-        renderListaScadenze(listContainer, container);
-    } catch (err) {
-        console.error("Errore durante l'eliminazione della scadenza:", err);
-        alert("Errore durante l'eliminazione della scadenza.");
-    }
+function apriModaleFormScadenza() {
+    const savedUser = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
+    const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
+
+    const modalId = 'modal-form-scadenza';
+    const prevModal = document.getElementById(modalId);
+    if (prevModal) prevModal.remove();
+
+    const modalHtml = `
+        <div class="modal-overlay" id="${modalId}">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h3>Nuova Scadenza / Bolletta</h3>
+                    <button class="btn-close-modal" id="btn-close-form-scad">&times;</button>
+                </div>
+                
+                <!-- PULSANTE OCR BOLLETTA -->
+                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-bottom: 15px; text-align: center;">
+                    <p style="font-size: 0.85rem; color: #475569; margin-bottom: 8px;"><i class="fa-solid fa-wand-magic-sparkles" style="color: #3498db;"></i> Hai una bolletta o un avviso cartaceo?</p>
+                    <button type="button" id="btn-scansiona-ocr" class="btn-outline" style="font-size: 0.85rem; width: 100%;">
+                        <i class="fa-solid fa-camera"></i> Scansiona con OCR (Estrai dati)
+                    </button>
+                    <input type="file" id="input-ocr-file" accept="image/*" style="display: none;">
+                    <div id="ocr-status" style="font-size: 0.78rem; color: #64748b; margin-top: 6px;"></div>
+                </div>
+
+                <form id="form-scadenza">
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label for="scad-titolo">Titolo / Nome Scadenza</label>
+                        <input type="text" id="scad-titolo" required placeholder="Es. Enel Energia, Affitto, Assicurazione..." style="width:100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label for="scad-cat">Categoria</label>
+                        <select id="scad-cat" style="width:100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            <option value="Utenze">Utenze (Luce, Gas, Acqua)</option>
+                            <option value="Tasse e Tributi">Tasse e Tributi</option>
+                            <option value="Casa e Affitto">Casa e Affitto</option>
+                            <option value="Assicurazioni e Auto">Assicurazioni e Auto</option>
+                            <option value="Altro">Altro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label for="scad-importo">Importo (€)</label>
+                        <input type="number" step="0.01" id="scad-importo" required placeholder="0.00" style="width:100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="scad-data">Data di Scadenza</label>
+                        <input type="date" id="scad-data" required style="width:100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                    </div>
+
+                    <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px;">
+                        <button type="button" class="btn-modal cancel" id="btn-cancel-scad">Annulla</button>
+                        <button type="submit" class="btn-modal save" id="btn-save-scad">Salva Scadenza</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    const modalEl = document.getElementById(modalId);
+    document.getElementById('btn-close-form-scad').addEventListener('click', () => modalEl.remove());
+    document.getElementById('btn-cancel-scad').addEventListener('click', () => modalEl.remove());
+
+    // --- LOGICA OCR CON TESSERACT.JS ---
+    const btnOcr = document.getElementById('btn-scansiona-ocr');
+    const inputOcr = document.getElementById('input-ocr-file');
+    const ocrStatus = document.getElementById('ocr-status');
+
+    btnOcr.addEventListener('click', () => inputOcr.click());
+
+    inputOcr.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        ocrStatus.textContent = "Caricamento libreria OCR e analisi in corso...";
+        btnOcr.disabled = true;
+
+        try {
+            // Carica dinamicamente Tesseract.js dal CDN ufficiale sicuro
+            if (!window.Tesseract) {
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+
+            ocrStatus.textContent = "Lettura del testo dalla foto...";
+            const worker = await Tesseract.createWorker('ita+eng');
+            const ret = await worker.recognize(file);
+            await worker.terminate();
+
+            const testoRiconosciuto = ret.data.text;
+            ocrStatus.textContent = "Analisi dati completata!";
+            btnOcr.disabled = false;
+
+            // Estrazione automatica Importo (€ seguiti da numeri)
+            const regexImporto = /(?:totale|eur|€)\s*[:\.]?\s*(\d+[.,]\d{2})/i;
+            const matchImporto = testoRiconosciuto.match(regexImporto);
+            if (matchImporto && matchImporto[1]) {
+                document.getElementById('scad-importo').value = matchImporto[1].replace(',', '.');
+            } else {
+                // Cerca un numero in formato euro generico se il primo fallisce
+                const numeriTrovati = testoRiconosciuto.match(/\b\d+[.,]\d{2}\b/g);
+                if (numeriTrovati && numeriTrovati.length > 0) {
+                    document.getElementById('scad-importo').value = numeriTrovati[numeriTrovati.length - 1].replace(',', '.');
+                }
+            }
+
+            // Estrazione automatica Data (formato DD/MM/YYYY o simili)
+            const regexData = /\b(0[1-9]|[12]\d|3[01])[\/\-\.](0[1-9]|1[0-2])[\/\-\.](\d{2,4})\b/;
+            const matchData = testoRiconosciuto.match(regexData);
+            if (matchData) {
+                let anno = matchData[3];
+                if (anno.length === 2) anno = '20' + anno;
+                const mese = matchData[2];
+                const giorno = matchData[1];
+                document.getElementById('scad-data').value = `${anno}-${mese}-${giorno}`;
+            }
+
+        } catch (err) {
+            console.error("Errore OCR:", err);
+            ocrStatus.textContent = "Errore durante la lettura dell'immagine.";
+            btnOcr.disabled = false;
+        }
+    });
+
+    // Salvataggio form scadenza
+    const form = document.getElementById('form-scadenza');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const titolo = document.getElementById('scad-titolo').value.trim();
+        const categoria = document.getElementById('scad-cat').value;
+        const importo = parseFloat(document.getElementById('scad-importo').value);
+        const dataScadenza = document.getElementById('scad-data').value;
+
+        if (!titolo || isNaN(importo) || !dataScadenza) {
+            alert("Compila tutti i campi obbligatori.");
+            return;
+        }
+
+        const payload = {
+            titolo: titolo,
+            categoria: categoria,
+            importo: importo,
+            dataScadenza: dataScadenza,
+            pagata: false,
+            creatore: userData.nome || 'Utente',
+            dataCreazione: new Date().toISOString()
+        };
+
+        try {
+            await addDoc(collection(db, "scadenze"), payload);
+
+            // Invia notifica push alla famiglia
+            if (typeof window.inviaNotificaFamiglia === 'function') {
+                window.inviaNotificaFamiglia(
+                    "📅 Nuova Scadenza Inserita",
+                    `${userData.nome || 'Un utente'} ha aggiunto la scadenza "${titolo}" di € ${importo.toFixed(2)}.`
+                );
+            }
+
+            modalEl.remove();
+            const contentArea = document.getElementById('content-area');
+            await caricaEDisegnaScadenze(contentArea);
+
+        } catch (err) {
+            console.error("Errore salvataggio scadenza:", err);
+            alert("Errore durante il salvataggio.");
+        }
+    });
 }
