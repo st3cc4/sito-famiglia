@@ -131,7 +131,6 @@ async function caricaEDisegnaMedia(container) {
         </div>
     `;
 
-    // Pulsante Torna alla Home
     const btnTornaHome = container.querySelector('#btn-torna-home');
     if (btnTornaHome) {
         btnTornaHome.addEventListener('click', () => {
@@ -169,7 +168,6 @@ async function caricaEDisegnaMedia(container) {
             });
         });
 
-        // Ordina dal più recente al meno recente
         listaMedia.sort((a, b) => new Date(b.dataCreazione) - new Date(a.dataCreazione));
 
         categorieEsistenti = Array.from(catMap).sort();
@@ -195,7 +193,6 @@ function renderGrigliaMedia(filtro) {
         return;
     }
 
-    // Raggruppa i media per data (YYYY-MM-DD estratta da dataCreazione)
     const gruppiPerData = {};
     mediaFiltrati.forEach(m => {
         let dataIsoKey = 'Altro';
@@ -208,9 +205,7 @@ function renderGrigliaMedia(filtro) {
         gruppiPerData[dataIsoKey].push(m);
     });
 
-    // Ordina le date in modo discendente (più recenti prima)
     const dateOrdinate = Object.keys(gruppiPerData).sort((a, b) => b.localeCompare(a));
-
     let htmlGruppi = '';
 
     dateOrdinate.forEach(dataKey => {
@@ -258,7 +253,6 @@ function renderGrigliaMedia(filtro) {
 
     gruppiContainer.innerHTML = htmlGruppi;
 
-    // Eventi click sulle card per visualizzare il media
     gruppiContainer.querySelectorAll('.media-card-item').forEach(card => {
         card.addEventListener('click', (e) => {
             if (e.target.closest('.btn-delete-media')) return;
@@ -268,7 +262,6 @@ function renderGrigliaMedia(filtro) {
         });
     });
 
-    // Eventi eliminazione media
     gruppiContainer.querySelectorAll('.btn-delete-media').forEach(btnDel => {
         btnDel.addEventListener('click', async (e) => {
             e.stopPropagation();
@@ -340,7 +333,7 @@ function apriModaleFormMedia() {
         <div class="modal-overlay" id="${modalId}">
             <div class="modal-content" style="max-width: 500px;">
                 <div class="modal-header">
-                    <h3>Carica Foto o Video</h3>
+                    <h3>Carica Foto o Video Multipli</h3>
                     <button class="btn-close-modal" id="btn-close-form-media">&times;</button>
                 </div>
                 <form id="form-media">
@@ -358,11 +351,12 @@ function apriModaleFormMedia() {
                     </div>
 
                     <div class="form-group">
-                        <label>Seleziona Foto o Video dal Dispositivo</label>
+                        <label>Seleziona Foto o Video (anche multipli)</label>
                         <div class="file-upload-box" id="box-file-upload">
                             <i class="fa-solid fa-cloud-arrow-up file-upload-icon"></i>
-                            <div class="file-upload-text" id="txt-file-selected">Tocca qui per scegliere foto o video</div>
-                            <input type="file" id="input-file-native" accept="image/*,video/*" required style="display: none;">
+                            <div class="file-upload-text" id="txt-file-selected">Tocca qui per scegliere più file</div>
+                            <!-- ATTRIBUTO MULTIPLE AGGIUNTO QUI SOTTO -->
+                            <input type="file" id="input-file-native" accept="image/*,video/*" multiple required style="display: none;">
                         </div>
                     </div>
 
@@ -389,8 +383,7 @@ function apriModaleFormMedia() {
     const txtFileSelected = document.getElementById('txt-file-selected');
     const btnSave = document.getElementById('btn-save-media');
 
-    let fileDataFormatted = '';
-    let fileTipo = 'foto';
+    let fileSelezionatiList = [];
 
     catSelect.addEventListener('change', () => {
         if (catSelect.value === '__NUOVA__') {
@@ -402,24 +395,12 @@ function apriModaleFormMedia() {
 
     boxUpload.addEventListener('click', () => inputFile.click());
 
-    inputFile.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+    inputFile.addEventListener('change', (e) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
 
-        txtFileSelected.textContent = `Ottimizzazione: ${file.name}...`;
-        fileTipo = file.type.startsWith('video/') ? 'video' : 'foto';
-
-        if (fileTipo === 'foto') {
-            fileDataFormatted = await comprimiImmagine(file);
-            txtFileSelected.textContent = `Pronto: ${file.name}`;
-        } else {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                fileDataFormatted = event.target.result;
-                txtFileSelected.textContent = `Pronto: ${file.name}`;
-            };
-            reader.readAsDataURL(file);
-        }
+        fileSelezionatiList = Array.from(files);
+        txtFileSelected.textContent = `${fileSelezionatiList.length} file selezionato/i pronti`;
     });
 
     const chiudiModale = () => modalEl.remove();
@@ -437,30 +418,47 @@ function apriModaleFormMedia() {
             categoria = catSelect.value;
         }
 
-        if (!categoria || !fileDataFormatted) {
-            alert("Seleziona prima una foto o video dal dispositivo.");
+        if (!categoria || fileSelezionatiList.length === 0) {
+            alert("Seleziona almeno una foto o un video dal dispositivo.");
             return;
         }
 
         btnSave.disabled = true;
-        btnSave.textContent = 'Salvataggio...';
-
-        const payload = {
-            categoria: categoria,
-            tipo: fileTipo,
-            url: fileDataFormatted,
-            creatore: userData.nome || 'Utente',
-            dataCreazione: new Date().toISOString()
-        };
+        btnSave.textContent = 'Caricamento in corso...';
 
         try {
-            await addDoc(collection(db, "media"), payload);
+            // Cicla e carica tutti i file selezionati in sequenza
+            for (let i = 0; i < fileSelezionatiList.length; i++) {
+                const file = fileSelezionatiList[i];
+                const fileTipo = file.type.startsWith('video/') ? 'video' : 'foto';
+                let fileDataFormatted = '';
 
-            // Invia notifica di nuovo contenuto multimediale caricato
+                if (fileTipo === 'foto') {
+                    fileDataFormatted = await comprimiImmagine(file);
+                } else {
+                    fileDataFormatted = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (event) => resolve(event.target.result);
+                        reader.readAsDataURL(file);
+                    });
+                }
+
+                const payload = {
+                    categoria: categoria,
+                    tipo: fileTipo,
+                    url: fileDataFormatted,
+                    creatore: userData.nome || 'Utente',
+                    dataCreazione: new Date().toISOString()
+                };
+
+                await addDoc(collection(db, "media"), payload);
+            }
+
+            // Invia un'unica notifica di gruppo per il caricamento multiplo
             if (typeof window.inviaNotificaFamiglia === 'function') {
                 window.inviaNotificaFamiglia(
-                    "📷 Nuovo Contenuto Multimediale",
-                    `${userData.nome || 'Un utente'} ha caricato un nuovo file (${fileTipo}) nell'album "${categoria}".`
+                    "📷 Nuovi File Caricati",
+                    `${userData.nome || 'Un utente'} ha caricato ${fileSelezionatiList.length} nuovi file nell'album "${categoria}".`
                 );
             }
 
@@ -469,8 +467,8 @@ function apriModaleFormMedia() {
             await caricaEDisegnaMedia(contentArea);
 
         } catch (err) {
-            console.error("Errore salvataggio media:", err);
-            alert("Si è verificato un errore durante il salvataggio.");
+            console.error("Errore salvataggio media multipli:", err);
+            alert("Si è verificato un errore durante il salvataggio dei file.");
             btnSave.disabled = false;
             btnSave.textContent = 'Salva';
         }
