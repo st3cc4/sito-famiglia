@@ -123,7 +123,6 @@ async function caricaEDisegnaScadenze(container) {
             });
         });
 
-        // Ordina per data di scadenza (dalla più vicina alla più lontana)
         listaScadenze.sort((a, b) => new Date(a.dataScadenza || '9999-12-31') - new Date(b.dataScadenza || '9999-12-31'));
         renderTabellaScadenze('');
 
@@ -139,8 +138,7 @@ function renderTabellaScadenze(filtro) {
 
     const filtrate = listaScadenze.filter(s => {
         const titolo = (s.titolo || '').toLowerCase();
-        const categoria = (s.categoria || '').toLowerCase();
-        return titolo.includes(filtro) || categoria.includes(filtro);
+        return titolo.includes(filtro);
     });
 
     if (filtrate.length === 0) {
@@ -179,10 +177,10 @@ function renderTabellaScadenze(filtro) {
 
         html += `
             <div class="scadenza-item ${statoClasse}" style="background-color: ${bgTrasparente}; border-left-color: ${coloreUtente}; padding: 15px; border-radius: 8px; border-left-width: 5px; border-style: solid; margin-bottom: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: gap; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <h4 style="margin: 0 0 4px 0; font-size: 1rem; color: #1e293b;">${s.titolo}</h4>
-                        <span style="font-size: 0.85rem; color: #64748b;">Categoria: <strong>${s.categoria || 'Generale'}</strong> | Inserito da: (${creatore})</span>
+                        <span style="font-size: 0.85rem; color: #64748b;">Inserito da: (${creatore})</span>
                     </div>
                     <div style="text-align: right;">
                         <span style="font-size: 1.1rem; font-weight: bold; color: #1e293b;">€ ${Number(s.importo || 0).toFixed(2)}</span>
@@ -208,7 +206,6 @@ function renderTabellaScadenze(filtro) {
 
     container.innerHTML = html;
 
-    // Eventi pulsanti Segna come pagata / da pagare
     container.querySelectorAll('.btn-toggle-pagata').forEach(btn => {
         btn.addEventListener('click', async () => {
             const idS = btn.getAttribute('data-id');
@@ -224,7 +221,6 @@ function renderTabellaScadenze(filtro) {
         });
     });
 
-    // Eventi eliminazione
     container.querySelectorAll('.btn-delete-scadenza').forEach(btn => {
         btn.addEventListener('click', async () => {
             const idS = btn.getAttribute('data-id');
@@ -258,7 +254,6 @@ function apriModaleFormScadenza() {
                     <button class="btn-close-modal" id="btn-close-form-scad">&times;</button>
                 </div>
                 
-                <!-- PULSANTE OCR BOLLETTA -->
                 <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px dashed #cbd5e1; margin-bottom: 15px; text-align: center;">
                     <p style="font-size: 0.85rem; color: #475569; margin-bottom: 8px;"><i class="fa-solid fa-wand-magic-sparkles" style="color: #3498db;"></i> Hai una bolletta o un avviso cartaceo?</p>
                     <button type="button" id="btn-scansiona-ocr" class="btn-outline" style="font-size: 0.85rem; width: 100%;">
@@ -272,17 +267,6 @@ function apriModaleFormScadenza() {
                     <div class="form-group" style="margin-bottom: 12px;">
                         <label for="scad-titolo">Titolo / Nome Scadenza</label>
                         <input type="text" id="scad-titolo" required placeholder="Es. Enel Energia, Affitto, Assicurazione..." style="width:100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 12px;">
-                        <label for="scad-cat">Categoria</label>
-                        <select id="scad-cat" style="width:100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                            <option value="Utenze">Utenze (Luce, Gas, Acqua)</option>
-                            <option value="Tasse e Tributi">Tasse e Tributi</option>
-                            <option value="Casa e Affitto">Casa e Affitto</option>
-                            <option value="Assicurazioni e Auto">Assicurazioni e Auto</option>
-                            <option value="Altro">Altro</option>
-                        </select>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 12px;">
@@ -310,7 +294,6 @@ function apriModaleFormScadenza() {
     document.getElementById('btn-close-form-scad').addEventListener('click', () => modalEl.remove());
     document.getElementById('btn-cancel-scad').addEventListener('click', () => modalEl.remove());
 
-    // --- LOGICA OCR CON TESSERACT.JS ---
     const btnOcr = document.getElementById('btn-scansiona-ocr');
     const inputOcr = document.getElementById('input-ocr-file');
     const ocrStatus = document.getElementById('ocr-status');
@@ -325,7 +308,6 @@ function apriModaleFormScadenza() {
         btnOcr.disabled = true;
 
         try {
-            // Carica dinamicamente Tesseract.js dal CDN ufficiale sicuro
             if (!window.Tesseract) {
                 await new Promise((resolve, reject) => {
                     const script = document.createElement('script');
@@ -345,20 +327,19 @@ function apriModaleFormScadenza() {
             ocrStatus.textContent = "Analisi dati completata!";
             btnOcr.disabled = false;
 
-            // Estrazione automatica Importo (€ seguiti da numeri)
+            // Estrazione automatica Importo
             const regexImporto = /(?:totale|eur|€)\s*[:\.]?\s*(\d+[.,]\d{2})/i;
             const matchImporto = testoRiconosciuto.match(regexImporto);
             if (matchImporto && matchImporto[1]) {
                 document.getElementById('scad-importo').value = matchImporto[1].replace(',', '.');
             } else {
-                // Cerca un numero in formato euro generico se il primo fallisce
                 const numeriTrovati = testoRiconosciuto.match(/\b\d+[.,]\d{2}\b/g);
                 if (numeriTrovati && numeriTrovati.length > 0) {
                     document.getElementById('scad-importo').value = numeriTrovati[numeriTrovati.length - 1].replace(',', '.');
                 }
             }
 
-            // Estrazione automatica Data (formato DD/MM/YYYY o simili)
+            // Estrazione automatica Data
             const regexData = /\b(0[1-9]|[12]\d|3[01])[\/\-\.](0[1-9]|1[0-2])[\/\-\.](\d{2,4})\b/;
             const matchData = testoRiconosciuto.match(regexData);
             if (matchData) {
@@ -376,13 +357,11 @@ function apriModaleFormScadenza() {
         }
     });
 
-    // Salvataggio form scadenza
     const form = document.getElementById('form-scadenza');
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const titolo = document.getElementById('scad-titolo').value.trim();
-        const categoria = document.getElementById('scad-cat').value;
         const importo = parseFloat(document.getElementById('scad-importo').value);
         const dataScadenza = document.getElementById('scad-data').value;
 
@@ -393,7 +372,6 @@ function apriModaleFormScadenza() {
 
         const payload = {
             titolo: titolo,
-            categoria: categoria,
             importo: importo,
             dataScadenza: dataScadenza,
             pagata: false,
@@ -404,7 +382,6 @@ function apriModaleFormScadenza() {
         try {
             await addDoc(collection(db, "scadenze"), payload);
 
-            // Invia notifica push alla famiglia
             if (typeof window.inviaNotificaFamiglia === 'function') {
                 window.inviaNotificaFamiglia(
                     "📅 Nuova Scadenza Inserita",
