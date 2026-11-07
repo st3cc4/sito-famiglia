@@ -152,27 +152,35 @@ function renderTabellaScadenze(filtro) {
         const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
         const bgTrasparente = hexToRgba(coloreUtente, 0.12);
         
-        const oggi = new Date();
-        oggi.setHours(0,0,0,0);
-        const dataScad = new Date(s.dataScadenza);
-        dataScad.setHours(0,0,0,0);
-
-        const diffGiorni = Math.ceil((dataScad - oggi) / (1000 * 60 * 60 * 24));
-        
         let statoClasse = 'green';
-        let statoTesto = `Scade tra ${diffGiorni} giorni`;
+        let statoTesto = 'Data da definire';
+
         if (s.pagata) {
             statoClasse = 'green';
             statoTesto = 'Pagata / Risolta';
-        } else if (diffGiorni < 0) {
-            statoClasse = 'red';
-            statoTesto = `Scaduta da ${Math.abs(diffGiorni)} giorni!`;
-        } else if (diffGiorni === 0) {
-            statoClasse = 'red';
-            statoTesto = 'Scade OGGI!';
-        } else if (diffGiorni <= 5) {
-            statoClasse = 'orange';
-            statoTesto = `Scade tra ${diffGiorni} giorni`;
+        } else if (s.dataScadenza) {
+            const oggi = new Date();
+            oggi.setHours(0,0,0,0);
+            const dataScad = new Date(s.dataScadenza);
+            dataScad.setHours(0,0,0,0);
+
+            if (!isNaN(dataScad.getTime())) {
+                const diffGiorni = Math.ceil((dataScad - oggi) / (1000 * 60 * 60 * 24));
+                
+                if (diffGiorni < 0) {
+                    statoClasse = 'red';
+                    statoTesto = `Scaduta da ${Math.abs(diffGiorni)} giorni!`;
+                } else if (diffGiorni === 0) {
+                    statoClasse = 'red';
+                    statoTesto = 'Scade OGGI!';
+                } else if (diffGiorni <= 5) {
+                    statoClasse = 'orange';
+                    statoTesto = `Scade tra ${diffGiorni} giorni`;
+                } else {
+                    statoClasse = 'green';
+                    statoTesto = `Scade tra ${diffGiorni} giorni`;
+                }
+            }
         }
 
         html += `
@@ -345,7 +353,7 @@ function apriModaleFormScadenza() {
             if (matchData) {
                 let anno = matchData[3];
                 if (anno.length === 2) anno = '20' + anno;
-                const mese = matchData[2];
+                const mese = matchData.match(regexData)[2] || matchData[2];
                 const giorno = matchData[1];
                 document.getElementById('scad-data').value = `${anno}-${mese}-${giorno}`;
             }
