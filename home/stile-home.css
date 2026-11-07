@@ -455,7 +455,37 @@ body {
     border-radius: 6px;
 }
 
-/* RESPONSIVE DESIGN (MOBILE) */
+/* --- OTTIMIZZAZIONE INPUT TYPE="TIME" E SELETTORE ORARIO NATIVO --- */
+input[type="time"] {
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* Correzione per compattare i pulsanti inferiori del time-picker nativo (es. Annulla, Imposta, Cancella) */
+::-webkit-datetime-edit-fields-wrapper {
+    padding: 0;
+}
+
+/* Adattamento specifico per i popup di input time su mobile / browser */
+@media screen and (-webkit-device-pixel-ratio: 0) {
+    input[type="time"]::-webkit-inner-spin-button,
+    input[type="time"]::-webkit-clear-button {
+        display: none;
+    }
+}
+
+/* Regola generale per rimpicciolire e adattare i pulsanti interni dei popup di sistema mobile */
+input[type="time"], input[type="date"] {
+    font-size: 1rem;
+    padding: 8px 12px;
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: #fff;
+    color: var(--text-color);
+}
+
+/* --- RESPONSIVE DESIGN (MOBILE) --- */
 .sidebar-overlay {
     display: none;
     position: fixed;
