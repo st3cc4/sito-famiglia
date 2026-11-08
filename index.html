@@ -1,127 +1,48 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Famiglia - Login</title>
-    <link rel="stylesheet" href="./login/stile-login.css">
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#2b3e50">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Stile per il pulsante di installazione PWA */
-        .btn-install-pwa {
-            display: flex;
-            width: 100%;
-            background-color: #27ae60;
-            color: #ffffff;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 15px;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: background-color 0.2s;
-        }
-        .btn-install-pwa:hover {
-            background-color: #219653;
-        }
-
-        /* Nasconde l'icona nativa del browser per la password ed evita lo sdoppiamento */
-        input[type="password"]::-ms-reveal,
-        input[type="password"]::-ms-clear {
-            display: none;
-        }
-        input[type="password"]::-webkit-credentials-auto-fill-button {
-            visibility: hidden;
-            pointer-events: none;
-            position: absolute;
-            right: 0;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <div class="login-header">
-            <h2><i class="fa-solid fa-house-chimney"></i> FAMIGLIA</h2>
-            <p>Inserisci le tue credenziali per accedere</p>
+<!-- SEZIONE SCADENZE -->
+<div class="card">
+  <div class="card-header">
+    <i class="fas fa-file-invoice-dollar"></i> SCADENZE
+  </div>
+  <div class="card-body" id="scadenze-container">
+    <!-- Esempio di struttura statica generata o popolata via JS -->
+    <ul class="scadenze-list">
+      
+      <!-- Scaduta / entro 7 giorni -> ROSSO -->
+      <li class="scadenza-item scadenza-rosso">
+        <div class="scadenza-info">
+          <strong>Klarna € 59.77</strong>
+          <div class="scadenza-details">04-11-2026 (Elena)</div>
         </div>
-        <form id="login-form">
-            <div class="form-group">
-                <label for="username">Nome Utente</label>
-                <input type="text" id="username" required placeholder="Es. Paolo, Elena...">
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <div class="password-wrapper">
-                    <input type="password" id="password" required placeholder="La tua password">
-                    <button type="button" id="toggle-password" class="btn-eye">
-                        <i class="fa-solid fa-eye" id="eye-icon"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="form-group-checkbox">
-                <input type="checkbox" id="remember-me">
-                <label for="remember-me">Ricordami</label>
-            </div>
+        <div><strong>Scaduta</strong></div>
+      </li>
 
-            <div id="error-msg" class="error-msg" style="display: none;"></div>
-            <button type="submit" class="btn-login">Accedi</button>
+      <!-- Entro 7 giorni -> ROSSO -->
+      <li class="scadenza-item scadenza-rosso">
+        <div class="scadenza-info">
+          <strong>Dolomiti € 140.02</strong>
+          <div class="scadenza-details">10-11-2026 (Paolo)</div>
+        </div>
+        <div><strong>Tra 2 gg</strong></div>
+      </li>
 
-            <!-- Pulsante Installa App -->
-            <button type="button" id="btn-install-pwa" class="btn-install-pwa">
-                <i class="fa-solid fa-cloud-arrow-down"></i> Installa App Famiglia
-            </button>
-        </form>
-    </div>
+      <!-- Tra 8 e 14 giorni -> GIALLO -->
+      <li class="scadenza-item scadenza-giallo">
+        <div class="scadenza-info">
+          <strong>Assicurazione Auto € 350.00</strong>
+          <div class="scadenza-details">20-11-2026 (Paolo)</div>
+        </div>
+        <div><strong>Tra 12 gg</strong></div>
+      </li>
 
-    <script type="module" src="./login/login.js"></script>
-    <script>
-        let deferredPrompt;
-        const installBtn = document.getElementById('btn-install-pwa');
+      <!-- Da 15 giorni in su -> VERDE -->
+      <li class="scadenza-item scadenza-verde">
+        <div class="scadenza-info">
+          <strong>Internet Fibra € 29.90</strong>
+          <div class="scadenza-details">30-11-2026 (Elena)</div>
+        </div>
+        <div><strong>Tra 22 gg</strong></div>
+      </li>
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-        });
-
-        if (installBtn) {
-            installBtn.addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log('Risposta installazione:', outcome);
-                    deferredPrompt = null;
-                } else {
-                    alert("L'app potrebbe essere già installata oppure il browser non supporta l'installazione diretta da questo pulsante. Controlla le impostazioni del browser (i tre puntini in alto a destra) per 'Installa app'.");
-                }
-            });
-        }
-
-        window.addEventListener('appinstalled', () => {
-            if (installBtn) {
-                installBtn.style.display = 'none';
-            }
-            console.log('PWA installata con successo');
-        });
-
-        // Registrazione del Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then((reg) => {
-                        console.log('Service Worker registrato con successo, scope:', reg.scope);
-                    })
-                    .catch((err) => {
-                        console.error('Registrazione Service Worker fallita:', err);
-                    });
-            });
-        }
-    </script>
-</body>
-</html>
+    </ul>
+  </div>
+</div>
