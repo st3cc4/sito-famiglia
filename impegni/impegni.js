@@ -138,7 +138,7 @@ async function caricaEDisegnaSettimana(container) {
                 </div>
             </div>
 
-            <div class="giorni-list" id="giorni-container" style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="giorni-list" id="giorni-container" style="display: flex; flex-direction: column; gap: 8px;">
                 <p style="color: #64748b; padding: 20px;">Caricamento impegni in corso...</p>
             </div>
         </div>
@@ -187,15 +187,14 @@ function disegnaGiorniSettimana(appuntamenti) {
 
     const nomiGiorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
     
-    // Colori di sfondo sfumati e bordi originali per i giorni della settimana
     const coloriGiorni = [
-        { bg: 'rgba(46, 204, 113, 0.08)', border: '#2ecc71' }, // Lunedì - Verde
-        { bg: 'rgba(52, 152, 219, 0.08)', border: '#3498db' }, // Martedì - Blu
-        { bg: 'rgba(241, 196, 15, 0.08)', border: '#f1c40f' }, // Mercoledì - Giallo
-        { bg: 'rgba(155, 89, 182, 0.08)', border: '#9b59b6' }, // Giovedì - Viola
-        { bg: 'rgba(231, 76, 60, 0.08)', border: '#e74c3c' },  // Venerdì - Rosso
-        { bg: 'rgba(230, 126, 34, 0.08)', border: '#e67e22' }, // Sabato - Arancione
-        { bg: 'rgba(52, 73, 94, 0.08)', border: '#34495e' }    // Domenica - Grigio scuro/Blu
+        { bg: 'rgba(46, 204, 113, 0.08)', border: '#2ecc71' }, 
+        { bg: 'rgba(52, 152, 219, 0.08)', border: '#3498db' }, 
+        { bg: 'rgba(241, 196, 15, 0.08)', border: '#f1c40f' }, 
+        { bg: 'rgba(155, 89, 182, 0.08)', border: '#9b59b6' }, 
+        { bg: 'rgba(231, 76, 60, 0.08)', border: '#e74c3c' },  
+        { bg: 'rgba(230, 126, 34, 0.08)', border: '#e67e22' }, 
+        { bg: 'rgba(52, 73, 94, 0.08)', border: '#34495e' }    
     ];
 
     let htmlGiorni = '';
@@ -214,15 +213,15 @@ function disegnaGiorniSettimana(appuntamenti) {
         const isMultiplo = impegniDelGiorno.length > 1;
 
         htmlGiorni += `
-            <div class="giorno-card" style="background-color: ${stileGiorno.bg}; border-left: 5px solid ${stileGiorno.border}; padding: 12px 16px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; cursor: pointer;" data-date="${dataIso}" title="Clicca per aggiungere un impegno">
-                <div style="font-weight: 700; font-size: 0.95rem; min-width: 130px; color: #1e293b;">
+            <div class="giorno-card" style="background-color: ${stileGiorno.bg}; border-left: 5px solid ${stileGiorno.border}; padding: 10px 14px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: flex-start; gap: 15px; cursor: pointer;" data-date="${dataIso}" title="Clicca per aggiungere un impegno">
+                <div style="font-weight: 700; font-size: 0.95rem; min-width: 130px; color: #1e293b; flex-shrink: 0;">
                     ${dataLeggibile}
                 </div>
-                <div style="flex: 1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; flex: 1;">
                     ${impegniDelGiorno.length > 0 ? impegniDelGiorno.map(imp => {
                         const creatore = imp.creatore || 'Utente';
                         const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
-                        const bgTrasparente = hexToRgba(coloreUtente, 0.12);
+                        const bgTrasparente = hexToRgba(coloreUtente, 0.15);
                         
                         let orarioStr = imp.oraInizio || 'Tutto il gg';
                         if (imp.oraInizio && imp.oraFine) {
@@ -230,22 +229,22 @@ function disegnaGiorniSettimana(appuntamenti) {
                         }
 
                         if (isMultiplo) {
-                            // Versione compatta affiancata senza orario quando ci sono più impegni (testi originali)
+                            // Versione compatta affiancata in orizzontale senza orario
                             return `
-                                <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 6px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;" title="Tocca per modificare, tieni premuto per eliminare">
-                                    <span style="font-weight: 700; font-size: 0.88rem; color: #1e293b;">${capitalize(imp.titolo)}</span>
-                                    <span style="font-size: 0.75rem; color: #64748b;">(${creatore})</span>
+                                <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 5px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" title="Tocca per modificare, tieni premuto per eliminare">
+                                    <span style="font-weight: 700; font-size: 0.85rem; color: #1e293b;">${capitalize(imp.titolo)}</span>
+                                    <span style="font-size: 0.72rem; color: #64748b;">(${creatore})</span>
                                 </div>
                             `;
                         } else {
-                            // Versione completa con orario quando c'è un solo impegno (testi originali)
+                            // Versione completa con orario se c'è un solo impegno
                             return `
-                                <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 8px 12px; border-radius: 6px; display: inline-flex; flex-direction: column; gap: 3px; min-width: 140px; cursor: pointer;" title="Tocca per modificare, tieni premuto per eliminare">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                                <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 6px 12px; border-radius: 6px; display: inline-flex; flex-direction: column; gap: 2px; cursor: pointer;" title="Tocca per modificare, tieni premuto per eliminare">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
                                         <span style="font-weight: 700; font-size: 0.88rem; color: #1e293b;">${capitalize(imp.titolo)}</span>
                                         <span style="font-size: 0.75rem; color: #64748b;">(${creatore})</span>
                                     </div>
-                                    <span style="font-size: 0.78rem; color: #475569; font-weight: 600;">
+                                    <span style="font-size: 0.75rem; color: #475569; font-weight: 600;">
                                         <i class="fa-regular fa-clock"></i> ${orarioStr}
                                     </span>
                                 </div>
