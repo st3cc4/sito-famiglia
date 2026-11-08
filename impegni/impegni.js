@@ -210,46 +210,37 @@ function disegnaGiorniSettimana(appuntamenti) {
         const impegniDelGiorno = appuntamenti.filter(app => app.data === dataIso);
         impegniDelGiorno.sort((a, b) => (a.oraInizio || '').localeCompare(b.oraInizio || ''));
 
-        const isMultiplo = impegniDelGiorno.length > 1;
-
         htmlGiorni += `
-            <div class="giorno-card" style="background-color: ${stileGiorno.bg}; border-left: 5px solid ${stileGiorno.border}; padding: 10px 14px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: flex-start; gap: 15px; cursor: pointer;" data-date="${dataIso}" title="Clicca per aggiungere un impegno">
-                <div style="font-weight: 700; font-size: 0.95rem; min-width: 130px; color: #1e293b; flex-shrink: 0;">
+            <div class="giorno-card" style="background-color: ${stileGiorno.bg}; border-left: 5px solid ${stileGiorno.border}; padding: 10px 14px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; cursor: pointer;" data-date="${dataIso}" title="Clicca per aggiungere un impegno">
+                <div style="font-weight: 700; font-size: 0.95rem; min-width: 130px; color: #1e293b;">
                     ${dataLeggibile}
                 </div>
-                <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; flex: 1;">
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
                     ${impegniDelGiorno.length > 0 ? impegniDelGiorno.map(imp => {
                         const creatore = imp.creatore || 'Utente';
                         const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
                         const bgTrasparente = hexToRgba(coloreUtente, 0.15);
                         
-                        let orarioStr = imp.oraInizio || 'Tutto il gg';
+                        let orarioStr = imp.oraInizio || '';
                         if (imp.oraInizio && imp.oraFine) {
                             orarioStr = `${imp.oraInizio} - ${imp.oraFine}`;
                         }
 
-                        if (isMultiplo) {
-                            // Versione compatta affiancata in orizzontale senza orario
-                            return `
-                                <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 5px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" title="Tocca per modificare, tieni premuto per eliminare">
+                        // Se ci sono più impegni, mostriamo la riga compatta senza orario. Se ce n'è uno solo, mostriamo anche l'orario in piccolo.
+                        const mostraOrario = impegniDelGiorno.length === 1 && orarioStr;
+
+                        return `
+                            <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 5px 10px; border-radius: 4px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;" title="Tocca per modificare, tieni premuto per eliminare">
+                                <div style="display: flex; align-items: center; gap: 8px;">
                                     <span style="font-weight: 700; font-size: 0.85rem; color: #1e293b;">${capitalize(imp.titolo)}</span>
                                     <span style="font-size: 0.72rem; color: #64748b;">(${creatore})</span>
                                 </div>
-                            `;
-                        } else {
-                            // Versione completa con orario se c'è un solo impegno
-                            return `
-                                <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 6px 12px; border-radius: 6px; display: inline-flex; flex-direction: column; gap: 2px; cursor: pointer;" title="Tocca per modificare, tieni premuto per eliminare">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span style="font-weight: 700; font-size: 0.88rem; color: #1e293b;">${capitalize(imp.titolo)}</span>
-                                        <span style="font-size: 0.75rem; color: #64748b;">(${creatore})</span>
-                                    </div>
-                                    <span style="font-size: 0.75rem; color: #475569; font-weight: 600;">
-                                        <i class="fa-regular fa-clock"></i> ${orarioStr}
-                                    </span>
-                                </div>
-                            `;
-                        }
+                                ${mostraOrario ? `
+                                <span style="font-size: 0.75rem; color: #475569; font-weight: 600;">
+                                    <i class="fa-regular fa-clock"></i> ${orarioStr}
+                                </span>` : ''}
+                            </div>
+                        `;
                     }).join('') : '<span style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">Nessun impegno in programma</span>'}
                 </div>
             </div>
