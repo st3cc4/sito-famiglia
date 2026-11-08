@@ -335,12 +335,15 @@ async function renderDashboard(container) {
             const diffTempo = dataScad - oggi;
             const giorniMancanti = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
             
-            // Assegnazione corretta della classe colore per ciascuna scadenza
+            // Assegnazione corretta del colore per ogni singola scadenza:
+            // <= 7 giorni (o scaduta) -> rosso ('red')
+            // tra 8 e 14 giorni -> giallo/arancione ('orange')
+            // >= 15 giorni -> verde ('green')
             let coloreClasse = 'green';
             if (giorniMancanti <= 7) {
                 coloreClasse = 'red';
             } else if (giorniMancanti >= 8 && giorniMancanti <= 14) {
-                coloreClasse = 'orange'; // o giallo in base al tuo CSS
+                coloreClasse = 'orange';
             } else {
                 coloreClasse = 'green';
             }
@@ -355,7 +358,7 @@ async function renderDashboard(container) {
             });
         });
 
-        // Ordina le scadenze dalla più vicina alla più lontana
+        // Ordinamento delle scadenze dalla più vicina alla più lontana
         scadenzeList.sort(function(a, b) {
             return a.giorniMancanti - b.giorniMancanti;
         });
