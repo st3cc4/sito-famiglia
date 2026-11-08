@@ -186,7 +186,6 @@ function disegnaGiorniSettimana(appuntamenti) {
     if (!giorniContainer) return;
 
     const nomiGiorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
-    const classiCSSGiorni = ['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica'];
     let htmlGiorni = '';
 
     for (let i = 0; i < 7; i++) {
@@ -195,7 +194,6 @@ function disegnaGiorniSettimana(appuntamenti) {
 
         const dataIso = formatDateIso(dataGiorno);
         const dataLeggibile = `${nomiGiorni[i]} (${formatDateShort(dataGiorno)})`;
-        const classeGiorno = classiCSSGiorni[i];
 
         const impegniDelGiorno = appuntamenti.filter(app => app.data === dataIso);
         impegniDelGiorno.sort((a, b) => (a.oraInizio || '').localeCompare(b.oraInizio || ''));
@@ -203,11 +201,11 @@ function disegnaGiorniSettimana(appuntamenti) {
         const isMultiplo = impegniDelGiorno.length > 1;
 
         htmlGiorni += `
-            <div class="giorno-card ${classeGiorno}" style="padding: 10px 14px; border-radius: 8px; border-left: 5px solid; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; cursor: pointer;" data-date="${dataIso}" title="Clicca per aggiungere un impegno">
+            <div class="giorno-card giorno-${i}" style="padding: 8px 14px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; cursor: pointer;" data-date="${dataIso}" title="Clicca per aggiungere un impegno">
                 <div style="font-weight: 700; font-size: 0.9rem; min-width: 125px; color: #1e293b;">
                     ${dataLeggibile}
                 </div>
-                <div style="flex: 1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                <div style="flex: 1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
                     ${impegniDelGiorno.length > 0 ? impegniDelGiorno.map(imp => {
                         const creatore = imp.creatore || 'Utente';
                         const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
@@ -218,23 +216,23 @@ function disegnaGiorniSettimana(appuntamenti) {
                             orarioStr = `${imp.oraInizio} - ${imp.oraFine}`;
                         }
 
-                        // Se ci sono più impegni, mostriamo la versione compatta SENZA orario
                         if (isMultiplo) {
+                            // Versione compatta affiancata senza orario quando ci sono più impegni
                             return `
-                                <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 6px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;" title="Tocca per modificare, tieni premuto per eliminare">
-                                    <span style="font-weight: 700; font-size: 0.85rem; color: #1e293b;">${capitalize(imp.titolo)}</span>
-                                    <span style="font-size: 0.72rem; color: #64748b;">(${creatore})</span>
+                                <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" title="Tocca per modificare, tieni premuto per eliminare">
+                                    <span style="font-weight: 700; font-size: 0.82rem; color: #1e293b;">${capitalize(imp.titolo)}</span>
+                                    <span style="font-size: 0.7rem; color: #64748b;">(${creatore})</span>
                                 </div>
                             `;
                         } else {
-                            // Se c'è un solo impegno, mostriamo la card completa con anche l'orario
+                            // Versione completa con orario quando c'è un solo impegno
                             return `
-                                <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 6px 10px; border-radius: 6px; display: inline-flex; flex-direction: column; gap: 2px; min-width: 140px; cursor: pointer;" title="Tocca per modificare, tieni premuto per eliminare">
+                                <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 5px 10px; border-radius: 6px; display: inline-flex; flex-direction: column; gap: 2px; min-width: 130px; cursor: pointer;" title="Tocca per modificare, tieni premuto per eliminare">
                                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
-                                        <span style="font-weight: 700; font-size: 0.85rem; color: #1e293b;">${capitalize(imp.titolo)}</span>
-                                        <span style="font-size: 0.72rem; color: #64748b;">(${creatore})</span>
+                                        <span style="font-weight: 700; font-size: 0.82rem; color: #1e293b;">${capitalize(imp.titolo)}</span>
+                                        <span style="font-size: 0.7rem; color: #64748b;">(${creatore})</span>
                                     </div>
-                                    <span style="font-size: 0.75rem; color: #475569; font-weight: 600;">
+                                    <span style="font-size: 0.72rem; color: #475569; font-weight: 600;">
                                         <i class="fa-regular fa-clock"></i> ${orarioStr}
                                     </span>
                                 </div>
