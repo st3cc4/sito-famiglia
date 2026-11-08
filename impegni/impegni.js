@@ -138,7 +138,7 @@ async function caricaEDisegnaSettimana(container) {
                 </div>
             </div>
 
-            <div class="giorni-list" id="giorni-container" style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="giorni-list" id="giorni-container" style="display: flex; flex-direction: column; gap: 8px;">
                 <p style="color: #64748b; padding: 20px;">Caricamento impegni in corso...</p>
             </div>
         </div>
@@ -200,12 +200,13 @@ function disegnaGiorniSettimana(appuntamenti) {
         const impegniDelGiorno = appuntamenti.filter(app => app.data === dataIso);
         impegniDelGiorno.sort((a, b) => (a.oraInizio || '').localeCompare(b.oraInizio || ''));
 
+        // Riga singola e compatta: Giorno a sinistra, impegni incolonnati o in linea a destra
         htmlGiorni += `
-            <div class="giorno-card ${classeGiorno}" style="padding: 12px 16px; border-radius: 8px; border-left: 5px solid; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; cursor: pointer;" data-date="${dataIso}" title="Clicca per aggiungere un impegno">
-                <div style="font-weight: 700; font-size: 0.95rem; min-width: 130px; color: #1e293b;">
+            <div class="giorno-card ${classeGiorno}" style="padding: 10px 14px; border-radius: 8px; border-left: 5px solid; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; cursor: pointer;" data-date="${dataIso}" title="Clicca per aggiungere un impegno">
+                <div style="font-weight: 700; font-size: 0.9rem; min-width: 125px; color: #1e293b;">
                     ${dataLeggibile}
                 </div>
-                <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
                     ${impegniDelGiorno.length > 0 ? impegniDelGiorno.map(imp => {
                         const creatore = imp.creatore || 'Utente';
                         const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
@@ -217,17 +218,17 @@ function disegnaGiorniSettimana(appuntamenti) {
                         }
 
                         return `
-                            <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 8px 12px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;" title="Tocca per modificare, tieni premuto per eliminare">
+                            <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 6px 10px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer;" title="Tocca per modificare, tieni premuto per eliminare">
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <span style="font-weight: 700; font-size: 0.88rem; color: #1e293b;">${capitalize(imp.titolo)}</span>
-                                    <span style="font-size: 0.75rem; color: #64748b;">(${creatore})</span>
-                                    <span style="font-size: 0.78rem; color: #475569; font-weight: 600;">
+                                    <span style="font-weight: 700; font-size: 0.85rem; color: #1e293b;">${capitalize(imp.titolo)}</span>
+                                    <span style="font-size: 0.72rem; color: #64748b;">(${creatore})</span>
+                                    <span style="font-size: 0.75rem; color: #475569; font-weight: 600;">
                                         <i class="fa-regular fa-clock"></i> ${orarioStr}
                                     </span>
                                 </div>
                             </div>
                         `;
-                    }).join('') : '<span style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">Nessun impegno in programma</span>'}
+                    }).join('') : '<span style="font-size: 0.82rem; color: #94a3b8; font-style: italic;">Nessun impegno in programma</span>'}
                 </div>
             </div>
         `;
@@ -235,7 +236,7 @@ function disegnaGiorniSettimana(appuntamenti) {
 
     giorniContainer.innerHTML = htmlGiorni;
 
-    // Gestione click sulla riga del giorno per aggiungere un impegno
+    // Click sullo spazio vuoto del giorno per aggiungere un nuovo impegno
     giorniContainer.querySelectorAll('.giorno-card').forEach(cardEl => {
         cardEl.addEventListener('click', (e) => {
             if (e.target.closest('.impegno-quadratino')) return;
@@ -251,8 +252,7 @@ function disegnaGiorniSettimana(appuntamenti) {
 
         let pressTimer = null;
 
-        // Inizio pressione (per mobile e desktop)
-        const avviaTocco = (e) => {
+        const avviaTocco = () => {
             pressTimer = setTimeout(async () => {
                 pressTimer = null;
                 if (confirm(`Vuoi eliminare l'impegno "${impObj ? impObj.titolo : ''}"?`)) {
@@ -265,10 +265,9 @@ function disegnaGiorniSettimana(appuntamenti) {
                         alert("Impossibile eliminare l'impegno.");
                     }
                 }
-            }, 600); // 600 millisecondi di pressione prolungata
+            }, 600);
         };
 
-        // Annulla il timer se l'utente rilascia o sposta il dito
         const annullaTocco = () => {
             if (pressTimer) {
                 clearTimeout(pressTimer);
@@ -284,13 +283,11 @@ function disegnaGiorniSettimana(appuntamenti) {
         card.addEventListener('touchend', annullaTocco);
         card.addEventListener('touchmove', annullaTocco);
 
-        // Click normale per aprire la modale di modifica
         card.addEventListener('click', (e) => {
             e.stopPropagation();
             if (impObj) apriModaleFormImpegno(impObj);
         });
 
-        // Evita il menu contestuale nativo del browser sul long press
         card.addEventListener('contextmenu', (e) => {
             e.preventDefault();
         });
@@ -380,7 +377,6 @@ function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '')
         }
     });
 
-    // --- Integrazione Google Calendar ---
     btnGCalendar.addEventListener('click', () => {
         const titoloVal = document.getElementById('imp-titolo').value.trim() || 'Impegno Famiglia';
         const dataValG = document.getElementById('imp-data').value;
