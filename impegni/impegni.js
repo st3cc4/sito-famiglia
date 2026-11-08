@@ -200,7 +200,6 @@ function disegnaGiorniSettimana(appuntamenti) {
         const impegniDelGiorno = appuntamenti.filter(app => app.data === dataIso);
         impegniDelGiorno.sort((a, b) => (a.oraInizio || '').localeCompare(b.oraInizio || ''));
 
-        // Struttura a riga compatta: Giorno a sinistra, impegni a destra sulla stessa riga
         htmlGiorni += `
             <div class="giorno-card ${classeGiorno}" style="padding: 12px 16px; border-radius: 8px; border-left: 5px solid; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; cursor: pointer;" data-date="${dataIso}" title="Clicca per aggiungere un impegno">
                 <div style="font-weight: 700; font-size: 0.95rem; min-width: 130px; color: #1e293b;">
@@ -218,18 +217,13 @@ function disegnaGiorniSettimana(appuntamenti) {
                         }
 
                         return `
-                            <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 6px 10px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                            <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 8px 12px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;" title="Tocca per modificare, tieni premuto per eliminare">
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                     <span style="font-weight: 700; font-size: 0.88rem; color: #1e293b;">${capitalize(imp.titolo)}</span>
                                     <span style="font-size: 0.75rem; color: #64748b;">(${creatore})</span>
                                     <span style="font-size: 0.78rem; color: #475569; font-weight: 600;">
                                         <i class="fa-regular fa-clock"></i> ${orarioStr}
                                     </span>
-                                </div>
-                                <div style="display: flex; gap: 6px;">
-                                    <button class="btn-icon-quadratino delete btn-delete-impegno" data-id="${imp.id}" title="Elimina" style="background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 0.85rem; padding: 2px 6px;">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
                                 </div>
                             </div>
                         `;
@@ -244,37 +238,61 @@ function disegnaGiorniSettimana(appuntamenti) {
     // Gestione click sulla riga del giorno per aggiungere un impegno
     giorniContainer.querySelectorAll('.giorno-card').forEach(cardEl => {
         cardEl.addEventListener('click', (e) => {
-            if (e.target.closest('.impegno-quadratino') || e.target.closest('.btn-delete-impegno')) return;
+            if (e.target.closest('.impegno-quadratino')) return;
             const dateIso = cardEl.getAttribute('data-date');
             apriModaleFormImpegno(null, dateIso);
         });
     });
 
-    // Gestione click sul singolo impegno per la modifica
+    // Gestione click singolo (modifica) e long-press (eliminazione) sui singoli impegni
     giorniContainer.querySelectorAll('.impegno-quadratino').forEach(card => {
+        const idImp = card.getAttribute('data-id');
+        const impObj = appuntamenti.find(a => a.id === idImp);
+
+        let pressTimer = null;
+
+        // Inizio pressione (per mobile e desktop)
+        const avviaTocco = (e) => {
+            pressTimer = setTimeout(async () => {
+                pressTimer = null;
+                if (confirm(`Vuoi eliminare l'impegno "${impObj ? impObj.titolo : ''}"?`)) {
+                    try {
+                        await deleteDoc(doc(db, "appuntamenti", idImp));
+                        const contentArea = document.getElementById('content-area');
+                        await caricaEDisegnaSettimana(contentArea);
+                    } catch (err) {
+                        console.error("Errore cancellazione impegno:", err);
+                        alert("Impossibile eliminare l'impegno.");
+                    }
+                }
+            }, 600); // 600 millisecondi di pressione prolungata
+        };
+
+        // Annulla il timer se l'utente rilascia o sposta il dito
+        const annullaTocco = () => {
+            if (pressTimer) {
+                clearTimeout(pressTimer);
+                pressTimer = null;
+            }
+        };
+
+        card.addEventListener('mousedown', avviaTocco);
+        card.addEventListener('touchstart', avviaTocco);
+
+        card.addEventListener('mouseup', annullaTocco);
+        card.addEventListener('mouseleave', annullaTocco);
+        card.addEventListener('touchend', annullaTocco);
+        card.addEventListener('touchmove', annullaTocco);
+
+        // Click normale per aprire la modale di modifica
         card.addEventListener('click', (e) => {
-            if (e.target.closest('.btn-delete-impegno')) return;
-            const idImp = card.getAttribute('data-id');
-            const impObj = appuntamenti.find(a => a.id === idImp);
+            e.stopPropagation();
             if (impObj) apriModaleFormImpegno(impObj);
         });
-    });
 
-    // Eliminazione impegno
-    giorniContainer.querySelectorAll('.btn-delete-impegno').forEach(btnDel => {
-        btnDel.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const idImp = btnDel.getAttribute('data-id');
-            if (confirm("Sei sicuro di voler eliminare questo impegno?")) {
-                try {
-                    await deleteDoc(doc(db, "appuntamenti", idImp));
-                    const contentArea = document.getElementById('content-area');
-                    await caricaEDisegnaSettimana(contentArea);
-                } catch (err) {
-                    console.error("Errore cancellazione impegno:", err);
-                    alert("Impossibile eliminare l'impegno.");
-                }
-            }
+        // Evita il menu contestuale nativo del browser sul long press
+        card.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
         });
     });
 }
