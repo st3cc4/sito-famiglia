@@ -461,7 +461,7 @@ async function renderDashboard(container) {
                 </div>
                 ` : ''}
 
-                <!-- 2. CARD IMPEGNI DI OGGI -->
+                <!-- 2. CARD IMPEGNI DI OGGI (COMPATTI) -->
                 ${permessi.impegni !== false ? `
                 <div class="card" onclick="selezionaScheda('impegni')" style="cursor: pointer;" title="Clicca per aprire Impegni">
                     <div class="card-header">
@@ -469,19 +469,19 @@ async function renderDashboard(container) {
                     </div>
                     <div class="card-body">
                         ${impegniList.length > 0 ? `
-                            <div class="impegni-grid-home">
+                            <div style="display: flex; flex-direction: column; gap: 6px;">
                                 ${impegniList.map(function(i) {
+                                    const mostraOrario = impegniList.length === 1 && i.oraInizio;
                                     return `
-                                    <div class="impegno-quadratino-home" style="background-color: ${i.bgTrasparente}; border-left-color:${i.coloreUtente};">
-                                        <div class="impegno-quadratino-top">
-                                            <span class="impegno-quadratino-titolo">${i.titolo}</span>
-                                            <span class="impegno-quadratino-creatore">(${i.creatore})</span>
+                                    <div style="background-color: ${i.bgTrasparente}; border-left: 4px solid ${i.coloreUtente}; padding: 6px 10px; border-radius: 4px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-weight: 700; font-size: 0.88rem; color: #1e293b;">${i.titolo}</span>
+                                            <span style="font-size: 0.75rem; color: #64748b;">(${i.creatore})</span>
                                         </div>
-                                        <div class="impegno-quadratino-bottom">
-                                            <span class="impegno-quadratino-ora">
-                                                <i class="fa-regular fa-clock"></i> ${i.oraInizio ? i.oraInizio : 'Tutto il gg'}
-                                            </span>
-                                        </div>
+                                        ${mostraOrario ? `
+                                        <span style="font-size: 0.75rem; color: #475569; font-weight: 600;">
+                                            <i class="fa-regular fa-clock"></i> ${i.oraInizio}
+                                        </span>` : ''}
                                     </div>`;
                                 }).join('')}
                             </div>
