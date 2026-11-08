@@ -96,7 +96,6 @@ async function avviaControlloPromemoriaImpegni() {
 
                 const diffMinuti = (dataEvento - adesso) / (1000 * 60);
 
-                // Controlla se mancano circa 2 ore e 30 minuti (150 minuti, con un range di tolleranza di 2 minuti)
                 if (diffMinuti >= 148 && diffMinuti <= 152) {
                     const chiaveNotifica = `promemoria_inviato_${docSnap.id}_${oggiIso}`;
                     if (!localStorage.getItem(chiaveNotifica)) {
@@ -139,7 +138,7 @@ async function caricaEDisegnaSettimana(container) {
                 </div>
             </div>
 
-            <div class="giorni-list" id="giorni-container">
+            <div class="giorni-list" id="giorni-container" style="display: flex; flex-direction: column; gap: 10px;">
                 <p style="color: #64748b; padding: 20px;">Caricamento impegni in corso...</p>
             </div>
         </div>
@@ -201,12 +200,13 @@ function disegnaGiorniSettimana(appuntamenti) {
         const impegniDelGiorno = appuntamenti.filter(app => app.data === dataIso);
         impegniDelGiorno.sort((a, b) => (a.oraInizio || '').localeCompare(b.oraInizio || ''));
 
+        // Struttura a riga compatta: Giorno a sinistra, impegni a destra sulla stessa riga
         htmlGiorni += `
-            <div class="giorno-card ${classeGiorno}">
-                <div class="giorno-header btn-add-giorno" data-date="${dataIso}" style="cursor: pointer;" title="Clicca per aggiungere un impegno">
-                    <span class="giorno-titolo">${dataLeggibile}</span>
+            <div class="giorno-card ${classeGiorno}" style="padding: 12px 16px; border-radius: 8px; border-left: 5px solid; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; cursor: pointer;" data-date="${dataIso}" title="Clicca per aggiungere un impegno">
+                <div style="font-weight: 700; font-size: 0.95rem; min-width: 130px; color: #1e293b;">
+                    ${dataLeggibile}
                 </div>
-                <div class="giorno-body">
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
                     ${impegniDelGiorno.length > 0 ? impegniDelGiorno.map(imp => {
                         const creatore = imp.creatore || 'Utente';
                         const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
@@ -218,24 +218,22 @@ function disegnaGiorniSettimana(appuntamenti) {
                         }
 
                         return `
-                            <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left-color: ${coloreUtente};">
-                                <div class="impegno-quadratino-top">
-                                    <span class="impegno-quadratino-titolo">${capitalize(imp.titolo)}</span>
-                                    <span class="impegno-quadratino-creatore">(${creatore})</span>
-                                </div>
-                                <div class="impegno-quadratino-bottom">
-                                    <span class="impegno-quadratino-ora">
+                            <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 6px 10px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span style="font-weight: 700; font-size: 0.88rem; color: #1e293b;">${capitalize(imp.titolo)}</span>
+                                    <span style="font-size: 0.75rem; color: #64748b;">(${creatore})</span>
+                                    <span style="font-size: 0.78rem; color: #475569; font-weight: 600;">
                                         <i class="fa-regular fa-clock"></i> ${orarioStr}
                                     </span>
-                                    <div class="impegno-quadratino-azioni">
-                                        <button class="btn-icon-quadratino delete btn-delete-impegno" data-id="${imp.id}" title="Elimina">
-                                            <i class="fa-solid fa-trash-can"></i>
-                                        </button>
-                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 6px;">
+                                    <button class="btn-icon-quadratino delete btn-delete-impegno" data-id="${imp.id}" title="Elimina" style="background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 0.85rem; padding: 2px 6px;">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
                                 </div>
                             </div>
                         `;
-                    }).join('') : '<span class="giorno-empty">Nessun impegno in programma</span>'}
+                    }).join('') : '<span style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">Nessun impegno in programma</span>'}
                 </div>
             </div>
         `;
@@ -243,13 +241,16 @@ function disegnaGiorniSettimana(appuntamenti) {
 
     giorniContainer.innerHTML = htmlGiorni;
 
-    giorniContainer.querySelectorAll('.btn-add-giorno').forEach(headerEl => {
-        headerEl.addEventListener('click', (e) => {
-            const dateIso = e.currentTarget.getAttribute('data-date');
+    // Gestione click sulla riga del giorno per aggiungere un impegno
+    giorniContainer.querySelectorAll('.giorno-card').forEach(cardEl => {
+        cardEl.addEventListener('click', (e) => {
+            if (e.target.closest('.impegno-quadratino') || e.target.closest('.btn-delete-impegno')) return;
+            const dateIso = cardEl.getAttribute('data-date');
             apriModaleFormImpegno(null, dateIso);
         });
     });
 
+    // Gestione click sul singolo impegno per la modifica
     giorniContainer.querySelectorAll('.impegno-quadratino').forEach(card => {
         card.addEventListener('click', (e) => {
             if (e.target.closest('.btn-delete-impegno')) return;
@@ -259,6 +260,7 @@ function disegnaGiorniSettimana(appuntamenti) {
         });
     });
 
+    // Eliminazione impegno
     giorniContainer.querySelectorAll('.btn-delete-impegno').forEach(btnDel => {
         btnDel.addEventListener('click', async (e) => {
             e.stopPropagation();
@@ -417,7 +419,6 @@ function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '')
             if (isModifica) {
                 await updateDoc(doc(db, "appuntamenti", impegnoEsistente.id), payload);
                 
-                // Invia notifica di aggiornamento impegno
                 if (typeof window.inviaNotificaFamiglia === 'function') {
                     window.inviaNotificaFamiglia(
                         "📅 Impegno Aggiornato",
@@ -427,7 +428,6 @@ function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '')
             } else {
                 await addDoc(collection(db, "appuntamenti"), payload);
                 
-                // Invia notifica di nuovo impegno aggiunto
                 if (typeof window.inviaNotificaFamiglia === 'function') {
                     window.inviaNotificaFamiglia(
                         "📅 Nuovo Impegno Aggiunto",
