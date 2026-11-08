@@ -164,7 +164,6 @@ body {
     align-items: center;
 }
 
-/* Correzione specifica per centrare perfettamente l'icona composita di Gestione Utenti a menu chiuso */
 .sidebar.collapsed #admin-menu-item i {
     transform: translateX(4px);
 }
@@ -312,161 +311,16 @@ body {
     padding: 15px 0;
 }
 
-/* SCADENZE IN HOME */
-.scadenze-list {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.scadenza-item {
-    padding: 10px 14px;
-    border-radius: 8px;
-    border-left: 4px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.scadenza-item.red {
-    border-left-color: var(--danger-color);
-    background-color: rgba(231, 76, 60, 0.08);
-}
-
-.scadenza-item.orange {
-    border-left-color: var(--warning-color);
-    background-color: rgba(243, 156, 18, 0.08);
-}
-
-.scadenza-item.green {
-    border-left-color: var(--success-color);
-    background-color: rgba(46, 204, 113, 0.08);
-}
-
-.scadenza-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.scadenza-title {
-    font-weight: 700;
-    font-size: 0.9rem;
-}
-
-.scadenza-amount {
-    font-weight: 700;
-    font-size: 0.9rem;
-}
-
-.scadenza-date, .scadenza-status {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-}
-
-/* GRIGLIA DI TESSERE ORIZZONTALI COMPATTE (USATA SIA PER IMPEGNI CHE PER RICETTE) */
-.impegni-grid-home,
-.ricette-grid-home {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: flex-start;
-}
-
-.impegno-quadratino-home,
-.ricetta-quadratino-home {
-    width: 165px;
-    min-height: 85px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border-left: 5px solid #3498db;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.04);
-    transition: transform 0.15s, box-shadow 0.15s;
-    background-color: #ffffff;
-}
-
-.impegno-quadratino-home:hover,
-.ricetta-quadratino-home:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 12px rgba(0,0,0,0.08);
-}
-
-.impegno-quadratino-top,
-.ricetta-quadratino-top {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.impegno-quadratino-titolo,
-.ricetta-quadratino-titolo {
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: #1e293b;
-    word-break: break-word;
-    line-height: 1.2;
-}
-
-.impegno-quadratino-creatore,
-.ricetta-quadratino-creatore {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #64748b;
-}
-
-.impegno-quadratino-bottom,
-.ricetta-quadratino-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-top: 8px;
-}
-
-.impegno-quadratino-ora {
-    font-size: 0.8rem;
-    color: #475569;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.ricetta-quadratino-stelle {
-    color: #f1c40f;
-    font-size: 0.8rem;
-    letter-spacing: 1px;
-}
-
-/* FOTO & VIDEO PREVIEW */
-.media-grid-preview {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-    gap: 8px;
-}
-
-.media-thumb {
-    width: 100%;
-    height: 70px;
-    object-fit: cover;
-    border-radius: 6px;
-}
-
-/* --- OTTIMIZZAZIONE INPUT TYPE="TIME" E SELETTORE ORARIO NATIVO --- */
+/* --- OTTIMIZZAZIONE INPUT TYPE="TIME" E SELETTORE ORARIO NATIVO (COMPATTAZIONE PULSANTI) --- */
 input[type="time"] {
     appearance: none;
     -webkit-appearance: none;
 }
 
-/* Correzione per compattare i pulsanti inferiori del time-picker nativo (es. Annulla, Imposta, Cancella) */
 ::-webkit-datetime-edit-fields-wrapper {
     padding: 0;
 }
 
-/* Adattamento specifico per i popup di input time su mobile / browser */
 @media screen and (-webkit-device-pixel-ratio: 0) {
     input[type="time"]::-webkit-inner-spin-button,
     input[type="time"]::-webkit-clear-button {
@@ -474,15 +328,21 @@ input[type="time"] {
     }
 }
 
-/* Regola generale per rimpicciolire e adattare i pulsanti interni dei popup di sistema mobile */
 input[type="time"], input[type="date"] {
-    font-size: 1rem;
-    padding: 8px 12px;
+    font-size: 0.9rem;
+    padding: 6px 10px;
     width: 100%;
     border: 1px solid var(--border-color);
     border-radius: 6px;
     background-color: #fff;
     color: var(--text-color);
+}
+
+/* Regole mirate per rimpicciolire i testi dei pulsanti inferiori dei selettori di sistema su schermi stretti */
+@media (max-width: 480px) {
+    ::-webkit-datetime-edit {
+        font-size: 0.85rem;
+    }
 }
 
 /* --- RESPONSIVE DESIGN (MOBILE) --- */
@@ -514,10 +374,5 @@ input[type="time"], input[type="date"] {
     .content-area {
         margin-left: 0 !important;
         padding: 15px;
-    }
-
-    .impegno-quadratino-home,
-    .ricetta-quadratino-home {
-        width: 145px;
     }
 }
