@@ -1,126 +1,88 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FAMIGLIA - HOME</title>
-    
-    <!-- FontAwesome per le Icone -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <!-- Foglio di Stile Principale della Home dentro la cartella home (Versione aggiornata v=26) -->
-    <link rel="stylesheet" href="home/stile-home.css?v=26">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Famiglia - Home</title>
+  <!-- Icone FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- CSS specificato nella cartella home -->
+  <link rel="stylesheet" href="home/stile-home.css">
 </head>
 <body>
 
-    <!-- OVERLAY PER DISPOSITIVI MOBILI -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-
-    <!-- HEADER SUPERIORE FISSO -->
-    <header class="app-header">
-        <div class="header-left">
-            <button class="btn-toggle-sidebar" id="btn-toggle-sidebar" title="Espandi/Contrai Menu">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-            <span class="app-title" id="page-title">FAMIGLIA - HOME</span>
-        </div>
-        <div class="header-right">
-            <span class="user-badge" id="user-display-name">Utente</span>
-            <button class="btn-logout" id="btn-logout" title="Esci dall'applicazione">
-                <i class="fa-solid fa-right-from-bracket"></i>
-            </button>
-        </div>
-    </header>
-
-    <!-- STRUTTURA PRINCIPALE APP -->
-    <div class="app-body">
-        
-        <!-- SIDEBAR BARRA LATERALE -->
-        <aside class="sidebar" id="sidebar">
-            
-            <!-- SEZIONE NAVIGAZIONE SUPERIORE (SCORREVOLE) -->
-            <div class="sidebar-nav-container">
-                <button class="nav-btn active" data-target="dashboard">
-                    <i class="fa-solid fa-house"></i>
-                    <span class="nav-text">HOME</span>
-                </button>
-                <button class="nav-btn" data-target="scadenze">
-                    <i class="fa-solid fa-file-invoice-dollar"></i>
-                    <span class="nav-text">SCADENZE</span>
-                </button>
-                <button class="nav-btn" data-target="impegni">
-                    <i class="fa-solid fa-calendar-days"></i>
-                    <span class="nav-text">IMPEGNI</span>
-                </button>
-                <button class="nav-btn" data-target="media">
-                    <i class="fa-solid fa-photo-film"></i>
-                    <span class="nav-text">FOTO & VIDEO</span>
-                </button>
-                <button class="nav-btn" data-target="ricette">
-                    <i class="fa-solid fa-utensils"></i>
-                    <span class="nav-text">RICETTE</span>
-                </button>
-                
-                <!-- Menu Gestione Utenti (Visibile solo per Admin) -->
-                <button class="nav-btn" id="admin-menu-item" data-target="gestione-utenti" style="display: none;">
-                    <i class="fa-solid fa-users-gear"></i>
-                    <span class="nav-text">GESTIONE UTENTI</span>
-                </button>
-            </div>
-
-            <!-- SEZIONE INFERIORE ANCORATA FISSA IN BASSO (FOOTER) -->
-            <div class="sidebar-footer">
-                <button class="nav-btn" data-target="cambia-password">
-                    <i class="fa-solid fa-key"></i>
-                    <span class="nav-text">CAMBIA PASSWORD</span>
-                </button>
-                <button class="nav-btn" data-target="cambia-colore">
-                    <i class="fa-solid fa-palette"></i>
-                    <span class="nav-text">CAMBIA COLORE</span>
-                </button>
-
-                <div class="sidebar-user-box">
-                    <i class="fa-solid fa-user-shield"></i>
-                    <div class="user-info-text">
-                        <span class="user-info-name" id="sidebar-username">Utente</span>
-                        <span class="user-info-role" id="sidebar-user-role">Ruolo</span>
-                    </div>
-                </div>
-            </div>
-
-        </aside>
-
-        <!-- TELA CENTRALE DINAMICA -->
-        <main class="content-area" id="content-area">
-            <!-- Il contenuto dinamico delle schede viene caricato qui via JS -->
-        </main>
-
+  <!-- HEADER E MENU NAVIGAZIONE -->
+  <div class="header-container">
+    <div class="top-bar">
+      <button class="btn-nav" id="btn-toggle-menu"><i class="fas fa-bars"></i></button>
+      <span class="app-title">Famiglia - Home</span>
     </div>
 
-    <!-- Script per attivare le notifiche push sul telefono -->
-    <script>
-        if ('Notification' in window && 'serviceWorker' in navigator) {
-            window.addEventListener('load', async () => {
-                try {
-                    // Registra il service worker se necessario
-                    const reg = await navigator.serviceWorker.register('./sw.js');
-                    
-                    // Richiede il permesso per le notifiche se non è stato ancora concesso/negato
-                    if (Notification.permission === 'default') {
-                        const permission = await Notification.requestPermission();
-                        if (permission === 'granted') {
-                            console.log('Permesso notifiche concesso dall\'utente.');
-                        }
-                    }
-                } catch (err) {
-                    console.error('Errore nella configurazione delle notifiche:', err);
-                }
-            });
-        }
-    </script>
+    <div class="nav-links">
+      <a href="home.html" class="btn-nav"><i class="fas fa-home"></i> HOME</a>
+      <a href="scadenze/scadenze.html" class="btn-nav"><i class="fas fa-file-invoice-dollar"></i> SCADENZE</a>
+      <a href="impegni/impegni.html" class="btn-nav"><i class="fas fa-calendar-alt"></i> IMPEGNI</a>
+      <a href="media/media.html" class="btn-nav"><i class="fas fa-images"></i> FOTO &amp; VIDEO</a>
+      <a href="ricette/ricette.html" class="btn-nav"><i class="fas fa-utensils"></i> RICETTE</a>
+      <a href="cambia-password/cambia-password.html" class="btn-nav"><i class="fas fa-key"></i> CAMBIA PASSWORD</a>
+      <a href="cambia-colore/cambia-colore.html" class="btn-nav"><i class="fas fa-palette"></i> CAMBIA COLORE</a>
+    </div>
 
-    <!-- Script JavaScript Principale dentro la cartella home (Versione aggiornata v=26) -->
-    <script type="module" src="home/home.js?v=26"></script>
+    <div class="user-info-bar">
+      <i class="fas fa-user-shield"></i> <span id="user-display-name">Utente Ruolo</span>
+    </div>
+  </div>
 
+  <!-- SEZIONE SCADENZE -->
+  <div class="card" id="scadenze">
+    <div class="card-header">
+      <i class="fas fa-file-invoice-dollar"></i> SCADENZE
+    </div>
+    <div class="card-body" id="scadenze-container">
+      <ul class="scadenze-list">
+        
+        <!-- Scaduta / entro 7 giorni -> ROSSO -->
+        <li class="scadenza-item scadenza-rosso">
+          <div class="scadenza-info">
+            <strong>Klarna € 59.77</strong>
+            <div class="scadenza-details">04-11-2026 (Elena)</div>
+          </div>
+          <div><strong>Scaduta</strong></div>
+        </li>
+
+        <!-- Entro 7 giorni -> ROSSO -->
+        <li class="scadenza-item scadenza-rosso">
+          <div class="scadenza-info">
+            <strong>Dolomiti € 140.02</strong>
+            <div class="scadenza-details">10-11-2026 (Paolo)</div>
+          </div>
+          <div><strong>Tra 2 gg</strong></div>
+        </li>
+
+        <!-- Tra 8 e 14 giorni -> GIALLO -->
+        <li class="scadenza-item scadenza-giallo">
+          <div class="scadenza-info">
+            <strong>Assicurazione Auto € 350.00</strong>
+            <div class="scadenza-details">20-11-2026 (Paolo)</div>
+          </div>
+          <div><strong>Tra 12 gg</strong></div>
+        </li>
+
+        <!-- Da 15 giorni in su -> VERDE -->
+        <li class="scadenza-item scadenza-verde">
+          <div class="scadenza-info">
+            <strong>Internet Fibra € 29.90</strong>
+            <div class="scadenza-details">30-11-2026 (Elena)</div>
+          </div>
+          <div><strong>Tra 22 gg</strong></div>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+
+  <!-- Script Firebase e Home JS -->
+  <script type="module" src="home/firebase-config.js"></script>
+  <script type="module" src="home/home.js"></script>
 </body>
 </html>
