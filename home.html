@@ -3,85 +3,70 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Famiglia - Home</title>
-  <!-- Icone FontAwesome -->
+  <title>Sito Famiglia</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- CSS specificato nella cartella home -->
   <link rel="stylesheet" href="home/stile-home.css">
 </head>
 <body>
 
-  <!-- HEADER E MENU NAVIGAZIONE -->
-  <div class="header-container">
-    <div class="top-bar">
-      <button class="btn-nav" id="btn-toggle-menu"><i class="fas fa-bars"></i></button>
-      <span class="app-title">Famiglia - Home</span>
+  <div class="main-container">
+
+    <!-- SCADENZE -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-file-invoice-dollar"></i> SCADENZE
+      </div>
+      <div class="card-body">
+        <ul class="scadenze-list" id="scadenze-list">
+          
+          <!-- Scaduta -> ROSSO -->
+          <li class="scadenza-item scadenza-rosso">
+            <div class="scadenza-info">
+              <span class="scadenza-titolo">Klarna € 59.77</span>
+              <span class="scadenza-dettaglio">04-11-2026 (Elena) Scaduta</span>
+            </div>
+          </li>
+
+          <!-- Tra 2 gg -> ROSSO (entro 7 gg) -->
+          <li class="scadenza-item scadenza-rosso">
+            <div class="scadenza-info">
+              <span class="scadenza-titolo">Dolomiti € 140.02</span>
+              <span class="scadenza-dettaglio">10-11-2026 (Paolo) Tra 2 gg</span>
+            </div>
+          </li>
+
+        </ul>
+      </div>
     </div>
 
-    <div class="nav-links">
-      <a href="home.html" class="btn-nav"><i class="fas fa-home"></i> HOME</a>
-      <a href="scadenze/scadenze.html" class="btn-nav"><i class="fas fa-file-invoice-dollar"></i> SCADENZE</a>
-      <a href="impegni/impegni.html" class="btn-nav"><i class="fas fa-calendar-alt"></i> IMPEGNI</a>
-      <a href="media/media.html" class="btn-nav"><i class="fas fa-images"></i> FOTO &amp; VIDEO</a>
-      <a href="ricette/ricette.html" class="btn-nav"><i class="fas fa-utensils"></i> RICETTE</a>
-      <a href="cambia-password/cambia-password.html" class="btn-nav"><i class="fas fa-key"></i> CAMBIA PASSWORD</a>
-      <a href="cambia-colore/cambia-colore.html" class="btn-nav"><i class="fas fa-palette"></i> CAMBIA COLORE</a>
+    <!-- IMPEGNI DI OGGI -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-calendar-alt"></i> IMPEGNI DI OGGI (08-11-2026)
+      </div>
+      <div class="card-body">
+        <div class="impegno-item">
+          <span><strong>Turno</strong> <small style="opacity: 0.75;">(Paolo)</small></span>
+          <span class="impegno-ora"><i class="far fa-clock"></i> 09:00</span>
+        </div>
+      </div>
     </div>
 
-    <div class="user-info-bar">
-      <i class="fas fa-user-shield"></i> <span id="user-display-name">Utente Ruolo</span>
+    <!-- FOTO & VIDEO -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-images"></i> FOTO &amp; VIDEO
+      </div>
+      <div class="card-body">
+        <div class="foto-container">
+          <!-- Inserisci la tua sorgente foto -->
+          <img src="path-della-tua-foto.jpg" alt="Foto Famiglia">
+        </div>
+      </div>
     </div>
+
   </div>
 
-  <!-- SEZIONE SCADENZE -->
-  <div class="card" id="scadenze">
-    <div class="card-header">
-      <i class="fas fa-file-invoice-dollar"></i> SCADENZE
-    </div>
-    <div class="card-body" id="scadenze-container">
-      <ul class="scadenze-list">
-        
-        <!-- Scaduta / entro 7 giorni -> ROSSO -->
-        <li class="scadenza-item scadenza-rosso">
-          <div class="scadenza-info">
-            <strong>Klarna € 59.77</strong>
-            <div class="scadenza-details">04-11-2026 (Elena)</div>
-          </div>
-          <div><strong>Scaduta</strong></div>
-        </li>
-
-        <!-- Entro 7 giorni -> ROSSO -->
-        <li class="scadenza-item scadenza-rosso">
-          <div class="scadenza-info">
-            <strong>Dolomiti € 140.02</strong>
-            <div class="scadenza-details">10-11-2026 (Paolo)</div>
-          </div>
-          <div><strong>Tra 2 gg</strong></div>
-        </li>
-
-        <!-- Tra 8 e 14 giorni -> GIALLO -->
-        <li class="scadenza-item scadenza-giallo">
-          <div class="scadenza-info">
-            <strong>Assicurazione Auto € 350.00</strong>
-            <div class="scadenza-details">20-11-2026 (Paolo)</div>
-          </div>
-          <div><strong>Tra 12 gg</strong></div>
-        </li>
-
-        <!-- Da 15 giorni in su -> VERDE -->
-        <li class="scadenza-item scadenza-verde">
-          <div class="scadenza-info">
-            <strong>Internet Fibra € 29.90</strong>
-            <div class="scadenza-details">30-11-2026 (Elena)</div>
-          </div>
-          <div><strong>Tra 22 gg</strong></div>
-        </li>
-
-      </ul>
-    </div>
-  </div>
-
-  <!-- Script Firebase e Home JS -->
   <script type="module" src="home/firebase-config.js"></script>
   <script type="module" src="home/home.js"></script>
 </body>
