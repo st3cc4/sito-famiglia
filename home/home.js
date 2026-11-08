@@ -335,26 +335,30 @@ async function renderDashboard(container) {
             const diffTempo = dataScad - oggi;
             const giorniMancanti = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
             
+            // Assegnazione corretta della classe colore per ciascuna scadenza
+            let coloreClasse = 'green';
+            if (giorniMancanti <= 7) {
+                coloreClasse = 'red';
+            } else if (giorniMancanti >= 8 && giorniMancanti <= 14) {
+                coloreClasse = 'orange'; // o giallo in base al tuo CSS
+            } else {
+                coloreClasse = 'green';
+            }
+
             scadenzeList.push({
                 titolo: data.titolo || 'Senza titolo',
                 importo: data.importo !== undefined ? '€ ' + Number(data.importo).toFixed(2) : '',
                 dataFormattata: formatDataEuropea(data.data),
                 giorniMancanti: giorniMancanti,
-                creatore: data.creatore || ''
+                creatore: data.creatore || '',
+                coloreClasse: coloreClasse
             });
         });
 
-        let scadenzeFiltrate = scadenzeList.filter(function(s) { return s.giorniMancanti <= 7; });
-        let coloreScadenza = 'red';
-
-        if (scadenzeFiltrate.length === 0) {
-            scadenzeFiltrate = scadenzeList.filter(function(s) { return s.giorniMancanti >= 8 && s.giorniMancanti <= 14; });
-            coloreScadenza = 'orange';
-        }
-        if (scadenzeFiltrate.length === 0) {
-            scadenzeFiltrate = scadenzeList.filter(function(s) { return s.giorniMancanti >= 15; });
-            coloreScadenza = 'green';
-        }
+        // Ordina le scadenze dalla più vicina alla più lontana
+        scadenzeList.sort(function(a, b) {
+            return a.giorniMancanti - b.giorniMancanti;
+        });
 
         const annoOggi = oggi.getFullYear();
         const meseOggi = String(oggi.getMonth() + 1).padStart(2, '0');
@@ -438,11 +442,11 @@ async function renderDashboard(container) {
                         <h3><i class="fa-solid fa-file-invoice-dollar"></i> SCADENZE</h3>
                     </div>
                     <div class="card-body">
-                        ${scadenzeFiltrate.length > 0 ? `
+                        ${scadenzeList.length > 0 ? `
                             <ul class="scadenze-list">
-                                ${scadenzeFiltrate.map(function(s) {
+                                ${scadenzeList.map(function(s) {
                                     return `
-                                    <li class="scadenza-item ${coloreScadenza}">
+                                    <li class="scadenza-item ${s.coloreClasse}">
                                         <div class="scadenza-row">
                                             <span class="scadenza-title">${s.titolo}</span>
                                             <span class="scadenza-amount">${s.importo}</span>
