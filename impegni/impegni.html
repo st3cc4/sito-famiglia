@@ -11,7 +11,7 @@
 
   <div class="main-container">
 
-    <!-- BARRA SUPERIORE: PULSANTE POP-UP -->
+    <!-- BARRA SUPERIORE -->
     <div class="top-action-bar">
       <div class="info-text">
         <i class="fas fa-calendar-alt"></i> Gestione Impegni e Appuntamenti
@@ -21,16 +21,9 @@
       </button>
     </div>
 
-    <!-- LISTA COMPLETA IMPEGNI -->
-    <div class="card">
-      <div class="card-header">
-        <i class="fas fa-list"></i> Tutti gli Impegni in Programma
-      </div>
-      <div class="card-body">
-        <div class="impegni-list" id="lista-impegni-completa">
-          <!-- Caricati dinamicamente via JS -->
-        </div>
-      </div>
+    <!-- LISTA SETTIMANALE DEGLI IMPEGNI -->
+    <div id="impegni-settimane-container">
+      <!-- Caricato dinamicamente via JS -->
     </div>
 
   </div>
@@ -48,14 +41,18 @@
             <label for="titolo">Titolo Impegno</label>
             <input type="text" id="titolo" required placeholder="Es. Visita medica, Riunione...">
           </div>
+          <div class="input-group">
+            <label for="data">Data</label>
+            <input type="date" id="data" required>
+          </div>
           <div class="input-row">
-            <div class="input-group">
-              <label for="data">Data</label>
-              <input type="date" id="data" required>
-            </div>
             <div class="input-group">
               <label for="oraInizio">Ora Inizio</label>
               <input type="time" id="oraInizio" required>
+            </div>
+            <div class="input-group">
+              <label for="oraFine">Ora Fine</label>
+              <input type="time" id="oraFine" required>
             </div>
           </div>
           <div class="modal-buttons">
