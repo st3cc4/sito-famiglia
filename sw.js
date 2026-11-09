@@ -1,81 +1,29 @@
-// --- SERVICE WORKER CON SUPPORTO PUSH E MESSAGGI DIRETTI ---
+const CACHE_NAME = 'sito-famiglia-v1';
+const urlsToCache = [
+  './',
+  './index.html',
+  './index.js',
+  './home.html',
+  './login/login.html',
+  './login/stile-login.css',
+  './login/login.js',
+  './home/stile-home.css',
+  './home/home.js',
+  './home/firebase-config.js'
+];
 
-self.addEventListener('install', (event) => {
-    console.log('Service Worker installato con successo.');
-    self.skipWaiting();
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(urlsToCache);
+    })
+  );
 });
 
-self.addEventListener('activate', (event) => {
-    console.log('Service Worker attivato.');
-    return self.clients.claim();
-});
-
-// Ascolta i messaggi inviati direttamente dalla pagina (es. test da console o azioni locali)
-self.addEventListener('message', (event) => {
-    if (event.data && event.data.type === 'MOSTRA_NOTIFICA') {
-        const title = event.data.titolo || 'Famiglia - Portale';
-        const options = {
-            body: event.data.corpo || 'Hai una nuova notifica.',
-            icon: './favicon.ico',
-            badge: './favicon.ico',
-            vibrate: [200, 100, 200],
-            data: {
-                url: './home.html'
-            }
-        };
-        event.waitUntil(
-            self.registration.showNotification(title, options)
-        );
-    }
-});
-
-// Intercetta l'evento push proveniente dal server/database
-self.addEventListener('push', (event) => {
-    let notificationData = {
-        title: 'Famiglia - Portale',
-        body: 'Hai una nuova notifica.',
-        icon: './favicon.ico',
-        url: './home.html'
-    };
-
-    if (event.data) {
-        try {
-            notificationData = event.data.json();
-        } catch (e) {
-            notificationData.body = event.data.text();
-        }
-    }
-
-    const options = {
-        body: notificationData.body,
-        icon: notificationData.icon || './favicon.ico',
-        badge: './favicon.ico',
-        vibrate: [200, 100, 200],
-        data: {
-            url: notificationData.url || './home.html'
-        }
-    };
-
-    event.waitUntil(
-        self.registration.showNotification(notificationData.title, options)
-    );
-});
-
-// Gestisce il click dell'utente sulla notifica (apre l'app)
-self.addEventListener('notificationclick', (event) => {
-    event.notification.close();
-    const targetUrl = event.notification.data.url || './home.html';
-
-    event.waitUntil(
-        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-            for (let client of windowClients) {
-                if (client.url.includes('home.html') && 'focus' in client) {
-                    return client.focus();
-                }
-            }
-            if (clients.openWindow) {
-                return clients.openWindow(targetUrl);
-            }
-        })
-    );
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request).then(response => {
+      return response || fetch(event.request);
+    })
+  );
 });
