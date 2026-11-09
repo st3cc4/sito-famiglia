@@ -15,7 +15,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
@@ -46,14 +46,16 @@ body {
   gap: 8px;
 }
 
-.card {
+/* SEZIONE SETTIMANALE */
+.settimana-card {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  margin-bottom: 20px;
 }
 
-.card-header {
+.settimana-header {
   background-color: #0f172a;
   color: white;
   padding: 14px 20px;
@@ -64,10 +66,107 @@ body {
   gap: 10px;
 }
 
-.card-body {
+.settimana-body {
   padding: 20px;
-  max-height: 65vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* GIORNO E GRIGLIA IMPEGNI (4x2) */
+.giornata-sezione {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 15px;
+}
+
+.giornata-sezione:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.giorno-titolo {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.giorno-titolo.domenica {
+  color: #ef4444 !important;
+}
+
+.impegni-griglia {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 800px) {
+  .impegni-griglia {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .impegni-griglia {
+    grid-template-columns: 1fr;
+  }
+}
+
+.impegno-card {
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 110px;
+}
+
+.impegno-header-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.impegno-titolo {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #1e293b;
+}
+
+.impegno-autore {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  font-weight: 600;
+}
+
+.impegno-orari {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-delete {
+  background: transparent;
+  color: #dc2626;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.btn-delete:hover {
+  background-color: rgba(220, 38, 38, 0.15);
 }
 
 /* BOTTONI */
@@ -208,65 +307,4 @@ body {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 10px;
-}
-
-/* LISTA IMPEGNI */
-.impegni-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.impegno-item {
-  padding: 14px 18px;
-  background-color: #f1f5f9;
-  border-left: 5px solid #2563eb;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.impegno-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.impegno-titolo {
-  font-weight: 700;
-  font-size: 1rem;
-  color: #1e293b;
-}
-
-.impegno-dettaglio {
-  font-size: 0.85rem;
-  color: #64748b;
-}
-
-.impegno-ora {
-  font-weight: bold;
-  color: #2563eb;
-  background: white;
-  padding: 6px 12px;
-  border-radius: 6px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.btn-delete {
-  background: transparent;
-  color: #dc2626;
-  border: none;
-  font-size: 1.1rem;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-
-.btn-delete:hover {
-  background-color: rgba(220, 38, 38, 0.1);
 }
