@@ -1,310 +1,272 @@
-/* --- STILI SEZIONE IMPEGNI --- */
-
-.impegni-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    max-width: 1000px;
-    margin: 0 auto;
-    padding-bottom: 30px;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* HEADER CON NAVIGAZIONE SETTIMANA E TASTO HOME */
-.impegni-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #ffffff;
-    padding: 16px 20px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+body {
+  background-color: #f8fafc;
+  padding: 15px;
+  color: #1e293b;
+}
+
+.main-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* BARRA SUPERIORE */
+.top-action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 15px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 600px) {
+  .top-action-bar {
+    flex-direction: column;
     gap: 15px;
-    flex-wrap: wrap;
+    align-items: stretch;
+  }
 }
 
-.week-nav-left {
-    display: flex;
-    align-items: center;
+.info-text {
+  font-weight: 600;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.week-nav-center {
-    display: flex;
-    align-items: center;
+.card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
 }
 
-.week-nav-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.card-header {
+  background-color: #0f172a;
+  color: white;
+  padding: 14px 20px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.btn-week-nav {
-    background-color: #f8fafc;
-    border: 1px solid #cbd5e1;
-    color: #2b3e50;
-    padding: 8px 14px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.85rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s;
+.card-body {
+  padding: 20px;
+  max-height: 65vh;
+  overflow-y: auto;
 }
 
-.btn-week-nav:hover {
-    background-color: #e2e8f0;
+/* BOTTONI */
+.btn-primary {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.95rem;
 }
 
-.current-week-label {
-    font-weight: 700;
-    font-size: 0.95rem;
-    color: #2b3e50;
+.btn-primary:hover {
+  background-color: #1d4ed8;
 }
 
-/* LISTA GIORNI SETTIMANALI */
-.giorni-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+.btn-secondary {
+  background-color: #e2e8f0;
+  color: #475569;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-.giorno-card {
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    overflow: hidden;
-    background-color: #ffffff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+.btn-secondary:hover {
+  background-color: #cbd5e1;
 }
 
-/* COLORI DI SFONDO DIVERSI PER OGNI GIORNO */
-.giorno-card.lunedi { background-color: #f0fdf4; border-color: #bbf7d0; }
-.giorno-card.martedi { background-color: #f0f9ff; border-color: #bae6fd; }
-.giorno-card.mercoledi { background-color: #fefce8; border-color: #fef08a; }
-.giorno-card.giovedi { background-color: #faf5ff; border-color: #e9d5ff; }
-.giorno-card.venerdi { background-color: #fdf2f8; border-color: #fbcfe8; }
-.giorno-card.sabato { background-color: #fff7ed; border-color: #fed7aa; }
-.giorno-card.domenica { background-color: #fef2f2; border-color: #fecaca; }
-
-.giorno-header {
-    padding: 12px 18px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-
-.giorno-titolo {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #1e293b;
-}
-
-.giorno-card.domenica .giorno-titolo {
-    color: #dc2626; /* Domenica in Rosso */
-}
-
-/* CONTENITORE DEGLI IMPEGNI ORIZZONTALI */
-.giorno-body {
-    padding: 14px 18px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    min-height: 60px;
-    align-items: flex-start;
-}
-
-.giorno-empty {
-    font-size: 0.85rem;
-    color: #94a3b8;
-    font-style: italic;
-    width: 100%;
-}
-
-/* QUADRATINO COMPATTO DELL'IMPEGNO */
-.impegno-quadratino {
-    width: 165px;
-    min-height: 85px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border-left: 5px solid #3498db;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    cursor: pointer;
-    position: relative;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.04);
-    transition: transform 0.15s, box-shadow 0.15s;
-    background-color: #ffffff;
-}
-
-.impegno-quadratino:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 12px rgba(0,0,0,0.08);
-}
-
-.impegno-quadratino-top {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.impegno-quadratino-titolo {
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: #1e293b;
-    word-break: break-word;
-    line-height: 1.2;
-}
-
-.impegno-quadratino-creatore {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #64748b;
-}
-
-.impegno-quadratino-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-top: 8px;
-}
-
-.impegno-quadratino-ora {
-    font-size: 0.8rem;
-    color: #475569;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.impegno-quadratino-azioni {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-}
-
-.btn-icon-quadratino {
-    background: none;
-    border: none;
-    color: #94a3b8;
-    cursor: pointer;
-    font-size: 0.85rem;
-    padding: 2px 4px;
-    transition: color 0.2s;
-}
-
-.btn-icon-quadratino.delete:hover {
-    color: #e74c3c;
-}
-
-/* MODALE / POP-UP FORM IMPEGNI */
+/* POP-UP MODALE */
 .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .modal-content {
-    background-color: #ffffff;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 420px;
-    padding: 24px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  background: white;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  overflow: hidden;
+  transform: translateY(-20px);
+  transition: transform 0.3s ease;
+}
+
+.modal-overlay.active .modal-content {
+  transform: translateY(0);
 }
 
 .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 10px;
+  background-color: #0f172a;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.modal-header h3 {
-    font-size: 1.1rem;
-    color: #2b3e50;
+.modal-close {
+  background: transparent;
+  color: white;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
 }
 
-.btn-close-modal {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    color: #64748b;
-    cursor: pointer;
+.modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 16px;
+.impegno-form-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.form-group label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #334155;
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
-.form-group input,
-.form-group select {
-    padding: 10px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 0.9rem;
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
+.input-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
 }
 
-.btn-modal {
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.88rem;
-    cursor: pointer;
-    border: none;
+.input-group input {
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.95rem;
 }
 
-.btn-modal.cancel {
-    background-color: #f1f5f9;
-    color: #475569;
+.input-group input:focus {
+  border-color: #2563eb;
+  outline: none;
 }
 
-.btn-modal.save {
-    background-color: #2b3e50;
-    color: #ffffff;
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-/* ADATTAMENTO MOBILE */
-@media (max-width: 600px) {
-    .impegni-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-    .week-nav-left, .week-nav-center, .week-nav-right {
-        justify-content: center;
-        width: 100%;
-    }
-    .impegno-quadratino {
-        width: 145px;
-    }
+/* LISTA IMPEGNI */
+.impegni-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.impegno-item {
+  padding: 14px 18px;
+  background-color: #f1f5f9;
+  border-left: 5px solid #2563eb;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.impegno-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.impegno-titolo {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.impegno-dettaglio {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.impegno-ora {
+  font-weight: bold;
+  color: #2563eb;
+  background: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-delete {
+  background: transparent;
+  color: #dc2626;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.btn-delete:hover {
+  background-color: rgba(220, 38, 38, 0.1);
 }
