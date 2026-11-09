@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Sito Famiglia</title>
+  <link rel="stylesheet" href="stile-login.css">
+</head>
+<body>
+
+  <div class="login-container">
+    <h2>Sito Famiglia</h2>
+    <form id="login-form">
+      <div class="input-group">
+        <label for="username">Utente</label>
+        <input type="text" id="username" required placeholder="Inserisci il tuo nome">
+      </div>
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" required placeholder="Inserisci la password">
+      </div>
+      <button type="submit" class="login-btn">Accedi</button>
+      <div id="error-message" class="error-message"></div>
+    </form>
+  </div>
+
+  <script type="module" src="login.js"></script>
+</body>
+</html>
