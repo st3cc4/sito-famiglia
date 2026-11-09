@@ -1,5 +1,5 @@
 import { db } from "../firebase-config.js";
-import { collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let currentStartDate = new Date();
 
@@ -23,6 +23,68 @@ document.addEventListener("DOMContentLoaded", async () => {
       await caricaImpegniSettimana();
     });
   }
+
+  // Gestione Modale Pop-up inserimento impegno
+  const modal = document.getElementById("modal-impegno");
+  const closeBtn = document.getElementById("close-modal-btn");
+  const cancelBtn = document.getElementById("cancel-modal-btn");
+  const formImpegno = document.getElementById("form-impegno");
+
+  function toggleModal(open, dataPreimpostata = "") {
+    if (modal) {
+      if (open) {
+        modal.classList.add("active");
+        if (dataPreimpostata) {
+          const dataInput = document.getElementById("data");
+          if (dataInput) dataInput.value = dataPreimpostata;
+        }
+      } else {
+        modal.classList.remove("active");
+        if (formImpegno) formImpegno.reset();
+      }
+    }
+  }
+
+  window.apriModaleConData = (dataStr) => toggleModal(true, dataStr);
+
+  if (closeBtn) closeBtn.addEventListener("click", () => toggleModal(false));
+  if (cancelBtn) cancelBtn.addEventListener("click", () => toggleModal(false));
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) toggleModal(false);
+    });
+  }
+
+  // Salvataggio Nuovo Impegno su Firestore
+  if (formImpegno) {
+    formImpegno.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const titolo = document.getElementById("titolo").value.trim();
+      const data = document.getElementById("data").value;
+      const oraInizio = document.getElementById("oraInizio").value;
+      const oraFine = document.getElementById("oraFine").value;
+      const creatore = localStorage.getItem("sitoFamiglia_user") || "Famiglia";
+      const creatoIl = new Date().toISOString();
+
+      try {
+        await addDoc(collection(db, "impegni"), {
+          titolo,
+          data,
+          oraInizio,
+          oraFine,
+          creatore,
+          creatoIl
+        });
+
+        toggleModal(false);
+        await caricaImpegniSettimana();
+      } catch (err) {
+        console.error("Errore salvataggio impegno:", err);
+        alert("Errore durante il salvataggio dell'impegno.");
+      }
+    });
+  }
 });
 
 function impostaLunediCorrente() {
@@ -31,6 +93,17 @@ function impostaLunediCorrente() {
   const giorno = oggi.getDay();
   const diff = oggi.getDate() - giorno + (giorno === 0 ? -6 : 1);
   currentStartDate = new Date(oggi.setDate(diff));
+}
+
+// Funzione ausiliaria per convertire un colore esadecimale in RGBA con alpha ridotto
+function hexToRgba(hex, alpha = 0.25) {
+  if (!hex || !hex.startsWith('#')) return 'rgba(241, 245, 249, 0.8)'; // di default
+  let c = hex.replace('#', '');
+  if (c.length === 3) {
+    c = c.split('').map(char => char + char).join('');
+  }
+  const num = parseInt(c, 16);
+  return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
 }
 
 async function caricaImpegniSettimana() {
@@ -69,7 +142,7 @@ async function caricaImpegniSettimana() {
     const mappaColori = {};
     utentiSnap.forEach(uDoc => {
       const uData = uDoc.data();
-      mappaColori[uDoc.id.toLowerCase()] = uData.colore || "#f1f5f9";
+      mappaColori[uDoc.id.toLowerCase()] = uData.colore || "#2563eb";
     });
 
     const snap = await getDocs(collection(db, "impegni"));
@@ -96,17 +169,27 @@ async function caricaImpegniSettimana() {
       card.className = `day-card ${giorno.isDomenica ? 'domenica' : ''}`;
       card.style.backgroundColor = giorno.isDomenica ? '#fff5f5' : (coloriGiorni[index] || '#f8fafc');
 
+      // Al click sulla card del giorno, apre la modale con la data impostata
+      card.addEventListener("click", (e) => {
+        // Evita l'apertura se si clicca sul bottone elimina
+        if (e.target.closest('.btn-delete')) return;
+        if (window.apriModaleConData) {
+          window.apriModaleConData(giorno.dataIso);
+        }
+      });
+
       let htmlImpegni = "";
       if (impegniDelGiorno.length === 0) {
-        htmlImpegni = `<div class="no-impegni">Nessun impegno in questa giornata.</div>`;
+        htmlImpegni = `<div class="no-impegni">Nessun impegno in questa giornata (Clicca per aggiungere).</div>`;
       } else {
         htmlImpegni = `<div class="impegni-grid">`;
         impegniDelGiorno.forEach(item => {
           const creatore = (item.creatore || "").toLowerCase();
-          const coloreCreatore = mappaColori[creatore] || "#ffffff";
+          const coloreBase = mappaColori[creatore] || "#2563eb";
+          const coloreSfondoAlpha = hexToRgba(coloreBase, 0.22); // Sfondo con alpha ridotto per leggibilità perfetta
 
           htmlImpegni += `
-            <div class="impegno-item-card" style="background-color: ${coloreCreatore};">
+            <div class="impegno-item-card" style="background-color: ${coloreSfondoAlpha}; border-left: 4px solid ${coloreBase};">
               <div class="impegno-top">
                 <div>
                   <div class="impegno-titolo">${item.titolo}</div>
@@ -128,6 +211,7 @@ async function caricaImpegniSettimana() {
       card.innerHTML = `
         <div class="day-header ${giorno.isDomenica ? 'domenica-text' : ''}">
           <span><i class="fas fa-calendar-day"></i> ${giorno.nomeGiorno.charAt(0).toUpperCase() + giorno.nomeGiorno.slice(1)} (${giorno.giornoMese})</span>
+          <span style="font-size: 0.8rem; color: #64748b; font-weight: normal;"><i class="fas fa-plus-circle"></i> Aggiungi</span>
         </div>
         <div class="day-body">
           ${htmlImpegni}
@@ -140,6 +224,7 @@ async function caricaImpegniSettimana() {
     const deleteButtons = container.querySelectorAll(".btn-delete");
     deleteButtons.forEach(btn => {
       btn.addEventListener("click", async (e) => {
+        e.stopPropagation(); // Evita di aprire la modale del giorno
         const id = e.currentTarget.getAttribute("data-id");
         if (confirm("Vuoi davvero eliminare questo impegno?")) {
           try {
