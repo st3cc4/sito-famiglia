@@ -1,77 +1,76 @@
 import { db } from "../firebase-config.js";
-import { collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+let currentStartDate = new Date();
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await caricaImpegni();
+  // Posiziona currentStartDate sul Lunedì della settimana corrente
+  impostaLunediCorrente();
 
-  // Gestione Modale Pop-up
-  const modal = document.getElementById("modal-impegno");
-  const openBtn = document.getElementById("open-modal-btn");
-  const closeBtn = document.getElementById("close-modal-btn");
-  const cancelBtn = document.getElementById("cancel-modal-btn");
-  const formImpegno = document.getElementById("form-impegno");
+  await caricaImpegniSettimana();
 
-  function toggleModal(open) {
-    if (modal) {
-      if (open) {
-        modal.classList.add("active");
-      } else {
-        modal.classList.remove("active");
-        if (formImpegno) formImpegno.reset();
-      }
-    }
-  }
+  // Pulsanti navigazione settimana
+  const prevBtn = document.getElementById("prev-week-btn");
+  const nextBtn = document.getElementById("next-week-btn");
 
-  if (openBtn) openBtn.addEventListener("click", () => toggleModal(true));
-  if (closeBtn) closeBtn.addEventListener("click", () => toggleModal(false));
-  if (cancelBtn) cancelBtn.addEventListener("click", () => toggleModal(false));
-  if (modal) {
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) toggleModal(false);
+  if (prevBtn) {
+    prevBtn.addEventListener("click", async () => {
+      currentStartDate.setDate(currentStartDate.getDate() - 7);
+      await caricaImpegniSettimana();
     });
   }
 
-  // Salvataggio Nuovo Impegno nella raccolta "impegni"
-  if (formImpegno) {
-    formImpegno.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const titolo = document.getElementById("titolo").value.trim();
-      const data = document.getElementById("data").value;
-      const oraInizio = document.getElementById("oraInizio").value;
-      const oraFine = document.getElementById("oraFine").value;
-      const creatore = localStorage.getItem("sitoFamiglia_user") || "Famiglia";
-      const creatoIl = new Date().toISOString();
-
-      try {
-        await addDoc(collection(db, "impegni"), {
-          titolo,
-          data,
-          oraInizio,
-          oraFine,
-          creatore,
-          creatoIl
-        });
-
-        toggleModal(false);
-        await caricaImpegni();
-      } catch (err) {
-        console.error("Errore salvataggio impegno:", err);
-        alert("Errore durante il salvataggio dell'impegno.");
-      }
+  if (nextBtn) {
+    nextBtn.addEventListener("click", async () => {
+      currentStartDate.setDate(currentStartDate.getDate() + 7);
+      await caricaImpegniSettimana();
     });
   }
 });
 
-// Funzione di caricamento impegni dalla raccolta "impegni"
-async function caricaImpegni() {
-  const container = document.getElementById("lista-impegni-completa");
+function impostaLunediCorrente() {
+  const oggi = new Date();
+  oggi.setHours(0, 0, 0, 0);
+  const giorno = oggi.getDay();
+  const diff = oggi.getDate() - giorno + (giorno === 0 ? -6 : 1); // Lunedì
+  currentStartDate = new Date(oggi.setDate(diff));
+}
+
+async function caricaImpegniSettimana() {
+  const container = document.getElementById("days-container");
+  const weekLabel = document.getElementById("week-range-label");
   if (!container) return;
 
   try {
-    container.innerHTML = `<p style="padding: 10px; color: #666;">Caricamento impegni in corso...</p>`;
+    // 1. Calcola i 7 giorni della settimana (da Lunedì a Domenica)
+    const giorniSettimana = [];
+    let iterDate = new Date(currentStartDate);
 
-    // 1. Carica i colori degli utenti
+    for (let i = 0; i < 7; i++) {
+      const yyyy = iterDate.getFullYear();
+      const mm = String(iterDate.getMonth() + 1).padStart(2, '0');
+      const dd = String(iterDate.getDate()).padStart(2, '0');
+      const dataIso = `${yyyy}-${mm}-${dd}`;
+      
+      giorniSettimana.push({
+        dataIso,
+        dataObj: new Date(iterDate),
+        nomeGiorno: iterDate.toLocaleDateString('it-IT', { weekday: 'long' }),
+        giornoMese: `${dd}/${mm}`,
+        isDomenica: iterDate.getDay() === 0
+      });
+
+      iterDate.setDate(iterDate.getDate() + 1);
+    }
+
+    // Aggiorna etichetta in alto (es. 09/11 - 15/11)
+    const primoGiornoStr = giorniSettimana[0].giornoMese;
+    const ultimoGiornoStr = giorniSettimana[6].giornoMese;
+    if (weekLabel) {
+      weekLabel.textContent = `${primoGiornoStr} - ${ultimoGiornoStr}`;
+    }
+
+    // 2. Carica i colori degli utenti da Firestore
     const utentiSnap = await getDocs(collection(db, "utenti"));
     const mappaColori = {};
     utentiSnap.forEach(uDoc => {
@@ -79,122 +78,76 @@ async function caricaImpegni() {
       mappaColori[uDoc.id.toLowerCase()] = uData.colore || "#f1f5f9";
     });
 
-    // 2. Carica gli impegni dalla collezione "impegni"
+    // 3. Carica gli impegni dalla collezione "impegni"
     const snap = await getDocs(collection(db, "impegni"));
-    container.innerHTML = "";
+    const impegniPerData = {};
 
-    if (snap.empty) {
-      container.innerHTML = `<p style="padding: 15px; color: #666; text-align: center;">Nessun impegno in programma.</p>`;
-      return;
-    }
-
-    const impegni = [];
     snap.forEach(docSnap => {
-      impegni.push({
+      const data = docSnap.data();
+      const d = data.data; // formato "YYYY-MM-DD"
+      if (!impegniPerData[d]) impegniPerData[d] = [];
+      impegniPerData[d].push({
         id: docSnap.id,
-        ...docSnap.data()
+        ...data
       });
     });
 
-    // Ordina per data e ora crescente
-    impegni.sort((a, b) => {
-      const dataA = `${a.data || ''} ${a.oraInizio || ''}`;
-      const dataB = `${b.data || ''} ${b.oraInizio || ''}`;
-      return dataA.localeCompare(dataB);
-    });
+    // 4. Disegna i 7 giorni
+    container.innerHTML = "";
 
-    const impegniPerData = {};
-    impegni.forEach(item => {
-      const d = item.data || "Senza Data";
-      if (!impegniPerData[d]) impegniPerData[d] = [];
-      impegniPerData[d].push(item);
-    });
+    // Colori di sfondo distinti per i giorni della settimana
+    const coloriGiorni = ["#f8fafc", "#f1f5f9", "#e2e8f0", "#f1f5f9", "#e2e8f0", "#f8fafc", "#fef2f2"];
 
-    const settimaneMap = {};
-    Object.keys(impegniPerData).forEach(dataStr => {
-      const dataObj = new Date(dataStr);
-      const giorno = dataObj.getDay();
-      const diff = dataObj.getDate() - giorno + (giorno === 0 ? -6 : 1);
-      const lunedi = new Date(dataObj.setDate(diff));
-      const settimanaKey = lunedi.toISOString().split('T')[0];
+    giorniSettimana.forEach((giorno, index) => {
+      const impegniDelGiorno = impegniPerData[giorno.dataIso] || [];
+      impegniDelGiorno.sort((a, b) => (a.oraInizio || "").localeCompare(b.oraInizio || ""));
 
-      if (!settimaneMap[settimanaKey]) {
-        settimaneMap[settimanaKey] = [];
-      }
-      settimaneMap[settimanaKey].push(dataStr);
-    });
+      const card = document.createElement("div");
+      card.className = `day-card ${giorno.isDomenica ? 'domenica' : ''}`;
+      card.style.backgroundColor = giorno.isDomenica ? '#fff5f5' : (coloriGiorni[index] || '#f8fafc');
 
-    const settimaneOrdinate = Object.keys(settimaneMap).sort();
-
-    settimaneOrdinate.forEach(settimanaKey => {
-      const dateDellaSettimana = settimaneMap[settimanaKey].sort();
-
-      const lunediObj = new Date(settimanaKey);
-      const domenicaObj = new Date(lunediObj);
-      domenicaObj.setDate(lunediObj.getDate() + 6);
-
-      const labelSettimana = `Settimana dal ${lunediObj.toLocaleDateString('it-IT')} al ${domenicaObj.toLocaleDateString('it-IT')}`;
-
-      const settimanaCard = document.createElement("div");
-      settimanaCard.className = "settimana-card";
-      settimanaCard.style.cssText = "background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); overflow: hidden; margin-bottom: 20px;";
-      
-      let htmlGiornate = "";
-
-      dateDellaSettimana.forEach(dataStr => {
-        const dataObj = new Date(dataStr);
-        const nomeGiorno = dataObj.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-        const isDomenica = dataObj.getDay() === 0;
-
-        htmlGiornate += `
-          <div class="giornata-sezione" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 15px;">
-            <div class="giorno-titolo ${isDomenica ? 'domenica' : ''}" style="font-size: 1rem; font-weight: 700; color: ${isDomenica ? '#ef4444' : '#334155'}; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-              <i class="fas fa-calendar-day"></i> ${nomeGiorno.charAt(0).toUpperCase() + nomeGiorno.slice(1)}
-            </div>
-            <div class="impegni-griglia" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
-        `;
-
-        impegniPerData[dataStr].forEach(item => {
+      let htmlImpegni = "";
+      if (impegniDelGiorno.length === 0) {
+        htmlImpegni = `<div class="no-impegni">Nessun impegno in questa giornata.</div>`;
+      } else {
+        htmlImpegni = `<div class="impegni-grid">`;
+        impegniDelGiorno.forEach(item => {
           const creatore = (item.creatore || "").toLowerCase();
-          const coloreSfondo = mappaColori[creatore] || "#f1f5f9";
+          const coloreCreatore = mappaColori[creatore] || "#ffffff";
 
-          htmlGiornate += `
-            <div class="impegno-card" style="background-color: ${coloreSfondo}; padding: 12px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; gap: 8px; min-height: 110px;">
-              <div class="impegno-header-card" style="display: flex; justify-content: space-between; align-items: flex-start;">
+          htmlImpegni += `
+            <div class="impegno-item-card" style="background-color: ${coloreCreatore};">
+              <div class="impegno-top">
                 <div>
-                  <div class="impegno-titolo" style="font-weight: 700; font-size: 0.95rem; color: #1e293b;">${item.titolo}</div>
-                  <div class="impegno-autore" style="font-size: 0.75rem; opacity: 0.8; font-weight: 600;">Inserito da: ${item.creatore || 'Anonimo'}</div>
+                  <div class="impegno-titolo">${item.titolo}</div>
+                  <div class="impegno-autore">Creatore: ${item.creatore || 'Anonimo'}</div>
                 </div>
-                <button class="btn-delete" data-id="${item.id}" title="Elimina impegno" style="background: transparent; color: #dc2626; border: none; font-size: 1rem; cursor: pointer; padding: 4px;">
+                <button class="btn-delete" data-id="${item.id}" title="Elimina">
                   <i class="fas fa-trash-alt"></i>
                 </button>
               </div>
-              <div class="impegno-orari" style="font-size: 0.85rem; font-weight: bold; color: #1e293b; display: flex; align-items: center; gap: 5px;">
+              <div class="impegno-orari">
                 <i class="far fa-clock"></i> ${item.oraInizio || '--:--'} - ${item.oraFine || '--:--'}
               </div>
             </div>
           `;
         });
+        htmlImpegni += `</div>`;
+      }
 
-        htmlGiornate += `
-            </div>
-          </div>
-        `;
-      });
-
-      settimanaCard.innerHTML = `
-        <div class="settimana-header" style="background-color: #0f172a; color: white; padding: 14px 20px; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
-          <i class="fas fa-calendar-week"></i> ${labelSettimana}
+      card.innerHTML = `
+        <div class="day-header ${giorno.isDomenica ? 'domenica-text' : ''}">
+          <span><i class="fas fa-calendar-day"></i> ${giorno.nomeGiorno.charAt(0).toUpperCase() + giorno.nomeGiorno.slice(1)} (${giorno.giornoMese})</span>
         </div>
-        <div class="settimana-body" style="padding: 20px;">
-          ${htmlGiornate}
+        <div class="day-body">
+          ${htmlImpegni}
         </div>
       `;
 
-      container.appendChild(settimanaCard);
+      container.appendChild(card);
     });
 
-    // Gestione eliminazione
+    // Gestione eliminazione impegni
     const deleteButtons = container.querySelectorAll(".btn-delete");
     deleteButtons.forEach(btn => {
       btn.addEventListener("click", async (e) => {
@@ -202,7 +155,7 @@ async function caricaImpegni() {
         if (confirm("Vuoi davvero eliminare questo impegno?")) {
           try {
             await deleteDoc(doc(db, "impegni", id));
-            await caricaImpegni();
+            await caricaImpegniSettimana();
           } catch (err) {
             console.error("Errore eliminazione:", err);
             alert("Impossibile eliminare l'impegno.");
@@ -213,6 +166,6 @@ async function caricaImpegni() {
 
   } catch (err) {
     console.error("Errore caricamento impegni:", err);
-    container.innerHTML = `<p style="padding: 15px; color: #dc3545;">Errore caricamento dati da Firestore.</p>`;
+    container.innerHTML = `<p style="padding: 15px; color: #dc3545;">Errore caricamento impegni da Firestore.</p>`;
   }
 }
