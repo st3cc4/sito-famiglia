@@ -7,7 +7,7 @@
 
 body {
   background-color: #f8fafc;
-  padding: 20px;
+  padding: 15px;
   color: #1e293b;
 }
 
@@ -30,7 +30,7 @@ body {
   background-color: #0f172a;
   color: white;
   padding: 14px 20px;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -38,7 +38,7 @@ body {
 }
 
 .card-body {
-  padding: 20px;
+  padding: 15px;
 }
 
 /* LISTA SCADENZE */
@@ -46,7 +46,7 @@ body {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .scadenza-item {
@@ -83,7 +83,7 @@ body {
 
 .scadenza-titolo {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .scadenza-dettaglio {
@@ -111,20 +111,66 @@ body {
   color: #2563eb;
 }
 
-/* MEDIA FOTO */
-.foto-container {
-  width: 100%;
-  max-height: 450px;
-  border-radius: 8px;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #e2e8f0;
+/* MEDIA GRID COMPATTA (MAX 5) */
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
 }
 
-.foto-container img {
+.media-thumb {
+  width: 100%;
+  height: 90px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #e2e8f0;
+  position: relative;
+}
+
+.media-thumb img, .media-thumb video {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.media-badge {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+
+/* LISTA RICETTE TOP 5 */
+.ricette-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ricetta-item {
+  padding: 10px 14px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ricetta-nome {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.ricetta-punteggio {
+  color: #f59e0b;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
