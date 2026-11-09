@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await caricaTopRicette();
 });
 
-// 1. CARICAMENTO SCADENZE GERARCHICO (ROSSO -> GIALLO -> VERDE)
+// 1. SCADENZE GERARCHICHE
 async function caricaScadenze(oggi) {
   const scadenzeList = document.getElementById("scadenze-list");
   if (!scadenzeList) return;
@@ -145,7 +145,7 @@ async function caricaImpegni(oggiStr) {
   }
 }
 
-// 3. ULTIME 6 FOTO & VIDEO COMPATTI
+// 3. ULTIMI 6 MEDIA (3 COLONNE X 2 RIGHE)
 async function caricaUltimiMedia() {
   const mediaGrid = document.getElementById("media-grid");
   if (!mediaGrid) return;
@@ -156,7 +156,7 @@ async function caricaUltimiMedia() {
     mediaGrid.innerHTML = "";
 
     if (snap.empty) {
-      mediaGrid.innerHTML = `<p style="color: #666;">Nessun media presente.</p>`;
+      mediaGrid.innerHTML = `<p style="color: #666; grid-column: span 3;">Nessun media presente.</p>`;
       return;
     }
 
@@ -181,26 +181,25 @@ async function caricaUltimiMedia() {
 
   } catch (err) {
     console.error("Errore media:", err);
-    mediaGrid.innerHTML = `<p style="color: #dc3545;">Errore caricamento media.</p>`;
+    mediaGrid.innerHTML = `<p style="color: #dc3545; grid-column: span 3;">Errore caricamento media.</p>`;
   }
 }
 
-// 4. TOP 5 RICETTE CON COLORE DI SFONDO DELL'UTENTE CREATORE
+// 4. TOP 5 RICETTE CON COLORE SFONDO CREATORE DA UTENTI
 async function caricaTopRicette() {
   const ricetteList = document.getElementById("ricette-list");
   if (!ricetteList) return;
 
   try {
-    // 1. Carica prima la mappa dei colori degli utenti da Firestore
+    // Mappa colori utenti
     const utentiSnap = await getDocs(collection(db, "utenti"));
-    const mappaColoriUtenti = {};
+    const mappaColori = {};
     utentiSnap.forEach(uDoc => {
       const uData = uDoc.data();
-      const key = (uData.username || uDoc.id).toLowerCase();
-      mappaColoriUtenti[key] = uData.colore || "#2563eb"; // Colore default blu se vuoto
+      const idUtente = uDoc.id.toLowerCase();
+      mappaColori[idUtente] = uData.colore || "#e2e8f0";
     });
 
-    // 2. Carica le ricette
     const snap = await getDocs(collection(db, "ricette"));
     ricetteList.innerHTML = "";
 
@@ -219,24 +218,26 @@ async function caricaTopRicette() {
       });
     });
 
-    // Ordina per punteggio decrescente e prende le prime 5
     ricette.sort((a, b) => b.punteggio - a.punteggio);
     const top5 = ricette.slice(0, 5);
 
     top5.forEach(ricetta => {
-      const creatoreKey = (ricetta.creatore || "").toLowerCase();
-      const sfondoColore = mappaColoriUtenti[creatoreKey] || "#2563eb";
+      const creatore = (ricetta.creatore || "").toLowerCase();
+      const coloreSfondo = mappaColori[creatore] || "#f1f5f9";
 
       const li = document.createElement("li");
       li.className = "ricetta-item";
-      li.style.backgroundColor = sfondoColore; // Assegna il colore dell'utente
+      li.style.backgroundColor = coloreSfondo;
+      
+      // Calcolo leggibilità testo (scuro/chiaro)
+      li.style.color = `#000000`;
 
       li.innerHTML = `
         <div class="ricetta-info">
           <span class="ricetta-nome">${ricetta.titolo || ricetta.nome || 'Ricetta senza titolo'}</span>
           <span class="ricetta-autore">Inserita da: ${ricetta.creatore || 'Anonimo'}</span>
         </div>
-        <span class="ricetta-punteggio"><i class="fas fa-star"></i> ${ricetta.punteggio.toFixed(1)}</span>
+        <span class="ricetta-punteggio"><i class="fas fa-star" style="color: #f59e0b;"></i> ${ricetta.punteggio.toFixed(1)}</span>
       `;
       ricetteList.appendChild(li);
     });
