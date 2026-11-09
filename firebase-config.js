@@ -10,6 +10,5 @@ export const firebaseConfig = {
   appId: "1:93216467751:web:9930052845521ca5ef895a"
 };
 
-// Inizializza solo l'app senza Analytics che rompe le scatole
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
