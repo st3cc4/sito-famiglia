@@ -90,7 +90,7 @@
       background-color: #dc2626;
     }
 
-    /* LAYOUT PRINCIPALE (SIDEBAR + TELA) */
+    /* LAYOUT PRINCIPALE */
     .app-body {
       display: flex;
       flex: 1;
@@ -98,7 +98,7 @@
       overflow: hidden;
     }
 
-    /* MENU LATERALE VERTICALE A SCOMPARSA (CHIUSO DI DEFAULT) */
+    /* MENU LATERALE */
     nav.sidebar {
       width: 250px;
       background-color: #1e293b;
@@ -113,11 +113,11 @@
       top: 0;
       bottom: 0;
       left: 0;
-      transform: translateX(-100%); /* Parte chiuso */
+      transform: translateX(-100%);
     }
 
     nav.sidebar.open {
-      transform: translateX(0); /* Si apre quando aggiungiamo la classe open */
+      transform: translateX(0);
     }
 
     .nav-btn {
@@ -184,34 +184,32 @@
 
   <!-- CONTENITORE SIDEBAR + TELA -->
   <div class="app-body">
-    <!-- MENU LATERALE VERTICALE -->
     <nav class="sidebar" id="main-sidebar">
-      <button class="nav-btn active" data-page="home.html">
+      <button class="nav-btn active" data-page="home/home.html" data-nav="home">
         <i class="fas fa-desktop"></i> Home
       </button>
-      <button class="nav-btn" data-page="scadenze/scadenze.html" id="nav-scadenze">
+      <button class="nav-btn" data-page="scadenze/scadenze.html" data-nav="scadenze" id="nav-scadenze">
         <i class="fas fa-file-invoice-dollar"></i> Scadenze
       </button>
-      <button class="nav-btn" data-page="impegni/impegni.html" id="nav-impegni">
+      <button class="nav-btn" data-page="impegni/impegni.html" data-nav="impegni" id="nav-impegni">
         <i class="fas fa-calendar-alt"></i> Impegni
       </button>
-      <button class="nav-btn" data-page="ricette/ricette.html" id="nav-ricette">
+      <button class="nav-btn" data-page="ricette/ricette.html" data-nav="ricette" id="nav-ricette">
         <i class="fas fa-utensils"></i> Ricette
       </button>
-      <button class="nav-btn" data-page="media/media.html" id="nav-media">
+      <button class="nav-btn" data-page="media/media.html" data-nav="media" id="nav-media">
         <i class="fas fa-images"></i> Media
       </button>
-      <button class="nav-btn" data-page="gestione-utenti/gestione-utenti.html" id="nav-utenti" style="display: none;">
+      <button class="nav-btn" data-page="gestione-utenti/gestione-utenti.html" data-nav="utenti" id="nav-utenti" style="display: none;">
         <i class="fas fa-users-cog"></i> Utenti
       </button>
-      <button class="nav-btn" data-page="cambia-password/cambia-password.html">
+      <button class="nav-btn" data-page="cambia-password/cambia-password.html" data-nav="passwords">
         <i class="fas fa-key"></i> Passwords
       </button>
     </nav>
 
-    <!-- TELA CENTRALE -->
     <main class="canvas-container">
-      <iframe id="tela-iframe" src="home.html"></iframe>
+      <iframe id="tela-iframe" src="home/home.html"></iframe>
     </main>
   </div>
 
