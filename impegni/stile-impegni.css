@@ -15,119 +15,115 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 1000px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
-/* BARRA SUPERIORE */
-.top-action-bar {
+/* BARRA NAVIGAZIONE SETTIMANA */
+.week-nav-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: white;
-  padding: 15px 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-@media (max-width: 600px) {
-  .top-action-bar {
-    flex-direction: column;
-    gap: 15px;
-    align-items: stretch;
-  }
-}
-
-.info-text {
-  font-weight: 600;
-  color: #475569;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* SEZIONE SETTIMANALE */
-.settimana-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  margin-bottom: 20px;
-}
-
-.settimana-header {
-  background-color: #0f172a;
+  background: #0f172a;
   color: white;
-  padding: 14px 20px;
-  font-size: 1.05rem;
-  font-weight: 700;
+  padding: 12px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.btn-nav-week {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
   display: flex;
   align-items: center;
+  gap: 6px;
+}
+
+.btn-nav-week:hover {
+  background-color: #1d4ed8;
+}
+
+.week-label {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* CONTENITORE GIORNI */
+.days-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* CARD SINGOLO GIORNO */
+.day-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  overflow: hidden;
+  border-left: 6px solid #cbd5e1;
+}
+
+.day-card.domenica {
+  border-left-color: #ef4444;
+}
+
+.day-header {
+  padding: 12px 18px;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.day-header.domenica-text {
+  color: #ef4444;
+}
+
+.day-body {
+  padding: 15px;
+}
+
+/* GRIGLIA IMPEGNI (4x2) */
+.impegni-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
 
-.settimana-body {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* GIORNO E GRIGLIA IMPEGNI (4x2) */
-.giornata-sezione {
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 15px;
-}
-
-.giornata-sezione:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.giorno-titolo {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #334155;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.giorno-titolo.domenica {
-  color: #ef4444 !important;
-}
-
-.impegni-griglia {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-}
-
-@media (max-width: 800px) {
-  .impegni-griglia {
+@media (max-width: 768px) {
+  .impegni-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 500px) {
-  .impegni-griglia {
+@media (max-width: 480px) {
+  .impegni-grid {
     grid-template-columns: 1fr;
   }
 }
 
-.impegno-card {
-  padding: 12px;
+.impegno-item-card {
+  padding: 10px 12px;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 8px;
-  min-height: 110px;
+  min-height: 95px;
 }
 
-.impegno-header-card {
+.impegno-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -135,7 +131,7 @@ body {
 
 .impegno-titolo {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: #1e293b;
 }
 
@@ -146,7 +142,7 @@ body {
 }
 
 .impegno-orari {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: bold;
   color: #1e293b;
   display: flex;
@@ -158,153 +154,18 @@ body {
   background: transparent;
   color: #dc2626;
   border: none;
-  font-size: 1rem;
+  font-size: 0.9rem;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background 0.2s;
+  padding: 2px 4px;
+  transition: opacity 0.2s;
 }
 
 .btn-delete:hover {
-  background-color: rgba(220, 38, 38, 0.15);
+  opacity: 0.7;
 }
 
-/* BOTTONI */
-.btn-primary {
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 0.95rem;
-}
-
-.btn-primary:hover {
-  background-color: #1d4ed8;
-}
-
-.btn-secondary {
-  background-color: #e2e8f0;
-  color: #475569;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.btn-secondary:hover {
-  background-color: #cbd5e1;
-}
-
-/* POP-UP MODALE */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
-.modal-overlay.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.modal-content {
-  background: white;
-  width: 100%;
-  max-width: 500px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  overflow: hidden;
-  transform: translateY(-20px);
-  transition: transform 0.3s ease;
-}
-
-.modal-overlay.active .modal-content {
-  transform: translateY(0);
-}
-
-.modal-header {
-  background-color: #0f172a;
-  color: white;
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-close {
-  background: transparent;
-  color: white;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-}
-
-.modal-body {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.impegno-form-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.input-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.input-group label {
+.no-impegni {
   font-size: 0.85rem;
-  font-weight: 600;
-  color: #475569;
-}
-
-.input-group input {
-  padding: 10px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 0.95rem;
-}
-
-.input-group input:focus {
-  border-color: #2563eb;
-  outline: none;
-}
-
-.modal-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 10px;
+  color: #94a3b8;
+  font-style: italic;
 }
