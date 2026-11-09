@@ -6,23 +6,28 @@
   <title>Scadenze - Sito Famiglia</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="stile-scadenze.css">
-  <!-- Tesseract.js per il riconoscimento OCR delle immagini -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@v5/dist/tesseract.min.js"></script>
+  <!-- Libreria OCR Tesseract.js per leggere foto/bollette -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 
   <div class="main-container">
 
-    <!-- INTESTAZIONE CON PULSANTE AGGIUNGI -->
+    <!-- BARRA SUPERIORE: PULSANTE AGGIUNGI + TOTALE DA PAGARE -->
     <div class="top-action-bar">
-      <h2><i class="fas fa-file-invoice-dollar"></i> Gestione Scadenze</h2>
-      <button class="btn-primary" id="btn-apri-modale">
+      <button class="btn-primary" id="open-modal-btn">
         Aggiungi Nuova Scadenza
       </button>
+      <div class="totale-box">
+        Totale da pagare: <span class="totale-importo" id="totale-importo">€ 0.00</span>
+      </div>
     </div>
 
-    <!-- LISTA COMPLETA SCADENZE (SCROLLABILE) -->
+    <!-- LISTA COMPLETA SCADENZE -->
     <div class="card">
+      <div class="card-header">
+        <i class="fas fa-file-invoice-dollar"></i> Tutte le Scadenze
+      </div>
       <div class="card-body">
         <ul class="scadenze-list" id="lista-scadenze-completa">
           <!-- Caricate dinamicamente via JS -->
@@ -32,25 +37,25 @@
 
   </div>
 
-  <!-- POP-UP MODALE PER INSERIMENTO / OCR -->
+  <!-- POP-UP (MODALE) AGGIUNGI SCADENZA + OCR -->
   <div class="modal-overlay" id="modal-scadenza">
     <div class="modal-content">
       <div class="modal-header">
         <h3>Nuova Scadenza</h3>
-        <button class="btn-close" id="btn-chiudi-modale">&times;</button>
+        <button class="modal-close" id="close-modal-btn">&times;</button>
       </div>
       <div class="modal-body">
         
         <!-- SEZIONE OCR -->
         <div class="ocr-section">
           <label class="ocr-label">
-            <i class="fas fa-camera"></i> Importa o scatta foto (OCR)
-            <input type="file" id="input-ocr-file" accept="image/*" capture="environment" style="display: none;">
+            <i class="fas fa-camera"></i> Scansiona Bolletta / Foto (OCR)
+            <input type="file" id="ocr-file-input" accept="image/*" style="display: none;">
           </label>
-          <div id="ocr-status" class="ocr-status" style="display: none;">Lettura in corso con OCR... ⏳</div>
+          <div id="ocr-status" class="ocr-status" style="display: none;">Lettura in corso con OCR... attendi qualche secondo.</div>
         </div>
 
-        <form id="form-scadenza" class="scadenza-form">
+        <form id="form-scadenza" class="scadenza-form-modal">
           <div class="input-group">
             <label for="titolo">Titolo / Descrizione</label>
             <input type="text" id="titolo" required placeholder="Es. Bolletta Luce, Klarna...">
@@ -64,11 +69,10 @@
             <input type="date" id="data" required>
           </div>
           <div class="modal-buttons">
-            <button type="button" class="btn-secondary" id="btn-annulla">Annulla</button>
+            <button type="button" class="btn-secondary" id="cancel-modal-btn">Annulla</button>
             <button type="submit" class="btn-primary">Salva Scadenza</button>
           </div>
         </form>
-
       </div>
     </div>
   </div>
