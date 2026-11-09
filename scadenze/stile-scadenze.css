@@ -19,12 +19,11 @@ body {
   margin: 0 auto;
 }
 
-/* BARRA SUPERIORE: TOTALE SOPRA, PULSANTE SOTTO (IN ALTO A DESTRA) */
+/* BARRA SUPERIORE: PULSANTE A SINISTRA, TOTALE A DESTRA */
 .top-action-bar {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
   background: white;
   padding: 15px 20px;
   border-radius: 12px;
@@ -33,6 +32,8 @@ body {
 
 @media (max-width: 600px) {
   .top-action-bar {
+    flex-direction: column;
+    gap: 15px;
     align-items: stretch;
   }
 }
@@ -42,12 +43,13 @@ body {
   font-weight: 600;
   color: #475569;
   text-align: right;
-  width: 100%;
+  margin-left: auto;
 }
 
 @media (max-width: 600px) {
   .totale-box {
     text-align: left;
+    margin-left: 0;
   }
 }
 
