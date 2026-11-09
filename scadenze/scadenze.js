@@ -1,316 +1,232 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
+import { db } from "../firebase-config.js";
+import { collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-body {
-  background-color: #f8fafc;
-  padding: 15px;
-  color: #1e293b;
-}
+document.addEventListener("DOMContentLoaded", async () => {
+  await caricaScadenze();
 
-.main-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  max-width: 900px;
-  margin: 0 auto;
-}
+  // Gestione Apertura / Chiusura Modale
+  const modal = document.getElementById("modal-scadenza");
+  const openBtn = document.getElementById("open-modal-btn");
+  const closeBtn = document.getElementById("close-modal-btn");
+  const cancelBtn = document.getElementById("cancel-modal-btn");
+  const formScadenza = document.getElementById("form-scadenza");
 
-/* BARRA SUPERIORE AZIONI & TOTALE */
-.top-action-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: white;
-  padding: 15px 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-@media (max-width: 600px) {
-  .top-action-bar {
-    flex-direction: column;
-    gap: 15px;
-    align-items: stretch;
+  function toggleModal(open) {
+    if (modal) {
+      if (open) {
+        modal.classList.add("active");
+      } else {
+        modal.classList.remove("active");
+        if (formScadenza) formScadenza.reset();
+      }
+    }
   }
-}
 
-.totale-box {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #475569;
-  text-align: right;
-}
-
-@media (max-width: 600px) {
-  .totale-box {
-    text-align: left;
+  if (openBtn) openBtn.addEventListener("click", () => toggleModal(true));
+  if (closeBtn) closeBtn.addEventListener("click", () => toggleModal(false));
+  if (cancelBtn) cancelBtn.addEventListener("click", () => toggleModal(false));
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) toggleModal(false);
+    });
   }
-}
 
-.totale-importo {
-  font-weight: 900;
-  color: #ef4444;
-  font-size: 1.2rem;
-  margin-left: 5px;
-}
+  // Salvataggio Nuova Scadenza
+  if (formScadenza) {
+    formScadenza.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-.card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-}
+      const titolo = document.getElementById("titolo").value.trim();
+      const importo = parseFloat(document.getElementById("importo").value);
+      const data = document.getElementById("data").value;
+      const creatore = localStorage.getItem("sitoFamiglia_user") || "Famiglia";
+      const creatoIl = new Date().toISOString();
 
-.card-header {
-  background-color: #0f172a;
-  color: white;
-  padding: 14px 20px;
-  font-size: 1.05rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+      try {
+        await addDoc(collection(db, "scadenze"), {
+          titolo,
+          importo,
+          data,
+          creatore,
+          creatoIl
+        });
 
-.card-body {
-  padding: 20px;
-  max-height: 65vh;
-  overflow-y: auto; /* Permette di scrollare se ci sono tante scadenze */
-}
+        toggleModal(false);
+        await caricaScadenze();
+      } catch (err) {
+        console.error("Errore salvataggio scadenza:", err);
+        alert("Errore durante il salvataggio della scadenza.");
+      }
+    });
+  }
 
-/* BOTTONI */
-.btn-primary {
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 0.95rem;
-}
+  // GESTIONE OCR (Tesseract.js)
+  const ocrInput = document.getElementById("ocr-file-input");
+  const ocrStatus = document.getElementById("ocr-status");
 
-.btn-primary:hover {
-  background-color: #1d4ed8;
-}
+  if (ocrInput) {
+    ocrInput.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
 
-.btn-secondary {
-  background-color: #e2e8f0;
-  color: #475569;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
+      if (ocrStatus) {
+        ocrStatus.style.display = "block";
+        ocrStatus.textContent = "Analisi OCR in corso... estrazione dati dalla foto.";
+      }
 
-.btn-secondary:hover {
-  background-color: #cbd5e1;
-}
+      try {
+        const result = await Tesseract.recognize(file, 'ita+eng', {
+          logger: m => console.log(m)
+        });
 
-/* POP-UP MODALE */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
+        const text = result.data.text;
+        console.log("Testo estratto OCR:", text);
 
-.modal-overlay.active {
-  opacity: 1;
-  pointer-events: auto;
-}
+        // Estrazione automatica importo (cerca cifre con virgola o punto es. 123,45 o 50.00)
+        const importoMatch = text.match(/(?:totale|eur|€)?\s*(\d+[\.,]\d{2})/i);
+        if (importoMatch && importoMatch[1]) {
+          const importoPulito = importoMatch[1].replace(',', '.');
+          document.getElementById("importo").value = importoPulito;
+        }
 
-.modal-content {
-  background: white;
-  width: 100%;
-  max-width: 500px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  overflow: hidden;
-  transform: translateY(-20px);
-  transition: transform 0.3s ease;
-}
+        // Prova a estrarre una data (formato DD/MM/YYYY o DD-MM-YYYY)
+        const dataMatch = text.match(/(\d{2})[\/\-](\d{2})[\/\-](\d{4})/);
+        if (dataMatch) {
+          const [_, gg, mm, aaaa] = dataMatch;
+          document.getElementById("data").value = `${aaaa}-${mm}-${gg}`;
+        }
 
-.modal-overlay.active .modal-content {
-  transform: translateY(0);
-}
+        // Imposta una descrizione generica se trovate parole chiave
+        if (text.toLowerCase().includes("enel") || text.toLowerCase().includes("luce")) {
+          document.getElementById("titolo").value = "Bolletta Luce";
+        } else if (text.toLowerCase().includes("gas") || text.toLowerCase().includes("iren") || text.toLowerCase().includes("snam")) {
+          document.getElementById("titolo").value = "Bolletta Gas";
+        } else if (text.toLowerCase().includes("telecom") || text.toLowerCase().includes("vodafone") || text.toLowerCase().includes("iliad") || text.toLowerCase().includes("fibra")) {
+          document.getElementById("titolo").value = "Utenza Telefono/Internet";
+        } else {
+          document.getElementById("titolo").value = "Scansione Bolletta";
+        }
 
-.modal-header {
-  background-color: #0f172a;
-  color: white;
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+        if (ocrStatus) {
+          ocrStatus.textContent = "OCR completato con successo! Controlla e correggi i dati.";
+          setTimeout(() => { ocrStatus.style.display = "none"; }, 4000);
+        }
 
-.modal-close {
-  background: transparent;
-  color: white;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-}
+      } catch (err) {
+        console.error("Errore OCR:", err);
+        if (ocrStatus) {
+          ocrStatus.textContent = "Errore durante la lettura OCR dell'immagine.";
+          setTimeout(() => { ocrStatus.style.display = "none"; }, 4000);
+        }
+      }
+    });
+  }
+});
 
-.modal-body {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
+// Funzione di caricamento, calcolo totale e render delle scadenze
+async function caricaScadenze() {
+  const listaContainer = document.getElementById("lista-scadenze-completa");
+  const totaleImportoSpan = document.getElementById("totale-importo");
+  if (!listaContainer) return;
 
-/* OCR STILI */
-.ocr-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+  try {
+    const snap = await getDocs(collection(db, "scadenze"));
+    listaContainer.innerHTML = "";
 
-.ocr-label {
-  background-color: #f1f5f9;
-  border: 2px dashed #cbd5e1;
-  padding: 12px;
-  border-radius: 8px;
-  text-align: center;
-  font-weight: 600;
-  color: #2563eb;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: background 0.2s;
-}
+    if (snap.empty) {
+      listaContainer.innerHTML = `<p style="color: #666;">Nessuna scadenza presente.</p>";`;
+      if (totaleImportoSpan) totaleImportoSpan.textContent = "€ 0.00";
+      return;
+    }
 
-.ocr-label:hover {
-  background-color: #e2e8f0;
-}
+    const oggi = new Date();
+    oggi.setHours(0, 0, 0, 0);
 
-.ocr-status {
-  font-size: 0.85rem;
-  color: #d97706;
-  text-align: center;
-  font-weight: 600;
-}
+    const scadenze = [];
+    let sommaTotale = 0;
 
-.scadenza-form-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      const importoNum = parseFloat(data.importo || 0);
+      sommaTotale += importoNum;
 
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+      const dataScadenza = new Date(data.data);
+      dataScadenza.setHours(0, 0, 0, 0);
 
-.input-group label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #475569;
-}
+      const diffTime = dataScadenza.getTime() - oggi.getTime();
+      const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
 
-.input-group input {
-  padding: 10px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 0.95rem;
-}
+      scadenze.push({
+        id: docSnap.id,
+        ...data,
+        diffDays
+      });
+    });
 
-.input-group input:focus {
-  border-color: #2563eb;
-  outline: none;
-}
+    // Aggiorna il totale in alto a destra
+    if (totaleImportoSpan) {
+      totaleImportoSpan.textContent = `€ ${sommaTotale.toFixed(2)}`;
+    }
 
-.modal-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 10px;
-}
+    // Ordina per data crescente (più vicine prima)
+    scadenze.sort((a, b) => a.diffDays - b.diffDays);
 
-/* LISTA SCADENZE */
-.scadenze-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+    scadenze.forEach(item => {
+      let classeColore = "scadenza-verde";
+      let statoTesto = "";
 
-.scadenza-item {
-  padding: 12px 16px;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+      if (item.diffDays < 0) {
+        classeColore = "scadenza-rosso";
+        statoTesto = "Scaduta";
+      } else if (item.diffDays <= 7) {
+        classeColore = "scadenza-rosso";
+        statoTesto = `Tra ${item.diffDays} gg`;
+      } else if (item.diffDays <= 14) {
+        classeColore = "scadenza-giallo";
+        statoTesto = `Tra ${item.diffDays} gg`;
+      } else {
+        classeColore = "scadenza-verde";
+        statoTesto = `Tra ${item.diffDays} gg`;
+      }
 
-.scadenza-rosso {
-  background-color: #fef2f2;
-  border-left: 5px solid #ef4444;
-  color: #991b1b;
-}
+      if (item.diffDays === 0) statoTesto = "Scade Oggi";
 
-.scadenza-giallo {
-  background-color: #fffbeb;
-  border-left: 5px solid #f59e0b;
-  color: #92400e;
-}
+      const dataFormattata = item.data ? item.data.split("-").reverse().join("-") : "";
+      const importoFormatted = parseFloat(item.importo || 0).toFixed(2);
 
-.scadenza-verde {
-  background-color: #f0fdf4;
-  border-left: 5px solid #22c55e;
-  color: #166534;
-}
+      const li = document.createElement("li");
+      li.className = `scadenza-item ${classeColore}`;
+      li.innerHTML = `
+        <div class="scadenza-info">
+          <span class="scadenza-titolo">${item.titolo} € ${importoFormatted}</span>
+          <span class="scadenza-dettaglio">${dataFormattata} (${item.creatore || 'Anonimo'}) - ${statoTesto}</span>
+        </div>
+        <button class="btn-delete" data-id="${item.id}" title="Elimina scadenza">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      `;
+      listaContainer.appendChild(li);
+    });
 
-.scadenza-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
+    // Gestione eliminazione
+    const deleteButtons = listaContainer.querySelectorAll(".btn-delete");
+    deleteButtons.forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        const id = e.currentTarget.getAttribute("data-id");
+        if (confirm("Vuoi davvero eliminare questa scadenza?")) {
+          try {
+            await deleteDoc(doc(db, "scadenze", id));
+            await caricaScadenze();
+          } catch (err) {
+            console.error("Errore eliminazione:", err);
+            alert("Impossibile eliminare la scadenza.");
+          }
+        }
+      });
+    });
 
-.scadenza-titolo {
-  font-weight: 700;
-  font-size: 0.95rem;
-}
-
-.scadenza-dettaglio {
-  font-size: 0.85rem;
-  opacity: 0.9;
-}
-
-.btn-delete {
-  background: transparent;
-  color: #dc2626;
-  border: none;
-  font-size: 1.1rem;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-
-.btn-delete:hover {
-  background-color: rgba(220, 38, 38, 0.1);
+  } catch (err) {
+    console.error("Errore caricamento scadenze:", err);
+    listaContainer.innerHTML = `<p style="color: #dc3545;">Errore caricamento dati da Firestore.</p>`;
+  }
 }
