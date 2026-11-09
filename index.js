@@ -42,17 +42,17 @@ document.addEventListener("DOMContentLoaded", () => {
     navMedia.style.display = "none";
   }
 
-  // 4. Gestione Apertura/Chiusura Menu Laterale (Hamburger)
+  // 4. Gestione Apertura/Chiusura Menu Laterale (Hamburger) - Parte Chiuso
   const menuToggleBtn = document.getElementById("menu-toggle");
   const sidebar = document.getElementById("main-sidebar");
 
   if (menuToggleBtn && sidebar) {
     menuToggleBtn.addEventListener("click", () => {
-      sidebar.classList.toggle("closed");
+      sidebar.classList.toggle("open");
     });
   }
 
-  // 5. Cambiamento dinamico delle pagine sulla tela (iframe)
+  // 5. Cambiamento dinamico delle pagine sulla tela (iframe) e chiusura automatica del menu su mobile/click
   const navButtons = document.querySelectorAll(".nav-btn");
   const telaIframe = document.getElementById("tela-iframe");
 
@@ -65,6 +65,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // Evidenzia il pulsante attivo
         navButtons.forEach(btn => btn.classList.remove("active"));
         button.classList.add("active");
+
+        // Chiude il menu laterale dopo aver cliccato una voce
+        if (sidebar) {
+          sidebar.classList.remove("open");
+        }
       }
     });
   });
