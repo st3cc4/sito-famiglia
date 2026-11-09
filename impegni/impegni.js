@@ -4,12 +4,9 @@ import { collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/fir
 let currentStartDate = new Date();
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // Posiziona currentStartDate sul Lunedì della settimana corrente
   impostaLunediCorrente();
-
   await caricaImpegniSettimana();
 
-  // Pulsanti navigazione settimana
   const prevBtn = document.getElementById("prev-week-btn");
   const nextBtn = document.getElementById("next-week-btn");
 
@@ -32,7 +29,7 @@ function impostaLunediCorrente() {
   const oggi = new Date();
   oggi.setHours(0, 0, 0, 0);
   const giorno = oggi.getDay();
-  const diff = oggi.getDate() - giorno + (giorno === 0 ? -6 : 1); // Lunedì
+  const diff = oggi.getDate() - giorno + (giorno === 0 ? -6 : 1);
   currentStartDate = new Date(oggi.setDate(diff));
 }
 
@@ -42,7 +39,6 @@ async function caricaImpegniSettimana() {
   if (!container) return;
 
   try {
-    // 1. Calcola i 7 giorni della settimana (da Lunedì a Domenica)
     const giorniSettimana = [];
     let iterDate = new Date(currentStartDate);
 
@@ -63,14 +59,12 @@ async function caricaImpegniSettimana() {
       iterDate.setDate(iterDate.getDate() + 1);
     }
 
-    // Aggiorna etichetta in alto (es. 09/11 - 15/11)
     const primoGiornoStr = giorniSettimana[0].giornoMese;
     const ultimoGiornoStr = giorniSettimana[6].giornoMese;
     if (weekLabel) {
       weekLabel.textContent = `${primoGiornoStr} - ${ultimoGiornoStr}`;
     }
 
-    // 2. Carica i colori degli utenti da Firestore
     const utentiSnap = await getDocs(collection(db, "utenti"));
     const mappaColori = {};
     utentiSnap.forEach(uDoc => {
@@ -78,13 +72,12 @@ async function caricaImpegniSettimana() {
       mappaColori[uDoc.id.toLowerCase()] = uData.colore || "#f1f5f9";
     });
 
-    // 3. Carica gli impegni dalla collezione "impegni"
     const snap = await getDocs(collection(db, "impegni"));
     const impegniPerData = {};
 
     snap.forEach(docSnap => {
       const data = docSnap.data();
-      const d = data.data; // formato "YYYY-MM-DD"
+      const d = data.data;
       if (!impegniPerData[d]) impegniPerData[d] = [];
       impegniPerData[d].push({
         id: docSnap.id,
@@ -92,10 +85,7 @@ async function caricaImpegniSettimana() {
       });
     });
 
-    // 4. Disegna i 7 giorni
     container.innerHTML = "";
-
-    // Colori di sfondo distinti per i giorni della settimana
     const coloriGiorni = ["#f8fafc", "#f1f5f9", "#e2e8f0", "#f1f5f9", "#e2e8f0", "#f8fafc", "#fef2f2"];
 
     giorniSettimana.forEach((giorno, index) => {
@@ -147,7 +137,6 @@ async function caricaImpegniSettimana() {
       container.appendChild(card);
     });
 
-    // Gestione eliminazione impegni
     const deleteButtons = container.querySelectorAll(".btn-delete");
     deleteButtons.forEach(btn => {
       btn.addEventListener("click", async (e) => {
