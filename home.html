@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Home - Sito Famiglia</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="home/stile-home.css">
+  <link rel="stylesheet" href="stile-home.css">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
       </div>
       <div class="card-body">
         <ul class="scadenze-list" id="scadenze-list">
-          <!-- Inseriti dinamicamente via JS -->
+          <!-- Inserite dinamicamente da home.js -->
         </ul>
       </div>
     </div>
@@ -30,26 +30,37 @@
       </div>
       <div class="card-body">
         <div id="impegni-list">
-          <!-- Inseriti dinamicamente via JS -->
+          <!-- Inseriti dinamicamente da home.js -->
         </div>
       </div>
     </div>
 
-    <!-- FOTO & VIDEO -->
+    <!-- ULTIME 5 FOTO & VIDEO -->
     <div class="card">
       <div class="card-header">
-        <i class="fas fa-images"></i> FOTO &amp; VIDEO
+        <i class="fas fa-images"></i> ULTIMI MEDIA (FOTO &amp; VIDEO)
       </div>
       <div class="card-body">
-        <div class="foto-container" id="foto-container">
-          <!-- Inserita dinamicamente via JS -->
-          <p style="text-align: center; color: #888;">Caricamento media...</p>
+        <div class="media-grid" id="media-grid">
+          <!-- Inseriti dinamicamente da home.js -->
         </div>
+      </div>
+    </div>
+
+    <!-- TOP 5 RICETTE -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-utensils"></i> TOP 5 RICETTE
+      </div>
+      <div class="card-body">
+        <ul class="ricette-list" id="ricette-list">
+          <!-- Inserite dinamicamente da home.js -->
+        </ul>
       </div>
     </div>
 
   </div>
 
-  <script type="module" src="home/home.js"></script>
+  <script type="module" src="home.js"></script>
 </body>
 </html>
