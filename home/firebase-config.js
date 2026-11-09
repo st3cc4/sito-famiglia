@@ -1,8 +1,10 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
+// Your web app's Firebase configuration
+export const firebaseConfig = {
+  apiKey: "AIzaSyAtMnKhhfC43J73KvM8-QcNghqzOTV6UKA",
   authDomain: "sito-famiglia.firebaseapp.com",
   projectId: "sito-famiglia",
   storageBucket: "sito-famiglia.appspot.com",
@@ -11,5 +13,6 @@ const firebaseConfig = {
   measurementId: "G-NYRQJDTWM3"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+const analytics = getAnalytics(app);
