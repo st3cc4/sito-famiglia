@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Salvataggio Nuovo Impegno
+  // Salvataggio Nuovo Impegno nella raccolta "impegni"
   if (formImpegno) {
     formImpegno.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const creatoIl = new Date().toISOString();
 
       try {
-        await addDoc(collection(db, "appuntamenti"), {
+        await addDoc(collection(db, "impegni"), {
           titolo,
           data,
           oraInizio,
@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-// Funzione di caricamento impegni con suddivisione settimanale e griglia 4x2
+// Funzione di caricamento impegni dalla raccolta "impegni"
 async function caricaImpegni() {
   const container = document.getElementById("lista-impegni-completa");
   if (!container) return;
@@ -79,8 +79,8 @@ async function caricaImpegni() {
       mappaColori[uDoc.id.toLowerCase()] = uData.colore || "#f1f5f9";
     });
 
-    // 2. Carica gli impegni dalla collezione "appuntamenti"
-    const snap = await getDocs(collection(db, "appuntamenti"));
+    // 2. Carica gli impegni dalla collezione "impegni"
+    const snap = await getDocs(collection(db, "impegni"));
     container.innerHTML = "";
 
     if (snap.empty) {
@@ -201,7 +201,7 @@ async function caricaImpegni() {
         const id = e.currentTarget.getAttribute("data-id");
         if (confirm("Vuoi davvero eliminare questo impegno?")) {
           try {
-            await deleteDoc(doc(db, "appuntamenti", id));
+            await deleteDoc(doc(db, "impegni", id));
             await caricaImpegni();
           } catch (err) {
             console.error("Errore eliminazione:", err);
