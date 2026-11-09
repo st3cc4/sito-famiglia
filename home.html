@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sito Famiglia</title>
+  <title>Home - Sito Famiglia</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="home/stile-home.css">
 </head>
@@ -18,36 +18,19 @@
       </div>
       <div class="card-body">
         <ul class="scadenze-list" id="scadenze-list">
-          
-          <!-- Scaduta -> ROSSO -->
-          <li class="scadenza-item scadenza-rosso">
-            <div class="scadenza-info">
-              <span class="scadenza-titolo">Klarna € 59.77</span>
-              <span class="scadenza-dettaglio">04-11-2026 (Elena) Scaduta</span>
-            </div>
-          </li>
-
-          <!-- Tra 2 gg -> ROSSO (entro 7 gg) -->
-          <li class="scadenza-item scadenza-rosso">
-            <div class="scadenza-info">
-              <span class="scadenza-titolo">Dolomiti € 140.02</span>
-              <span class="scadenza-dettaglio">10-11-2026 (Paolo) Tra 2 gg</span>
-            </div>
-          </li>
-
+          <!-- Inseriti dinamicamente via JS -->
         </ul>
       </div>
     </div>
 
     <!-- IMPEGNI DI OGGI -->
     <div class="card">
-      <div class="card-header">
-        <i class="fas fa-calendar-alt"></i> IMPEGNI DI OGGI (08-11-2026)
+      <div class="card-header" id="impegni-header">
+        <i class="fas fa-calendar-alt"></i> IMPEGNI DI OGGI
       </div>
       <div class="card-body">
-        <div class="impegno-item">
-          <span><strong>Turno</strong> <small style="opacity: 0.75;">(Paolo)</small></span>
-          <span class="impegno-ora"><i class="far fa-clock"></i> 09:00</span>
+        <div id="impegni-list">
+          <!-- Inseriti dinamicamente via JS -->
         </div>
       </div>
     </div>
@@ -58,16 +41,15 @@
         <i class="fas fa-images"></i> FOTO &amp; VIDEO
       </div>
       <div class="card-body">
-        <div class="foto-container">
-          <!-- Inserisci la tua sorgente foto -->
-          <img src="path-della-tua-foto.jpg" alt="Foto Famiglia">
+        <div class="foto-container" id="foto-container">
+          <!-- Inserita dinamicamente via JS -->
+          <p style="text-align: center; color: #888;">Caricamento media...</p>
         </div>
       </div>
     </div>
 
   </div>
 
-  <script type="module" src="home/firebase-config.js"></script>
   <script type="module" src="home/home.js"></script>
 </body>
 </html>
