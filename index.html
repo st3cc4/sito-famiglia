@@ -98,7 +98,7 @@
       overflow: hidden;
     }
 
-    /* MENU LATERALE VERTICALE A SCOMPARSA */
+    /* MENU LATERALE VERTICALE A SCOMPARSA (CHIUSO DI DEFAULT) */
     nav.sidebar {
       width: 250px;
       background-color: #1e293b;
@@ -113,11 +113,11 @@
       top: 0;
       bottom: 0;
       left: 0;
-      transform: translateX(0); /* Aperto di default */
+      transform: translateX(-100%); /* Parte chiuso */
     }
 
-    nav.sidebar.closed {
-      transform: translateX(-100%); /* Chiuso */
+    nav.sidebar.open {
+      transform: translateX(0); /* Si apre quando aggiungiamo la classe open */
     }
 
     .nav-btn {
@@ -147,12 +147,11 @@
       color: white;
     }
 
-    /* TELA CENTRALE (IFRAME) */
+    /* TELA CENTRALE */
     main.canvas-container {
       flex: 1;
       width: 100%;
       height: 100%;
-      transition: margin-left 0.3s ease;
       background-color: #f0f2f5;
     }
 
