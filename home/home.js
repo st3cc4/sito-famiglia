@@ -1,5 +1,5 @@
-import { db } from "./firebase-config.js";
-import { collection, getDocs, doc, getDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { db } from "../firebase-config.js";
+import { collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const oggi = new Date();
@@ -10,13 +10,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const impegniHeader = document.getElementById("impegni-header");
   if (impegniHeader) {
-    impegniHeader.innerHTML = `<i class="fas fa-calendar-alt"></i> IMPEGNI DI OGGI (${oggiFormatted})`;
+    impegniHeader.innerHTML = `<i class="fas fa-calendar-alt"></i> IMPEGNI DI OGGI (${oggiFormatted}) <i class="fas fa-chevron-right" style="margin-left: auto; font-size: 0.8rem;"></i>`;
   }
 
   await caricaScadenze(oggi);
   await caricaImpegni(oggiStr);
   await caricaUltimiMedia();
   await caricaTopRicette();
+
+  // Gestione click sulle card per aprire la sezione correlata
+  const clickableCards = document.querySelectorAll(".clickable-card");
+  clickableCards.forEach(card => {
+    card.addEventListener("click", () => {
+      const target = card.getAttribute("data-target");
+      if (window.parent && window.parent.cambiaPagina) {
+        window.parent.cambiaPagina(target);
+      }
+    });
+  });
 });
 
 // 1. SCADENZE GERARCHICHE
@@ -34,7 +45,6 @@ async function caricaScadenze(oggi) {
     }
 
     const tutteScadenze = [];
-
     snap.forEach(docSnap => {
       const data = docSnap.data();
       const dataScadenza = new Date(data.data);
@@ -43,11 +53,7 @@ async function caricaScadenze(oggi) {
       const diffTime = dataScadenza.getTime() - oggi.getTime();
       const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
 
-      tutteScadenze.push({
-        id: docSnap.id,
-        ...data,
-        diffDays: diffDays
-      });
+      tutteScadenze.push({ id: docSnap.id, ...data, diffDays });
     });
 
     const rosse = tutteScadenze.filter(s => s.diffDays <= 7);
@@ -77,13 +83,9 @@ async function caricaScadenze(oggi) {
 
     listaDaMostrare.forEach(item => {
       let statoTesto = "";
-      if (item.diffDays < 0) {
-        statoTesto = "Scaduta";
-      } else if (item.diffDays === 0) {
-        statoTesto = "Scade Oggi";
-      } else {
-        statoTesto = `Tra ${item.diffDays} gg`;
-      }
+      if (item.diffDays < 0) statoTesto = "Scaduta";
+      else if (item.diffDays === 0) statoTesto = "Scade Oggi";
+      else statoTesto = `Tra ${item.diffDays} gg`;
 
       const dataFormattata = item.data ? item.data.split("-").reverse().join("-") : "";
       const importoFormatted = parseFloat(item.importo || 0).toFixed(2);
@@ -93,7 +95,7 @@ async function caricaScadenze(oggi) {
       li.innerHTML = `
         <div class="scadenza-info">
           <span class="scadenza-titolo">${item.titolo} € ${importoFormatted}</span>
-          <span class="scadenza-dettaglio">${dataFormattata} (${item.creatore || 'Anonimo'}) ${statoTesto}</span>
+          <span class="scadenza-dettaglio">${dataFormattata} (${item.creatore || 'Anonimo'}) - ${statoTesto}</span>
         </div>
       `;
       scadenzeList.appendChild(li);
@@ -117,9 +119,7 @@ async function caricaImpegni(oggiStr) {
     const impegniOggi = [];
     snap.forEach(docSnap => {
       const data = docSnap.data();
-      if (data.data === oggiStr) {
-        impegniOggi.push(data);
-      }
+      if (data.data === oggiStr) impegniOggi.push(data);
     });
 
     if (impegniOggi.length === 0) {
@@ -145,7 +145,7 @@ async function caricaImpegni(oggiStr) {
   }
 }
 
-// 3. ULTIMI 6 MEDIA (3 COLONNE X 2 RIGHE)
+// 3. ULTIMI 6 MEDIA
 async function caricaUltimiMedia() {
   const mediaGrid = document.getElementById("media-grid");
   if (!mediaGrid) return;
@@ -185,19 +185,17 @@ async function caricaUltimiMedia() {
   }
 }
 
-// 4. TOP 5 RICETTE CON COLORE SFONDO CREATORE DA UTENTI
+// 4. TOP 5 RICETTE
 async function caricaTopRicette() {
   const ricetteList = document.getElementById("ricette-list");
   if (!ricetteList) return;
 
   try {
-    // Mappa colori utenti
     const utentiSnap = await getDocs(collection(db, "utenti"));
     const mappaColori = {};
     utentiSnap.forEach(uDoc => {
       const uData = uDoc.data();
-      const idUtente = uDoc.id.toLowerCase();
-      mappaColori[idUtente] = uData.colore || "#e2e8f0";
+      mappaColori[uDoc.id.toLowerCase()] = uData.colore || "#e2e8f0";
     });
 
     const snap = await getDocs(collection(db, "ricette"));
@@ -211,11 +209,7 @@ async function caricaTopRicette() {
     const ricette = [];
     snap.forEach(docSnap => {
       const data = docSnap.data();
-      ricette.push({
-        id: docSnap.id,
-        ...data,
-        punteggio: parseFloat(data.punteggio || 0)
-      });
+      ricette.push({ id: docSnap.id, ...data, punteggio: parseFloat(data.punteggio || 0) });
     });
 
     ricette.sort((a, b) => b.punteggio - a.punteggio);
@@ -228,9 +222,7 @@ async function caricaTopRicette() {
       const li = document.createElement("li");
       li.className = "ricetta-item";
       li.style.backgroundColor = coloreSfondo;
-      
-      // Calcolo leggibilità testo (scuro/chiaro)
-      li.style.color = `#000000`;
+      li.style.color = "#000000";
 
       li.innerHTML = `
         <div class="ricetta-info">
