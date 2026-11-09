@@ -1,6 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { firebaseConfig } from "../firebase-config.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAtMnKhhfC43J73KvM8-QcNghqzOTV6UKA",
+  authDomain: "sito-famiglia.firebaseapp.com",
+  projectId: "sito-famiglia",
+  storageBucket: "sito-famiglia.appspot.com",
+  messagingSenderId: "93216467751",
+  appId: "1:93216467751:web:9930052845521ca5ef895a"
+};
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -35,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem("sitoFamiglia_ruolo", userData.ruolo);
             localStorage.setItem("sitoFamiglia_permessi", JSON.stringify(userData.permessi || {}));
             
-            // Reindirizza alla home principale
+            // Reindirizza alla home principale (uscendo dalla cartella login)
             window.location.href = "../index.html";
           } else {
             errorMessage.textContent = "Password errata.";
