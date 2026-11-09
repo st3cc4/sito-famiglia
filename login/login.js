@@ -28,22 +28,18 @@ document.addEventListener("DOMContentLoaded", () => {
       errorMessage.textContent = "";
 
       try {
-        // Legge il documento dell'utente dalla collezione "utenti" su Firestore
         const userDocRef = doc(db, "utenti", username);
         const userDoc = await getDoc(userDocRef);
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
           
-          // Verifica la password
           if (userData.password === password) {
-            // Salviamo la sessione locale e i permessi
             localStorage.setItem("sitoFamiglia_logged", "true");
             localStorage.setItem("sitoFamiglia_user", userData.username);
             localStorage.setItem("sitoFamiglia_ruolo", userData.ruolo);
             localStorage.setItem("sitoFamiglia_permessi", JSON.stringify(userData.permessi || {}));
             
-            // Reindirizza alla home principale (uscendo dalla cartella login)
             window.location.href = "../index.html";
           } else {
             errorMessage.textContent = "Password errata.";
