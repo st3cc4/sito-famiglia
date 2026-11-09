@@ -1,5 +1,5 @@
 import { db } from "./firebase-config.js";
-import { collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, getDocs, doc, getDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const oggi = new Date();
@@ -145,13 +145,13 @@ async function caricaImpegni(oggiStr) {
   }
 }
 
-// 3. ULTIME 5 FOTO & VIDEO COMPATTI
+// 3. ULTIME 6 FOTO & VIDEO COMPATTI
 async function caricaUltimiMedia() {
   const mediaGrid = document.getElementById("media-grid");
   if (!mediaGrid) return;
 
   try {
-    const q = query(collection(db, "media"), orderBy("dataCreazione", "desc"), limit(5));
+    const q = query(collection(db, "media"), orderBy("dataCreazione", "desc"), limit(6));
     const snap = await getDocs(q);
     mediaGrid.innerHTML = "";
 
@@ -185,12 +185,22 @@ async function caricaUltimiMedia() {
   }
 }
 
-// 4. TOP 5 RICETTE PER PUNTEGGIO
+// 4. TOP 5 RICETTE CON COLORE DI SFONDO DELL'UTENTE CREATORE
 async function caricaTopRicette() {
   const ricetteList = document.getElementById("ricette-list");
   if (!ricetteList) return;
 
   try {
+    // 1. Carica prima la mappa dei colori degli utenti da Firestore
+    const utentiSnap = await getDocs(collection(db, "utenti"));
+    const mappaColoriUtenti = {};
+    utentiSnap.forEach(uDoc => {
+      const uData = uDoc.data();
+      const key = (uData.username || uDoc.id).toLowerCase();
+      mappaColoriUtenti[key] = uData.colore || "#2563eb"; // Colore default blu se vuoto
+    });
+
+    // 2. Carica le ricette
     const snap = await getDocs(collection(db, "ricette"));
     ricetteList.innerHTML = "";
 
@@ -209,14 +219,23 @@ async function caricaTopRicette() {
       });
     });
 
+    // Ordina per punteggio decrescente e prende le prime 5
     ricette.sort((a, b) => b.punteggio - a.punteggio);
     const top5 = ricette.slice(0, 5);
 
     top5.forEach(ricetta => {
+      const creatoreKey = (ricetta.creatore || "").toLowerCase();
+      const sfondoColore = mappaColoriUtenti[creatoreKey] || "#2563eb";
+
       const li = document.createElement("li");
       li.className = "ricetta-item";
+      li.style.backgroundColor = sfondoColore; // Assegna il colore dell'utente
+
       li.innerHTML = `
-        <span class="ricetta-nome">${ricetta.titolo || ricetta.nome || 'Ricetta senza titolo'}</span>
+        <div class="ricetta-info">
+          <span class="ricetta-nome">${ricetta.titolo || ricetta.nome || 'Ricetta senza titolo'}</span>
+          <span class="ricetta-autore">Inserita da: ${ricetta.creatore || 'Anonimo'}</span>
+        </div>
         <span class="ricetta-punteggio"><i class="fas fa-star"></i> ${ricetta.punteggio.toFixed(1)}</span>
       `;
       ricetteList.appendChild(li);
