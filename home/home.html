@@ -5,62 +5,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Home - Sito Famiglia</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="home/stile-home.css">
+  <link rel="stylesheet" href="stile-home.css">
 </head>
 <body>
 
   <div class="main-container">
 
     <!-- SCADENZE -->
-    <div class="card">
+    <div class="card clickable-card" data-target="scadenze">
       <div class="card-header">
-        <i class="fas fa-file-invoice-dollar"></i> SCADENZE
+        <i class="fas fa-file-invoice-dollar"></i> SCADENZE <i class="fas fa-chevron-right" style="margin-left: auto; font-size: 0.8rem;"></i>
       </div>
       <div class="card-body">
-        <ul class="scadenze-list" id="scadenze-list">
-          <!-- Inserite dinamicamente da home.js -->
-        </ul>
+        <ul class="scadenze-list" id="scadenze-list"></ul>
       </div>
     </div>
 
     <!-- IMPEGNI DI OGGI -->
-    <div class="card">
+    <div class="card clickable-card" data-target="impegni">
       <div class="card-header" id="impegni-header">
-        <i class="fas fa-calendar-alt"></i> IMPEGNI DI OGGI
+        <i class="fas fa-calendar-alt"></i> IMPEGNI DI OGGI <i class="fas fa-chevron-right" style="margin-left: auto; font-size: 0.8rem;"></i>
       </div>
       <div class="card-body">
-        <div id="impegni-list">
-          <!-- Inseriti dinamicamente da home.js -->
-        </div>
+        <div id="impegni-list"></div>
       </div>
     </div>
 
-    <!-- ULTIME 6 FOTO & VIDEO (3x2) -->
-    <div class="card">
+    <!-- ULTIME 6 FOTO & VIDEO -->
+    <div class="card clickable-card" data-target="media">
       <div class="card-header">
-        <i class="fas fa-images"></i> ULTIMI MEDIA (FOTO &amp; VIDEO)
+        <i class="fas fa-images"></i> ULTIMI MEDIA (FOTO &amp; VIDEO) <i class="fas fa-chevron-right" style="margin-left: auto; font-size: 0.8rem;"></i>
       </div>
       <div class="card-body">
-        <div class="media-grid" id="media-grid">
-          <!-- Inseriti dinamicamente da home.js -->
-        </div>
+        <div class="media-grid" id="media-grid"></div>
       </div>
     </div>
 
     <!-- TOP 5 RICETTE -->
-    <div class="card">
+    <div class="card clickable-card" data-target="ricette">
       <div class="card-header">
-        <i class="fas fa-utensils"></i> TOP 5 RICETTE
+        <i class="fas fa-utensils"></i> TOP 5 RICETTE <i class="fas fa-chevron-right" style="margin-left: auto; font-size: 0.8rem;"></i>
       </div>
       <div class="card-body">
-        <ul class="ricette-list" id="ricette-list">
-          <!-- Inserite dinamicamente da home.js -->
-        </ul>
+        <ul class="ricette-list" id="ricette-list"></ul>
       </div>
     </div>
 
   </div>
 
-  <script type="module" src="home/home.js"></script>
+  <script type="module" src="home.js"></script>
 </body>
 </html>
