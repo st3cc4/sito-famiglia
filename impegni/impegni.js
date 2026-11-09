@@ -1,475 +1,134 @@
-// --- Import SDK di Firebase ---
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { 
-    getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { db } from "../firebase-config.js";
+import { collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
-    authDomain: "sito-famiglia.firebaseapp.com",
-    projectId: "sito-famiglia",
-    storageBucket: "sito-famiglia.appspot.com",
-    messagingSenderId: "93216467751",
-    appId: "1:93216467751:web:9930052845521ca5ef895a",
-    measurementId: "G-NYRQJDTWM3"
-};
+document.addEventListener("DOMContentLoaded", async () => {
+  await caricaImpegni();
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  // Gestione Modale Pop-up
+  const modal = document.getElementById("modal-impegno");
+  const openBtn = document.getElementById("open-modal-btn");
+  const closeBtn = document.getElementById("close-modal-btn");
+  const cancelBtn = document.getElementById("cancel-modal-btn");
+  const formImpegno = document.getElementById("form-impegno");
 
-let utentiCollezioni = {};
-let dataInizioSettimana = getLunedimorning(new Date());
-
-export async function initImpegniSection(container) {
-    await caricaUtenti();
-    await caricaEDisegnaSettimana(container);
-    avviaControlloPromemoriaImpegni();
-}
-
-async function caricaUtenti() {
-    try {
-        const utentiSnapshot = await getDocs(collection(db, "utenti"));
-        utentiCollezioni = {};
-        utentiSnapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            if (data.nome) {
-                utentiCollezioni[data.nome.toLowerCase()] = data.colore || '#3498db';
-            }
-        });
-    } catch (e) {
-        console.error("Errore caricamento utenti:", e);
+  function toggleModal(open) {
+    if (modal) {
+      if (open) {
+        modal.classList.add("active");
+      } else {
+        modal.classList.remove("active");
+        if (formImpegno) formImpegno.reset();
+      }
     }
-}
+  }
 
-function getLunedimorning(d) {
-    const date = new Date(d);
-    const day = date.getDay();
-    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-    const lunedi = new Date(date.setDate(diff));
-    lunedi.setHours(0, 0, 0, 0);
-    return lunedi;
-}
+  if (openBtn) openBtn.addEventListener("click", () => toggleModal(true));
+  if (closeBtn) closeBtn.addEventListener("click", () => toggleModal(false));
+  if (cancelBtn) cancelBtn.addEventListener("click", () => toggleModal(false));
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) toggleModal(false);
+    });
+  }
 
-function formatDateIso(d) {
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
+  // Salvataggio Nuovo Impegno
+  if (formImpegno) {
+    formImpegno.addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-function formatDateShort(d) {
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${day}/${month}`;
-}
+      const titolo = document.getElementById("titolo").value.trim();
+      const data = document.getElementById("data").value;
+      const oraInizio = document.getElementById("oraInizio").value;
+      const creatore = localStorage.getItem("sitoFamiglia_user") || "Famiglia";
+      const creatoIl = new Date().toISOString();
 
-function capitalize(str) {
-    if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function hexToRgba(hex, alpha = 0.12) {
-    if (!hex) return `rgba(52, 152, 219, ${alpha})`;
-    let c = hex.replace('#', '');
-    if (c.length === 3) c = c.split('').map(char => char + char).join('');
-    const num = parseInt(c, 16);
-    if (isNaN(num)) return `rgba(52, 152, 219, ${alpha})`;
-    const r = (num >> 16) & 255;
-    const g = (num >> 8) & 255;
-    const b = num & 255;
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-// --- Controllo Promemoria 2 Ore e 30 Minuti Prima ---
-async function avviaControlloPromemoriaImpegni() {
-    try {
-        const snapshot = await getDocs(collection(db, "appuntamenti"));
-        const adesso = new Date();
-        const oggiIso = formatDateIso(adesso);
-
-        snapshot.forEach(docSnap => {
-            const app = docSnap.data();
-            if (app.data === oggiIso && app.oraInizio) {
-                const [ore, minuti] = app.oraInizio.split(':').map(Number);
-                const dataEvento = new Date();
-                dataEvento.setHours(ore, minuti, 0, 0);
-
-                const diffMinuti = (dataEvento - adesso) / (1000 * 60);
-
-                if (diffMinuti >= 148 && diffMinuti <= 152) {
-                    const chiaveNotifica = `promemoria_inviato_${docSnap.id}_${oggiIso}`;
-                    if (!localStorage.getItem(chiaveNotifica)) {
-                        if (typeof window.inviaNotificaFamiglia === 'function') {
-                            window.inviaNotificaFamiglia(
-                                "⏰ Promemoria Impegno",
-                                `L'impegno "${app.titolo}" inserito da ${app.creatore || 'Famiglia'} inizierà tra circa 2 ore e mezza (${app.oraInizio}).`
-                            );
-                        }
-                        localStorage.setItem(chiaveNotifica, 'true');
-                    }
-                }
-            }
+      try {
+        await addDoc(collection(db, "appuntamenti"), {
+          titolo,
+          data,
+          oraInizio,
+          creatore,
+          creatoIl
         });
-    } catch (e) {
-        console.error("Errore nel controllo promemoria impegni:", e);
+
+        toggleModal(false);
+        await caricaImpegni();
+      } catch (err) {
+        console.error("Errore salvataggio impegno:", err);
+        alert("Errore durante il salvataggio dell'impegno.");
+      }
+    });
+  }
+});
+
+// Funzione di caricamento e render degli impegni dalla collezione "appuntamenti"
+async function caricaImpegni() {
+  const listaContainer = document.getElementById("lista-impegni-completa");
+  if (!listaContainer) return;
+
+  try {
+    const snap = await getDocs(collection(db, "appuntamenti"));
+    listaContainer.innerHTML = "";
+
+    if (snap.empty) {
+      listaContainer.innerHTML = `<p style="color: #666;">Nessun impegno in programma.</p>`;
+      return;
     }
-}
 
-async function caricaEDisegnaSettimana(container) {
-    const domenica = new Date(dataInizioSettimana);
-    domenica.setDate(domenica.getDate() + 6);
+    const impegni = [];
+    snap.forEach(docSnap => {
+      impegni.push({
+        id: docSnap.id,
+        ...docSnap.data()
+      });
+    });
 
-    const testoSettimana = `${formatDateShort(dataInizioSettimana)} - ${formatDateShort(domenica)}`;
+    // Ordina per data e ora crescente
+    impegni.sort((a, b) => {
+      const dataA = `${a.data || ''} ${a.oraInizio || ''}`;
+      const dataB = `${b.data || ''} ${b.oraInizio || ''}`;
+      return dataA.localeCompare(dataB);
+    });
 
-    container.innerHTML = `
-        <div class="impegni-container">
-            <!-- HEADER CON TASTO HOME A SINISTRA E NAVIGAZIONE SETTIMANA -->
-            <div class="section-header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-                <div class="header-left-group" style="display: flex; align-items: center; gap: 12px;">
-                    <button id="btn-torna-home" class="btn-outline" title="Torna alla Home">
-                        <i class="fa-solid fa-arrow-left"></i> Home
-                    </button>
-                    <h2 style="margin: 0;"><i class="fa-solid fa-calendar-days"></i> IMPEGNI</h2>
-                </div>
-                <div class="week-nav-right" style="display: flex; align-items: center; gap: 10px;">
-                    <button class="btn-week-nav" id="btn-sett-prec"><i class="fa-solid fa-chevron-left"></i> Prec.</button>
-                    <div class="current-week-label" id="titolo-settimana" style="font-weight: 600;">${testoSettimana}</div>
-                    <button class="btn-week-nav" id="btn-sett-succ">Succ. <i class="fa-solid fa-chevron-right"></i></button>
-                </div>
-            </div>
+    impegni.forEach(item => {
+      const dataFormattata = item.data ? item.data.split("-").reverse().join("-") : "";
 
-            <div class="giorni-list" id="giorni-container" style="display: flex; flex-direction: column; gap: 8px;">
-                <p style="color: #64748b; padding: 20px;">Caricamento impegni in corso...</p>
-            </div>
+      const div = document.createElement("div");
+      div.className = "impegno-item";
+      div.innerHTML = `
+        <div class="impegno-info">
+          <span class="impegno-titolo">${item.titolo}</span>
+          <span class="impegno-dettaglio">${dataFormattata} (${item.creatore || 'Anonimo'})</span>
         </div>
-    `;
-
-    document.getElementById('btn-torna-home').addEventListener('click', () => {
-        if (window.selezionaScheda) {
-            window.selezionaScheda('dashboard');
-        } else {
-            window.location.reload();
-        }
-    });
-
-    document.getElementById('btn-sett-prec').addEventListener('click', () => {
-        dataInizioSettimana.setDate(dataInizioSettimana.getDate() - 7);
-        caricaEDisegnaSettimana(container);
-    });
-
-    document.getElementById('btn-sett-succ').addEventListener('click', () => {
-        dataInizioSettimana.setDate(dataInizioSettimana.getDate() + 7);
-        caricaEDisegnaSettimana(container);
-    });
-
-    try {
-        const appuntamentiSnapshot = await getDocs(collection(db, "appuntamenti"));
-        const tuttiAppuntamenti = [];
-
-        appuntamentiSnapshot.forEach(docSnap => {
-            tuttiAppuntamenti.push({
-                id: docSnap.id,
-                ...docSnap.data()
-            });
-        });
-
-        disegnaGiorniSettimana(tuttiAppuntamenti);
-
-    } catch (err) {
-        console.error("Errore caricamento appuntamenti:", err);
-        document.getElementById('giorni-container').innerHTML = '<p style="color:red;">Errore durante il caricamento degli impegni.</p>';
-    }
-}
-
-function disegnaGiorniSettimana(appuntamenti) {
-    const giorniContainer = document.getElementById('giorni-container');
-    if (!giorniContainer) return;
-
-    const nomiGiorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
-    
-    const coloriGiorni = [
-        { bg: 'rgba(46, 204, 113, 0.08)', border: '#2ecc71' }, 
-        { bg: 'rgba(52, 152, 219, 0.08)', border: '#3498db' }, 
-        { bg: 'rgba(241, 196, 15, 0.08)', border: '#f1c40f' }, 
-        { bg: 'rgba(155, 89, 182, 0.08)', border: '#9b59b6' }, 
-        { bg: 'rgba(231, 76, 60, 0.08)', border: '#e74c3c' },  
-        { bg: 'rgba(230, 126, 34, 0.08)', border: '#e67e22' }, 
-        { bg: 'rgba(52, 73, 94, 0.08)', border: '#34495e' }    
-    ];
-
-    let htmlGiorni = '';
-
-    for (let i = 0; i < 7; i++) {
-        const dataGiorno = new Date(dataInizioSettimana);
-        dataGiorno.setDate(dataGiorno.getDate() + i);
-
-        const dataIso = formatDateIso(dataGiorno);
-        const dataLeggibile = `${nomiGiorni[i]} (${formatDateShort(dataGiorno)})`;
-        const stileGiorno = coloriGiorni[i];
-
-        const impegniDelGiorno = appuntamenti.filter(app => app.data === dataIso);
-        impegniDelGiorno.sort((a, b) => (a.oraInizio || '').localeCompare(b.oraInizio || ''));
-
-        htmlGiorni += `
-            <div class="giorno-card" style="background-color: ${stileGiorno.bg}; border-left: 5px solid ${stileGiorno.border}; padding: 10px 14px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; cursor: pointer;" data-date="${dataIso}" title="Clicca per aggiungere un impegno">
-                <div style="font-weight: 700; font-size: 0.95rem; min-width: 130px; color: #1e293b;">
-                    ${dataLeggibile}
-                </div>
-                <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
-                    ${impegniDelGiorno.length > 0 ? impegniDelGiorno.map(imp => {
-                        const creatore = imp.creatore || 'Utente';
-                        const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
-                        const bgTrasparente = hexToRgba(coloreUtente, 0.15);
-                        
-                        let orarioStr = imp.oraInizio || '';
-                        if (imp.oraInizio && imp.oraFine) {
-                            orarioStr = `${imp.oraInizio} - ${imp.oraFine}`;
-                        }
-
-                        // Se ci sono più impegni, mostriamo la riga compatta senza orario. Se ce n'è uno solo, mostriamo anche l'orario in piccolo.
-                        const mostraOrario = impegniDelGiorno.length === 1 && orarioStr;
-
-                        return `
-                            <div class="impegno-quadratino" data-id="${imp.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente}; padding: 5px 10px; border-radius: 4px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;" title="Tocca per modificare, tieni premuto per eliminare">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span style="font-weight: 700; font-size: 0.85rem; color: #1e293b;">${capitalize(imp.titolo)}</span>
-                                    <span style="font-size: 0.72rem; color: #64748b;">(${creatore})</span>
-                                </div>
-                                ${mostraOrario ? `
-                                <span style="font-size: 0.75rem; color: #475569; font-weight: 600;">
-                                    <i class="fa-regular fa-clock"></i> ${orarioStr}
-                                </span>` : ''}
-                            </div>
-                        `;
-                    }).join('') : '<span style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">Nessun impegno in programma</span>'}
-                </div>
-            </div>
-        `;
-    }
-
-    giorniContainer.innerHTML = htmlGiorni;
-
-    // Click sullo spazio vuoto del giorno per aggiungere un nuovo impegno
-    giorniContainer.querySelectorAll('.giorno-card').forEach(cardEl => {
-        cardEl.addEventListener('click', (e) => {
-            if (e.target.closest('.impegno-quadratino')) return;
-            const dateIso = cardEl.getAttribute('data-date');
-            apriModaleFormImpegno(null, dateIso);
-        });
-    });
-
-    // Gestione click singolo (modifica) e long-press (eliminazione) sui singoli impegni
-    giorniContainer.querySelectorAll('.impegno-quadratino').forEach(card => {
-        const idImp = card.getAttribute('data-id');
-        const impObj = appuntamenti.find(a => a.id === idImp);
-
-        let pressTimer = null;
-
-        const avviaTocco = () => {
-            pressTimer = setTimeout(async () => {
-                pressTimer = null;
-                if (confirm(`Vuoi eliminare l'impegno "${impObj ? impObj.titolo : ''}"?`)) {
-                    try {
-                        await deleteDoc(doc(db, "appuntamenti", idImp));
-                        const contentArea = document.getElementById('content-area');
-                        await caricaEDisegnaSettimana(contentArea);
-                    } catch (err) {
-                        console.error("Errore cancellazione impegno:", err);
-                        alert("Impossibile eliminare l'impegno.");
-                    }
-                }
-            }, 600);
-        };
-
-        const annullaTocco = () => {
-            if (pressTimer) {
-                clearTimeout(pressTimer);
-                pressTimer = null;
-            }
-        };
-
-        card.addEventListener('mousedown', avviaTocco);
-        card.addEventListener('touchstart', avviaTocco);
-
-        card.addEventListener('mouseup', annullaTocco);
-        card.addEventListener('mouseleave', annullaTocco);
-        card.addEventListener('touchend', annullaTocco);
-        card.addEventListener('touchmove', annullaTocco);
-
-        card.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (impObj) apriModaleFormImpegno(impObj);
-        });
-
-        card.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-        });
-    });
-}
-
-function apriModaleFormImpegno(impegnoEsistente = null, dataPredefinitaIso = '') {
-    const savedUser = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
-    const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
-
-    const isModifica = !!impegnoEsistente;
-    const modalId = 'modal-form-impegno';
-
-    const prevModal = document.getElementById(modalId);
-    if (prevModal) prevModal.remove();
-
-    const dataVal = isModifica ? impegnoEsistente.data : (dataPredefinitaIso || formatDateIso(new Date()));
-
-    const modalHtml = `
-        <div class="modal-overlay" id="${modalId}">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>${isModifica ? 'Modifica Impegno' : 'Nuovo Impegno'}</h3>
-                    <button class="btn-close-modal" id="btn-close-impegno">&times;</button>
-                </div>
-                <form id="form-impegno">
-                    <div class="form-group">
-                        <label for="imp-titolo">Titolo / Descrizione</label>
-                        <input type="text" id="imp-titolo" value="${isModifica ? impegnoEsistente.titolo || '' : ''}" required placeholder="Es. Turno di lavoro, Visita...">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="imp-data">Data</label>
-                        <input type="date" id="imp-data" value="${dataVal}" required>
-                    </div>
-
-                    <div style="display: flex; gap: 10px;">
-                        <div class="form-group" style="flex: 1;">
-                            <label for="imp-ora-inizio">Ora Inizio</label>
-                            <input type="time" id="imp-ora-inizio" value="${isModifica ? impegnoEsistente.oraInizio || '' : ''}">
-                        </div>
-                        <div class="form-group" style="flex: 1;">
-                            <label for="imp-ora-fine">Ora Fine</label>
-                            <input type="time" id="imp-ora-fine" value="${isModifica ? impegnoEsistente.oraFine || '' : ''}">
-                        </div>
-                    </div>
-
-                    <!-- Pulsante Sincronizzazione Google Calendar -->
-                    <div class="form-group" style="margin-top: 10px;">
-                        <button type="button" id="btn-gcalendar" class="btn-primary" style="background-color: #4285F4; width: 100%; justify-content: center; gap: 8px;">
-                            <i class="fa-brands fa-google"></i> Aggiungi a Google Calendar
-                        </button>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn-modal cancel" id="btn-cancel-impegno">Annulla</button>
-                        <button type="submit" class="btn-modal save">Salva</button>
-                    </div>
-                </form>
-            </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span class="impegno-ora"><i class="far fa-clock"></i> ${item.oraInizio || ''}</span>
+          <button class="btn-delete" data-id="${item.id}" title="Elimina impegno">
+            <i class="fas fa-trash-alt"></i>
+          </button>
         </div>
-    `;
-
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-    const modalEl = document.getElementById(modalId);
-    const btnClose = document.getElementById('btn-close-impegno');
-    const btnCancel = document.getElementById('btn-cancel-impegno');
-    const form = document.getElementById('form-impegno');
-    const btnGCalendar = document.getElementById('btn-gcalendar');
-
-    const inputOraInizio = document.getElementById('imp-ora-inizio');
-    const inputOraFine = document.getElementById('imp-ora-fine');
-
-    inputOraInizio.addEventListener('change', () => {
-        const valInizio = inputOraInizio.value;
-        if (valInizio && (!inputOraFine.value || !isModifica)) {
-            const parti = valInizio.split(':');
-            let ore = parseInt(parti[0], 10);
-            let minuti = parseInt(parti[1], 10);
-
-            ore = (ore + 1) % 24;
-            const oreStr = String(ore).padStart(2, '0');
-            const minStr = String(minuti).padStart(2, '0');
-
-            inputOraFine.value = `${oreStr}:${minStr}`;
-        }
+      `;
+      listaContainer.appendChild(div);
     });
 
-    btnGCalendar.addEventListener('click', () => {
-        const titoloVal = document.getElementById('imp-titolo').value.trim() || 'Impegno Famiglia';
-        const dataValG = document.getElementById('imp-data').value;
-        const oraInizioVal = document.getElementById('imp-ora-inizio').value;
-        const oraFineVal = document.getElementById('imp-ora-fine').value;
-
-        let dataOraInizioIso = dataValG.replace(/-/g, '');
-        let dataOraFineIso = dataValG.replace(/-/g, '');
-
-        if (oraInizioVal) {
-            dataOraInizioIso += 'T' + oraInizioVal.replace(':', '') + '00';
-        } else {
-            dataOraInizioIso += 'T090000';
+    // Gestione eliminazione
+    const deleteButtons = listaContainer.querySelectorAll(".btn-delete");
+    deleteButtons.forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        const id = e.currentTarget.getAttribute("data-id");
+        if (confirm("Vuoi davvero eliminare questo impegno?")) {
+          try {
+            await deleteDoc(doc(db, "appuntamenti", id));
+            await caricaImpegni();
+          } catch (err) {
+            console.error("Errore eliminazione:", err);
+            alert("Impossibile eliminare l'impegno.");
+          }
         }
-
-        if (oraFineVal) {
-            dataOraFineIso += 'T' + oraFineVal.replace(':', '') + '00';
-        } else {
-            dataOraFineIso += 'T100000';
-        }
-
-        const urlCalendar = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(titoloVal)}&dates=${dataOraInizioIso}/${dataOraFineIso}&details=${encodeURIComponent('Inserito tramite Portale Famiglia')}`;
-        window.open(urlCalendar, '_blank');
+      });
     });
 
-    const chiudiModale = () => modalEl.remove();
-
-    btnClose.addEventListener('click', chiudiModale);
-    btnCancel.addEventListener('click', chiudiModale);
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const titolo = capitalize(document.getElementById('imp-titolo').value.trim());
-        const data = document.getElementById('imp-data').value;
-        const oraInizio = document.getElementById('imp-ora-inizio').value;
-        const oraFine = document.getElementById('imp-ora-fine').value;
-        const creatoreCorrente = isModifica ? impegnoEsistente.creatore : userData.nome;
-
-        if (!titolo || !data) {
-            alert("Compila i campi richiesti.");
-            return;
-        }
-
-        const payload = {
-            titolo: titolo,
-            data: data,
-            oraInizio: oraInizio,
-            oraFine: oraFine,
-            creatore: creatoreCorrente
-        };
-
-        try {
-            if (isModifica) {
-                await updateDoc(doc(db, "appuntamenti", impegnoEsistente.id), payload);
-                
-                if (typeof window.inviaNotificaFamiglia === 'function') {
-                    window.inviaNotificaFamiglia(
-                        "📅 Impegno Aggiornato",
-                        `L'impegno "${titolo}" è stato modificato da ${creatoreCorrente}.`
-                    );
-                }
-            } else {
-                await addDoc(collection(db, "appuntamenti"), payload);
-                
-                if (typeof window.inviaNotificaFamiglia === 'function') {
-                    window.inviaNotificaFamiglia(
-                        "📅 Nuovo Impegno Aggiunto",
-                        `"${titolo}" aggiunto da ${creatoreCorrente} per il giorno ${formatDateShort(new Date(data))}.`
-                    );
-                }
-            }
-
-            chiudiModale();
-            const contentArea = document.getElementById('content-area');
-            await caricaEDisegnaSettimana(contentArea);
-
-        } catch (err) {
-            console.error("Errore salvataggio impegno:", err);
-            alert("Si è verificato un errore durante il salvataggio.");
-        }
-    });
+  } catch (err) {
+    console.error("Errore caricamento impegni:", err);
+    listaContainer.innerHTML = `<p style="color: #dc3545;">Errore caricamento dati da Firestore.</p>`;
+  }
 }
