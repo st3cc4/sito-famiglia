@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // GESTIONE OCR (Tesseract.js)
+  // GESTIONE OCR (Tesseract.js con supporto fotocamera / galleria)
   const ocrInput = document.getElementById("ocr-file-input");
   const ocrStatus = document.getElementById("ocr-status");
 
