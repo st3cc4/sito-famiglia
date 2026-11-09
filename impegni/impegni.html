@@ -11,57 +11,22 @@
 
   <div class="main-container">
 
-    <!-- BARRA SUPERIORE -->
-    <div class="top-action-bar">
-      <div class="info-text">
-        <i class="fas fa-calendar-alt"></i> Gestione Impegni e Appuntamenti
-      </div>
-      <button class="btn-primary" id="open-modal-btn">
-        Aggiungi Nuovo Impegno
+    <!-- BARRA NAVIGAZIONE SETTIMANE -->
+    <div class="week-nav-bar">
+      <button class="btn-nav-week" id="prev-week-btn" title="Settimana Precedente">
+        <i class="fas fa-chevron-left"></i> Prec
+      </button>
+      <div class="week-label" id="week-range-label">Caricamento...</div>
+      <button class="btn-nav-week" id="next-week-btn" title="Settimana Successiva">
+        Succ <i class="fas fa-chevron-right"></i>
       </button>
     </div>
 
-    <!-- LISTA SETTIMANALE DEGLI IMPEGNI -->
-    <div id="impegni-settimane-container">
-      <!-- Caricato dinamicamente via JS -->
+    <!-- CONTENITORE GIORNI DELLA SETTIMANA -->
+    <div class="days-container" id="days-container">
+      <!-- Generato dinamicamente via JS -->
     </div>
 
-  </div>
-
-  <!-- POP-UP (MODALE) AGGIUNGI IMPEGNO -->
-  <div class="modal-overlay" id="modal-impegno">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Nuovo Impegno</h3>
-        <button class="modal-close" id="close-modal-btn">&times;</button>
-      </div>
-      <div class="modal-body">
-        <form id="form-impegno" class="impegno-form-modal">
-          <div class="input-group">
-            <label for="titolo">Titolo Impegno</label>
-            <input type="text" id="titolo" required placeholder="Es. Visita medica, Riunione...">
-          </div>
-          <div class="input-group">
-            <label for="data">Data</label>
-            <input type="date" id="data" required>
-          </div>
-          <div class="input-row">
-            <div class="input-group">
-              <label for="oraInizio">Ora Inizio</label>
-              <input type="time" id="oraInizio" required>
-            </div>
-            <div class="input-group">
-              <label for="oraFine">Ora Fine</label>
-              <input type="time" id="oraFine" required>
-            </div>
-          </div>
-          <div class="modal-buttons">
-            <button type="button" class="btn-secondary" id="cancel-modal-btn">Annulla</button>
-            <button type="submit" class="btn-primary">Salva Impegno</button>
-          </div>
-        </form>
-      </div>
-    </div>
   </div>
 
   <script type="module" src="impegni.js"></script>
