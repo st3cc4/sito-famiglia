@@ -69,6 +69,8 @@ async function caricaImpegni() {
   if (!container) return;
 
   try {
+    container.innerHTML = `<p style="padding: 10px; color: #666;">Caricamento impegni in corso...</p>`;
+
     // 1. Carica i colori degli utenti
     const utentiSnap = await getDocs(collection(db, "utenti"));
     const mappaColori = {};
@@ -77,12 +79,12 @@ async function caricaImpegni() {
       mappaColori[uDoc.id.toLowerCase()] = uData.colore || "#f1f5f9";
     });
 
-    // 2. Carica gli impegni
+    // 2. Carica gli impegni dalla collezione "appuntamenti"
     const snap = await getDocs(collection(db, "appuntamenti"));
     container.innerHTML = "";
 
     if (snap.empty) {
-      container.innerHTML = `<p style="color: #666;">Nessun impegno in programma.</p>`;
+      container.innerHTML = `<p style="padding: 15px; color: #666; text-align: center;">Nessun impegno in programma.</p>`;
       return;
     }
 
@@ -101,8 +103,6 @@ async function caricaImpegni() {
       return dataA.localeCompare(dataB);
     });
 
-    // Raggruppa per settimana dell'anno / mese
-    // Per semplicità e pulizia, raggruppiamo per data esatta, organizzate in blocchi settimanali
     const impegniPerData = {};
     impegni.forEach(item => {
       const d = item.data || "Senza Data";
@@ -110,11 +110,9 @@ async function caricaImpegni() {
       impegniPerData[d].push(item);
     });
 
-    // Raggruppa le date per Settimana (ISO week o approssimazione pulita)
     const settimaneMap = {};
     Object.keys(impegniPerData).forEach(dataStr => {
       const dataObj = new Date(dataStr);
-      // Calcola il lunedì della settimana di appartenenza
       const giorno = dataObj.getDay();
       const diff = dataObj.getDate() - giorno + (giorno === 0 ? -6 : 1);
       const lunedi = new Date(dataObj.setDate(diff));
@@ -126,13 +124,11 @@ async function caricaImpegni() {
       settimaneMap[settimanaKey].push(dataStr);
     });
 
-    // Ordina le settimane
     const settimaneOrdinate = Object.keys(settimaneMap).sort();
 
     settimaneOrdinate.forEach(settimanaKey => {
       const dateDellaSettimana = settimaneMap[settimanaKey].sort();
 
-      // Calcola etichetta settimana (es. "Settimana dal DD-MM-YYYY al DD-MM-YYYY")
       const lunediObj = new Date(settimanaKey);
       const domenicaObj = new Date(lunediObj);
       domenicaObj.setDate(lunediObj.getDate() + 6);
@@ -141,39 +137,39 @@ async function caricaImpegni() {
 
       const settimanaCard = document.createElement("div");
       settimanaCard.className = "settimana-card";
+      settimanaCard.style.cssText = "background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); overflow: hidden; margin-bottom: 20px;";
       
       let htmlGiornate = "";
 
       dateDellaSettimana.forEach(dataStr => {
         const dataObj = new Date(dataStr);
         const nomeGiorno = dataObj.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-        const isDomenica = dataObj.getDay() === 0; // 0 = Domenica
+        const isDomenica = dataObj.getDay() === 0;
 
         htmlGiornate += `
-          <div class="giornata-sezione">
-            <div class="giorno-titolo ${isDomenica ? 'domenica' : ''}">
+          <div class="giornata-sezione" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 15px;">
+            <div class="giorno-titolo ${isDomenica ? 'domenica' : ''}" style="font-size: 1rem; font-weight: 700; color: ${isDomenica ? '#ef4444' : '#334155'}; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
               <i class="fas fa-calendar-day"></i> ${nomeGiorno.charAt(0).toUpperCase() + nomeGiorno.slice(1)}
             </div>
-            <div class="impegni-griglia">
+            <div class="impegni-griglia" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
         `;
 
         impegniPerData[dataStr].forEach(item => {
           const creatore = (item.creatore || "").toLowerCase();
           const coloreSfondo = mappaColori[creatore] || "#f1f5f9";
-          const dataFormattata = item.data ? item.data.split("-").reverse().join("-") : "";
 
           htmlGiornate += `
-            <div class="impegno-card" style="background-color: ${coloreSfondo};">
-              <div class="impegno-header-card">
+            <div class="impegno-card" style="background-color: ${coloreSfondo}; padding: 12px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; gap: 8px; min-height: 110px;">
+              <div class="impegno-header-card" style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
-                  <div class="impegno-titolo">${item.titolo}</div>
-                  <div class="impegno-autore">Inserito da: ${item.creatore || 'Anonimo'}</div>
+                  <div class="impegno-titolo" style="font-weight: 700; font-size: 0.95rem; color: #1e293b;">${item.titolo}</div>
+                  <div class="impegno-autore" style="font-size: 0.75rem; opacity: 0.8; font-weight: 600;">Inserito da: ${item.creatore || 'Anonimo'}</div>
                 </div>
-                <button class="btn-delete" data-id="${item.id}" title="Elimina impegno">
+                <button class="btn-delete" data-id="${item.id}" title="Elimina impegno" style="background: transparent; color: #dc2626; border: none; font-size: 1rem; cursor: pointer; padding: 4px;">
                   <i class="fas fa-trash-alt"></i>
                 </button>
               </div>
-              <div class="impegno-orari">
+              <div class="impegno-orari" style="font-size: 0.85rem; font-weight: bold; color: #1e293b; display: flex; align-items: center; gap: 5px;">
                 <i class="far fa-clock"></i> ${item.oraInizio || '--:--'} - ${item.oraFine || '--:--'}
               </div>
             </div>
@@ -187,10 +183,10 @@ async function caricaImpegni() {
       });
 
       settimanaCard.innerHTML = `
-        <div class="settimana-header">
+        <div class="settimana-header" style="background-color: #0f172a; color: white; padding: 14px 20px; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
           <i class="fas fa-calendar-week"></i> ${labelSettimana}
         </div>
-        <div class="settimana-body">
+        <div class="settimana-body" style="padding: 20px;">
           ${htmlGiornate}
         </div>
       `;
@@ -217,6 +213,6 @@ async function caricaImpegni() {
 
   } catch (err) {
     console.error("Errore caricamento impegni:", err);
-    container.innerHTML = `<p style="color: #dc3545;">Errore caricamento dati da Firestore.</p>`;
+    container.innerHTML = `<p style="padding: 15px; color: #dc3545;">Errore caricamento dati da Firestore.</p>`;
   }
 }
