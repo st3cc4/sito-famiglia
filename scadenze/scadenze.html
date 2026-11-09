@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scadenze - Sito Famiglia</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="stile-scadenze.css">
+</head>
+<body>
+
+  <div class="main-container">
+
+    <!-- FORM AGGIUNGI SCADENZA -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-plus-circle"></i> Aggiungi Nuova Scadenza
+      </div>
+      <div class="card-body">
+        <form id="form-scadenza" class="scadenza-form">
+          <div class="input-group">
+            <label for="titolo">Titolo / Descrizione</label>
+            <input type="text" id="titolo" required placeholder="Es. Bolletta Luce, Klarna...">
+          </div>
+          <div class="input-group">
+            <label for="importo">Importo (€)</label>
+            <input type="number" step="0.01" id="importo" required placeholder="0.00">
+          </div>
+          <div class="input-group">
+            <label for="data">Data Scadenza</label>
+            <input type="date" id="data" required>
+          </div>
+          <button type="submit" class="btn-primary">
+            <i class="fas fa-save"></i> Salva Scadenza
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- LISTA COMPLETA SCADENZE -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-file-invoice-dollar"></i> Tutte le Scadenze
+      </div>
+      <div class="card-body">
+        <ul class="scadenze-list" id="lista-scadenze-completa">
+          <!-- Caricate dinamicamente via JS -->
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="scadenze.js"></script>
+</body>
+</html>
