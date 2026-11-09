@@ -42,7 +42,17 @@ document.addEventListener("DOMContentLoaded", () => {
     navMedia.style.display = "none";
   }
 
-  // 4. Cambiamento dinamico delle pagine sulla tela (iframe)
+  // 4. Gestione Apertura/Chiusura Menu Laterale (Hamburger)
+  const menuToggleBtn = document.getElementById("menu-toggle");
+  const sidebar = document.getElementById("main-sidebar");
+
+  if (menuToggleBtn && sidebar) {
+    menuToggleBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("closed");
+    });
+  }
+
+  // 5. Cambiamento dinamico delle pagine sulla tela (iframe)
   const navButtons = document.querySelectorAll(".nav-btn");
   const telaIframe = document.getElementById("tela-iframe");
 
@@ -59,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // 5. Gestione Logout
+  // 6. Gestione Logout
   const btnLogout = document.getElementById("btn-logout");
   if (btnLogout) {
     btnLogout.addEventListener("click", () => {
