@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const oggiStr = `${oggi.getFullYear()}-${String(oggi.getMonth() + 1).padStart(2, '0')}-${String(oggi.getDate()).padStart(2, '0')}`;
   const oggiFormatted = `${String(oggi.getDate()).padStart(2, '0')}-${String(oggi.getMonth() + 1).padStart(2, '0')}-${oggi.getFullYear()}`;
 
-  // Imposta data nel titolo impegni
   const impegniHeader = document.getElementById("impegni-header");
   if (impegniHeader) {
     impegniHeader.innerHTML = `<i class="fas fa-calendar-alt"></i> IMPEGNI DI OGGI (${oggiFormatted})`;
@@ -51,13 +50,8 @@ async function caricaScadenze(oggi) {
       });
     });
 
-    // Filtro 1: Scadute o entro 7 giorni (ROSSO)
     const rosse = tutteScadenze.filter(s => s.diffDays <= 7);
-    
-    // Filtro 2: Entro 14 giorni (da 8 a 14 gg) (GIALLO)
     const gialle = tutteScadenze.filter(s => s.diffDays >= 8 && s.diffDays <= 14);
-
-    // Filtro 3: Dal 15° giorno in poi (VERDE)
     const verdi = tutteScadenze.filter(s => s.diffDays >= 15);
 
     let listaDaMostrare = [];
@@ -79,7 +73,6 @@ async function caricaScadenze(oggi) {
       return;
     }
 
-    // Ordina per data imminente
     listaDaMostrare.sort((a, b) => a.diffDays - b.diffDays);
 
     listaDaMostrare.forEach(item => {
@@ -134,7 +127,6 @@ async function caricaImpegni(oggiStr) {
       return;
     }
 
-    // Ordina per ora d'inizio
     impegniOggi.sort((a, b) => (a.oraInizio || "").localeCompare(b.oraInizio || ""));
 
     impegniOggi.forEach(data => {
@@ -217,7 +209,6 @@ async function caricaTopRicette() {
       });
     });
 
-    // Ordina per punteggio decrescente e prende le prime 5
     ricette.sort((a, b) => b.punteggio - a.punteggio);
     const top5 = ricette.slice(0, 5);
 
