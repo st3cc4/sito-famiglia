@@ -30,6 +30,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 });
 
+// Funzione ausiliaria per convertire il colore esadecimale in RGBA con alpha ridotto
+function hexToRgba(hex, alpha = 0.22) {
+  if (!hex || !hex.startsWith('#')) return 'rgba(241, 245, 249, 0.8)';
+  let c = hex.replace('#', '');
+  if (c.length === 3) {
+    c = c.split('').map(char => char + char).join('');
+  }
+  const num = parseInt(c, 16);
+  return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
+}
+
 // 1. SCADENZE GERARCHICHE
 async function caricaScadenze(oggi) {
   const scadenzeList = document.getElementById("scadenze-list");
@@ -107,13 +118,13 @@ async function caricaScadenze(oggi) {
   }
 }
 
-// 2. IMPEGNI DI OGGI
+// 2. IMPEGNI DI OGGI (Punta alla collezione corretta "impegni")
 async function caricaImpegni(oggiStr) {
   const impegniList = document.getElementById("impegni-list");
   if (!impegniList) return;
 
   try {
-    const snap = await getDocs(collection(db, "appuntamenti"));
+    const snap = await getDocs(collection(db, "impegni"));
     impegniList.innerHTML = "";
 
     const impegniOggi = [];
@@ -185,7 +196,7 @@ async function caricaUltimiMedia() {
   }
 }
 
-// 4. TOP 5 RICETTE
+// 4. TOP 5 RICETTE (Con sfondo alpha ridotto e bordo colorato)
 async function caricaTopRicette() {
   const ricetteList = document.getElementById("ricette-list");
   if (!ricetteList) return;
@@ -195,7 +206,7 @@ async function caricaTopRicette() {
     const mappaColori = {};
     utentiSnap.forEach(uDoc => {
       const uData = uDoc.data();
-      mappaColori[uDoc.id.toLowerCase()] = uData.colore || "#e2e8f0";
+      mappaColori[uDoc.id.toLowerCase()] = uData.colore || "#2563eb";
     });
 
     const snap = await getDocs(collection(db, "ricette"));
@@ -217,17 +228,19 @@ async function caricaTopRicette() {
 
     top5.forEach(ricetta => {
       const creatore = (ricetta.creatore || "").toLowerCase();
-      const coloreSfondo = mappaColori[creatore] || "#f1f5f9";
+      const coloreBase = mappaColori[creatore] || "#2563eb";
+      const coloreSfondoAlpha = hexToRgba(coloreBase, 0.22); // Sfondo chiaro con trasparenza
 
       const li = document.createElement("li");
       li.className = "ricetta-item";
-      li.style.backgroundColor = coloreSfondo;
-      li.style.color = "#000000";
+      li.style.backgroundColor = coloreSfondoAlpha;
+      li.style.borderLeft = `4px solid ${coloreBase}`;
+      li.style.color = "#1e293b";
 
       li.innerHTML = `
         <div class="ricetta-info">
-          <span class="ricetta-nome">${ricetta.titolo || ricetta.nome || 'Ricetta senza titolo'}</span>
-          <span class="ricetta-autore">Inserita da: ${ricetta.creatore || 'Anonimo'}</span>
+          <span class="ricetta-nome" style="font-weight: 700;">${ricetta.titolo || ricetta.nome || 'Ricetta senza titolo'}</span>
+          <span class="ricetta-autore" style="font-size: 0.8rem; opacity: 0.8;">Inserita da: ${ricetta.creatore || 'Anonimo'}</span>
         </div>
         <span class="ricetta-punteggio"><i class="fas fa-star" style="color: #f59e0b;"></i> ${ricetta.punteggio.toFixed(1)}</span>
       `;
