@@ -1,135 +1,77 @@
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-    background-color: #f4f6f9;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    color: #333;
+  background-color: #f0f2f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
 .login-container {
-    background: #ffffff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
 }
 
-.login-header {
-    text-align: center;
-    margin-bottom: 25px;
+.login-container h2 {
+  margin-bottom: 24px;
+  color: #333;
+  text-align: center;
 }
 
-.login-header h2 {
-    color: #2b3e50;
-    margin-bottom: 8px;
-    font-size: 24px;
+.input-group {
+  margin-bottom: 20px;
 }
 
-.login-header p {
-    color: #666;
-    font-size: 14px;
+.input-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+  font-weight: 600;
 }
 
-.form-group {
-    margin-bottom: 20px;
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    font-size: 14px;
-    color: #444;
+.input-group input:focus {
+  border-color: #007bff;
+  outline: none;
 }
 
-.form-group input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 15px;
-    outline: none;
-    transition: border-color 0.2s;
+button.login-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.form-group input:focus {
-    border-color: #2b3e50;
+button.login-btn:hover {
+  background-color: #0056b3;
 }
 
-/* Wrapper per il campo password e il bottone occhio */
-.password-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.password-wrapper input {
-    padding-right: 45px;
-}
-
-.btn-eye {
-    position: absolute;
-    right: 12px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #666;
-    font-size: 16px;
-}
-
-.btn-eye:hover {
-    color: #2b3e50;
-}
-
-.form-group-checkbox {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.form-group-checkbox input {
-    margin-right: 8px;
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-}
-
-.form-group-checkbox label {
-    font-size: 14px;
-    color: #444;
-    cursor: pointer;
-    user-select: none;
-}
-
-.error-msg {
-    color: #e74c3c;
-    font-size: 13px;
-    margin-bottom: 15px;
-    text-align: center;
-}
-
-.btn-login {
-    width: 100%;
-    padding: 12px;
-    background-color: #2b3e50;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.btn-login:hover {
-    background-color: #1a252f;
+.error-message {
+  color: #dc3545;
+  margin-top: 15px;
+  text-align: center;
+  font-size: 14px;
 }
