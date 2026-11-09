@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impegni - Sito Famiglia</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="stile-impegni.css">
+</head>
+<body>
+
+  <div class="main-container">
+
+    <!-- BARRA SUPERIORE: PULSANTE POP-UP -->
+    <div class="top-action-bar">
+      <div class="info-text">
+        <i class="fas fa-calendar-alt"></i> Gestione Impegni e Appuntamenti
+      </div>
+      <button class="btn-primary" id="open-modal-btn">
+        Aggiungi Nuovo Impegno
+      </button>
+    </div>
+
+    <!-- LISTA COMPLETA IMPEGNI -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fas fa-list"></i> Tutti gli Impegni in Programma
+      </div>
+      <div class="card-body">
+        <div class="impegni-list" id="lista-impegni-completa">
+          <!-- Caricati dinamicamente via JS -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- POP-UP (MODALE) AGGIUNGI IMPEGNO -->
+  <div class="modal-overlay" id="modal-impegno">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Nuovo Impegno</h3>
+        <button class="modal-close" id="close-modal-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-impegno" class="impegno-form-modal">
+          <div class="input-group">
+            <label for="titolo">Titolo Impegno</label>
+            <input type="text" id="titolo" required placeholder="Es. Visita medica, Riunione...">
+          </div>
+          <div class="input-row">
+            <div class="input-group">
+              <label for="data">Data</label>
+              <input type="date" id="data" required>
+            </div>
+            <div class="input-group">
+              <label for="oraInizio">Ora Inizio</label>
+              <input type="time" id="oraInizio" required>
+            </div>
+          </div>
+          <div class="modal-buttons">
+            <button type="button" class="btn-secondary" id="cancel-modal-btn">Annulla</button>
+            <button type="submit" class="btn-primary">Salva Impegno</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="impegni.js"></script>
+</body>
+</html>
