@@ -4,6 +4,7 @@ import { collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic
 document.addEventListener("DOMContentLoaded", async () => {
   await caricaScadenze();
 
+  // Gestione Modale Pop-up
   const modal = document.getElementById("modal-scadenza");
   const openBtn = document.getElementById("open-modal-btn");
   const closeBtn = document.getElementById("close-modal-btn");
@@ -30,6 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // Salvataggio Nuova Scadenza
   if (formScadenza) {
     formScadenza.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -58,7 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // OCR
+  // GESTIONE OCR (Tesseract.js)
   const ocrInput = document.getElementById("ocr-file-input");
   const ocrStatus = document.getElementById("ocr-status");
 
@@ -73,12 +75,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       try {
-        const result = await Tesseract.recognize(file, 'ita+eng');
+        const result = await Tesseract.recognize(file, 'ita+eng', {
+          logger: m => console.log(m)
+        });
+
         const text = result.data.text;
+        console.log("Testo estratto OCR:", text);
 
         const importoMatch = text.match(/(?:totale|eur|€)?\s*(\d+[\.,]\d{2})/i);
         if (importoMatch && importoMatch[1]) {
-          document.getElementById("importo").value = importoMatch[1].replace(',', '.');
+          const importoPulito = importoMatch[1].replace(',', '.');
+          document.getElementById("importo").value = importoPulito;
         }
 
         const dataMatch = text.match(/(\d{2})[\/\-](\d{2})[\/\-](\d{4})/);
@@ -89,20 +96,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (text.toLowerCase().includes("enel") || text.toLowerCase().includes("luce")) {
           document.getElementById("titolo").value = "Bolletta Luce";
-        } else if (text.toLowerCase().includes("gas") || text.toLowerCase().includes("iren")) {
+        } else if (text.toLowerCase().includes("gas") || text.toLowerCase().includes("iren") || text.toLowerCase().includes("snam")) {
           document.getElementById("titolo").value = "Bolletta Gas";
         } else {
           document.getElementById("titolo").value = "Scansione Bolletta";
         }
 
         if (ocrStatus) {
-          ocrStatus.textContent = "OCR completato! Controlla i dati.";
+          ocrStatus.textContent = "OCR completato con successo!";
           setTimeout(() => { ocrStatus.style.display = "none"; }, 4000);
         }
+
       } catch (err) {
         console.error("Errore OCR:", err);
         if (ocrStatus) {
-          ocrStatus.textContent = "Errore lettura OCR.";
+          ocrStatus.textContent = "Errore durante la lettura OCR.";
           setTimeout(() => { ocrStatus.style.display = "none"; }, 4000);
         }
       }
@@ -110,6 +118,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+// Caricamento e calcolo totale
 async function caricaScadenze() {
   const listaContainer = document.getElementById("lista-scadenze-completa");
   const totaleImportoSpan = document.getElementById("totale-importo");
@@ -142,7 +151,11 @@ async function caricaScadenze() {
       const diffTime = dataScadenza.getTime() - oggi.getTime();
       const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
 
-      scadenze.push({ id: docSnap.id, ...data, diffDays });
+      scadenze.push({
+        id: docSnap.id,
+        ...data,
+        diffDays
+      });
     });
 
     if (totaleImportoSpan) {
