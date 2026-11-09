@@ -82,21 +82,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         const text = result.data.text;
         console.log("Testo estratto OCR:", text);
 
-        // Estrazione automatica importo (cerca cifre con virgola o punto es. 123,45 o 50.00)
         const importoMatch = text.match(/(?:totale|eur|€)?\s*(\d+[\.,]\d{2})/i);
         if (importoMatch && importoMatch[1]) {
           const importoPulito = importoMatch[1].replace(',', '.');
           document.getElementById("importo").value = importoPulito;
         }
 
-        // Prova a estrarre una data (formato DD/MM/YYYY o DD-MM-YYYY)
         const dataMatch = text.match(/(\d{2})[\/\-](\d{2})[\/\-](\d{4})/);
         if (dataMatch) {
           const [_, gg, mm, aaaa] = dataMatch;
           document.getElementById("data").value = `${aaaa}-${mm}-${gg}`;
         }
 
-        // Imposta una descrizione generica se trovate parole chiave
         if (text.toLowerCase().includes("enel") || text.toLowerCase().includes("luce")) {
           document.getElementById("titolo").value = "Bolletta Luce";
         } else if (text.toLowerCase().includes("gas") || text.toLowerCase().includes("iren") || text.toLowerCase().includes("snam")) {
@@ -134,7 +131,7 @@ async function caricaScadenze() {
     listaContainer.innerHTML = "";
 
     if (snap.empty) {
-      listaContainer.innerHTML = `<p style="color: #666;">Nessuna scadenza presente.</p>";`;
+      listaContainer.innerHTML = `<p style="color: #666;">Nessuna scadenza presente.</p>`;
       if (totaleImportoSpan) totaleImportoSpan.textContent = "€ 0.00";
       return;
     }
@@ -163,12 +160,10 @@ async function caricaScadenze() {
       });
     });
 
-    // Aggiorna il totale in alto a destra
     if (totaleImportoSpan) {
       totaleImportoSpan.textContent = `€ ${sommaTotale.toFixed(2)}`;
     }
 
-    // Ordina per data crescente (più vicine prima)
     scadenze.sort((a, b) => a.diffDays - b.diffDays);
 
     scadenze.forEach(item => {
@@ -208,7 +203,6 @@ async function caricaScadenze() {
       listaContainer.appendChild(li);
     });
 
-    // Gestione eliminazione
     const deleteButtons = listaContainer.querySelectorAll(".btn-delete");
     deleteButtons.forEach(btn => {
       btn.addEventListener("click", async (e) => {
