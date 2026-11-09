@@ -2,142 +2,129 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-  background-color: #f0f4f9;
-  color: #1f2937;
+  background-color: #f8fafc;
   padding: 20px;
+  color: #1e293b;
 }
 
-/* Container Generale */
 .main-container {
-  max-width: 900px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
-/* Card principale (come nella tua foto) */
 .card {
-  background-color: #ffffff;
+  background: white;
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 
 .card-header {
-  padding: 16px 20px;
+  background-color: #0f172a;
+  color: white;
+  padding: 14px 20px;
+  font-size: 1.1rem;
   font-weight: 700;
-  font-size: 15px;
-  color: #1e293b;
   display: flex;
   align-items: center;
   gap: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.card-header i {
-  font-size: 16px;
 }
 
 .card-body {
-  padding: 0 20px 20px 20px;
+  padding: 20px;
 }
 
-/* --- SEZIONE SCADENZE CON COLORI --- */
+/* LISTA SCADENZE */
 .scadenze-list {
   list-style: none;
-  padding: 0;
-  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .scadenza-item {
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-radius: 8px;
-  font-size: 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.scadenza-rosso {
+  background-color: #fef2f2;
+  border-left: 5px solid #ef4444;
+  color: #991b1b;
+}
+
+.scadenza-giallo {
+  background-color: #fffbeb;
+  border-left: 5px solid #f59e0b;
+  color: #92400e;
+}
+
+.scadenza-verde {
+  background-color: #f0fdf4;
+  border-left: 5px solid #22c55e;
+  color: #166534;
 }
 
 .scadenza-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .scadenza-titolo {
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 1rem;
 }
 
 .scadenza-dettaglio {
-  font-size: 13px;
-  opacity: 0.85;
+  font-size: 0.85rem;
+  opacity: 0.9;
 }
 
-/* Colori sfondi scadenze */
-/* Entro 7 gg / Scadute -> ROSSO */
-.scadenza-rosso {
-  background-color: #fee2e2;
-  color: #991b1b;
-  border-left: 4px solid #ef4444;
-}
-
-/* Tra 8 e 14 gg -> GIALLO */
-.scadenza-giallo {
-  background-color: #fef3c7;
-  color: #92400e;
-  border-left: 4px solid #f59e0b;
-}
-
-/* Da 15 gg in su -> VERDE */
-.scadenza-verde {
-  background-color: #dcfce7;
-  color: #166534;
-  border-left: 4px solid #22c55e;
-}
-
-/* --- SEZIONE IMPEGNI --- */
+/* LISTA IMPEGNI */
 .impegno-item {
-  background-color: #f3e8ff;
-  color: #581c87;
-  border-left: 4px solid #7c3aed;
-  border-radius: 6px;
-  padding: 10px 14px;
+  padding: 12px 16px;
+  background-color: #f1f5f9;
+  border-radius: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 14px;
-  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.impegno-item:last-child {
+  margin-bottom: 0;
 }
 
 .impegno-ora {
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  opacity: 0.8;
+  font-weight: bold;
+  color: #2563eb;
 }
 
-/* --- SEZIONE FOTO & VIDEO --- */
+/* MEDIA FOTO */
 .foto-container {
   width: 100%;
+  max-height: 450px;
   border-radius: 8px;
   overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #e2e8f0;
 }
 
 .foto-container img {
   width: 100%;
-  max-width: 600px;
-  height: auto;
-  display: block;
-  border-radius: 8px;
+  height: 100%;
+  object-fit: cover;
 }
