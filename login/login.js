@@ -1,106 +1,52 @@
-import { db } from '../home/firebase-config.js';
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { firebaseConfig } from "../home/firebase-config.js";
 
-const loginForm = document.getElementById('login-form');
-const usernameInput = document.getElementById('username');
-const passwordInput = document.getElementById('password');
-const rememberMeCheckbox = document.getElementById('remember-me');
-const errorMsg = document.getElementById('error-msg');
-const togglePasswordBtn = document.getElementById('toggle-password');
-const eyeIcon = document.getElementById('eye-icon');
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-// Controllo sessione all'avvio: reindirizza solo se c'è una sessione attiva valida
-window.addEventListener('DOMContentLoaded', () => {
-    const savedSession = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
-    if (savedSession) {
-        try {
-            const userData = JSON.parse(savedSession);
-            if (userData && userData.nome) {
-                window.location.replace('./home.html');
-            }
-        } catch (e) {
-            localStorage.removeItem('famiglia_session');
-            sessionStorage.removeItem('famiglia_session');
-        }
-    }
-});
+document.addEventListener("DOMContentLoaded", () => {
+  const loginForm = document.getElementById("login-form");
+  const usernameInput = document.getElementById("username");
+  const passwordInput = document.getElementById("password");
+  const errorMessage = document.getElementById("error-message");
 
-// Mostra o nascondi la password
-if (togglePasswordBtn) {
-    togglePasswordBtn.addEventListener('click', () => {
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
-        
-        if (type === 'text') {
-            eyeIcon.classList.remove('fa-eye');
-            eyeIcon.classList.add('fa-eye-slash');
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = usernameInput.value.trim().toLowerCase();
+      const password = passwordInput.value;
+
+      errorMessage.textContent = "";
+
+      try {
+        // Legge il documento dell'utente dalla collezione "utenti" su Firestore
+        const userDocRef = doc(db, "utenti", username);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          
+          // Verifica la password
+          if (userData.password === password) {
+            // Salviamo la sessione locale e i permessi
+            localStorage.setItem("sitoFamiglia_logged", "true");
+            localStorage.setItem("sitoFamiglia_user", userData.username);
+            localStorage.setItem("sitoFamiglia_ruolo", userData.ruolo);
+            localStorage.setItem("sitoFamiglia_permessi", JSON.stringify(userData.permessi || {}));
+            
+            // Reindirizza alla home principale
+            window.location.href = "../index.html";
+          } else {
+            errorMessage.textContent = "Password errata.";
+          }
         } else {
-            eyeIcon.classList.remove('fa-eye-slash');
-            eyeIcon.classList.add('fa-eye');
+          errorMessage.textContent = "Utente non trovato.";
         }
+      } catch (error) {
+        console.error("Errore durante il login:", error);
+        errorMessage.textContent = "Errore di connessione a Firestore.";
+      }
     });
-}
-
-// Gestione invio modulo di login
-if (loginForm) {
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const usernameVal = usernameInput.value.trim().toLowerCase();
-        const passwordVal = passwordInput.value.trim();
-
-        if (errorMsg) errorMsg.style.display = 'none';
-
-        if (!usernameVal || !passwordVal) {
-            if (errorMsg) {
-                errorMsg.textContent = "Inserisci nome utente e password.";
-                errorMsg.style.display = 'block';
-            }
-            return;
-        }
-
-        try {
-            // L'ID del documento su Firestore corrisponde allo username in minuscolo
-            const userRef = doc(db, "utenti", usernameVal);
-            const userSnap = await getDoc(userRef);
-
-            if (userSnap.exists()) {
-                const userData = userSnap.data();
-                
-                if (userData.password === passwordVal) {
-                    const sessionData = {
-                        nome: userData.nome || usernameVal,
-                        ruolo: userData.ruolo || 'user',
-                        permessi: userData.permessi || {},
-                        colore: userData.colore || '#3498db'
-                    };
-
-                    if (rememberMeCheckbox && rememberMeCheckbox.checked) {
-                        localStorage.setItem('famiglia_session', JSON.stringify(sessionData));
-                    } else {
-                        sessionStorage.setItem('famiglia_session', JSON.stringify(sessionData));
-                    }
-
-                    window.location.replace('./home.html');
-                } else {
-                    if (errorMsg) {
-                        errorMsg.textContent = "Password errata. Riprova.";
-                        errorMsg.style.display = 'block';
-                    }
-                }
-            } else {
-                if (errorMsg) {
-                    errorMsg.textContent = `Utente "${usernameInput.value}" non trovato nel database.`;
-                    errorMsg.style.display = 'block';
-                }
-            }
-
-        } catch (error) {
-            console.error("Errore di accesso:", error);
-            if (errorMsg) {
-                errorMsg.textContent = "Errore di connessione: " + error.message;
-                errorMsg.style.display = 'block';
-            }
-        }
-    });
-}
+  }
+});
