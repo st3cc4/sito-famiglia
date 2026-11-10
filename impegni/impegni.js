@@ -97,7 +97,7 @@ function impostaLunediCorrente() {
 
 // Funzione ausiliaria per convertire un colore esadecimale in RGBA con alpha ridotto
 function hexToRgba(hex, alpha = 0.25) {
-  if (!hex || !hex.startsWith('#')) return 'rgba(241, 245, 249, 0.8)'; // di default
+  if (!hex || !hex.startsWith('#')) return 'rgba(241, 245, 249, 0.8)';
   let c = hex.replace('#', '');
   if (c.length === 3) {
     c = c.split('').map(char => char + char).join('');
@@ -169,10 +169,9 @@ async function caricaImpegniSettimana() {
       card.className = `day-card ${giorno.isDomenica ? 'domenica' : ''}`;
       card.style.backgroundColor = giorno.isDomenica ? '#fff5f5' : (coloriGiorni[index] || '#f8fafc');
 
-      // Al click sulla card del giorno, apre la modale con la data impostata
+      // Al click sulla card del giorno, apre la modale con la data impostata (tranne se clicchi sul bottone elimina o sul tasto aggiungi)
       card.addEventListener("click", (e) => {
-        // Evita l'apertura se si clicca sul bottone elimina
-        if (e.target.closest('.btn-delete')) return;
+        if (e.target.closest('.btn-delete') || e.target.closest('.btn-aggiungi-giorno')) return;
         if (window.apriModaleConData) {
           window.apriModaleConData(giorno.dataIso);
         }
@@ -180,13 +179,13 @@ async function caricaImpegniSettimana() {
 
       let htmlImpegni = "";
       if (impegniDelGiorno.length === 0) {
-        htmlImpegni = `<div class="no-impegni">Nessun impegno in questa giornata (Clicca per aggiungere).</div>`;
+        htmlImpegni = `<div class="no-impegni" style="color: #94a3b8; font-style: italic;">Nessun impegno in questa giornata.</div>`;
       } else {
         htmlImpegni = `<div class="impegni-grid">`;
         impegniDelGiorno.forEach(item => {
           const creatore = (item.creatore || "").toLowerCase();
           const coloreBase = mappaColori[creatore] || "#2563eb";
-          const coloreSfondoAlpha = hexToRgba(coloreBase, 0.22); // Sfondo con alpha ridotto per leggibilità perfetta
+          const coloreSfondoAlpha = hexToRgba(coloreBase, 0.22);
 
           htmlImpegni += `
             <div class="impegno-item-card" style="background-color: ${coloreSfondoAlpha}; border-left: 4px solid ${coloreBase};">
@@ -211,7 +210,9 @@ async function caricaImpegniSettimana() {
       card.innerHTML = `
         <div class="day-header ${giorno.isDomenica ? 'domenica-text' : ''}">
           <span><i class="fas fa-calendar-day"></i> ${giorno.nomeGiorno.charAt(0).toUpperCase() + giorno.nomeGiorno.slice(1)} (${giorno.giornoMese})</span>
-          <span style="font-size: 0.8rem; color: #64748b; font-weight: normal;"><i class="fas fa-plus-circle"></i> Aggiungi</span>
+          <button class="btn-aggiungi-giorno" onclick="window.apriModaleConData('${giorno.dataIso}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2); transition: background-color 0.2s;">
+            <i class="fas fa-plus"></i> Aggiungi
+          </button>
         </div>
         <div class="day-body">
           ${htmlImpegni}
@@ -224,7 +225,7 @@ async function caricaImpegniSettimana() {
     const deleteButtons = container.querySelectorAll(".btn-delete");
     deleteButtons.forEach(btn => {
       btn.addEventListener("click", async (e) => {
-        e.stopPropagation(); // Evita di aprire la modale del giorno
+        e.stopPropagation();
         const id = e.currentTarget.getAttribute("data-id");
         if (confirm("Vuoi davvero eliminare questo impegno?")) {
           try {
