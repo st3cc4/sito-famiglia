@@ -18,7 +18,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   await caricaUltimiMedia();
   await caricaTopRicette();
 
-  // Gestione click sulle card per aprire la sezione correlata
   const clickableCards = document.querySelectorAll(".clickable-card");
   clickableCards.forEach(card => {
     card.addEventListener("click", () => {
@@ -40,7 +39,7 @@ function hexToRgba(hex, alpha = 0.22) {
   return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
 }
 
-// 1. SCADENZE (Trasformate in quadratini orizzontali a scorrimento)
+// 1. SCADENZE ORIZZONTALI
 async function caricaScadenze(oggi) {
   const scadenzeList = document.getElementById("scadenze-list");
   if (!scadenzeList) return;
