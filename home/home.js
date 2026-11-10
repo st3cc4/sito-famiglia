@@ -40,7 +40,7 @@ function hexToRgba(hex, alpha = 0.22) {
   return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
 }
 
-// 1. SCADENZE (Rimane a elenco verticale con priorità)
+// 1. SCADENZE (Trasformate in quadratini orizzontali a scorrimento)
 async function caricaScadenze(oggi) {
   const scadenzeList = document.getElementById("scadenze-list");
   if (!scadenzeList) return;
@@ -50,7 +50,7 @@ async function caricaScadenze(oggi) {
     scadenzeList.innerHTML = "";
 
     if (snap.empty) {
-      scadenzeList.innerHTML = `<p style="color: #666;">Nessuna scadenza trovata.</p>`;
+      scadenzeList.innerHTML = `<p style="color: #666; padding: 10px;">Nessuna scadenza trovata.</p>`;
       return;
     }
 
@@ -66,58 +66,51 @@ async function caricaScadenze(oggi) {
       tutteScadenze.push({ id: docSnap.id, ...data, diffDays });
     });
 
-    const rosse = tutteScadenze.filter(s => s.diffDays <= 7);
-    const gialle = tutteScadenze.filter(s => s.diffDays >= 8 && s.diffDays <= 14);
-    const verdi = tutteScadenze.filter(s => s.diffDays >= 15);
+    tutteScadenze.sort((a, b) => a.diffDays - b.diffDays);
 
-    let listaDaMostrare = [];
-    let classeColore = "";
-
-    if (rosse.length > 0) {
-      listaDaMostrare = rosse;
-      classeColore = "scadenza-rosso";
-    } else if (gialle.length > 0) {
-      listaDaMostrare = gialle;
-      classeColore = "scadenza-giallo";
-    } else if (verdi.length > 0) {
-      listaDaMostrare = verdi;
-      classeColore = "scadenza-verde";
-    }
-
-    if (listaDaMostrare.length === 0) {
-      scadenzeList.innerHTML = `<p style="color: #666;">Nessuna scadenza presente.</p>`;
-      return;
-    }
-
-    listaDaMostrare.sort((a, b) => a.diffDays - b.diffDays);
-
-    listaDaMostrare.forEach(item => {
+    tutteScadenze.forEach(item => {
       let statoTesto = "";
-      if (item.diffDays < 0) statoTesto = "Scaduta";
-      else if (item.diffDays === 0) statoTesto = "Scade Oggi";
-      else statoTesto = `Tra ${item.diffDays} gg`;
+      let classeColore = "scadenza-verde-orizzontale";
+      let bordoColore = "#22c55e";
+
+      if (item.diffDays < 0) {
+        statoTesto = "Scaduta";
+        classeColore = "scadenza-rosso-orizzontale";
+        bordoColore = "#ef4444";
+      } else if (item.diffDays === 0) {
+        statoTesto = "Scade Oggi";
+        classeColore = "scadenza-rosso-orizzontale";
+        bordoColore = "#ef4444";
+      } else if (item.diffDays <= 7) {
+        statoTesto = `Tra ${item.diffDays} gg`;
+        classeColore = "scadenza-giallo-orizzontale";
+        bordoColore = "#f59e0b";
+      } else {
+        statoTesto = `Tra ${item.diffDays} gg`;
+      }
 
       const dataFormattata = item.data ? item.data.split("-").reverse().join("-") : "";
       const importoFormatted = parseFloat(item.importo || 0).toFixed(2);
 
-      const li = document.createElement("li");
-      li.className = `scadenza-item ${classeColore}`;
-      li.innerHTML = `
-        <div class="scadenza-info">
-          <span class="scadenza-titolo">${item.titolo} € ${importoFormatted}</span>
-          <span class="scadenza-dettaglio">${dataFormattata} (${item.creatore || 'Anonimo'}) - ${statoTesto}</span>
-        </div>
+      const div = document.createElement("div");
+      div.className = `scadenza-item-orizzontale ${classeColore}`;
+      div.style.borderLeft = `4px solid ${bordoColore}`;
+      div.innerHTML = `
+        <span class="scadenza-titolo" style="font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.titolo}</span>
+        <span class="scadenza-importo" style="font-weight: bold; color: ${bordoColore};">€ ${importoFormatted}</span>
+        <span class="scadenza-dettaglio" style="font-size: 0.75rem; opacity: 0.85;">${dataFormattata} (${item.creatore || 'Anonimo'})</span>
+        <span class="scadenza-stato" style="font-size: 0.75rem; font-weight: 600; margin-top: 2px;">${statoTesto}</span>
       `;
-      scadenzeList.appendChild(li);
+      scadenzeList.appendChild(div);
     });
 
   } catch (err) {
     console.error("Errore scadenze:", err);
-    scadenzeList.innerHTML = `<p style="color: #dc3545;">Errore caricamento scadenze.</p>`;
+    scadenzeList.innerHTML = `<p style="color: #dc3545; padding: 10px;">Errore caricamento scadenze.</p>`;
   }
 }
 
-// 2. IMPEGNI DI OGGI (Trasformati in striscia orizzontale a scorrimento)
+// 2. IMPEGNI DI OGGI (Quadratini orizzontali a scorrimento)
 async function caricaImpegni(oggiStr) {
   const impegniList = document.getElementById("impegni-list");
   if (!impegniList) return;
@@ -144,15 +137,15 @@ async function caricaImpegni(oggiStr) {
       div.className = "impegno-item-orizzontale";
       div.innerHTML = `
         <span class="impegno-ora"><i class="far fa-clock"></i> ${data.oraInizio || ''}</span>
-        <span class="impegno-titolo-orizzontale"><strong>${data.titolo}</strong></span>
-        <small class="impegno-autore">(${data.creatore || ''})</small>
+        <span class="impegno-titolo-orizzontale" style="font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${data.titolo}</span>
+        <small class="impegno-autore" style="font-size: 0.75rem; opacity: 0.7;">(${data.creatore || ''})</small>
       `;
       impegniList.appendChild(div);
     });
 
   } catch (err) {
     console.error("Errore impegni:", err);
-    impegniList.innerHTML = `<p style="color: #dc3545;">Errore caricamento impegni.</p>`;
+    impegniList.innerHTML = `<p style="color: #dc3545; padding: 10px;">Errore caricamento impegni.</p>`;
   }
 }
 
@@ -192,11 +185,11 @@ async function caricaUltimiMedia() {
 
   } catch (err) {
     console.error("Errore media:", err);
-    mediaGrid.innerHTML = `<p style="color: #dc3545;">Errore caricamento media.</p>`;
+    mediaGrid.innerHTML = `<p style="color: #dc3545; padding: 10px;">Errore caricamento media.</p>`;
   }
 }
 
-// 4. TOP 5 RICETTE (Striscia orizzontale a scorrimento con quadratini/card affiancate)
+// 4. TOP 5 RICETTE (Quadratini orizzontali a scorrimento)
 async function caricaTopRicette() {
   const ricetteList = document.getElementById("ricette-list");
   if (!ricetteList) return;
@@ -249,6 +242,6 @@ async function caricaTopRicette() {
 
   } catch (err) {
     console.error("Errore ricette:", err);
-    ricetteList.innerHTML = `<p style="color: #dc3545;">Errore caricamento ricette.</p>`;
+    ricetteList.innerHTML = `<p style="color: #dc3545; padding: 10px;">Errore caricamento ricette.</p>`;
   }
 }
