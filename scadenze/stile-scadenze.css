@@ -9,6 +9,7 @@ body {
   background-color: #f8fafc;
   padding: 15px;
   color: #1e293b;
+  font-size: 0.95rem;
 }
 
 .main-container {
@@ -25,7 +26,7 @@ body {
   justify-content: space-between;
   align-items: center;
   background: white;
-  padding: 15px 20px;
+  padding: 14px 18px;
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
@@ -39,7 +40,7 @@ body {
 }
 
 .totale-box {
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: #475569;
   text-align: right;
@@ -56,7 +57,7 @@ body {
 .totale-importo {
   font-weight: 900;
   color: #ef4444;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   margin-left: 5px;
 }
 
@@ -70,8 +71,8 @@ body {
 .card-header {
   background-color: #0f172a;
   color: white;
-  padding: 14px 20px;
-  font-size: 1.05rem;
+  padding: 12px 18px;
+  font-size: 0.98rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -79,7 +80,7 @@ body {
 }
 
 .card-body {
-  padding: 20px;
+  padding: 16px;
   max-height: 65vh;
   overflow-y: auto;
 }
@@ -89,7 +90,7 @@ body {
   background-color: #2563eb;
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 9px 18px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
@@ -98,7 +99,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
 }
 
 .btn-primary:hover {
@@ -109,11 +110,12 @@ body {
   background-color: #e2e8f0;
   color: #475569;
   border: none;
-  padding: 10px 18px;
+  padding: 9px 16px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  font-size: 0.88rem;
 }
 
 .btn-secondary:hover {
@@ -160,25 +162,26 @@ body {
 .modal-header {
   background-color: #0f172a;
   color: white;
-  padding: 15px 20px;
+  padding: 14px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 0.98rem;
 }
 
 .modal-close {
   background: transparent;
   color: white;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   cursor: pointer;
 }
 
 .modal-body {
-  padding: 20px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 14px;
 }
 
 /* OCR STILI */
@@ -191,7 +194,7 @@ body {
 .ocr-label {
   background-color: #f1f5f9;
   border: 2px dashed #cbd5e1;
-  padding: 12px;
+  padding: 10px;
   border-radius: 8px;
   text-align: center;
   font-weight: 600;
@@ -202,6 +205,7 @@ body {
   justify-content: center;
   gap: 8px;
   transition: background 0.2s;
+  font-size: 0.88rem;
 }
 
 .ocr-label:hover {
@@ -209,7 +213,7 @@ body {
 }
 
 .ocr-status {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #d97706;
   text-align: center;
   font-weight: 600;
@@ -218,26 +222,26 @@ body {
 .scadenza-form-modal {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 14px;
 }
 
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .input-group label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #475569;
 }
 
 .input-group input {
-  padding: 10px;
+  padding: 9px;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
 }
 
 .input-group input:focus {
@@ -261,7 +265,7 @@ body {
 }
 
 .scadenza-item {
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-radius: 8px;
   display: flex;
   justify-content: space-between;
@@ -289,16 +293,16 @@ body {
 .scadenza-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .scadenza-titolo {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
 }
 
 .scadenza-dettaglio {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   opacity: 0.9;
 }
 
@@ -306,9 +310,9 @@ body {
   background: transparent;
   color: #dc2626;
   border: none;
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
-  padding: 6px;
+  padding: 5px;
   border-radius: 4px;
   transition: background 0.2s;
 }
