@@ -48,7 +48,7 @@ async function caricaEDisegnaRicette(container) {
     container.innerHTML = `
         <div class="ricette-container">
             <div class="ricette-header">
-                <h2><i class="fa-solid fa-utensils"></i> LE MIE RICETTE</h2>
+                <h2><i class="fa-solid fa-utensils"></i> RICETTE</h2>
                 <div class="ricette-actions">
                     <input type="text" id="search-ricetta" class="search-ricetta-input" placeholder="Cerca ricetta...">
                     <button class="btn-add-ricetta" id="btn-nuova-ricetta">
@@ -99,7 +99,7 @@ function renderGrigliaRicette(filtro) {
     if (!gridContainer) return;
 
     const filtrate = listaRicette.filter(r => {
-        const titolo = (r.titolo || '').toLowerCase();
+        const titolo = (r.titolo || r.nome || '').toLowerCase();
         const categoria = (r.categoria || '').toLowerCase();
         return titolo.includes(filtro) || categoria.includes(filtro);
     });
@@ -110,9 +110,11 @@ function renderGrigliaRicette(filtro) {
     }
 
     gridContainer.innerHTML = filtrate.map(r => {
+        const titolo = r.titolo || r.nome || 'Senza titolo';
         const creatore = r.creatore || 'Utente';
         const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#2563eb';
         const bgTrasparente = hexToRgba(coloreUtente, 0.22);
+        const descrizione = r.descrizione || r.note || 'Nessuna descrizione...';
 
         return `
             <div class="ricetta-card" data-id="${r.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente};">
@@ -123,8 +125,8 @@ function renderGrigliaRicette(filtro) {
                     </button>
                 </div>
                 <div class="ricetta-card-body">
-                    <h3 class="ricetta- titolo">${r.titolo}</h3>
-                    <p class="ricetta-descrizione">${r.descrizione ? r.descrizione.substring(0, 80) + '...' : 'Nessuna descrizione...'}</p>
+                    <h3 class="ricetta-titolo">${titolo}</h3>
+                    <p class="ricetta-descrizione">${descrizione.substring(0, 80)}...</p>
                 </div>
                 <div class="ricetta-card-footer">
                     <span>Creatore: ${creatore}</span>
@@ -165,22 +167,47 @@ function apriModaleDettaglioRicetta(r) {
     const prev = document.getElementById(modalId);
     if (prev) prev.remove();
 
+    const titolo = r.titolo || r.nome || 'Senza titolo';
+
+    // Gestione ingredienti (supporta sia array di stringhe, sia array di oggetti, sia stringa semplice)
+    let ingredientiFormatted = '';
+    const ingData = r.listaIngredienti || r.ingredienti;
+    if (Array.isArray(ingData)) {
+        ingredientiFormatted = ingData.map(item => {
+            if (typeof item === 'object' && item !== null) {
+                return `- ${item.nome || ''} ${item.quantita || ''}`.trim();
+            }
+            return `- ${item}`;
+        }).join('\n');
+    } else {
+        ingredientiFormatted = ingData || 'Non specificati';
+    }
+
+    // Gestione procedimento (supporta sia array di stringhe che stringa semplice)
+    let procedimentoFormatted = '';
+    const procData = r.procedimento || r.listaPassaggi;
+    if (Array.isArray(procData)) {
+        procedimentoFormatted = procData.map((step, index) => `${index + 1}. ${step}`).join('\n');
+    } else {
+        procedimentoFormatted = procData || 'Non specificato';
+    }
+
     const html = `
         <div class="modal-overlay" id="${modalId}">
             <div class="modal-content" style="max-width: 600px;">
                 <div class="modal-header">
                     <div>
                         <span class="ricetta-badge" style="margin-bottom: 6px; display: inline-block;">${r.categoria || 'Generale'}</span>
-                        <h2 style="margin: 0; font-size: 1.25rem; color: #1e293b;">${r.titolo}</h2>
+                        <h2 style="margin: 0; font-size: 1.25rem; color: #1e293b;">${titolo}</h2>
                     </div>
                     <button class="btn-close-modal" id="btn-close-view">&times;</button>
                 </div>
                 <div class="modal-body" style="margin: 15px 0; max-height: 60vh; overflow-y: auto;">
                     <h4 style="margin: 0 0 6px 0; color: #475569;">Ingredienti:</h4>
-                    <p style="white-space: pre-line; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 15px;">${r.ingredienti || 'Non specificati'}</p>
+                    <p style="white-space: pre-line; background: #f8fafc; padding: 10px; border-radius: 6px; margin-bottom: 15px;">${ingredientiFormatted}</p>
                     
-                    <h4 style="margin: 0 0 6px 0; color: #475569;">Preparazione:</h4>
-                    <p style="white-space: pre-line; background: #f8fafc; padding: 10px; border-radius: 6px;">${r.preparazione || 'Non specificata'}</p>
+                    <h4 style="margin: 0 0 6px 0; color: #475569;">Preparazione / Procedimento:</h4>
+                    <p style="white-space: pre-line; background: #f8fafc; padding: 10px; border-radius: 6px;">${procedimentoFormatted}</p>
                 </div>
                 <div class="modal-footer" style="display: flex; justify-content: flex-end; align-items: center;">
                     <button type="button" class="btn-modal cancel" id="btn-chiudi-modal">Chiudi</button>
@@ -218,12 +245,12 @@ function apriModaleFormRicetta() {
                         <input type="text" id="ric-cat" required placeholder="Es. Dolci, Primi, Secondi...">
                     </div>
                     <div class="form-group">
-                        <label for="ric-ingredienti">Ingredienti</label>
-                        <textarea id="ric-ingredienti" rows="4" required placeholder="Elenca gli ingredienti..."></textarea>
+                        <label for="ric-ingredienti">Ingredienti (uno per riga)</label>
+                        <textarea id="ric-ingredienti" rows="4" required placeholder="Es. Farina - 200g..."></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="ric-preparazione">Preparazione</label>
-                        <textarea id="ric-preparazione" rows="5" required placeholder="Descrivi i passaggi..."></textarea>
+                        <label for="ric-procedimento">Procedimento</label>
+                        <textarea id="ric-procedimento" rows="5" required placeholder="Descrivi i passaggi..."></textarea>
                     </div>
                     <div class="modal-footer" style="margin-top: 15px; display: flex; justify-content: flex-end; gap: 8px;">
                         <button type="button" class="btn-modal cancel" id="btn-cancel-ricetta">Annulla</button>
@@ -245,15 +272,19 @@ function apriModaleFormRicetta() {
         e.preventDefault();
         const titolo = document.getElementById('ric-titolo').value.trim();
         const categoria = capitalize(document.getElementById('ric-cat').value.trim());
-        const ingredienti = document.getElementById('ric-ingredienti').value.trim();
-        const preparazione = document.getElementById('ric-preparazione').value.trim();
+        const ingredientiTesto = document.getElementById('ric-ingredienti').value.trim();
+        const procedimentoTesto = document.getElementById('ric-procedimento').value.trim();
+
+        // Trasforma il testo in array puliti per Firestore
+        const listaIngredienti = ingredientiTesto.split('\n').map(item => item.trim()).filter(Boolean);
+        const procedimento = procedimentoTesto.split('\n').map(item => item.trim()).filter(Boolean);
 
         try {
             await addDoc(collection(db, "ricette"), {
                 titolo,
                 categoria,
-                ingredienti,
-                preparazione,
+                listaIngredienti,
+                procedimento,
                 creatore: savedUser,
                 creatoIl: new Date().toISOString()
             });
