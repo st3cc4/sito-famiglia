@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foto e Video - Sito Famiglia</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="stile-media.css">
+</head>
+<body>
+
+  <div id="media-content-root" class="media-container">
+    <!-- Il contenuto dinamico viene generato da media.js -->
+  </div>
+
+  <script type="module">
+    import { initMediaSection } from './media.js';
+    document.addEventListener("DOMContentLoaded", () => {
+      const container = document.getElementById('media-content-root');
+      if (container) {
+        initMediaSection(container);
+      }
+    });
+  </script>
+</body>
+</html>
