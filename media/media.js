@@ -1,339 +1,192 @@
 import { db } from "../firebase-config.js";
 import { 
-    collection, getDocs, addDoc, doc, deleteDoc 
+    collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-let utentiCollezioni = {};
 let listaMedia = [];
-let categorieEsistenti = [];
 
+// Funzione principale di inizializzazione della sezione Foto & Video
 export async function initMediaSection(container) {
-    await caricaUtenti();
     await caricaEDisegnaMedia(container);
 }
 
-async function caricaUtenti() {
-    try {
-        const utentiSnapshot = await getDocs(collection(db, "utenti"));
-        utentiCollezioni = {};
-        utentiSnapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            const usernameKey = (data.username || docSnap.id || '').toLowerCase();
-            if (usernameKey) {
-                utentiCollezioni[usernameKey] = data.colore || '#2563eb';
-            }
-        });
-    } catch (e) {
-        console.error("Errore caricamento utenti:", e);
-    }
-}
-
-function hexToRgba(hex, alpha = 0.22) {
-    if (!hex || !hex.startsWith('#')) return `rgba(37, 99, 235, ${alpha})`;
-    let c = hex.replace('#', '');
-    if (c.length === 3) c = c.split('').map(char => char + char).join('');
-    const num = parseInt(c, 16);
-    if (isNaN(num)) return `rgba(37, 99, 235, ${alpha})`;
-    const r = (num >> 16) & 255;
-    const g = (num >> 8) & 255;
-    const b = num & 255;
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-function capitalize(str) {
-    if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-}
-
-function formattaDataLeggibile(dataIsoStr) {
-    if (!dataIsoStr) return 'Data non specificata';
-    try {
-        const d = new Date(dataIsoStr);
-        if (isNaN(d.getTime())) return dataIsoStr.split('T')[0];
-        
-        const options = { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' };
-        let formatted = d.toLocaleDateString('it-IT', options);
-        return capitalize(formatted);
-    } catch (e) {
-        return dataIsoStr;
-    }
-}
-
-function comprimiImmagine(file, maxWidth = 1200, maxHeight = 1200, qualita = 0.7) {
-    return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                let width = img.width;
-                let height = img.height;
-
-                if (width > height) {
-                    if (width > maxWidth) {
-                        height = Math.round((height * maxWidth) / width);
-                        width = maxWidth;
-                    }
-                } else {
-                    if (height > maxHeight) {
-                        width = Math.round((width * maxHeight) / height);
-                        height = maxHeight;
-                    }
-                }
-
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-
-                const dataUrlCompressed = canvas.toDataURL('image/jpeg', qualita);
-                resolve(dataUrlCompressed);
-            };
-        };
-    });
-}
-
 async function caricaEDisegnaMedia(container) {
+    const sessionUser = localStorage.getItem('sitoFamiglia_user') || 'Anonimo';
+    const sessionNome = localStorage.getItem('sitoFamiglia_nome') || sessionUser;
+
     container.innerHTML = `
         <div class="media-container">
             <div class="media-header">
-                <h2><i class="fa-solid fa-photo-film"></i> FOTO E VIDEO</h2>
+                <h2><i class="fa-solid fa-images"></i> FOTO E VIDEO</h2>
                 <div class="media-actions">
                     <input type="text" id="search-media" class="search-media-input" placeholder="Cerca categoria...">
-                    <button class="btn-add-media" id="btn-nuovo-media">
-                        <i class="fa-solid fa-circle-plus"></i> Carica Foto/Video
+                    <button class="btn-add-media" id="btn-carica-media">
+                        Carica Foto/Video
                     </button>
                 </div>
             </div>
 
-            <div id="media-gruppi-container" style="display: flex; flex-direction: column; gap: 20px;">
-                <p style="color: #64748b; padding: 20px;">Caricamento in corso...</p>
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-calendar-day"></i> Archivio Media</h3>
+                </div>
+                <div class="card-body">
+                    <div class="media-grid-gallery" id="media-grid-gallery">
+                        <p style="color: #64748b; font-size: 0.88rem;">Caricamento media in corso...</p>
+                    </div>
+                </div>
             </div>
         </div>
     `;
 
-    document.getElementById('btn-nuovo-media').addEventListener('click', () => {
-        apriModaleFormMedia();
-    });
+    // Pulsante per aprire la modale di caricamento
+    const btnCarica = container.querySelector('#btn-carica-media');
+    if (btnCarica) {
+        btnCarica.addEventListener('click', () => apriModaleCaricamento(sessionNome));
+    }
 
-    const searchInput = document.getElementById('search-media');
-    searchInput.addEventListener('input', (e) => {
-        const queryStr = e.target.value.toLowerCase().trim();
-        renderGrigliaMedia(queryStr);
-    });
+    // Input di ricerca
+    const inputSearch = container.querySelector('#search-media');
+    if (inputSearch) {
+        inputSearch.addEventListener('input', (e) => {
+            const filtro = e.target.value.toLowerCase();
+            filtrzaEMostraMedia(filtro);
+        });
+    }
+
+    await recuperaMediaDaFirestore();
+}
+
+async function recuperaMediaDaFirestore() {
+    const gridGallery = document.getElementById('media-grid-gallery');
+    if (!gridGallery) return;
 
     try {
-        const mediaSnapshot = await getDocs(collection(db, "media"));
+        const q = query(collection(db, "media"), orderBy("dataCreazione", "desc"));
+        const snapshot = await getDocs(q);
         listaMedia = [];
-        const catMap = new Set();
 
-        mediaSnapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            const cat = capitalize(data.categoria || data.album || 'Generale');
-            catMap.add(cat);
-            
+        snapshot.forEach(docSnap => {
             listaMedia.push({
                 id: docSnap.id,
-                ...data,
-                categoria: cat,
-                dataCreazione: data.dataCreazione || new Date().toISOString()
+                ...docSnap.data()
             });
         });
 
-        listaMedia.sort((a, b) => new Date(b.dataCreazione) - new Date(a.dataCreazione));
-        categorieEsistenti = Array.from(catMap).sort();
-        renderGrigliaMedia('');
+        disegnaGrigliaMedia(listaMedia);
 
     } catch (err) {
         console.error("Errore caricamento media:", err);
-        document.getElementById('media-gruppi-container').innerHTML = '<p style="color:#dc3545;">Errore durante il caricamento dei file.</p>';
+        gridGallery.innerHTML = '<p style="color: #dc3545; font-size: 0.88rem;">Errore durante il caricamento dei media.</p>';
     }
 }
 
-function renderGrigliaMedia(filtro) {
-    const gruppiContainer = document.getElementById('media-gruppi-container');
-    if (!gruppiContainer) return;
+function disegnaGrigliaMedia(arrayMedia) {
+    const gridGallery = document.getElementById('media-grid-gallery');
+    if (!gridGallery) return;
 
-    const mediaFiltrati = listaMedia.filter(m => {
-        const cat = (m.categoria || '').toLowerCase();
-        return cat.includes(filtro);
-    });
-
-    if (mediaFiltrati.length === 0) {
-        gruppiContainer.innerHTML = '<p style="color:#94a3b8; font-style:italic; padding: 10px;">Nessun file presente.</p>';
+    if (arrayMedia.length === 0) {
+        gridGallery.innerHTML = '<p style="color: #64748b; font-size: 0.88rem;">Nessun media trovato.</p>';
         return;
     }
 
-    const gruppiPerData = {};
-    mediaFiltrati.forEach(m => {
-        let dataIsoKey = 'Altro';
-        if (m.dataCreazione) {
-            dataIsoKey = m.dataCreazione.split('T')[0];
-        }
-        if (!gruppiPerData[dataIsoKey]) {
-            gruppiPerData[dataIsoKey] = [];
-        }
-        gruppiPerData[dataIsoKey].push(m);
-    });
+    gridGallery.innerHTML = arrayMedia.map(m => {
+        const isVideo = m.tipo === 'video' || (m.url && m.url.includes('.mp4'));
+        const badgeIcon = isVideo ? '<i class="fa-solid fa-video"></i> Video' : '<i class="fa-solid fa-image"></i> Foto';
+        
+        const anteprimaHtml = isVideo 
+            ? `<video src="${m.url}" preload="metadata"></video>` 
+            : `<img src="${m.url}" alt="${m.categoria || 'Media'}">`;
 
-    const dateOrdinate = Object.keys(gruppiPerData).sort((a, b) => b.localeCompare(a));
-    let htmlGruppi = '';
-
-    dateOrdinate.forEach(dataKey => {
-        const elementiDelGiorno = gruppiPerData[dataKey];
-        const titoloDataLeggibile = dataKey === 'Altro' ? 'Altro' : formattaDataLeggibile(dataKey);
-
-        htmlGruppi += `
-            <div class="card" style="margin-bottom: 0;">
-                <div class="card-header">
-                    <h3><i class="fa-regular fa-calendar"></i> ${titoloDataLeggibile}</h3>
+        return `
+            <div class="media-card-item" data-id="${m.id}">
+                <div class="media-preview-box">
+                    ${anteprimaHtml}
+                    <span class="media-badge-type">${badgeIcon}</span>
                 </div>
-                <div class="card-body">
-                    <div class="media-grid-gallery">
-                        ${elementiDelGiorno.map(m => {
-                            const creatore = m.creatore || 'Utente';
-                            const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#2563eb';
-                            const bgTrasparente = hexToRgba(coloreUtente, 0.22);
-                            const isVideo = m.tipo === 'video' || (m.url && m.url.startsWith('data:video/'));
-
-                            return `
-                                <div class="media-card-item" data-id="${m.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente};">
-                                    <div class="media-preview-box">
-                                        ${isVideo 
-                                            ? `<video src="${m.url}" preload="metadata"></video><span class="media-badge-type"><i class="fa-solid fa-play"></i> Video</span>`
-                                            : `<img src="${m.url}" alt="${m.categoria}" loading="lazy"><span class="media-badge-type"><i class="fa-solid fa-image"></i> Foto</span>`
-                                        }
-                                    </div>
-                                    <div class="media-card-info">
-                                        <span class="media-card-title">${m.categoria}</span>
-                                        <div class="media-card-footer">
-                                            <span>(${creatore})</span>
-                                            <button class="btn-delete-media" title="Elimina" data-id="${m.id}">
-                                                <i class="fa-solid fa-trash-can"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
+                <div class="media-card-info">
+                    <span class="media-card-title">${m.categoria || m.titolo || 'Senza categoria'}</span>
+                    <div class="media-card-footer">
+                        <span>(${m.creatore || 'Anonimo'})</span>
+                        <button class="btn-delete-media" data-id="${m.id}" title="Elimina">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
                     </div>
                 </div>
             </div>
         `;
-    });
+    }).join('');
 
-    gruppiContainer.innerHTML = htmlGruppi;
-
-    gruppiContainer.querySelectorAll('.media-card-item').forEach(card => {
-        card.addEventListener('click', (e) => {
-            if (e.target.closest('.btn-delete-media')) return;
-            const idM = card.getAttribute('data-id');
-            const mediaObj = listaMedia.find(m => m.id === idM);
-            if (mediaObj) apriModaleVisualizzaMedia(mediaObj);
-        });
-    });
-
-    gruppiContainer.querySelectorAll('.btn-delete-media').forEach(btnDel => {
-        btnDel.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const idM = btnDel.getAttribute('data-id');
-            if (confirm("Sei sicuro di voler eliminare questo file?")) {
+    // Eventi click per eliminare
+    gridGallery.querySelectorAll('.btn-delete-media').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation(); // Evita di aprire la modale di visualizzazione
+            const idMedia = e.currentTarget.getAttribute('data-id');
+            if (confirm("Sei sicuro di voler eliminare questo elemento?")) {
                 try {
-                    await deleteDoc(doc(db, "media", idM));
-                    const contentArea = document.getElementById('media-content-root') || document.getElementById('content-area');
-                    await caricaEDisegnaMedia(contentArea);
+                    await deleteDoc(doc(db, "media", idMedia));
+                    await recuperaMediaDaFirestore();
                 } catch (err) {
-                    console.error("Errore cancellazione media:", err);
-                    alert("Impossibile eliminare il file.");
+                    console.error("Errore eliminazione media:", err);
+                    alert("Impossibile eliminare l'elemento.");
                 }
             }
         });
     });
+
+    // Eventi click sulla card per ingrandire l'immagine/video
+    gridGallery.querySelectorAll('.media-card-item').forEach(card => {
+        card.addEventListener('click', (e) => {
+            // Se clicca sul cestino non fa nulla
+            if (e.target.closest('.btn-delete-media')) return;
+            const idMedia = card.getAttribute('data-id');
+            const mediaObj = listaMedia.find(m => m.id === idMedia);
+            if (mediaObj) apriModaleVisualizzazione(mediaObj);
+        });
+    });
 }
 
-function apriModaleVisualizzaMedia(m) {
-    const modalId = 'modal-view-media';
-    const prevModal = document.getElementById(modalId);
-    if (prevModal) prevModal.remove();
+function filtrzaEMostraMedia(filtro) {
+    const filtrati = listaMedia.filter(m => {
+        const cat = (m.categoria || m.titolo || '').toLowerCase();
+        const autore = (m.creatore || '').toLowerCase();
+        return cat.includes(filtro) || autore.includes(filtro);
+    });
+    disegnaGrigliaMedia(filtrati);
+}
 
-    const isVideo = m.tipo === 'video' || (m.url && m.url.startsWith('data:video/'));
+// MODALE PER CARICARE UN NUOVO MEDIA
+function apriModaleCaricamento(nomeUtente) {
+    const modalId = 'modal-carica-media';
+    const prev = document.getElementById(modalId);
+    if (prev) prev.remove();
 
     const modalHtml = `
         <div class="modal-overlay" id="${modalId}">
-            <div class="modal-content" style="max-width: 750px; text-align: center;">
+            <div class="modal-content">
                 <div class="modal-header">
-                    <div>
-                        <h3 style="margin-bottom: 2px;">${m.categoria}</h3>
-                        <span style="font-size: 0.8rem; color: #64748b;">Caricato da ${m.creatore || 'Utente'}</span>
-                    </div>
-                    <button class="btn-close-modal" id="btn-close-view-media">&times;</button>
+                    <h3 style="margin: 0; font-size: 1rem;"><i class="fa-solid fa-cloud-arrow-up"></i> Carica Foto o Video</h3>
+                    <button class="btn-close-modal" id="btn-close-modal">&times;</button>
                 </div>
-                
-                <div class="media-view-box">
-                    ${isVideo 
-                        ? `<video src="${m.url}" controls autoplay class="media-view-display"></video>`
-                        : `<img src="${m.url}" alt="${m.categoria}" class="media-view-display">`
-                    }
-                </div>
-
-                <div class="modal-footer" style="margin-top: 15px; display: flex; justify-content: flex-end;">
-                    <button type="button" class="btn-modal cancel" id="btn-close-view-media-footer">Chiudi</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-    const modalEl = document.getElementById(modalId);
-    document.getElementById('btn-close-view-media').addEventListener('click', () => modalEl.remove());
-    document.getElementById('btn-close-view-media-footer').addEventListener('click', () => modalEl.remove());
-}
-
-function apriModaleFormMedia() {
-    const savedUser = localStorage.getItem('sitoFamiglia_user') || 'Utente';
-
-    const modalId = 'modal-form-media';
-    const prevModal = document.getElementById(modalId);
-    if (prevModal) prevModal.remove();
-
-    const optionsCat = categorieEsistenti.map(c => `<option value="${c}">${c}</option>`).join('');
-
-    const modalHtml = `
-        <div class="modal-overlay" id="${modalId}">
-            <div class="modal-content" style="max-width: 500px;">
-                <div class="modal-header">
-                    <h3>Carica Foto o Video Multipli</h3>
-                    <button class="btn-close-modal" id="btn-close-form-media">&times;</button>
-                </div>
-                <form id="form-media">
+                <form id="form-carica-media">
                     <div class="form-group">
-                        <label for="med-cat-select">Categoria / Album</label>
-                        <select id="med-cat-select">
-                            ${optionsCat}
-                            <option value="__NUOVA__">+ Crea Nuova Categoria...</option>
+                        <label for="media-url">URL Immagine / Video</label>
+                        <input type="url" id="media-url" required placeholder="https://esempio.com/foto.jpg">
+                    </div>
+                    <div class="form-group">
+                        <label for="media-categoria">Categoria / Titolo</label>
+                        <input type="text" id="media-categoria" required placeholder="Es. Vacanze, Maya, Compleanno">
+                    </div>
+                    <div class="form-group">
+                        <label for="media-tipo">Tipo</label>
+                        <select id="media-tipo">
+                            <option value="foto">Foto</option>
+                            <option value="video">Video</option>
                         </select>
                     </div>
-
-                    <div class="form-group" id="group-nuova-cat" style="display: ${categorieEsistenti.length === 0 ? 'block' : 'none'};">
-                        <label for="med-nuova-cat">Nome Nuova Categoria</label>
-                        <input type="text" id="med-nuova-cat" placeholder="Es. Vacanze, Feste..." value="${categorieEsistenti.length === 0 ? 'Generale' : ''}">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Seleziona Foto o Video (anche multipli)</label>
-                        <div class="file-upload-box" id="box-file-upload">
-                            <i class="fa-solid fa-cloud-arrow-up file-upload-icon"></i>
-                            <div class="file-upload-text" id="txt-file-selected">Tocca qui per scegliere più file</div>
-                            <input type="file" id="input-file-native" accept="image/*,video/*" multiple style="display: none;">
-                        </div>
-                    </div>
-
-                    <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 8px;">
-                        <button type="button" class="btn-modal cancel" id="btn-cancel-media">Annulla</button>
-                        <button type="submit" class="btn-modal save" id="btn-save-media">Salva</button>
+                    <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px;">
+                        <button type="button" class="btn-modal cancel" id="btn-cancel-modal">Annulla</button>
+                        <button type="submit" class="btn-modal save">Carica</button>
                     </div>
                 </form>
             </div>
@@ -343,96 +196,71 @@ function apriModaleFormMedia() {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
 
     const modalEl = document.getElementById(modalId);
-    const btnClose = document.getElementById('btn-close-form-media');
-    const btnCancel = document.getElementById('btn-cancel-media');
-    const form = document.getElementById('form-media');
+    const chiudi = () => modalEl.remove();
 
-    const catSelect = document.getElementById('med-cat-select');
-    const groupNuovaCat = document.getElementById('group-nuova-cat');
-    const boxUpload = document.getElementById('box-file-upload');
-    const inputFile = document.getElementById('input-file-native');
-    const txtFileSelected = document.getElementById('txt-file-selected');
-    const btnSave = document.getElementById('btn-save-media');
+    modalEl.querySelector('#btn-close-modal').addEventListener('click', chiudi);
+    modalEl.querySelector('#btn-cancel-modal').addEventListener('click', chiudi);
 
-    let fileSelezionatiList = [];
-
-    catSelect.addEventListener('change', () => {
-        if (catSelect.value === '__NUOVA__') {
-            groupNuovaCat.style.display = 'block';
-        } else {
-            groupNuovaCat.style.display = 'none';
-        }
-    });
-
-    boxUpload.addEventListener('click', () => inputFile.click());
-
-    inputFile.addEventListener('change', (e) => {
-        const files = e.target.files;
-        if (!files || files.length === 0) return;
-
-        fileSelezionatiList = Array.from(files);
-        txtFileSelected.textContent = `${fileSelezionatiList.length} file selezionato/i pronti`;
-    });
-
-    const chiudiModale = () => modalEl.remove();
-
-    btnClose.addEventListener('click', chiudiModale);
-    btnCancel.addEventListener('click', chiudiModale);
-
-    form.addEventListener('submit', async (e) => {
+    modalEl.querySelector('#form-carica-media').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const url = document.getElementById('media-url').value.trim();
+        const categoria = document.getElementById('media-categoria').value.trim();
+        const tipo = document.getElementById('media-tipo').value;
 
-        let categoria = '';
-        if (catSelect.value === '__NUOVA__' || categorieEsistenti.length === 0) {
-            categoria = capitalize(document.getElementById('med-nuova-cat').value.trim());
-        } else {
-            categoria = catSelect.value;
-        }
-
-        if (!categoria || fileSelezionatiList.length === 0) {
-            alert("Seleziona almeno una foto o un video dal dispositivo.");
+        if (!url || !categoria) {
+            alert("Compella tutti i campi obbligatori.");
             return;
         }
 
-        btnSave.disabled = true;
-        btnSave.textContent = 'Caricamento in corso...';
-
         try {
-            for (let i = 0; i < fileSelezionatiList.length; i++) {
-                const file = fileSelezionatiList[i];
-                const fileTipo = file.type.startsWith('video/') ? 'video' : 'foto';
-                let fileDataFormatted = '';
+            await addDoc(collection(db, "media"), {
+                url: url,
+                categoria: categoria,
+                tipo: tipo,
+                creatore: nomeUtente,
+                dataCreazione: serverTimestamp()
+            });
 
-                if (fileTipo === 'foto') {
-                    fileDataFormatted = await comprimiImmagine(file);
-                } else {
-                    fileDataFormatted = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onload = (event) => resolve(event.target.result);
-                        reader.readAsDataURL(file);
-                    });
-                }
-
-                const payload = {
-                    categoria: categoria,
-                    tipo: fileTipo,
-                    url: fileDataFormatted,
-                    creatore: savedUser,
-                    dataCreazione: new Date().toISOString()
-                };
-
-                await addDoc(collection(db, "media"), payload);
-            }
-
-            chiudiModale();
-            const contentArea = document.getElementById('media-content-root') || document.getElementById('content-area');
-            await caricaEDisegnaMedia(contentArea);
-
+            chiudi();
+            await recuperaMediaDaFirestore();
         } catch (err) {
-            console.error("Errore salvataggio media multipli:", err);
-            alert("Si è verificato un errore durante il salvataggio dei file.");
-            btnSave.disabled = false;
-            btnSave.textContent = 'Salva';
+            console.error("Errore salvataggio media:", err);
+            alert("Errore durante il salvataggio.");
         }
+    });
+}
+
+// MODALE PER VISUALIZZARE L'IMMAGINE O IL VIDEO IN GRANDE
+function apriModaleVisualizzazione(mediaObj) {
+    const modalId = 'modal-visualizza-media';
+    const prev = document.getElementById(modalId);
+    if (prev) prev.remove();
+
+    const isVideo = mediaObj.tipo === 'video' || (mediaObj.url && mediaObj.url.includes('.mp4'));
+    const contenutoHtml = isVideo 
+        ? `<video src="${mediaObj.url}" controls autoplay class="media-view-display" style="width:100%;"></video>` 
+        : `<img src="${mediaObj.url}" alt="${mediaObj.categoria}" class="media-view-display" style="width:100%;">`;
+
+    const modalHtml = `
+        <div class="modal-overlay" id="${modalId}">
+            <div class="modal-content" style="max-width: 550px; text-align: center;">
+                <div class="modal-header">
+                    <h3 style="margin: 0; font-size: 0.95rem;">${mediaObj.categoria || 'Dettaglio'} (${mediaObj.creatore || 'Anonimo'})</h3>
+                    <button class="btn-close-modal" id="btn-close-modal">&times;</button>
+                </div>
+                <div style="margin-top: 10px; display: flex; justify-content: center; align-items: center;">
+                    ${contenutoHtml}
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modalEl = document.getElementById(modalId);
+    const chiudi = () => modalEl.remove();
+
+    modalEl.querySelector('#btn-close-modal').addEventListener('click', chiudi);
+    modalEl.addEventListener('click', (e) => {
+        if (e.target === modalEl) chiudi();
     });
 }
