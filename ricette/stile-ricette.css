@@ -1,244 +1,28 @@
-/* --- STILI SEZIONE RICETTE --- */
-
-body {
-    margin: 0;
-    padding: 15px;
-    font-family: system-ui, -apple-system, sans-serif;
-    background-color: #f8fafc;
-    color: #1e293b;
-}
-
-.ricette-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    max-width: 1000px;
-    margin: 0 auto;
-    padding-bottom: 30px;
-}
-
-/* HEADER RICETTE */
-.ricette-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #ffffff;
-    padding: 16px 20px;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.ricette-header h2 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #1e293b;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-}
-
-.ricette-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
-    justify-content: flex-end;
-}
-
-.search-ricetta-input {
-    padding: 8px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 0.88rem;
-    outline: none;
-    max-width: 220px;
-}
-
-.btn-add-ricetta {
-    background-color: #2563eb;
-    color: #ffffff;
-    border: none;
-    padding: 9px 16px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: background-color 0.2s;
-    white-space: nowrap;
-}
-
-.btn-add-ricetta:hover {
-    background-color: #1d4ed8;
-}
-
-/* GRIGLIA RICETTE */
+/* GRIGLIA RICETTE A 2 COLONNE */
 .ricette-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
 }
 
 .ricetta-card {
     border-radius: 12px;
     border: 1px solid #e2e8f0;
-    padding: 16px;
+    padding: 14px 16px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 12px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.03);
     cursor: pointer;
     transition: transform 0.15s, box-shadow 0.15s;
 }
 
 .ricetta-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
-}
-
-.ricetta-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.ricetta-badge {
-    background-color: rgba(15, 23, 42, 0.75);
-    color: #ffffff;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.ricetta-card-body h3 {
-    margin: 8px 0 6px 0;
-    font-size: 1rem;
-    color: #1e293b;
-    font-weight: 700;
-}
-
-.ricetta-descrizione {
-    font-size: 0.85rem;
-    color: #475569;
-    margin: 0;
-    line-height: 1.4;
-}
-
-.ricetta-card-footer {
-    font-size: 0.75rem;
-    color: #64748b;
-    border-top: 1px solid rgba(0,0,0,0.06);
-    padding-top: 8px;
-}
-
-.btn-delete-ricetta {
-    background: none;
-    border: none;
-    color: #94a3b8;
-    cursor: pointer;
-    font-size: 0.9rem;
-    padding: 4px;
-    transition: color 0.2s;
-}
-
-.btn-delete-ricetta:hover {
-    color: #dc3545;
-}
-
-/* MODALI E FORM */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(15, 23, 42, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 15px;
-}
-
-.modal-content {
-    background-color: #ffffff;
-    border-radius: 12px;
-    padding: 20px;
-    width: 100%;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 15px;
-}
-
-.btn-close-modal {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #64748b;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 12px;
-}
-
-.form-group input, .form-group textarea {
-    padding: 8px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    font-family: inherit;
-    font-size: 0.9rem;
-}
-
-.btn-modal {
-    padding: 8px 16px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.btn-modal.save {
-    background-color: #2563eb;
-    color: #ffffff;
-}
-
-.btn-modal.cancel {
-    background-color: #e2e8f0;
-    color: #475569;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(0,0,0,0.06);
 }
 
 @media (max-width: 600px) {
-    .ricette-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .ricette-actions {
-        justify-content: space-between;
-    }
-
-    .search-ricetta-input {
-        max-width: 100%;
-        flex: 1;
-    }
-
     .ricette-grid {
         grid-template-columns: 1fr;
     }
