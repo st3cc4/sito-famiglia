@@ -1,32 +1,19 @@
-// --- Import SDK Firebase ---
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { db } from "../firebase-config.js";
 import { 
-    getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
-    authDomain: "sito-famiglia.firebaseapp.com",
-    projectId: "sito-famiglia",
-    storageBucket: "sito-famiglia.appspot.com",
-    messagingSenderId: "93216467751",
-    appId: "1:93216467751:web:9930052845521ca5ef895a",
-    measurementId: "G-NYRQJDTWM3"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    collection, getDocs, setDoc, doc, updateDoc, deleteDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let listaUtenti = [];
 
 // Funzione principale di inizializzazione della sezione Gestione Utenti
 export async function initGestioneUtentiSection(container) {
-    const savedUser = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
-    const userData = savedUser ? JSON.parse(savedUser) : {};
+    const isLogged = localStorage.getItem("sitoFamiglia_logged");
+    const username = localStorage.getItem("sitoFamiglia_user");
+    const ruolo = localStorage.getItem("sitoFamiglia_ruolo");
 
-    const isAdmin = (userData.ruolo === 'admin' || (userData.nome && userData.nome.toLowerCase() === 'paolo'));
-    if (!isAdmin) {
-        container.innerHTML = '<p style="color:red; text-align:center; padding: 20px;">Accesso negato. Sezione riservata all amministratore.</p>';
+    const isAdmin = (ruolo === 'admin' || (username && username.toLowerCase() === 'paolo'));
+    if (!isLogged || !isAdmin) {
+        container.innerHTML = '<p style="color:red; text-align:center; padding: 20px;">Accesso negato. Sezione riservata all\'amministratore.</p>';
         return;
     }
 
@@ -59,7 +46,9 @@ async function caricaEDisegnaUtenti(container) {
     const btnTornaHome = container.querySelector('#btn-torna-home');
     if (btnTornaHome) {
         btnTornaHome.addEventListener('click', () => {
-            if (typeof window.selezionaScheda === 'function') {
+            if (typeof window.cambiaPagina === 'function') {
+                window.cambiaPagina('dashboard');
+            } else if (typeof window.selezionaScheda === 'function') {
                 window.selezionaScheda('dashboard');
             }
         });
@@ -158,7 +147,7 @@ async function caricaEDisegnaUtenti(container) {
                 if (confirm(`Sei sicuro di voler eliminare l'utente "${utenteObj ? utenteObj.nome : ''}"?`)) {
                     try {
                         await deleteDoc(doc(db, "utenti", idUtente));
-                        const contentArea = document.getElementById('content-area');
+                        const contentArea = document.getElementById('utenti-content-root') || document.getElementById('content-area');
                         await caricaEDisegnaUtenti(contentArea);
                     } catch (err) {
                         console.error("Errore cancellazione utente:", err);
@@ -174,7 +163,7 @@ async function caricaEDisegnaUtenti(container) {
     }
 }
 
-// POP-UP MODALE PER CREARE O MODIFICARE UN UTENTE CON PASSWORD PRECOMPILATA
+// POP-UP MODALE PER CREARE O MODIFICARE UN UTENTE
 function apriModaleUtente(utenteEsistente = null) {
     const isModifica = !!utenteEsistente;
     const modalId = 'modal-utente';
@@ -210,7 +199,7 @@ function apriModaleUtente(utenteEsistente = null) {
                     </div>
                     <div class="form-group">
                         <label for="usr-ruolo">Ruolo</label>
-                        <select id="usr-ruolo">
+                        <select id="usr-ruolo" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff;">
                             <option value="utente" ${isModifica && utenteEsistente.ruolo === 'utente' ? 'selected' : ''}>Utente</option>
                             <option value="admin" ${isModifica && utenteEsistente.ruolo === 'admin' ? 'selected' : ''}>Admin</option>
                         </select>
@@ -218,7 +207,7 @@ function apriModaleUtente(utenteEsistente = null) {
 
                     <!-- SELEZIONE SCHEDE ACCESSIBILI -->
                     <div class="form-group" style="margin-top: 10px; background-color: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <label style="margin-bottom: 8px; display: block; color: #2b3e50;">Schede Visibili</label>
+                        <label style="margin-bottom: 8px; display: block; color: #2b3e50; font-weight: 600;">Schede Visibili</label>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.88rem;">
                             <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                                 <input type="checkbox" id="perm-scadenze" ${permessiObj.scadenze !== false ? 'checked' : ''}> Scadenze
@@ -235,7 +224,7 @@ function apriModaleUtente(utenteEsistente = null) {
                         </div>
                     </div>
 
-                    <div class="modal-footer">
+                    <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 8px;">
                         <button type="button" class="btn-modal cancel" id="btn-cancel-modal">Annulla</button>
                         <button type="submit" class="btn-modal save">Salva</button>
                     </div>
@@ -270,7 +259,7 @@ function apriModaleUtente(utenteEsistente = null) {
 
         const password = document.getElementById('usr-password').value.trim();
         const ruolo = document.getElementById('usr-ruolo').value;
-        const colore = isModifica && utenteEsistente.colore ? utenteEsistente.colore : '#95a5a6';
+        const colore = isModifica && utenteEsistente.colore ? utenteEsistente.colore : '#2563eb';
 
         const permessi = {
             scadenze: document.getElementById('perm-scadenze').checked,
@@ -301,7 +290,7 @@ function apriModaleUtente(utenteEsistente = null) {
             }
 
             chiudiModale();
-            const contentArea = document.getElementById('content-area');
+            const contentArea = document.getElementById('utenti-content-root') || document.getElementById('content-area');
             await caricaEDisegnaUtenti(contentArea);
 
         } catch (err) {
