@@ -9,6 +9,7 @@ body {
   background-color: #f8fafc;
   padding: 15px;
   color: #1e293b;
+  font-size: 0.95rem;
 }
 
 .main-container {
@@ -29,7 +30,7 @@ body {
   align-items: center;
   background: #0f172a;
   color: white;
-  padding: 12px 20px;
+  padding: 12px 18px;
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
@@ -46,6 +47,7 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  font-size: 0.88rem;
 }
 
 .btn-nav-week:hover {
@@ -53,7 +55,7 @@ body {
 }
 
 .week-label {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.5px;
 }
@@ -86,9 +88,9 @@ body {
 }
 
 .day-header {
-  padding: 12px 18px;
+  padding: 10px 16px;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.92rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -100,7 +102,7 @@ body {
 }
 
 .day-body {
-  padding: 15px;
+  padding: 14px;
 }
 
 /* GRIGLIA IMPEGNI (4x2) */
@@ -129,8 +131,8 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 8px;
-  min-height: 95px;
+  gap: 6px;
+  min-height: 90px;
   border: 1px solid rgba(0,0,0,0.05);
 }
 
@@ -142,18 +144,18 @@ body {
 
 .impegno-titolo {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #1e293b;
 }
 
 .impegno-autore {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   opacity: 0.8;
   font-weight: 600;
 }
 
 .impegno-orari {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: bold;
   color: #1e293b;
   display: flex;
@@ -165,7 +167,7 @@ body {
   background: transparent;
   color: #dc2626;
   border: none;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   cursor: pointer;
   padding: 2px 4px;
   transition: opacity 0.2s;
@@ -176,7 +178,7 @@ body {
 }
 
 .no-impegni {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #94a3b8;
   font-style: italic;
 }
@@ -221,31 +223,32 @@ body {
 .modal-header {
   background-color: #0f172a;
   color: white;
-  padding: 15px 20px;
+  padding: 14px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 0.98rem;
 }
 
 .modal-close {
   background: transparent;
   color: white;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   cursor: pointer;
 }
 
 .modal-body {
-  padding: 20px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 14px;
 }
 
 .impegno-form-modal {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 14px;
 }
 
 .input-row {
@@ -257,20 +260,20 @@ body {
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .input-group label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: #475569;
 }
 
 .input-group input {
-  padding: 10px;
+  padding: 9px;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
 }
 
 .input-group input:focus {
@@ -289,11 +292,12 @@ body {
   background-color: #2563eb;
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 9px 18px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  font-size: 0.88rem;
 }
 
 .btn-primary:hover {
@@ -304,11 +308,12 @@ body {
   background-color: #e2e8f0;
   color: #475569;
   border: none;
-  padding: 10px 18px;
+  padding: 9px 16px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  font-size: 0.88rem;
 }
 
 .btn-secondary:hover {
