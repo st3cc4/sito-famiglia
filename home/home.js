@@ -30,7 +30,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 });
 
-// Funzione ausiliaria per convertire il colore esadecimale in RGBA con alpha ridotto
 function hexToRgba(hex, alpha = 0.22) {
   if (!hex || !hex.startsWith('#')) return 'rgba(241, 245, 249, 0.8)';
   let c = hex.replace('#', '');
@@ -41,7 +40,7 @@ function hexToRgba(hex, alpha = 0.22) {
   return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
 }
 
-// 1. SCADENZE GERARCHICHE
+// 1. SCADENZE (Rimane a elenco verticale con priorità)
 async function caricaScadenze(oggi) {
   const scadenzeList = document.getElementById("scadenze-list");
   if (!scadenzeList) return;
@@ -118,7 +117,7 @@ async function caricaScadenze(oggi) {
   }
 }
 
-// 2. IMPEGNI DI OGGI (Punta alla collezione corretta "impegni")
+// 2. IMPEGNI DI OGGI (Trasformati in striscia orizzontale a scorrimento)
 async function caricaImpegni(oggiStr) {
   const impegniList = document.getElementById("impegni-list");
   if (!impegniList) return;
@@ -134,7 +133,7 @@ async function caricaImpegni(oggiStr) {
     });
 
     if (impegniOggi.length === 0) {
-      impegniList.innerHTML = `<p style="color: #666;">Nessun impegno previsto per oggi.</p>`;
+      impegniList.innerHTML = `<p style="color: #666; padding: 10px;">Nessun impegno previsto per oggi.</p>`;
       return;
     }
 
@@ -142,10 +141,11 @@ async function caricaImpegni(oggiStr) {
 
     impegniOggi.forEach(data => {
       const div = document.createElement("div");
-      div.className = "impegno-item";
+      div.className = "impegno-item-orizzontale";
       div.innerHTML = `
-        <span><strong>${data.titolo}</strong> <small style="opacity: 0.75;">(${data.creatore})</small></span>
         <span class="impegno-ora"><i class="far fa-clock"></i> ${data.oraInizio || ''}</span>
+        <span class="impegno-titolo-orizzontale"><strong>${data.titolo}</strong></span>
+        <small class="impegno-autore">(${data.creatore || ''})</small>
       `;
       impegniList.appendChild(div);
     });
@@ -156,7 +156,7 @@ async function caricaImpegni(oggiStr) {
   }
 }
 
-// 3. ULTIMI 6 MEDIA
+// 3. ULTIMI MEDIA (Striscia orizzontale a scorrimento)
 async function caricaUltimiMedia() {
   const mediaGrid = document.getElementById("media-grid");
   if (!mediaGrid) return;
@@ -167,14 +167,14 @@ async function caricaUltimiMedia() {
     mediaGrid.innerHTML = "";
 
     if (snap.empty) {
-      mediaGrid.innerHTML = `<p style="color: #666; grid-column: span 3;">Nessun media presente.</p>`;
+      mediaGrid.innerHTML = `<p style="color: #666; padding: 10px;">Nessun media presente.</p>`;
       return;
     }
 
     snap.forEach(docSnap => {
       const data = docSnap.data();
       const div = document.createElement("div");
-      div.className = "media-thumb";
+      div.className = "media-thumb-orizzontale";
 
       if (data.tipo === "video") {
         div.innerHTML = `
@@ -192,11 +192,11 @@ async function caricaUltimiMedia() {
 
   } catch (err) {
     console.error("Errore media:", err);
-    mediaGrid.innerHTML = `<p style="color: #dc3545; grid-column: span 3;">Errore caricamento media.</p>`;
+    mediaGrid.innerHTML = `<p style="color: #dc3545;">Errore caricamento media.</p>`;
   }
 }
 
-// 4. TOP 5 RICETTE (Con sfondo alpha ridotto e bordo colorato)
+// 4. TOP 5 RICETTE (Striscia orizzontale a scorrimento con quadratini/card affiancate)
 async function caricaTopRicette() {
   const ricetteList = document.getElementById("ricette-list");
   if (!ricetteList) return;
@@ -213,7 +213,7 @@ async function caricaTopRicette() {
     ricetteList.innerHTML = "";
 
     if (snap.empty) {
-      ricetteList.innerHTML = `<p style="color: #666;">Nessuna ricetta presente.</p>`;
+      ricetteList.innerHTML = `<p style="color: #666; padding: 10px;">Nessuna ricetta presente.</p>`;
       return;
     }
 
@@ -229,22 +229,22 @@ async function caricaTopRicette() {
     top5.forEach(ricetta => {
       const creatore = (ricetta.creatore || "").toLowerCase();
       const coloreBase = mappaColori[creatore] || "#2563eb";
-      const coloreSfondoAlpha = hexToRgba(coloreBase, 0.22); // Sfondo chiaro con trasparenza
+      const coloreSfondoAlpha = hexToRgba(coloreBase, 0.22);
 
-      const li = document.createElement("li");
-      li.className = "ricetta-item";
-      li.style.backgroundColor = coloreSfondoAlpha;
-      li.style.borderLeft = `4px solid ${coloreBase}`;
-      li.style.color = "#1e293b";
+      const div = document.createElement("div");
+      div.className = "ricetta-item-orizzontale";
+      div.style.backgroundColor = coloreSfondoAlpha;
+      div.style.borderLeft = `4px solid ${coloreBase}`;
+      div.style.color = "#1e293b";
 
-      li.innerHTML = `
+      div.innerHTML = `
         <div class="ricetta-info">
-          <span class="ricetta-nome" style="font-weight: 700;">${ricetta.titolo || ricetta.nome || 'Ricetta senza titolo'}</span>
-          <span class="ricetta-autore" style="font-size: 0.8rem; opacity: 0.8;">Inserita da: ${ricetta.creatore || 'Anonimo'}</span>
+          <span class="ricetta-nome" style="font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">${ricetta.titolo || ricetta.nome || 'Senza titolo'}</span>
+          <span class="ricetta-autore" style="font-size: 0.75rem; opacity: 0.8;">Da: ${ricetta.creatore || 'Anonimo'}</span>
         </div>
-        <span class="ricetta-punteggio"><i class="fas fa-star" style="color: #f59e0b;"></i> ${ricetta.punteggio.toFixed(1)}</span>
+        <span class="ricetta-punteggio" style="font-size: 0.85rem;"><i class="fas fa-star" style="color: #f59e0b;"></i> ${ricetta.punteggio.toFixed(1)}</span>
       `;
-      ricetteList.appendChild(li);
+      ricetteList.appendChild(div);
     });
 
   } catch (err) {
