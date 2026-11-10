@@ -124,7 +124,7 @@ async function caricaImpegniSettimana() {
       giorniSettimana.push({
         dataIso,
         dataObj: new Date(iterDate),
-        nomeGiorno: iterDate.toLocaleDateString('it-IT', { weekday: 'long' }),
+        nomeGiorno: iterDate.toLocaleDateString('it-IT', { weekday: 'short' }), // "lun", "mar", ecc. per compattezza
         giornoMese: `${dd}/${mm}`,
         isDomenica: iterDate.getDay() === 0
       });
@@ -159,7 +159,7 @@ async function caricaImpegniSettimana() {
     });
 
     container.innerHTML = "";
-    const coloriGiorni = ["#f8fafc", "#f1f5f9", "#e2e8f0", "#f1f5f9", "#e2e8f0", "#f8fafc", "#fef2f2"];
+    const coloriGiorni = ["#ffffff", "#ffffff", "#ffffff", "#ffffff", "#ffffff", "#ffffff", "#fff5f5"];
 
     giorniSettimana.forEach((giorno, index) => {
       const impegniDelGiorno = impegniPerData[giorno.dataIso] || [];
@@ -167,9 +167,8 @@ async function caricaImpegniSettimana() {
 
       const card = document.createElement("div");
       card.className = `day-card ${giorno.isDomenica ? 'domenica' : ''}`;
-      card.style.backgroundColor = giorno.isDomenica ? '#fff5f5' : (coloriGiorni[index] || '#f8fafc');
+      card.style.backgroundColor = giorno.isDomenica ? '#fff5f5' : (coloriGiorni[index] || '#ffffff');
 
-      // Al click sulla card del giorno, apre la modale con la data impostata (tranne se clicchi sul bottone elimina o sul tasto aggiungi)
       card.addEventListener("click", (e) => {
         if (e.target.closest('.btn-delete') || e.target.closest('.btn-aggiungi-giorno')) return;
         if (window.apriModaleConData) {
@@ -179,7 +178,7 @@ async function caricaImpegniSettimana() {
 
       let htmlImpegni = "";
       if (impegniDelGiorno.length === 0) {
-        htmlImpegni = `<div class="no-impegni" style="color: #94a3b8; font-style: italic;">Nessun impegno in questa giornata.</div>`;
+        htmlImpegni = `<div class="no-impegni">Nessun impegno.</div>`;
       } else {
         htmlImpegni = `<div class="impegni-grid">`;
         impegniDelGiorno.forEach(item => {
@@ -192,7 +191,7 @@ async function caricaImpegniSettimana() {
               <div class="impegno-top">
                 <div>
                   <div class="impegno-titolo">${item.titolo}</div>
-                  <div class="impegno-autore">Creatore: ${item.creatore || 'Anonimo'}</div>
+                  <div class="impegno-autore">${item.creatore || 'Anonimo'}</div>
                 </div>
                 <button class="btn-delete" data-id="${item.id}" title="Elimina">
                   <i class="fas fa-trash-alt"></i>
@@ -209,10 +208,12 @@ async function caricaImpegniSettimana() {
 
       card.innerHTML = `
         <div class="day-header ${giorno.isDomenica ? 'domenica-text' : ''}">
-          <span><i class="fas fa-calendar-day"></i> ${giorno.nomeGiorno.charAt(0).toUpperCase() + giorno.nomeGiorno.slice(1)} (${giorno.giornoMese})</span>
-          <button class="btn-aggiungi-giorno" onclick="window.apriModaleConData('${giorno.dataIso}')" style="background-color: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2); transition: background-color 0.2s;">
-            <i class="fas fa-plus"></i> Aggiungi
-          </button>
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <span><i class="fas fa-calendar-day"></i> ${giorno.nomeGiorno.toUpperCase()} ${giorno.giornoMese}</span>
+            <button class="btn-aggiungi-giorno" onclick="window.apriModaleConData('${giorno.dataIso}')" style="background-color: #2563eb; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
         </div>
         <div class="day-body">
           ${htmlImpegni}
