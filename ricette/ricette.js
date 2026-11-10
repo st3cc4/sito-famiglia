@@ -5,6 +5,7 @@ import {
 
 let utentiCollezioni = {};
 let listaRicette = [];
+let categorieEsistenti = ["Primo", "Secondo", "Contorno", "Dolce", "Antipasto", "Piatto Unico", "Impasto", "Bevanda"];
 
 export async function initRicetteSection(container) {
     await caricaUtenti();
@@ -76,15 +77,18 @@ async function caricaEDisegnaRicette(container) {
     try {
         const snapshot = await getDocs(collection(db, "ricette"));
         listaRicette = [];
+        const catSet = new Set(categorieEsistenti);
 
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
+            if (data.categoria) catSet.add(capitalize(data.categoria));
             listaRicette.push({
                 id: docSnap.id,
                 ...data
             });
         });
 
+        categorieEsistenti = Array.from(catSet).sort();
         listaRicette.sort((a, b) => (b.creatoIl || "").localeCompare(a.creatoIl || ""));
         renderGrigliaRicette('');
 
@@ -114,13 +118,6 @@ function renderGrigliaRicette(filtro) {
         const creatore = r.creatore || 'Utente';
         const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#2563eb';
         const bgTrasparente = hexToRgba(coloreUtente, 0.22);
-        
-        // Estrae un'anteprima degli ingredienti o del procedimento se manca la descrizione
-        let previewText = r.descrizione || r.note || '';
-        if (!previewText && r.listaIngredienti && r.listaIngredienti.length > 0) {
-            previewText = r.listaIngredienti.map(i => i.nome).filter(Boolean).join(', ');
-        }
-        if (!previewText) previewText = 'Nessuna descrizione...';
 
         return `
             <div class="ricetta-card" data-id="${r.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente};">
@@ -130,11 +127,10 @@ function renderGrigliaRicette(filtro) {
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </div>
-                <div class="ricetta-card-body">
-                    <h3 class="ricetta-titolo">${titolo}</h3>
-                    <p class="ricetta-descrizione">${previewText.substring(0, 80)}...</p>
+                <div class="ricetta-card-body" style="padding: 10px 0 0 0;">
+                    <h3 class="ricetta-titolo" style="margin: 0 0 8px 0; font-size: 1.05rem; color: #1e293b;">${titolo}</h3>
                 </div>
-                <div class="ricetta-card-footer">
+                <div class="ricetta-card-footer" style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #64748b; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 6px; margin-top: 4px;">
                     <span>Creatore: ${creatore}</span>
                 </div>
             </div>
@@ -175,7 +171,7 @@ function apriModaleDettaglioRicetta(r) {
 
     const titolo = r.titolo || r.nome || 'Senza titolo';
 
-    // Formattazione ingredienti con punto nero (elenco puntato)
+    // Ingredienti con punto nero
     let ingredientiHtml = '<p style="color: #64748b; font-style: italic;">Nessun ingrediente specificato</p>';
     const ingData = r.listaIngredienti || r.ingredienti;
     if (Array.isArray(ingData) && ingData.length > 0) {
@@ -189,7 +185,7 @@ function apriModaleDettaglioRicetta(r) {
         }).join('') + `</ul>`;
     }
 
-    // Formattazione procedimento con numeri
+    // Procedimento numerato
     let procedimentoHtml = '<p style="color: #64748b; font-style: italic;">Nessun procedimento specificato</p>';
     const procData = r.procedimento || r.listaPassaggi;
     if (Array.isArray(procData) && procData.length > 0) {
@@ -211,12 +207,12 @@ function apriModaleDettaglioRicetta(r) {
                     <button class="btn-close-modal" id="btn-close-view">&times;</button>
                 </div>
                 <div class="modal-body" style="margin: 15px 0; max-height: 65vh; overflow-y: auto;">
-                    <h4 style="margin: 0 0 8px 0; color: #2563eb; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Ingredienti</h4>
+                    <h4 style="margin: 0 0 8px 0; color: #1e293b; font-weight: 700; font-size: 1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Ingredienti</h4>
                     <div style="background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
                         ${ingredientiHtml}
                     </div>
                     
-                    <h4 style="margin: 0 0 8px 0; color: #2563eb; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Procedimento</h4>
+                    <h4 style="margin: 0 0 8px 0; color: #1e293b; font-weight: 700; font-size: 1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Procedimento</h4>
                     <div style="background: #f8fafc; padding: 12px; border-radius: 8px;">
                         ${procedimentoHtml}
                     </div>
@@ -240,6 +236,8 @@ function apriModaleFormRicetta() {
     const prev = document.getElementById(modalId);
     if (prev) prev.remove();
 
+    const optionsCatHtml = categorieEsistenti.map(c => `<option value="${c}">${c}</option>`).join('') + `<option value="__NUOVA__">+ Aggiungi nuova categoria...</option>`;
+
     const html = `
         <div class="modal-overlay" id="${modalId}">
             <div class="modal-content" style="max-width: 600px;">
@@ -253,14 +251,20 @@ function apriModaleFormRicetta() {
                         <input type="text" id="ric-titolo" required placeholder="Es. Torta di mele">
                     </div>
                     <div class="form-group">
-                        <label for="ric-cat">Categoria</label>
-                        <input type="text" id="ric-cat" required placeholder="Es. Dolci, Primi, Secondi...">
+                        <label for="ric-cat-select">Categoria</label>
+                        <select id="ric-cat-select" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff;">
+                            ${optionsCatHtml}
+                        </select>
+                    </div>
+                    <div class="form-group" id="group-nuova-cat" style="display: none;">
+                        <label for="ric-nuova-cat">Nome Nuova Categoria</label>
+                        <input type="text" id="ric-nuova-cat" placeholder="Es. Focacce, Dessert...">
                     </div>
 
-                    <div class="form-group">
-                        <label>Ingredienti (Nome e Quantità)</label>
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label style="font-weight: 700; color: #1e293b; font-size: 0.95rem; margin-bottom: 4px; display: block;">Ingredienti</label>
                         <div id="container-ingredienti-dinamici" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px;">
-                            <!-- Generate via JS (3 righe iniziali) -->
+                            <!-- Generato via JS -->
                         </div>
                         <button type="button" id="btn-aggiungi-ingrediente-riga" style="background: none; border: none; color: #2563eb; font-weight: 600; cursor: pointer; padding: 0; text-align: left; font-size: 0.85rem;">
                             + Aggiungi ingrediente
@@ -268,9 +272,9 @@ function apriModaleFormRicetta() {
                     </div>
 
                     <div class="form-group" style="margin-top: 15px;">
-                        <label>Procedimento (Passaggi)</label>
+                        <label style="font-weight: 700; color: #1e293b; font-size: 0.95rem; margin-bottom: 4px; display: block;">Procedimento</label>
                         <div id="container-procedimento-dinamico" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px;">
-                            <!-- Generate via JS (3 righe iniziali) -->
+                            <!-- Generato via JS -->
                         </div>
                         <button type="button" id="btn-aggiungi-proc-riga" style="background: none; border: none; color: #2563eb; font-weight: 600; cursor: pointer; padding: 0; text-align: left; font-size: 0.85rem;">
                             + Aggiungi passaggio
@@ -292,6 +296,17 @@ function apriModaleFormRicetta() {
 
     document.getElementById('btn-close-form').addEventListener('click', chiudi);
     document.getElementById('btn-cancel-ricetta').addEventListener('click', chiudi);
+
+    const catSelect = document.getElementById('ric-cat-select');
+    const groupNuovaCat = document.getElementById('group-nuova-cat');
+
+    catSelect.addEventListener('change', () => {
+        if (catSelect.value === '__NUOVA__') {
+            groupNuovaCat.style.display = 'block';
+        } else {
+            groupNuovaCat.style.display = 'none';
+        }
+    });
 
     const containerIng = document.getElementById('container-ingredienti-dinamici');
     const containerProc = document.getElementById('container-procedimento-dinamico');
@@ -319,7 +334,7 @@ function apriModaleFormRicetta() {
         containerProc.appendChild(row);
     }
 
-    // Inserisce 3 righe di default
+    // 3 righe iniziali
     for (let i = 0; i < 3; i++) {
         aggiungiRigaIngrediente();
         aggiungiRigaProcedimento();
@@ -331,9 +346,13 @@ function apriModaleFormRicetta() {
     document.getElementById('form-ricetta').addEventListener('submit', async (e) => {
         e.preventDefault();
         const titolo = document.getElementById('ric-titolo').value.trim();
-        const categoria = capitalize(document.getElementById('ric-cat').value.trim());
+        
+        let categoria = catSelect.value;
+        if (categoria === '__NUOVA__') {
+            categoria = capitalize(document.getElementById('ric-nuova-cat').value.trim());
+        }
+        if (!categoria) categoria = 'Generale';
 
-        // Raccoglie gli ingredienti dalle righe
         const listaIngredienti = [];
         containerIng.querySelectorAll('div').forEach(row => {
             const nome = row.querySelector('.ing-nome').value.trim();
@@ -343,7 +362,6 @@ function apriModaleFormRicetta() {
             }
         });
 
-        // Raccoglie i procedimenti dalle righe
         const procedimento = [];
         containerProc.querySelectorAll('div').forEach(row => {
             const testo = row.querySelector('.proc-testo').value.trim();
