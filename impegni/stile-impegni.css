@@ -7,15 +7,15 @@
 
 body {
   background-color: #f8fafc;
-  padding: 12px;
+  padding: 8px;
   color: #1e293b;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .main-container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   max-width: 900px;
   margin: 0 auto;
   width: 100%;
@@ -31,8 +31,8 @@ body {
   align-items: center;
   background: #0f172a;
   color: white;
-  padding: 10px 16px;
-  border-radius: 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
@@ -40,15 +40,15 @@ body {
   background-color: #2563eb;
   color: white;
   border: none;
-  padding: 7px 12px;
-  border-radius: 8px;
+  padding: 5px 10px;
+  border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
+  gap: 4px;
+  font-size: 0.8rem;
 }
 
 .btn-nav-week:hover {
@@ -56,33 +56,28 @@ body {
 }
 
 .week-label {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: 0.5px;
 }
 
-/* CONTENITORE GIORNI (7 RIGHE VERTICALI) */
+/* CONTENITORE GIORNI (7 RIGHE VERTICALI PIÙ COMPATTE) */
 .days-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 /* CARD SINGOLO GIORNO */
 .day-card {
   background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   overflow: hidden;
-  border-left: 5px solid #cbd5e1;
+  border-left: 4px solid #cbd5e1;
   display: flex;
   flex-direction: column;
-  transition: box-shadow 0.2s ease;
   width: 100%;
-}
-
-.day-card:hover {
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
 }
 
 .day-card.domenica {
@@ -90,13 +85,13 @@ body {
 }
 
 .day-header {
-  padding: 8px 12px;
+  padding: 6px 10px;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
   background-color: #f8fafc;
 }
 
@@ -105,32 +100,32 @@ body {
 }
 
 .day-body {
-  padding: 10px;
+  padding: 6px 8px;
   overflow-x: auto;
 }
 
-/* GRIGLIA IMPEGNI DENTRO IL GIORNO (1 RIGA, N COLONNE A SCORRIMENTO) */
+/* GRIGLIA IMPEGNI DENTRO IL GIORNO (PIÙ COMPATTA) */
 .impegni-grid {
   display: flex;
   flex-direction: row;
-  gap: 10px;
+  gap: 8px;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding-bottom: 2px;
   scrollbar-width: thin;
 }
 
 .impegno-item-card {
-  min-width: 160px;
-  max-width: 180px;
+  min-width: 150px;
+  max-width: 170px;
   flex-shrink: 0;
-  padding: 8px 10px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  padding: 6px 8px;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 6px;
-  border: 1px solid rgba(0,0,0,0.05);
+  gap: 4px;
+  border: 1px solid rgba(0,0,0,0.04);
   background: #ffffff;
 }
 
@@ -143,7 +138,7 @@ body {
 
 .impegno-titolo {
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: #1e293b;
   white-space: nowrap;
   overflow: hidden;
@@ -151,27 +146,27 @@ body {
 }
 
 .impegno-autore {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   opacity: 0.8;
   font-weight: 600;
 }
 
 .impegno-orari {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: bold;
   color: #1e293b;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .btn-delete {
   background: transparent;
   color: #dc2626;
   border: none;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   cursor: pointer;
-  padding: 2px;
+  padding: 1px;
   transition: opacity 0.2s;
 }
 
@@ -180,10 +175,10 @@ body {
 }
 
 .no-impegni {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: #94a3b8;
   font-style: italic;
-  padding: 4px 0;
+  padding: 2px 0;
 }
 
 /* POP-UP MODALE */
