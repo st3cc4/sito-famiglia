@@ -2,20 +2,22 @@
 
 body {
     margin: 0;
-    padding: 15px;
+    padding: 12px;
     font-family: system-ui, -apple-system, sans-serif;
     background-color: #f8fafc;
     color: #1e293b;
-    font-size: 0.93rem;
+    font-size: 0.9rem;
 }
 
 .ricette-container {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 15px;
     max-width: 1000px;
     margin: 0 auto;
     padding-bottom: 30px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* HEADER RICETTE */
@@ -33,7 +35,7 @@ body {
 }
 
 .ricette-header h2 {
-    font-size: 1rem;
+    font-size: 0.98rem;
     font-weight: 700;
     color: #1e293b;
     display: flex;
@@ -79,17 +81,17 @@ body {
     background-color: #1d4ed8;
 }
 
-/* GRIGLIA RICETTE A 3 COLONNE ESATTE */
-.ricette-grid, .ricette-list {
+/* GRIGLIA RICETTE SEMPRE A 2 COLONNE COMPATTE */
+.ricette-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
 }
 
-.ricetta-card, .ricetta-item-orizzontale {
+.ricetta-card {
     border-radius: 10px;
     border: 1px solid #e2e8f0;
-    padding: 12px 14px;
+    padding: 10px 12px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -97,10 +99,10 @@ body {
     cursor: pointer;
     transition: transform 0.15s, box-shadow 0.15s;
     background: #ffffff;
-    min-height: 100px;
+    min-height: 95px;
 }
 
-.ricetta-card:hover, .ricetta-item-orizzontale:hover {
+.ricetta-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0,0,0,0.06);
 }
@@ -114,27 +116,25 @@ body {
 .ricetta-badge {
     background-color: rgba(15, 23, 42, 0.75);
     color: #ffffff;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 0.65rem;
     font-weight: 600;
 }
 
-.ricetta-card-body h3, .ricetta-nome {
-    margin: 6px 0 0 0;
-    font-size: 0.92rem;
+.ricetta-card-body h3 {
+    margin: 5px 0 0 0;
+    font-size: 0.85rem;
     color: #1e293b;
     font-weight: 700;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    line-height: 1.2;
 }
 
-.ricetta-card-footer, .ricetta-footer {
-    font-size: 0.7rem;
+.ricetta-card-footer {
+    font-size: 0.68rem;
     color: #64748b;
     border-top: 1px solid rgba(0,0,0,0.06);
-    padding-top: 5px;
+    padding-top: 4px;
     margin-top: 6px;
     display: flex;
     justify-content: space-between;
@@ -146,7 +146,7 @@ body {
     border: none;
     color: #dc2626;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     padding: 2px;
     transition: opacity 0.2s;
 }
