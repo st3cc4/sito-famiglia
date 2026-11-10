@@ -95,6 +95,12 @@ function impostaLunediCorrente() {
   currentStartDate = new Date(oggi.setDate(diff));
 }
 
+// Funzione ausiliaria per convertire la prima lettera in maiuscolo
+function capitalizza(str) {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 // Funzione ausiliaria per convertire un colore esadecimale in RGBA con alpha ridotto
 function hexToRgba(hex, alpha = 0.25) {
   if (!hex || !hex.startsWith('#')) return 'rgba(241, 245, 249, 0.8)';
@@ -175,8 +181,10 @@ async function caricaImpegniSettimana() {
       } else {
         htmlImpegni = `<div class="impegni-grid">`;
         impegniDelGiorno.forEach(item => {
-          const creatore = (item.creatore || "").toLowerCase();
-          const coloreBase = mappaColori[creatore] || "#2563eb";
+          const creatoreGreco = item.creatore || 'Anonimo';
+          const creatoreFormatted = capitalizza(creatoreGreco);
+          const creatoreKey = creatoreGreco.toLowerCase();
+          const coloreBase = mappaColori[creatoreKey] || "#2563eb";
           const coloreSfondoAlpha = hexToRgba(coloreBase, 0.22);
 
           htmlImpegni += `
@@ -184,7 +192,7 @@ async function caricaImpegniSettimana() {
               <div class="impegno-top">
                 <div>
                   <div class="impegno-titolo">${item.titolo}</div>
-                  <div class="impegno-autore">${item.creatore || 'Anonimo'}</div>
+                  <div class="impegno-autore">${creatoreFormatted}</div>
                 </div>
                 <button class="btn-delete" data-id="${item.id}" title="Elimina">
                   <i class="fas fa-trash-alt"></i>
@@ -202,7 +210,7 @@ async function caricaImpegniSettimana() {
       card.innerHTML = `
         <div class="day-header ${giorno.isDomenica ? 'domenica-text' : ''}">
           <span><i class="fas fa-calendar-day"></i> ${giorno.nomeGiorno.charAt(0).toUpperCase() + giorno.nomeGiorno.slice(1)} (${giorno.giornoMese})</span>
-          <button class="btn-aggiungi-giorno" onclick="window.apriModaleConData('${giorno.dataIso}')" style="background-color: #2563eb; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);">
+          <button class="btn-aggiungi-giorno" onclick="window.apriModaleConData('${giorno.dataIso}')" style="background-color: #2563eb; color: white; border: none; padding: 3px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 3px; box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);">
             <i class="fas fa-plus"></i> Aggiungi
           </button>
         </div>
