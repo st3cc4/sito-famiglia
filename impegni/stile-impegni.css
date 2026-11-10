@@ -7,17 +7,18 @@
 
 body {
   background-color: #f8fafc;
-  padding: 15px;
+  padding: 12px;
   color: #1e293b;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .main-container {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
 }
 
 /* BARRA NAVIGAZIONE SETTIMANA FISSA IN ALTO */
@@ -30,7 +31,7 @@ body {
   align-items: center;
   background: #0f172a;
   color: white;
-  padding: 12px 18px;
+  padding: 10px 16px;
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
@@ -39,7 +40,7 @@ body {
   background-color: #2563eb;
   color: white;
   border: none;
-  padding: 8px 14px;
+  padding: 7px 12px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
@@ -47,7 +48,7 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
 }
 
 .btn-nav-week:hover {
@@ -55,27 +56,37 @@ body {
 }
 
 .week-label {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   letter-spacing: 0.5px;
 }
 
-/* CONTENITORE GIORNI */
+/* CONTENITORE GIORNI (GRIGLIA ORIZZONTALE / SETTIMANALE) */
 .days-container {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(180px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 10px;
 }
 
-/* CARD SINGOLO GIORNO (CLICCABILE) */
+@media (max-width: 1024px) {
+  .days-container {
+    grid-template-columns: repeat(7, 180px);
+  }
+}
+
+/* CARD SINGOLO GIORNO */
 .day-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   overflow: hidden;
-  border-left: 6px solid #cbd5e1;
-  cursor: pointer;
+  border-top: 5px solid #cbd5e1;
+  display: flex;
+  flex-direction: column;
   transition: transform 0.1s ease, box-shadow 0.2s ease;
+  min-height: 320px;
 }
 
 .day-card:hover {
@@ -84,17 +95,18 @@ body {
 }
 
 .day-card.domenica {
-  border-left-color: #ef4444;
+  border-top-color: #ef4444;
 }
 
 .day-header {
-  padding: 10px 16px;
+  padding: 10px 12px;
   font-weight: 700;
-  font-size: 0.92rem;
+  font-size: 0.85rem;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 6px;
   border-bottom: 1px solid rgba(0,0,0,0.05);
+  background-color: #f1f5f9;
 }
 
 .day-header.domenica-text {
@@ -102,37 +114,30 @@ body {
 }
 
 .day-body {
-  padding: 14px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  overflow-y: auto;
+  max-height: 400px;
 }
 
-/* GRIGLIA IMPEGNI (4x2) */
+/* GRIGLIA IMPEGNI DENTRO IL GIORNO */
 .impegni-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
-
-@media (max-width: 768px) {
-  .impegni-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 480px) {
-  .impegni-grid {
-    grid-template-columns: 1fr;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .impegno-item-card {
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 6px;
-  min-height: 90px;
   border: 1px solid rgba(0,0,0,0.05);
 }
 
@@ -140,36 +145,38 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 4px;
 }
 
 .impegno-titolo {
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: #1e293b;
+  word-break: break-word;
 }
 
 .impegno-autore {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   opacity: 0.8;
   font-weight: 600;
 }
 
 .impegno-orari {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: bold;
   color: #1e293b;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 .btn-delete {
   background: transparent;
   color: #dc2626;
   border: none;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  padding: 2px 4px;
+  padding: 2px;
   transition: opacity 0.2s;
 }
 
@@ -178,9 +185,11 @@ body {
 }
 
 .no-impegni {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: #94a3b8;
   font-style: italic;
+  text-align: center;
+  margin-top: 20px;
 }
 
 /* POP-UP MODALE */
@@ -198,6 +207,7 @@ body {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+  padding: 12px;
 }
 
 .modal-overlay.active {
@@ -208,7 +218,7 @@ body {
 .modal-content {
   background: white;
   width: 100%;
-  max-width: 500px;
+  max-width: 450px;
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   overflow: hidden;
@@ -223,11 +233,11 @@ body {
 .modal-header {
   background-color: #0f172a;
   color: white;
-  padding: 14px 18px;
+  padding: 12px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.98rem;
+  font-size: 0.95rem;
 }
 
 .modal-close {
@@ -239,22 +249,22 @@ body {
 }
 
 .modal-body {
-  padding: 18px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .impegno-form-modal {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .input-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
 .input-group {
@@ -270,10 +280,10 @@ body {
 }
 
 .input-group input {
-  padding: 9px;
+  padding: 8px;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
 }
 
 .input-group input:focus {
@@ -284,20 +294,20 @@ body {
 .modal-buttons {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .btn-primary {
   background-color: #2563eb;
   color: white;
   border: none;
-  padding: 9px 18px;
+  padding: 8px 16px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
 }
 
 .btn-primary:hover {
@@ -308,12 +318,12 @@ body {
   background-color: #e2e8f0;
   color: #475569;
   border: none;
-  padding: 9px 16px;
+  padding: 8px 14px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
 }
 
 .btn-secondary:hover {
