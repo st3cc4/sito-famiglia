@@ -9,6 +9,7 @@ body {
   background-color: #f8fafc;
   padding: 15px;
   color: #1e293b;
+  font-size: 0.95rem; /* Testo generale leggermente ridotto */
 }
 
 .main-container {
@@ -35,8 +36,8 @@ body {
 .card-header {
   background-color: #0f172a;
   color: white;
-  padding: 14px 20px;
-  font-size: 1.05rem;
+  padding: 12px 18px; /* Leggermente più compatto */
+  font-size: 0.98rem; /* Ridotto di poco */
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -44,7 +45,7 @@ body {
 }
 
 .card-body {
-  padding: 15px;
+  padding: 14px;
 }
 
 /* STRISCIA ORIZZONTALE COMUNE A SCORRIMENTO PER TUTTI I WIDGET */
@@ -60,12 +61,12 @@ body {
 .scadenza-item-orizzontale {
   min-width: 170px;
   max-width: 170px;
-  padding: 12px;
+  padding: 10px 12px;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 4px;
+  gap: 3px;
   flex-shrink: 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
@@ -85,16 +86,26 @@ body {
   color: #166534;
 }
 
+.scadenza-titolo {
+  font-size: 0.88rem; /* Ridotto di 1px */
+  font-weight: 700;
+}
+
+.scadenza-importo {
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
 /* IMPEGNI ORIZZONTALI (QUADRATINI) */
 .impegno-item-orizzontale {
   min-width: 170px;
   max-width: 170px;
-  padding: 12px;
+  padding: 10px 12px;
   background-color: #f1f5f9;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   justify-content: space-between;
   border-left: 4px solid #2563eb;
   flex-shrink: 0;
@@ -104,14 +115,20 @@ body {
 .impegno-ora {
   font-weight: bold;
   color: #2563eb;
-  font-size: 0.85rem;
+  font-size: 0.8rem; /* Ridotto */
 }
 
 .impegno-titolo-orizzontale {
-  font-size: 0.9rem;
+  font-size: 0.85rem; /* Ridotto di 1px */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 700;
+}
+
+.impegno-autore {
+  font-size: 0.72rem; /* Ridotto */
+  opacity: 0.7;
 }
 
 /* MEDIA THUMB ORIZZONTALE */
@@ -138,7 +155,7 @@ body {
   right: 4px;
   background: rgba(0,0,0,0.6);
   color: white;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   padding: 2px 5px;
   border-radius: 4px;
 }
@@ -147,12 +164,27 @@ body {
 .ricetta-item-orizzontale {
   min-width: 170px;
   max-width: 170px;
-  padding: 12px;
+  padding: 10px 12px;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   flex-shrink: 0;
+}
+
+.ricetta-nome {
+  font-size: 0.85rem; /* Ridotto di 1px */
+  font-weight: 700;
+}
+
+.ricetta-autore {
+  font-size: 0.72rem; /* Ridotto */
+  opacity: 0.8;
+}
+
+.ricetta-punteggio {
+  font-size: 0.8rem; /* Ridotto */
+  font-weight: bold;
 }
