@@ -1,20 +1,7 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { db } from "../firebase-config.js";
 import { 
-    getFirestore, collection, getDocs, addDoc, doc, deleteDoc 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyAtMnKhhfC43J73kVm8-QcNghqzOTV6UKA",
-    authDomain: "sito-famiglia.firebaseapp.com",
-    projectId: "sito-famiglia",
-    storageBucket: "sito-famiglia.appspot.com",
-    messagingSenderId: "93216467751",
-    appId: "1:93216467751:web:9930052845521ca5ef895a",
-    measurementId: "G-NYRQJDTWM3"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    collection, getDocs, addDoc, doc, deleteDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let utentiCollezioni = {};
 let listaMedia = [];
@@ -31,8 +18,9 @@ async function caricaUtenti() {
         utentiCollezioni = {};
         utentiSnapshot.forEach(docSnap => {
             const data = docSnap.data();
-            if (data.nome) {
-                utentiCollezioni[data.nome.toLowerCase()] = data.colore || '#3498db';
+            const usernameKey = (data.username || docSnap.id || '').toLowerCase();
+            if (usernameKey) {
+                utentiCollezioni[usernameKey] = data.colore || '#2563eb';
             }
         });
     } catch (e) {
@@ -40,12 +28,12 @@ async function caricaUtenti() {
     }
 }
 
-function hexToRgba(hex, alpha = 0.12) {
-    if (!hex) return `rgba(52, 152, 219, ${alpha})`;
+function hexToRgba(hex, alpha = 0.22) {
+    if (!hex || !hex.startsWith('#')) return `rgba(37, 99, 235, ${alpha})`;
     let c = hex.replace('#', '');
     if (c.length === 3) c = c.split('').map(char => char + char).join('');
     const num = parseInt(c, 16);
-    if (isNaN(num)) return `rgba(52, 152, 219, ${alpha})`;
+    if (isNaN(num)) return `rgba(37, 99, 235, ${alpha})`;
     const r = (num >> 16) & 255;
     const g = (num >> 8) & 255;
     const b = num & 255;
@@ -110,16 +98,11 @@ function comprimiImmagine(file, maxWidth = 1200, maxHeight = 1200, qualita = 0.7
 async function caricaEDisegnaMedia(container) {
     container.innerHTML = `
         <div class="media-container">
-            <div class="section-header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-                <div class="header-left-group" style="display: flex; align-items: center; gap: 12px;">
-                    <button id="btn-torna-home" class="btn-outline" title="Torna alla Home">
-                        <i class="fa-solid fa-arrow-left"></i> Home
-                    </button>
-                    <h2 style="margin: 0;"><i class="fa-solid fa-photo-film"></i> FOTO E VIDEO</h2>
-                </div>
-                <div class="media-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div class="media-header">
+                <h2><i class="fa-solid fa-photo-film"></i> FOTO E VIDEO</h2>
+                <div class="media-actions">
                     <input type="text" id="search-media" class="search-media-input" placeholder="Cerca categoria...">
-                    <button class="btn-add-media btn-primary" id="btn-nuovo-media">
+                    <button class="btn-add-media" id="btn-nuovo-media">
                         <i class="fa-solid fa-circle-plus"></i> Carica Foto/Video
                     </button>
                 </div>
@@ -130,15 +113,6 @@ async function caricaEDisegnaMedia(container) {
             </div>
         </div>
     `;
-
-    const btnTornaHome = container.querySelector('#btn-torna-home');
-    if (btnTornaHome) {
-        btnTornaHome.addEventListener('click', () => {
-            if (typeof window.selezionaScheda === 'function') {
-                window.selezionaScheda('dashboard');
-            }
-        });
-    }
 
     document.getElementById('btn-nuovo-media').addEventListener('click', () => {
         apriModaleFormMedia();
@@ -169,13 +143,12 @@ async function caricaEDisegnaMedia(container) {
         });
 
         listaMedia.sort((a, b) => new Date(b.dataCreazione) - new Date(a.dataCreazione));
-
         categorieEsistenti = Array.from(catMap).sort();
         renderGrigliaMedia('');
 
     } catch (err) {
         console.error("Errore caricamento media:", err);
-        document.getElementById('media-gruppi-container').innerHTML = '<p style="color:red;">Errore durante il caricamento dei file.</p>';
+        document.getElementById('media-gruppi-container').innerHTML = '<p style="color:#dc3545;">Errore durante il caricamento dei file.</p>';
     }
 }
 
@@ -221,12 +194,12 @@ function renderGrigliaMedia(filtro) {
                     <div class="media-grid-gallery">
                         ${elementiDelGiorno.map(m => {
                             const creatore = m.creatore || 'Utente';
-                            const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#3498db';
-                            const bgTrasparente = hexToRgba(coloreUtente, 0.12);
+                            const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#2563eb';
+                            const bgTrasparente = hexToRgba(coloreUtente, 0.22);
                             const isVideo = m.tipo === 'video' || (m.url && m.url.startsWith('data:video/'));
 
                             return `
-                                <div class="media-card-item" data-id="${m.id}" style="background-color: ${bgTrasparente}; border-left-color: ${coloreUtente};">
+                                <div class="media-card-item" data-id="${m.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente};">
                                     <div class="media-preview-box">
                                         ${isVideo 
                                             ? `<video src="${m.url}" preload="metadata"></video><span class="media-badge-type"><i class="fa-solid fa-play"></i> Video</span>`
@@ -269,7 +242,7 @@ function renderGrigliaMedia(filtro) {
             if (confirm("Sei sicuro di voler eliminare questo file?")) {
                 try {
                     await deleteDoc(doc(db, "media", idM));
-                    const contentArea = document.getElementById('content-area');
+                    const contentArea = document.getElementById('media-content-root') || document.getElementById('content-area');
                     await caricaEDisegnaMedia(contentArea);
                 } catch (err) {
                     console.error("Errore cancellazione media:", err);
@@ -320,8 +293,7 @@ function apriModaleVisualizzaMedia(m) {
 }
 
 function apriModaleFormMedia() {
-    const savedUser = localStorage.getItem('famiglia_session') || sessionStorage.getItem('famiglia_session');
-    const userData = savedUser ? JSON.parse(savedUser) : { nome: 'Utente' };
+    const savedUser = localStorage.getItem('sitoFamiglia_user') || 'Utente';
 
     const modalId = 'modal-form-media';
     const prevModal = document.getElementById(modalId);
@@ -355,8 +327,7 @@ function apriModaleFormMedia() {
                         <div class="file-upload-box" id="box-file-upload">
                             <i class="fa-solid fa-cloud-arrow-up file-upload-icon"></i>
                             <div class="file-upload-text" id="txt-file-selected">Tocca qui per scegliere più file</div>
-                            <!-- ATTRIBUTO MULTIPLE AGGIUNTO QUI SOTTO -->
-                            <input type="file" id="input-file-native" accept="image/*,video/*" multiple required style="display: none;">
+                            <input type="file" id="input-file-native" accept="image/*,video/*" multiple style="display: none;">
                         </div>
                     </div>
 
@@ -427,7 +398,6 @@ function apriModaleFormMedia() {
         btnSave.textContent = 'Caricamento in corso...';
 
         try {
-            // Cicla e carica tutti i file selezionati in sequenza
             for (let i = 0; i < fileSelezionatiList.length; i++) {
                 const file = fileSelezionatiList[i];
                 const fileTipo = file.type.startsWith('video/') ? 'video' : 'foto';
@@ -447,23 +417,15 @@ function apriModaleFormMedia() {
                     categoria: categoria,
                     tipo: fileTipo,
                     url: fileDataFormatted,
-                    creatore: userData.nome || 'Utente',
+                    creatore: savedUser,
                     dataCreazione: new Date().toISOString()
                 };
 
                 await addDoc(collection(db, "media"), payload);
             }
 
-            // Invia un'unica notifica di gruppo per il caricamento multiplo
-            if (typeof window.inviaNotificaFamiglia === 'function') {
-                window.inviaNotificaFamiglia(
-                    "📷 Nuovi File Caricati",
-                    `${userData.nome || 'Un utente'} ha caricato ${fileSelezionatiList.length} nuovi file nell'album "${categoria}".`
-                );
-            }
-
             chiudiModale();
-            const contentArea = document.getElementById('content-area');
+            const contentArea = document.getElementById('media-content-root') || document.getElementById('content-area');
             await caricaEDisegnaMedia(contentArea);
 
         } catch (err) {
