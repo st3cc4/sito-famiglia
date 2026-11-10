@@ -124,7 +124,7 @@ async function caricaImpegniSettimana() {
       giorniSettimana.push({
         dataIso,
         dataObj: new Date(iterDate),
-        nomeGiorno: iterDate.toLocaleDateString('it-IT', { weekday: 'short' }), // "lun", "mar", ecc. per compattezza
+        nomeGiorno: iterDate.toLocaleDateString('it-IT', { weekday: 'long' }),
         giornoMese: `${dd}/${mm}`,
         isDomenica: iterDate.getDay() === 0
       });
@@ -169,13 +169,6 @@ async function caricaImpegniSettimana() {
       card.className = `day-card ${giorno.isDomenica ? 'domenica' : ''}`;
       card.style.backgroundColor = giorno.isDomenica ? '#fff5f5' : (coloriGiorni[index] || '#ffffff');
 
-      card.addEventListener("click", (e) => {
-        if (e.target.closest('.btn-delete') || e.target.closest('.btn-aggiungi-giorno')) return;
-        if (window.apriModaleConData) {
-          window.apriModaleConData(giorno.dataIso);
-        }
-      });
-
       let htmlImpegni = "";
       if (impegniDelGiorno.length === 0) {
         htmlImpegni = `<div class="no-impegni">Nessun impegno.</div>`;
@@ -208,12 +201,10 @@ async function caricaImpegniSettimana() {
 
       card.innerHTML = `
         <div class="day-header ${giorno.isDomenica ? 'domenica-text' : ''}">
-          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <span><i class="fas fa-calendar-day"></i> ${giorno.nomeGiorno.toUpperCase()} ${giorno.giornoMese}</span>
-            <button class="btn-aggiungi-giorno" onclick="window.apriModaleConData('${giorno.dataIso}')" style="background-color: #2563eb; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);">
-              <i class="fas fa-plus"></i>
-            </button>
-          </div>
+          <span><i class="fas fa-calendar-day"></i> ${giorno.nomeGiorno.charAt(0).toUpperCase() + giorno.nomeGiorno.slice(1)} (${giorno.giornoMese})</span>
+          <button class="btn-aggiungi-giorno" onclick="window.apriModaleConData('${giorno.dataIso}')" style="background-color: #2563eb; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);">
+            <i class="fas fa-plus"></i> Aggiungi
+          </button>
         </div>
         <div class="day-body">
           ${htmlImpegni}
