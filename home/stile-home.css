@@ -47,7 +47,7 @@ body {
   padding: 15px;
 }
 
-/* STRISCIA ORIZZONTALE COMUNE A SCORRIMENTO (SCADENZE, IMPEGNI, MEDIA, RICETTE) */
+/* STRISCIA ORIZZONTALE COMUNE A SCORRIMENTO PER TUTTI I WIDGET */
 .scadenze-list, .impegni-list, .media-grid, .ricette-list {
   display: flex;
   gap: 12px;
