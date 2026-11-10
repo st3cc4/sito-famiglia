@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ricette - Sito Famiglia</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="stile-ricette.css">
+</head>
+<body>
+
+  <div id="ricette-content-root" class="ricette-container">
+    <!-- Contenuto dinamico generato da ricette.js -->
+  </div>
+
+  <script type="module">
+    import { initRicetteSection } from './ricette.js';
+    document.addEventListener("DOMContentLoaded", () => {
+      const container = document.getElementById('ricette-content-root');
+      if (container) {
+        initRicetteSection(container);
+      }
+    });
+  </script>
+</body>
+</html>
