@@ -47,18 +47,20 @@ function capitalize(str) {
 }
 
 async function caricaEDisegnaRicette(container) {
-    // Spostato il select a sinistra e il pulsante Nuova Ricetta a destra nell'header
+    // Pulsante in alto a destra affianco al titolo RICETTE, select sotto
     container.innerHTML = `
         <div class="ricette-container">
             <div class="ricette-header">
-                <h2><i class="fa-solid fa-utensils"></i> RICETTE</h2>
-                <div class="ricette-actions">
-                    <select id="select-categoria-filtro" class="search-ricetta-input" style="background: #fff; cursor: pointer;">
-                        <option value="TUTTE">Tutte le categorie</option>
-                    </select>
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px;">
+                    <h2><i class="fa-solid fa-utensils"></i> RICETTE</h2>
                     <button class="btn-add-ricetta" id="btn-nuova-ricetta">
                         Nuova Ricetta
                     </button>
+                </div>
+                <div class="ricette-actions" style="width: 100%;">
+                    <select id="select-categoria-filtro" class="search-ricetta-input" style="background: #fff; cursor: pointer; width: 100%; max-width: 100%;">
+                        <option value="TUTTE">Tutte le categorie</option>
+                    </select>
                 </div>
             </div>
 
