@@ -91,15 +91,15 @@ body {
 .ricetta-card {
     border-radius: 10px;
     border: 1px solid #e2e8f0;
-    padding: 10px 12px;
+    padding: 8px 10px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.03);
     cursor: pointer;
     transition: transform 0.15s, box-shadow 0.15s;
     background: #ffffff;
-    min-height: 95px;
 }
 
 .ricetta-card:hover {
@@ -123,22 +123,11 @@ body {
 }
 
 .ricetta-card-body h3 {
-    margin: 5px 0 0 0;
-    font-size: 0.85rem;
+    margin: 0;
+    font-size: 0.9rem;
     color: #1e293b;
     font-weight: 700;
-    line-height: 1.2;
-}
-
-.ricetta-card-footer {
-    font-size: 0.68rem;
-    color: #64748b;
-    border-top: 1px solid rgba(0,0,0,0.06);
-    padding-top: 4px;
-    margin-top: 6px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    line-height: 1.25;
 }
 
 .btn-delete-ricetta {
