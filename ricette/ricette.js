@@ -142,13 +142,16 @@ function renderGrigliaRicette() {
         return `
             <div class="ricetta-card" data-id="${r.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente};">
                 <div class="ricetta-card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                    <span class="ricetta-badge">${categoria} (${creatoreFormatted})</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span class="ricetta-badge">${categoria}</span>
+                        <span style="font-size: 0.72rem; color: #475569; font-weight: 600;">(${creatoreFormatted})</span>
+                    </div>
                     <button class="btn-delete-ricetta" title="Elimina" data-id="${r.id}">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </div>
-                <div class="ricetta-card-body" style="padding: 6px 0 0 0;">
-                    <h3 class="ricetta-titolo" style="margin: 0; font-size: 1.05rem; color: #1e293b;">${titolo}</h3>
+                <div class="ricetta-card-body" style="padding: 4px 0 0 0;">
+                    <h3 class="ricetta-titolo" style="margin: 0; font-size: 0.95rem; color: #1e293b;">${titolo}</h3>
                 </div>
             </div>
         `;
@@ -220,7 +223,10 @@ function apriModaleDettaglioRicetta(r) {
             <div class="modal-content" style="max-width: 650px;">
                 <div class="modal-header">
                     <div>
-                        <span class="ricetta-badge" style="margin-bottom: 6px; display: inline-block;">${categoria} (${creatoreFormatted})</span>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                            <span class="ricetta-badge">${categoria}</span>
+                            <span style="font-size: 0.8rem; color: #475569; font-weight: 600;">(${creatoreFormatted})</span>
+                        </div>
                         <h2 style="margin: 0; font-size: 1.3rem; color: #1e293b;">${titolo}</h2>
                     </div>
                     <button class="btn-close-modal" id="btn-close-view">&times;</button>
