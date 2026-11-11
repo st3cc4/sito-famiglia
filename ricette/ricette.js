@@ -6,6 +6,7 @@ import {
 let utentiCollezioni = {};
 let listaRicette = [];
 let categorieEsistenti = ["Primo", "Secondo", "Contorno", "Dolce", "Antipasto", "Piatto Unico", "Impasto", "Bevanda"];
+let categoriaFiltroCorrente = "TUTTE";
 
 export async function initRicetteSection(container) {
     await caricaUtenti();
@@ -51,7 +52,9 @@ async function caricaEDisegnaRicette(container) {
             <div class="ricette-header">
                 <h2><i class="fa-solid fa-utensils"></i> RICETTE</h2>
                 <div class="ricette-actions">
-                    <input type="text" id="search-ricetta" class="search-ricetta-input" placeholder="Cerca ricetta...">
+                    <select id="select-categoria-filtro" class="search-ricetta-input" style="background: #fff; cursor: pointer;">
+                        <option value="TUTTE">Tutte le categorie</option>
+                    </select>
                     <button class="btn-add-ricetta" id="btn-nuova-ricetta">
                         Nuova Ricetta
                     </button>
@@ -66,12 +69,6 @@ async function caricaEDisegnaRicette(container) {
 
     document.getElementById('btn-nuova-ricetta').addEventListener('click', () => {
         apriModaleFormRicetta();
-    });
-
-    const searchInput = document.getElementById('search-ricetta');
-    searchInput.addEventListener('input', (e) => {
-        const queryStr = e.target.value.toLowerCase().trim();
-        renderGrigliaRicette(queryStr);
     });
 
     try {
@@ -90,7 +87,15 @@ async function caricaEDisegnaRicette(container) {
 
         categorieEsistenti = Array.from(catSet).sort();
         listaRicette.sort((a, b) => (b.creatoIl || "").localeCompare(a.creatoIl || ""));
-        renderGrigliaRicette('');
+        
+        aggiornaSelectFiltroCategorie();
+        renderGrigliaRicette();
+
+        const selectFiltro = document.getElementById('select-categoria-filtro');
+        selectFiltro.addEventListener('change', (e) => {
+            categoriaFiltroCorrente = e.target.value;
+            renderGrigliaRicette();
+        });
 
     } catch (err) {
         console.error("Errore caricamento ricette:", err);
@@ -98,14 +103,27 @@ async function caricaEDisegnaRicette(container) {
     }
 }
 
-function renderGrigliaRicette(filtro) {
+function aggiornaSelectFiltroCategorie() {
+    const selectFiltro = document.getElementById('select-categoria-filtro');
+    if (!selectFiltro) return;
+
+    let html = `<option value="TUTTE">Tutte le categorie</option>`;
+    html += categorieEsistenti.map(cat => `
+        <option value="${cat}" ${categoriaFiltroCorrente === cat ? 'selected' : ''}>${cat}</option>
+    `).join('');
+    selectFiltro.innerHTML = html;
+}
+
+function renderGrigliaRicette() {
     const gridContainer = document.getElementById('ricette-grid-container');
     if (!gridContainer) return;
 
     const filtrate = listaRicette.filter(r => {
-        const titolo = (r.titolo || r.nome || '').toLowerCase();
-        const categoria = (r.categoria || '').toLowerCase();
-        return titolo.includes(filtro) || categoria.includes(filtro);
+        const categoria = capitalize(r.categoria || 'Generale');
+        if (categoriaFiltroCorrente !== "TUTTE" && categoria !== categoriaFiltroCorrente) {
+            return false;
+        }
+        return true;
     });
 
     if (filtrate.length === 0) {
@@ -115,23 +133,22 @@ function renderGrigliaRicette(filtro) {
 
     gridContainer.innerHTML = filtrate.map(r => {
         const titolo = r.titolo || r.nome || 'Senza titolo';
-        const creatore = r.creatore || 'Utente';
-        const coloreUtente = utentiCollezioni[creatore.toLowerCase()] || '#2563eb';
+        const creatoreRaw = r.creatore || 'Utente';
+        const creatoreFormatted = capitalize(creatoreRaw);
+        const categoria = capitalize(r.categoria || 'Generale');
+        const coloreUtente = utentiCollezioni[creatoreRaw.toLowerCase()] || '#2563eb';
         const bgTrasparente = hexToRgba(coloreUtente, 0.22);
 
         return `
             <div class="ricetta-card" data-id="${r.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente};">
-                <div class="ricetta-card-header">
-                    <span class="ricetta-badge">${r.categoria || 'Generale'}</span>
+                <div class="ricetta-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="ricetta-badge">${categoria} (${creatoreFormatted})</span>
                     <button class="btn-delete-ricetta" title="Elimina" data-id="${r.id}">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </div>
-                <div class="ricetta-card-body" style="padding: 10px 0 0 0;">
-                    <h3 class="ricetta-titolo" style="margin: 0 0 8px 0; font-size: 1.05rem; color: #1e293b;">${titolo}</h3>
-                </div>
-                <div class="ricetta-card-footer" style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #64748b; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 6px; margin-top: 4px;">
-                    <span>Creatore: ${creatore}</span>
+                <div class="ricetta-card-body" style="padding: 6px 0 0 0;">
+                    <h3 class="ricetta-titolo" style="margin: 0; font-size: 1.05rem; color: #1e293b;">${titolo}</h3>
                 </div>
             </div>
         `;
@@ -170,6 +187,8 @@ function apriModaleDettaglioRicetta(r) {
     if (prev) prev.remove();
 
     const titolo = r.titolo || r.nome || 'Senza titolo';
+    const categoria = capitalize(r.categoria || 'Generale');
+    const creatoreFormatted = capitalize(r.creatore || 'Utente');
 
     // Ingredienti con punto nero
     let ingredientiHtml = '<p style="color: #64748b; font-style: italic;">Nessun ingrediente specificato</p>';
@@ -201,7 +220,7 @@ function apriModaleDettaglioRicetta(r) {
             <div class="modal-content" style="max-width: 650px;">
                 <div class="modal-header">
                     <div>
-                        <span class="ricetta-badge" style="margin-bottom: 6px; display: inline-block;">${r.categoria || 'Generale'}</span>
+                        <span class="ricetta-badge" style="margin-bottom: 6px; display: inline-block;">${categoria} (${creatoreFormatted})</span>
                         <h2 style="margin: 0; font-size: 1.3rem; color: #1e293b;">${titolo}</h2>
                     </div>
                     <button class="btn-close-modal" id="btn-close-view">&times;</button>
