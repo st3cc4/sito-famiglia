@@ -47,6 +47,7 @@ function capitalize(str) {
 }
 
 async function caricaEDisegnaRicette(container) {
+    // Spostato il select a sinistra e il pulsante Nuova Ricetta a destra nell'header
     container.innerHTML = `
         <div class="ricette-container">
             <div class="ricette-header">
@@ -193,7 +194,6 @@ function apriModaleDettaglioRicetta(r) {
     const categoria = capitalize(r.categoria || 'Generale');
     const creatoreFormatted = capitalize(r.creatore || 'Utente');
 
-    // Ingredienti con punto nero
     let ingredientiHtml = '<p style="color: #64748b; font-style: italic;">Nessun ingrediente specificato</p>';
     const ingData = r.listaIngredienti || r.ingredienti;
     if (Array.isArray(ingData) && ingData.length > 0) {
@@ -207,7 +207,6 @@ function apriModaleDettaglioRicetta(r) {
         }).join('') + `</ul>`;
     }
 
-    // Procedimento numerato
     let procedimentoHtml = '<p style="color: #64748b; font-style: italic;">Nessun procedimento specificato</p>';
     const procData = r.procedimento || r.listaPassaggi;
     if (Array.isArray(procData) && procData.length > 0) {
@@ -359,7 +358,6 @@ function apriModaleFormRicetta() {
         containerProc.appendChild(row);
     }
 
-    // 3 righe iniziali
     for (let i = 0; i < 3; i++) {
         aggiungiRigaIngrediente();
         aggiungiRigaProcedimento();
