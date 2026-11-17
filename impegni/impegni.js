@@ -30,6 +30,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     const closeFormBtn = document.getElementById("close-modal-btn");
     const cancelFormBtn = document.getElementById("cancel-modal-btn");
     const formImpegno = document.getElementById("form-impegno");
+    const oraInizioInput = document.getElementById("oraInizio");
+    const oraFineInput = document.getElementById("oraFine");
+
+    // Autocompilazione Ora Fine (+1 ora rispetto a Ora Inizio)
+    if (oraInizioInput && oraFineInput) {
+        oraInizioInput.addEventListener("change", () => {
+            const valInizio = oraInizioInput.value;
+            if (valInizio) {
+                const [ore, minuti] = valInizio.split(':').map(Number);
+                let nuoveOre = ore + 1;
+                if (nuoveOre >= 24) nuoveOre = 0; // Gestione cambio giornata
+                const oreStr = String(nuoveOre).padStart(2, '0');
+                const minutiStr = String(minuti).padStart(2, '0');
+                oraFineInput.value = `${oreStr}:${minutiStr}`;
+            }
+        });
+    }
 
     function toggleModalForm(open, dataPreimpostata = "", impegnoEdit = null) {
         if (modalForm) {
@@ -279,7 +296,6 @@ async function caricaImpegniMese() {
                 
                 const itemSerialized = encodeURIComponent(JSON.stringify(item));
 
-                // Senza X rossa, al click apre il pop-up di dettaglio
                 htmlImpegni += `
                     <div class="impegno-mini-card" style="background-color: ${coloreSfondoAlpha}; border-left-color: ${coloreBase};" onclick="window.apriDettaglioImpegno('${itemSerialized}')" title="${item.titolo}">
                         <span class="impegno-titolo">${item.titolo}</span>
