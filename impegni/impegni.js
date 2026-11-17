@@ -1,7 +1,8 @@
 import { db } from "../firebase-config.js";
-import { collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let currentDate = new Date();
+let impegnoSelezionatoCorrente = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     currentDate.setDate(1);
@@ -24,60 +25,144 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Gestione Modale Pop-up inserimento impegno
-    const modal = document.getElementById("modal-impegno");
-    const closeBtn = document.getElementById("close-modal-btn");
-    const cancelBtn = document.getElementById("cancel-modal-btn");
+    // Gestione Modale Inserimento / Modifica Form
+    const modalForm = document.getElementById("modal-impegno");
+    const closeFormBtn = document.getElementById("close-modal-btn");
+    const cancelFormBtn = document.getElementById("cancel-modal-btn");
     const formImpegno = document.getElementById("form-impegno");
 
-    function toggleModal(open, dataPreimpostata = "") {
-        if (modal) {
+    function toggleModalForm(open, dataPreimpostata = "", impegnoEdit = null) {
+        if (modalForm) {
+            const titoloModal = document.getElementById("modal-form-title");
+            const idEditInput = document.getElementById("impegno-id-edit");
+
             if (open) {
-                modal.classList.add("active");
-                if (dataPreimpostata) {
-                    const dataInput = document.getElementById("data");
-                    if (dataInput) dataInput.value = dataPreimpostata;
+                modalForm.classList.add("active");
+                if (impegnoEdit) {
+                    titoloModal.textContent = "Modifica Impegno";
+                    idEditInput.value = impegnoEdit.id;
+                    document.getElementById("titolo").value = impegnoEdit.titolo || "";
+                    document.getElementById("data").value = impegnoEdit.data || "";
+                    document.getElementById("oraInizio").value = impegnoEdit.oraInizio || "";
+                    document.getElementById("oraFine").value = impegnoEdit.oraFine || "";
+                } else {
+                    titoloModal.textContent = "Nuovo Impegno";
+                    idEditInput.value = "";
+                    formImpegno.reset();
+                    if (dataPreimpostata) {
+                        const dataInput = document.getElementById("data");
+                        if (dataInput) dataInput.value = dataPreimpostata;
+                    }
                 }
             } else {
-                modal.classList.remove("active");
-                if (formImpegno) formImpegno.reset();
+                modalForm.classList.remove("active");
+                formImpegno.reset();
+                idEditInput.value = "";
             }
         }
     }
 
-    window.apriModaleConData = (dataStr) => toggleModal(true, dataStr);
+    window.apriModaleConData = (dataStr) => toggleModalForm(true, dataStr);
 
-    if (closeBtn) closeBtn.addEventListener("click", () => toggleModal(false));
-    if (cancelBtn) cancelBtn.addEventListener("click", () => toggleModal(false));
-    if (modal) {
-        modal.addEventListener("click", (e) => {
-            if (e.target === modal) toggleModal(false);
+    if (closeFormBtn) closeFormBtn.addEventListener("click", () => toggleModalForm(false));
+    if (cancelFormBtn) cancelFormBtn.addEventListener("click", () => toggleModalForm(false));
+
+    // Gestione Modale Dettaglio
+    const modalDet = document.getElementById("modal-dettaglio");
+    const closeDetBtn = document.getElementById("close-det-btn");
+    const chiudiDetBtn = document.getElementById("det-btn-chiudi");
+    const eliminaDetBtn = document.getElementById("det-btn-elimina");
+    const modificaDetBtn = document.getElementById("det-btn-modifica");
+
+    function toggleModalDet(open, item = null) {
+        if (modalDet) {
+            if (open && item) {
+                impegnoSelezionatoCorrente = item;
+                document.getElementById("det-titolo").textContent = item.titolo || "-";
+                document.getElementById("det-data").textContent = item.data || "-";
+                document.getElementById("det-orario").textContent = `${item.oraInizio || '--:--'} - ${item.oraFine || '--:--'}`;
+                document.getElementById("det-autore").textContent = capitalizza(item.creatore || 'Famiglia');
+                modalDet.classList.add("active");
+            } else {
+                modalDet.classList.remove("active");
+                impegnoSelezionatoCorrente = null;
+            }
+        }
+    }
+
+    window.apriDettaglioImpegno = (itemJson) => {
+        try {
+            const item = JSON.parse(decodeURIComponent(itemJson));
+            toggleModalDet(true, item);
+        } catch (e) {
+            console.error("Errore apertura dettaglio:", e);
+        }
+    };
+
+    if (closeDetBtn) closeDetBtn.addEventListener("click", () => toggleModalDet(false));
+    if (chiudiDetBtn) chiudiDetBtn.addEventListener("click", () => toggleModalDet(false));
+
+    // Tasto Elimina da Dettaglio
+    if (eliminaDetBtn) {
+        eliminaDetBtn.addEventListener("click", async () => {
+            if (impegnoSelezionatoCorrente && confirm("Vuoi davvero eliminare questo impegno?")) {
+                try {
+                    await deleteDoc(doc(db, "impegni", impegnoSelezionatoCorrente.id));
+                    toggleModalDet(false);
+                    await caricaImpegniMese();
+                } catch (err) {
+                    console.error("Errore eliminazione:", err);
+                    alert("Impossibile eliminare l'impegno.");
+                }
+            }
         });
     }
 
-    // Salvataggio Nuovo Impegno su Firestore
+    // Tasto Modifica da Dettaglio
+    if (modificaDetBtn) {
+        modificaDetBtn.addEventListener("click", () => {
+            const itemToEdit = impegnoSelezionatoCorrente;
+            toggleModalDet(false);
+            if (itemToEdit) {
+                toggleModalForm(true, "", itemToEdit);
+            }
+        });
+    }
+
+    // Salvataggio (Nuovo o Modifica) su Firestore
     if (formImpegno) {
         formImpegno.addEventListener("submit", async (e) => {
             e.preventDefault();
 
+            const idEdit = document.getElementById("impegno-id-edit").value;
             const titolo = document.getElementById("titolo").value.trim();
             const data = document.getElementById("data").value;
             const oraInizio = document.getElementById("oraInizio").value;
             const oraFine = document.getElementById("oraFine").value;
             const creatore = localStorage.getItem("sitoFamiglia_user") || "Famiglia";
-            const creatoIl = new Date().toISOString();
 
             try {
-                await addDoc(collection(db, "impegni"), {
-                    titolo,
-                    data,
-                    oraInizio,
-                    oraFine,
-                    creatore,
-                    creatoIl
-                });
+                if (idEdit) {
+                    // Aggiornamento impegno esistente
+                    await updateDoc(doc(db, "impegni", idEdit), {
+                        titolo,
+                        data,
+                        oraInizio,
+                        oraFine
+                    });
+                } else {
+                    // Creazione nuovo impegno
+                    await addDoc(collection(db, "impegni"), {
+                        titolo,
+                        data,
+                        oraInizio,
+                        oraFine,
+                        creatore,
+                        creatoIl: new Date().toISOString()
+                    });
+                }
 
-                toggleModal(false);
+                toggleModalForm(false);
                 await caricaImpegniMese();
             } catch (err) {
                 console.error("Errore salvataggio impegno:", err);
@@ -191,14 +276,13 @@ async function caricaImpegniMese() {
                 const creatoreGreco = item.creatore || 'Anonimo';
                 const coloreBase = mappaColori[creatoreGreco.toLowerCase()] || "#2563eb";
                 const coloreSfondoAlpha = hexToRgba(coloreBase, 0.25);
+                
+                const itemSerialized = encodeURIComponent(JSON.stringify(item));
 
-                // Stile barra piena con colore utente e titolo pulito
+                // Senza X rossa, al click apre il pop-up di dettaglio
                 htmlImpegni += `
-                    <div class="impegno-mini-card" style="background-color: ${coloreSfondoAlpha}; border-left-color: ${coloreBase};" title="${item.titolo} (${item.oraInizio || '--:--'})">
+                    <div class="impegno-mini-card" style="background-color: ${coloreSfondoAlpha}; border-left-color: ${coloreBase};" onclick="window.apriDettaglioImpegno('${itemSerialized}')" title="${item.titolo}">
                         <span class="impegno-titolo">${item.titolo}</span>
-                        <button class="btn-delete" data-id="${item.id}" title="Elimina">
-                            <i class="fas fa-times"></i>
-                        </button>
                     </div>
                 `;
             });
@@ -216,23 +300,6 @@ async function caricaImpegniMese() {
             `;
 
             container.appendChild(cell);
-        });
-
-        const deleteButtons = container.querySelectorAll(".btn-delete");
-        deleteButtons.forEach(btn => {
-            btn.addEventListener("click", async (e) => {
-                e.stopPropagation();
-                const id = e.currentTarget.getAttribute("data-id");
-                if (confirm("Vuoi davvero eliminare questo impegno?")) {
-                    try {
-                        await deleteDoc(doc(db, "impegni", id));
-                        await caricaImpegniMese();
-                    } catch (err) {
-                        console.error("Errore eliminazione:", err);
-                        alert("Impossibile eliminare l'impegno.");
-                    }
-                }
-            });
         });
 
     } catch (err) {
