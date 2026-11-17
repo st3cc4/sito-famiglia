@@ -1,320 +1,336 @@
 * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
-  background-color: #f8fafc;
-  padding: 8px;
-  color: #1e293b;
-  font-size: 0.85rem;
+    background-color: #f8fafc;
+    padding: 8px;
+    color: #1e293b;
+    font-size: 0.85rem;
 }
 
 .main-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 900px;
-  margin: 0 auto;
-  width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
 }
 
-/* BARRA NAVIGAZIONE SETTIMANA FISSA IN ALTO */
+/* BARRA NAVIGAZIONE MESE FISSA IN ALTO */
 .week-nav-bar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #0f172a;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0f172a;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .btn-nav-week {
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.8rem;
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
 }
 
 .btn-nav-week:hover {
-  background-color: #1d4ed8;
+    background-color: #1d4ed8;
 }
 
 .week-label {
-  font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: capitalize;
 }
 
-/* CONTENITORE GIORNI (7 RIGHE VERTICALI PIÙ COMPATTE) */
+/* GRIGLIA MENSILE 7 COLONNE */
 .days-container {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    background: #e2e8f0;
+    padding: 4px;
+    border-radius: 10px;
 }
 
-/* CARD SINGOLO GIORNO */
-.day-card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  overflow: hidden;
-  border-left: 4px solid #cbd5e1;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
+/* INTESTAZIONE GIORNI DELLA SETTIMANA (LUN - DOM) */
+.calendar-header-cell {
+    background: #1e293b;
+    color: white;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-align: center;
+    padding: 8px 2px;
+    border-radius: 4px;
 }
 
-.day-card.domenica {
-  border-left-color: #ef4444;
+.calendar-header-cell.domenica {
+    color: #f87171;
 }
 
-.day-header {
-  padding: 6px 10px;
-  font-weight: 700;
-  font-size: 0.8rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(0,0,0,0.04);
-  background-color: #f8fafc;
+/* CELLE DEI GIORNI DEL MESE */
+.calendar-cell {
+    background: white;
+    min-height: 85px;
+    border-radius: 6px;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    overflow: hidden;
 }
 
-.day-header.domenica-text {
-  color: #ef4444;
+.calendar-cell.other-month {
+    background: #f1f5f9;
+    opacity: 0.5;
 }
 
-.day-body {
-  padding: 6px 8px;
-  overflow-x: auto;
+.calendar-cell.domenica {
+    background: #fffdfd;
 }
 
-/* GRIGLIA IMPEGNI DENTRO IL GIORNO (PIÙ COMPATTA) */
-.impegni-grid {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 2px;
-  scrollbar-width: thin;
+.cell-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 2px;
 }
 
-.impegno-item-card {
-  min-width: 150px;
-  max-width: 170px;
-  flex-shrink: 0;
-  padding: 6px 8px;
-  border-radius: 6px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 4px;
-  border: 1px solid rgba(0,0,0,0.04);
-  background: #ffffff;
+.cell-header.domenica-text {
+    color: #ef4444;
 }
 
-.impegno-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 4px;
+.btn-aggiungi-giorno {
+    background: transparent;
+    color: #2563eb;
+    border: none;
+    font-size: 0.7rem;
+    cursor: pointer;
+    padding: 1px 3px;
+    border-radius: 3px;
+    transition: background 0.2s;
+}
+
+.btn-aggiungi-giorno:hover {
+    background: #eff6ff;
+}
+
+/* LISTA IMPEGNI DENTRO LA CELE DEL GIORNO */
+.cell-impegni-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    overflow-y: auto;
+    max-height: 60px;
+    scrollbar-width: thin;
+    margin-top: 2px;
+}
+
+.impegno-mini-card {
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    border-left: 3px solid #2563eb;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.03);
+    position: relative;
+}
+
+.impegno-mini-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .impegno-titolo {
-  font-weight: 700;
-  font-size: 0.78rem;
-  color: #1e293b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.impegno-autore {
-  font-size: 0.62rem;
-  opacity: 0.8;
-  font-weight: 600;
-}
-
-.impegno-orari {
-  font-size: 0.68rem;
-  font-weight: bold;
-  color: #1e293b;
-  display: flex;
-  align-items: center;
-  gap: 3px;
+    font-weight: 700;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70px;
 }
 
 .btn-delete {
-  background: transparent;
-  color: #dc2626;
-  border: none;
-  font-size: 0.75rem;
-  cursor: pointer;
-  padding: 1px;
-  transition: opacity 0.2s;
+    background: transparent;
+    color: #dc2626;
+    border: none;
+    font-size: 0.6rem;
+    cursor: pointer;
+    padding: 0;
 }
 
 .btn-delete:hover {
-  opacity: 0.7;
+    opacity: 0.7;
 }
 
-.no-impegni {
-  font-size: 0.75rem;
-  color: #94a3b8;
-  font-style: italic;
-  padding: 2px 0;
+.impegno-orari {
+    font-size: 0.58rem;
+    color: #475569;
+    font-weight: 600;
 }
 
 /* POP-UP MODALE */
 .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  padding: 12px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    padding: 12px;
 }
 
 .modal-overlay.active {
-  opacity: 1;
-  pointer-events: auto;
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .modal-content {
-  background: white;
-  width: 100%;
-  max-width: 450px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  overflow: hidden;
-  transform: translateY(-20px);
-  transition: transform 0.3s ease;
+    background: white;
+    width: 100%;
+    max-width: 400px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    overflow: hidden;
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
 }
 
 .modal-overlay.active .modal-content {
-  transform: translateY(0);
+    transform: translateY(0);
 }
 
 .modal-header {
-  background-color: #0f172a;
-  color: white;
-  padding: 12px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.95rem;
+    background-color: #0f172a;
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
 }
 
 .modal-close {
-  background: transparent;
-  color: white;
-  border: none;
-  font-size: 1.3rem;
-  cursor: pointer;
+    background: transparent;
+    color: white;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
 }
 
 .modal-body {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .impegno-form-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .input-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
 }
 
 .input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
 .input-group label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #475569;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #475569;
 }
 
 .input-group input {
-  padding: 8px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 0.85rem;
+    padding: 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.85rem;
 }
 
 .input-group input:focus {
-  border-color: #2563eb;
-  outline: none;
+    border-color: #2563eb;
+    outline: none;
 }
 
 .modal-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 8px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
 }
 
 .btn-primary {
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  font-size: 0.85rem;
+    background-color: #2563eb;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 0.85rem;
 }
 
 .btn-primary:hover {
-  background-color: #1d4ed8;
+    background-color: #1d4ed8;
 }
 
 .btn-secondary {
-  background-color: #e2e8f0;
-  color: #475569;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  font-size: 0.85rem;
+    background-color: #e2e8f0;
+    color: #475569;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 0.85rem;
 }
 
 .btn-secondary:hover {
-  background-color: #cbd5e1;
+    background-color: #cbd5e1;
 }
