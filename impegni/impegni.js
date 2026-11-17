@@ -1,10 +1,10 @@
 import { db } from "../firebase-config.js";
 import { collection, getDocs, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-let currentDate = new Date(); // Gestisce il mese corrente visualizzato
+let currentDate = new Date();
 
 document.addEventListener("DOMContentLoaded", async () => {
-    currentDate.setDate(1); // Mette sempre il primo del mese come riferimento
+    currentDate.setDate(1);
     await caricaImpegniMese();
 
     const prevBtn = document.getElementById("prev-week-btn");
@@ -87,13 +87,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
-// Funzione ausiliaria per convertire la prima lettera in maiuscolo
 function capitalizza(str) {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-// Funzione ausiliaria per convertire un colore esadecimale in RGBA con alpha ridotto
 function hexToRgba(hex, alpha = 0.25) {
     if (!hex || !hex.startsWith('#')) return 'rgba(241, 245, 249, 0.8)';
     let c = hex.replace('#', '');
@@ -113,7 +111,6 @@ async function caricaImpegniMese() {
         const anno = currentDate.getFullYear();
         const mese = currentDate.getMonth();
 
-        // Nome del mese corrente (es. "Novembre") senza anno
         const nomeMese = currentDate.toLocaleDateString('it-IT', { month: 'long' });
         if (weekLabel) {
             weekLabel.textContent = capitalizza(nomeMese);
@@ -121,7 +118,7 @@ async function caricaImpegniMese() {
 
         container.innerHTML = "";
 
-        // 1. Intestazione 7 colonne: Lun, Mar, Mer, Gio, Ven, Sab, Dom
+        // Intestazione 7 colonne
         const giorniNomi = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
         giorniNomi.forEach((g, index) => {
             const headerCell = document.createElement("div");
@@ -130,37 +127,31 @@ async function caricaImpegniMese() {
             container.appendChild(headerCell);
         });
 
-        // 2. Calcolo dei giorni della griglia mensile partendo dal Lunedì
         const primoGiornoDelMese = new Date(anno, mese, 1);
         const ultimoGiornoDelMese = new Date(anno, mese + 1, 0);
 
-        let giornoSettimanaInizio = primoGiornoDelMese.getDay(); // 0 = Domenica, 1 = Lunedì...
-        // Convertiamo per far iniziare la settimana da Lunedì (0 = Lunedì, 6 = Domenica)
+        let giornoSettimanaInizio = primoGiornoDelMese.getDay();
         giornoSettimanaInizio = giornoSettimanaInizio === 0 ? 6 : giornoSettimanaInizio - 1;
 
         const giorniGriglia = [];
 
-        // Giorni del mese precedente per riempire la prima settimana
         const ultimoGiornoMesePrec = new Date(anno, mese, 0).getDate();
         for (let i = giornoSettimanaInizio - 1; i >= 0; i--) {
             const d = new Date(anno, mese - 1, ultimoGiornoMesePrec - i);
             giorniGriglia.push({ dataObj: d, isCurrentMonth: false });
         }
 
-        // Giorni del mese corrente
         for (let i = 1; i <= ultimoGiornoDelMese.getDate(); i++) {
             const d = new Date(anno, mese, i);
             giorniGriglia.push({ dataObj: d, isCurrentMonth: true });
         }
 
-        // Giorni del mese successivo per completare le righe della griglia (portiamo a multipli di 7, es. 35 o 42 celle)
         let giornoCont = 1;
         while (giorniGriglia.length % 7 !== 0 || giorniGriglia.length < 35) {
             const d = new Date(anno, mese + 1, giornoCont++);
             giorniGriglia.push({ dataObj: d, isCurrentMonth: false });
         }
 
-        // Caricamento colori utenti e impegni da Firestore
         const utentiSnap = await getDocs(collection(db, "utenti"));
         const mappaColori = {};
         utentiSnap.forEach(uDoc => {
@@ -181,7 +172,6 @@ async function caricaImpegniMese() {
             });
         });
 
-        // 3. Render delle celle nella griglia
         giorniGriglia.forEach(itemGiorno => {
             const d = itemGiorno.dataObj;
             const yyyy = d.getFullYear();
@@ -199,19 +189,16 @@ async function caricaImpegniMese() {
             let htmlImpegni = "";
             impegniDelGiorno.forEach(item => {
                 const creatoreGreco = item.creatore || 'Anonimo';
-                const creatoreFormatted = capitalizza(creatoreGreco);
                 const coloreBase = mappaColori[creatoreGreco.toLowerCase()] || "#2563eb";
                 const coloreSfondoAlpha = hexToRgba(coloreBase, 0.25);
 
+                // Mostriamo solo il titolo e il cestino per la massima pulizia visiva
                 htmlImpegni += `
-                    <div class="impegno-mini-card" style="background-color: ${coloreSfondoAlpha}; border-left-color: ${coloreBase};">
-                        <div class="impegno-mini-header">
-                            <span class="impegno-titolo" title="${item.titolo}">${item.titolo}</span>
-                            <button class="btn-delete" data-id="${item.id}" title="Elimina">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <div class="impegno-orari">${item.oraInizio || '--:--'}</div>
+                    <div class="impegno-mini-card" style="background-color: ${coloreSfondoAlpha}; border-left-color: ${coloreBase};" title="${item.titolo} (${item.oraInizio || '--:--'})">
+                        <span class="impegno-titolo">${item.titolo}</span>
+                        <button class="btn-delete" data-id="${item.id}" title="Elimina">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                 `;
             });
@@ -231,7 +218,6 @@ async function caricaImpegniMese() {
             container.appendChild(cell);
         });
 
-        // Gestione eliminazione impegni
         const deleteButtons = container.querySelectorAll(".btn-delete");
         deleteButtons.forEach(btn => {
             btn.addEventListener("click", async (e) => {
