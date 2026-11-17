@@ -192,7 +192,7 @@ async function caricaImpegniMese() {
                 const coloreBase = mappaColori[creatoreGreco.toLowerCase()] || "#2563eb";
                 const coloreSfondoAlpha = hexToRgba(coloreBase, 0.25);
 
-                // Mostriamo solo il titolo e il cestino per la massima pulizia visiva
+                // Stile barra piena con colore utente e titolo pulito
                 htmlImpegni += `
                     <div class="impegno-mini-card" style="background-color: ${coloreSfondoAlpha}; border-left-color: ${coloreBase};" title="${item.titolo} (${item.oraInizio || '--:--'})">
                         <span class="impegno-titolo">${item.titolo}</span>
