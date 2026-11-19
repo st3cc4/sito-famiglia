@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (valInizio) {
                 const [ore, minuti] = valInizio.split(':').map(Number);
                 let nuoveOre = ore + 1;
-                if (nuoveOre >= 24) nuoveOre = 0; // Gestione cambio giornata
+                if (nuoveOre >= 24) nuoveOre = 0;
                 const oreStr = String(nuoveOre).padStart(2, '0');
                 const minutiStr = String(minuti).padStart(2, '0');
                 oraFineInput.value = `${oreStr}:${minutiStr}`;
@@ -160,7 +160,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             try {
                 if (idEdit) {
-                    // Aggiornamento impegno esistente
                     await updateDoc(doc(db, "impegni", idEdit), {
                         titolo,
                         data,
@@ -168,7 +167,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                         oraFine
                     });
                 } else {
-                    // Creazione nuovo impegno
                     await addDoc(collection(db, "impegni"), {
                         titolo,
                         data,
@@ -287,17 +285,18 @@ async function caricaImpegniMese() {
 
             const cell = document.createElement("div");
             cell.className = `calendar-cell ${!itemGiorno.isCurrentMonth ? 'other-month' : ''} ${isDomenica ? 'domenica' : ''}`;
+            cell.setAttribute("onclick", `window.apriModaleConData('${dataIso}')`);
 
             let htmlImpegni = "";
             impegniDelGiorno.forEach(item => {
                 const creatoreGreco = item.creatore || 'Anonimo';
                 const coloreBase = mappaColori[creatoreGreco.toLowerCase()] || "#2563eb";
                 const coloreSfondoAlpha = hexToRgba(coloreBase, 0.25);
-                
+
                 const itemSerialized = encodeURIComponent(JSON.stringify(item));
 
                 htmlImpegni += `
-                    <div class="impegno-mini-card" style="background-color: ${coloreSfondoAlpha}; border-left-color: ${coloreBase};" onclick="window.apriDettaglioImpegno('${itemSerialized}')" title="${item.titolo}">
+                    <div class="impegno-mini-card" style="background-color: ${coloreSfondoAlpha}; border-left-color: ${coloreBase};" onclick="event.stopPropagation(); window.apriDettaglioImpegno('${itemSerialized}')" title="${item.titolo}">
                         <span class="impegno-titolo">${item.titolo}</span>
                     </div>
                 `;
@@ -306,9 +305,6 @@ async function caricaImpegniMese() {
             cell.innerHTML = `
                 <div class="cell-header ${isDomenica ? 'domenica-text' : ''}">
                     <span>${d.getDate()}</span>
-                    <button class="btn-aggiungi-giorno" onclick="window.apriModaleConData('${dataIso}')" title="Aggiungi impegno">
-                        <i class="fas fa-plus"></i>
-                    </button>
                 </div>
                 <div class="cell-impegni-list">
                     ${htmlImpegni}
