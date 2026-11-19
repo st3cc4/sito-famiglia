@@ -47,6 +47,11 @@ function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
+function escapeAttr(str) {
+    if (!str) return '';
+    return String(str).replace(/"/g, '&quot;');
+}
+
 function renderStelleMini(punteggio) {
     const voto = Number(punteggio) || 0;
     if (voto <= 0) return '';
@@ -279,8 +284,9 @@ function apriModaleDettaglioRicetta(r) {
                     </div>
                 </div>
 
-                <div class="modal-footer" style="display: flex; justify-content: flex-end; align-items: center;">
+                <div class="modal-footer" style="display: flex; justify-content: flex-end; align-items: center; gap: 8px;">
                     <button type="button" class="btn-modal cancel" id="btn-chiudi-modal">Chiudi</button>
+                    <button type="button" class="btn-modal save" id="btn-modifica-ricetta"><i class="fa-solid fa-pen"></i> Modifica</button>
                 </div>
             </div>
         </div>
@@ -324,27 +330,37 @@ function apriModaleDettaglioRicetta(r) {
 
     document.getElementById('btn-close-view').addEventListener('click', () => modalEl.remove());
     document.getElementById('btn-chiudi-modal').addEventListener('click', () => modalEl.remove());
+    document.getElementById('btn-modifica-ricetta').addEventListener('click', () => {
+        modalEl.remove();
+        apriModaleFormRicetta(r);
+    });
 }
 
-function apriModaleFormRicetta() {
+function apriModaleFormRicetta(ricettaDaModificare = null) {
+    const isModifica = Boolean(ricettaDaModificare && ricettaDaModificare.id);
     const savedUser = localStorage.getItem('sitoFamiglia_user') || 'Utente';
     const modalId = 'modal-form-ricetta';
     const prev = document.getElementById(modalId);
     if (prev) prev.remove();
 
-    const optionsCatHtml = categorieEsistenti.map(c => `<option value="${c}">${c}</option>`).join('') + `<option value="__NUOVA__">+ Aggiungi nuova categoria...</option>`;
+    const categoriaIniziale = isModifica ? capitalize(ricettaDaModificare.categoria || 'Generale') : categorieEsistenti[0];
+    const titoloIniziale = isModifica ? (ricettaDaModificare.titolo || ricettaDaModificare.nome || '') : '';
+
+    const optionsCatHtml = categorieEsistenti.map(c => `
+        <option value="${escapeAttr(c)}" ${c === categoriaIniziale ? 'selected' : ''}>${c}</option>
+    `).join('') + `<option value="__NUOVA__">+ Aggiungi nuova categoria...</option>`;
 
     const html = `
         <div class="modal-overlay" id="${modalId}">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3>Nuova Ricetta</h3>
+                    <h3>${isModifica ? 'Modifica Ricetta' : 'Nuova Ricetta'}</h3>
                     <button class="btn-close-modal" id="btn-close-form">&times;</button>
                 </div>
                 <form id="form-ricetta">
                     <div class="form-group">
                         <label for="ric-titolo">Titolo Ricetta</label>
-                        <input type="text" id="ric-titolo" required placeholder="Es. Torta di mele">
+                        <input type="text" id="ric-titolo" required placeholder="Es. Torta di mele" value="${escapeAttr(titoloIniziale)}">
                     </div>
                     <div class="form-group">
                         <label for="ric-cat-select">Categoria</label>
@@ -379,7 +395,7 @@ function apriModaleFormRicetta() {
 
                     <div class="modal-footer" style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 6px;">
                         <button type="button" class="btn-modal cancel" id="btn-cancel-ricetta">Annulla</button>
-                        <button type="submit" class="btn-modal save" id="btn-save-ricetta">Salva Ricetta</button>
+                        <button type="submit" class="btn-modal save" id="btn-save-ricetta">${isModifica ? 'Salva Modifiche' : 'Salva Ricetta'}</button>
                     </div>
                 </form>
             </div>
@@ -411,8 +427,8 @@ function apriModaleFormRicetta() {
         const row = document.createElement('div');
         row.style.cssText = 'display: flex; gap: 6px; align-items: center; width: 100%;';
         row.innerHTML = `
-            <input type="text" class="ing-nome" placeholder="Ingrediente" value="${nomeVal}" style="flex: 2; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
-            <input type="text" class="ing-quantita" placeholder="Qtà" value="${quantitaVal}" style="flex: 1; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
+            <input type="text" class="ing-nome" placeholder="Ingrediente" value="${escapeAttr(nomeVal)}" style="flex: 2; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
+            <input type="text" class="ing-quantita" placeholder="Qtà" value="${escapeAttr(quantitaVal)}" style="flex: 1; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
             <button type="button" class="btn-rimuovi-riga" style="background: none; border: none; color: #dc3545; cursor: pointer; padding: 4px; font-size: 0.85rem;"><i class="fa-solid fa-trash"></i></button>
         `;
         row.querySelector('.btn-rimuovi-riga').addEventListener('click', () => row.remove());
@@ -423,16 +439,46 @@ function apriModaleFormRicetta() {
         const row = document.createElement('div');
         row.style.cssText = 'display: flex; gap: 6px; align-items: center; width: 100%;';
         row.innerHTML = `
-            <input type="text" class="proc-testo" placeholder="Passaggio..." value="${testoVal}" style="flex: 1; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
+            <input type="text" class="proc-testo" placeholder="Passaggio..." value="${escapeAttr(testoVal)}" style="flex: 1; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
             <button type="button" class="btn-rimuovi-riga" style="background: none; border: none; color: #dc3545; cursor: pointer; padding: 4px; font-size: 0.85rem;"><i class="fa-solid fa-trash"></i></button>
         `;
         row.querySelector('.btn-rimuovi-riga').addEventListener('click', () => row.remove());
         containerProc.appendChild(row);
     }
 
-    for (let i = 0; i < 2; i++) {
-        aggiungiRigaIngrediente();
-        aggiungiRigaProcedimento();
+    if (isModifica) {
+        const ingEsistenti = ricettaDaModificare.listaIngredienti || ricettaDaModificare.ingredienti || [];
+        if (Array.isArray(ingEsistenti) && ingEsistenti.length > 0) {
+            ingEsistenti.forEach(item => {
+                if (typeof item === 'object' && item !== null) {
+                    aggiungiRigaIngrediente(item.nome || '', item.quantita || '');
+                } else {
+                    aggiungiRigaIngrediente(String(item), '');
+                }
+            });
+        } else {
+            aggiungiRigaIngrediente();
+        }
+
+        const procEsistente = ricettaDaModificare.procedimento || ricettaDaModificare.listaPassaggi || [];
+        if (Array.isArray(procEsistente) && procEsistente.length > 0) {
+            procEsistente.forEach(step => {
+                const testoPulito = String(step).replace(/^\s*\d+[\.\)\-:]?\s*/, '');
+                aggiungiRigaProcedimento(testoPulito);
+            });
+        } else if (typeof procEsistente === 'string' && procEsistente.trim() !== '') {
+            procEsistente.split(/\r?\n/).map(r => r.trim()).filter(Boolean).forEach(riga => {
+                const testoPulito = riga.replace(/^\s*\d+[\.\)\-:]?\s*/, '');
+                aggiungiRigaProcedimento(testoPulito);
+            });
+        } else {
+            aggiungiRigaProcedimento();
+        }
+    } else {
+        for (let i = 0; i < 2; i++) {
+            aggiungiRigaIngrediente();
+            aggiungiRigaProcedimento();
+        }
     }
 
     document.getElementById('btn-aggiungi-ingrediente-riga').addEventListener('click', () => aggiungiRigaIngrediente());
@@ -471,15 +517,24 @@ function apriModaleFormRicetta() {
         }
 
         try {
-            await addDoc(collection(db, "ricette"), {
-                titolo,
-                categoria,
-                listaIngredienti,
-                procedimento,
-                valutazione: 0,
-                creatore: savedUser,
-                creatoIl: new Date().toISOString()
-            });
+            if (isModifica) {
+                await updateDoc(doc(db, "ricette", ricettaDaModificare.id), {
+                    titolo,
+                    categoria,
+                    listaIngredienti,
+                    procedimento
+                });
+            } else {
+                await addDoc(collection(db, "ricette"), {
+                    titolo,
+                    categoria,
+                    listaIngredienti,
+                    procedimento,
+                    valutazione: 0,
+                    creatore: savedUser,
+                    creatoIl: new Date().toISOString()
+                });
+            }
 
             chiudi();
             const container = document.getElementById('ricette-content-root') || document.getElementById('content-area');
