@@ -1,6 +1,6 @@
 import { db } from "../firebase-config.js";
 import { 
-    collection, getDocs, addDoc, doc, deleteDoc 
+    collection, getDocs, addDoc, updateDoc, doc, deleteDoc 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let utentiCollezioni = {};
@@ -45,6 +45,12 @@ function hexToRgba(hex, alpha = 0.22) {
 function capitalize(str) {
     if (!str) return '';
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+function renderStelleMini(punteggio) {
+    const voto = Number(punteggio) || 0;
+    if (voto <= 0) return '';
+    return `<span style="color: #f59e0b; font-size: 0.72rem; letter-spacing: 1px;" title="Valutazione: ${voto}/5">${'★'.repeat(voto)}${'☆'.repeat(5 - voto)}</span>`;
 }
 
 async function caricaEDisegnaRicette(container) {
@@ -141,20 +147,22 @@ function renderGrigliaRicette() {
         const categoria = capitalize(r.categoria || 'Generale');
         const coloreUtente = utentiCollezioni[creatoreRaw.toLowerCase()] || '#2563eb';
         const bgTrasparente = hexToRgba(coloreUtente, 0.22);
+        const stelleMini = renderStelleMini(r.valutazione);
 
         return `
             <div class="ricetta-card" data-id="${r.id}" style="background-color: ${bgTrasparente}; border-left: 4px solid ${coloreUtente};">
                 <div class="ricetta-card-header" style="display: flex; justify-content: space-between; align-items: center;">
                     <div style="display: flex; align-items: center; gap: 6px;">
                         <span class="ricetta-badge">${categoria}</span>
-                        <span style="font-size: 0.72rem; color: #475569; font-weight: 600;">(${creatoreFormatted})</span>
+                        <span style="font-size: 0.76rem; color: #475569; font-weight: 600;">(${creatoreFormatted})</span>
                     </div>
                     <button class="btn-delete-ricetta" title="Elimina" data-id="${r.id}">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </div>
-                <div class="ricetta-card-body" style="padding: 4px 0 0 0;">
-                    <h3 class="ricetta-titolo" style="margin: 0; font-size: 0.95rem; color: #1e293b;">${titolo}</h3>
+                <div class="ricetta-card-body" style="padding: 4px 0 0 0; display: flex; flex-direction: column; gap: 2px;">
+                    <h3 class="ricetta-titolo" style="margin: 0; font-size: 0.96rem; color: #1e293b;">${titolo}</h3>
+                    ${stelleMini ? `<div>${stelleMini}</div>` : ''}
                 </div>
             </div>
         `;
@@ -187,6 +195,12 @@ function renderGrigliaRicette() {
     });
 }
 
+function formattaStepConNumeroGrassetto(step, indice) {
+    const numero = indice + 1;
+    const testoPulito = String(step).replace(/^\s*\d+[\.\)\-:]?\s*/, '');
+    return `<li><strong class="procedimento-step-num">${numero}.</strong> ${testoPulito}</li>`;
+}
+
 function apriModaleDettaglioRicetta(r) {
     const modalId = 'modal-view-ricetta';
     const prev = document.getElementById(modalId);
@@ -195,28 +209,32 @@ function apriModaleDettaglioRicetta(r) {
     const titolo = r.titolo || r.nome || 'Senza titolo';
     const categoria = capitalize(r.categoria || 'Generale');
     const creatoreFormatted = capitalize(r.creatore || 'Utente');
+    let punteggioCorrente = Number(r.valutazione) || 0;
 
-    let ingredientiHtml = '<p style="color: #64748b; font-style: italic;">Nessun ingrediente specificato</p>';
+    let ingredientiHtml = '<p style="color: #64748b; font-style: italic; font-size: 1rem;">Nessun ingrediente specificato</p>';
     const ingData = r.listaIngredienti || r.ingredienti;
     if (Array.isArray(ingData) && ingData.length > 0) {
-        ingredientiHtml = `<ul style="margin: 0; padding-left: 20px; line-height: 1.6;">` + ingData.map(item => {
+        ingredientiHtml = `<ul class="ingredienti-lista-dettaglio">` + ingData.map(item => {
             if (typeof item === 'object' && item !== null) {
                 const nome = item.nome || '';
-                const quantita = item.quantita ? `(${item.quantita})` : '';
+                const quantita = item.quantita ? `<strong>(${item.quantita})</strong>` : '';
                 return `<li><strong>${nome}</strong> ${quantita}</li>`;
             }
             return `<li>${item}</li>`;
         }).join('') + `</ul>`;
     }
 
-    let procedimentoHtml = '<p style="color: #64748b; font-style: italic;">Nessun procedimento specificato</p>';
+    let procedimentoHtml = '<p style="color: #64748b; font-style: italic; font-size: 1rem;">Nessun procedimento specificato</p>';
     const procData = r.procedimento || r.listaPassaggi;
     if (Array.isArray(procData) && procData.length > 0) {
-        procedimentoHtml = `<ol style="margin: 0; padding-left: 20px; line-height: 1.6;">` + procData.map(step => {
-            return `<li style="margin-bottom: 6px;">${step}</li>`;
+        procedimentoHtml = `<ol class="procedimento-lista-numerata">` + procData.map((step, idx) => {
+            return formattaStepConNumeroGrassetto(step, idx);
         }).join('') + `</ol>`;
     } else if (typeof procData === 'string' && procData.trim() !== '') {
-        procedimentoHtml = `<p style="white-space: pre-line;">${procData}</p>`;
+        const righe = procData.split(/\r?\n/).map(riga => riga.trim()).filter(Boolean);
+        procedimentoHtml = `<ol class="procedimento-lista-numerata">` + righe.map((riga, idx) => {
+            return formattaStepConNumeroGrassetto(riga, idx);
+        }).join('') + `</ol>`;
     }
 
     const html = `
@@ -225,24 +243,42 @@ function apriModaleDettaglioRicetta(r) {
                 <div class="modal-header">
                     <div>
                         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-                            <span class="ricetta-badge">${categoria}</span>
-                            <span style="font-size: 0.8rem; color: #475569; font-weight: 600;">(${creatoreFormatted})</span>
+                            <span class="ricetta-badge" style="font-size: 0.75rem;">${categoria}</span>
+                            <span style="font-size: 0.88rem; color: #475569; font-weight: 600;">(${creatoreFormatted})</span>
                         </div>
-                        <h2 style="margin: 0; font-size: 1.3rem; color: #1e293b;">${titolo}</h2>
+                        <h2 style="margin: 0; font-size: 1.4rem; color: #1e293b;">${titolo}</h2>
                     </div>
                     <button class="btn-close-modal" id="btn-close-view">&times;</button>
                 </div>
-                <div class="modal-body" style="margin: 15px 0; max-height: 65vh; overflow-y: auto;">
-                    <h4 style="margin: 0 0 8px 0; color: #1e293b; font-weight: 700; font-size: 1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Ingredienti</h4>
-                    <div style="background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+
+                <div class="modal-body" style="margin: 14px 0; max-height: 62vh; overflow-y: auto;">
+                    <h4 style="margin: 0 0 8px 0; color: #1e293b; font-weight: 700; font-size: 1.08rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Ingredienti</h4>
+                    <div style="background: #f8fafc; padding: 14px; border-radius: 8px; margin-bottom: 18px;">
                         ${ingredientiHtml}
                     </div>
                     
-                    <h4 style="margin: 0 0 8px 0; color: #1e293b; font-weight: 700; font-size: 1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Procedimento</h4>
-                    <div style="background: #f8fafc; padding: 12px; border-radius: 8px;">
+                    <h4 style="margin: 0 0 8px 0; color: #1e293b; font-weight: 700; font-size: 1.08rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">Procedimento</h4>
+                    <div style="background: #f8fafc; padding: 14px; border-radius: 8px;">
                         ${procedimentoHtml}
                     </div>
+
+                    <div class="rating-box">
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.95rem; color: #1e293b;">Punteggio ricetta</div>
+                            <div id="rating-label-text" style="font-size: 0.82rem; color: #64748b;">
+                                ${punteggioCorrente > 0 ? `Valutata ${punteggioCorrente} su 5 stelle` : 'Tocca una stella per votare'}
+                            </div>
+                        </div>
+                        <div class="rating-stars" id="rating-stars-container" role="group" aria-label="Valutazione da 1 a 5 stelle">
+                            ${[1, 2, 3, 4, 5].map(num => `
+                                <button type="button" class="rating-star-btn ${num <= punteggioCorrente ? 'active' : ''}" data-value="${num}" title="${num} stelle">
+                                    <i class="fa-solid fa-star"></i>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
                 </div>
+
                 <div class="modal-footer" style="display: flex; justify-content: flex-end; align-items: center;">
                     <button type="button" class="btn-modal cancel" id="btn-chiudi-modal">Chiudi</button>
                 </div>
@@ -252,6 +288,40 @@ function apriModaleDettaglioRicetta(r) {
 
     document.body.insertAdjacentHTML('beforeend', html);
     const modalEl = document.getElementById(modalId);
+
+    const aggiornaStelleVisive = (nuovoVoto) => {
+        punteggioCorrente = nuovoVoto;
+        modalEl.querySelectorAll('.rating-star-btn').forEach(btn => {
+            const val = Number(btn.getAttribute('data-value'));
+            btn.classList.toggle('active', val <= nuovoVoto);
+        });
+        const labelEl = document.getElementById('rating-label-text');
+        if (labelEl) {
+            labelEl.textContent = nuovoVoto > 0 ? `Valutata ${nuovoVoto} su 5 stelle` : 'Tocca una stella per votare';
+        }
+    };
+
+    modalEl.querySelectorAll('.rating-star-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const votoScelto = Number(btn.getAttribute('data-value'));
+            const votoFinale = (votoScelto === punteggioCorrente) ? 0 : votoScelto;
+            aggiornaStelleVisive(votoFinale);
+
+            try {
+                await updateDoc(doc(db, "ricette", r.id), {
+                    valutazione: votoFinale
+                });
+                r.valutazione = votoFinale;
+                const ricettaInLista = listaRicette.find(item => item.id === r.id);
+                if (ricettaInLista) ricettaInLista.valutazione = votoFinale;
+                renderGrigliaRicette();
+            } catch (err) {
+                console.error("Errore salvataggio punteggio ricetta:", err);
+                alert("Impossibile salvare il punteggio.");
+            }
+        });
+    });
+
     document.getElementById('btn-close-view').addEventListener('click', () => modalEl.remove());
     document.getElementById('btn-chiudi-modal').addEventListener('click', () => modalEl.remove());
 }
@@ -288,21 +358,21 @@ function apriModaleFormRicetta() {
                     </div>
 
                     <div class="form-group" style="margin-top: 10px;">
-                        <label style="font-weight: 700; color: #1e293b; font-size: 0.85rem; margin-bottom: 2px; display: block;">Ingredienti</label>
+                        <label style="font-weight: 700; color: #1e293b; font-size: 0.88rem; margin-bottom: 2px; display: block;">Ingredienti</label>
                         <div id="container-ingredienti-dinamici" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px;">
                             <!-- Generato via JS -->
                         </div>
-                        <button type="button" id="btn-aggiungi-ingrediente-riga" style="background: none; border: none; color: #2563eb; font-weight: 600; cursor: pointer; padding: 0; text-align: left; font-size: 0.78rem;">
+                        <button type="button" id="btn-aggiungi-ingrediente-riga" style="background: none; border: none; color: #2563eb; font-weight: 600; cursor: pointer; padding: 0; text-align: left; font-size: 0.82rem;">
                             + Aggiungi ingrediente
                         </button>
                     </div>
 
                     <div class="form-group" style="margin-top: 10px;">
-                        <label style="font-weight: 700; color: #1e293b; font-size: 0.85rem; margin-bottom: 2px; display: block;">Procedimento</label>
+                        <label style="font-weight: 700; color: #1e293b; font-size: 0.88rem; margin-bottom: 2px; display: block;">Procedimento</label>
                         <div id="container-procedimento-dinamico" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px;">
                             <!-- Generato via JS -->
                         </div>
-                        <button type="button" id="btn-aggiungi-proc-riga" style="background: none; border: none; color: #2563eb; font-weight: 600; cursor: pointer; padding: 0; text-align: left; font-size: 0.78rem;">
+                        <button type="button" id="btn-aggiungi-proc-riga" style="background: none; border: none; color: #2563eb; font-weight: 600; cursor: pointer; padding: 0; text-align: left; font-size: 0.82rem;">
                             + Aggiungi passaggio
                         </button>
                     </div>
@@ -341,9 +411,9 @@ function apriModaleFormRicetta() {
         const row = document.createElement('div');
         row.style.cssText = 'display: flex; gap: 6px; align-items: center; width: 100%;';
         row.innerHTML = `
-            <input type="text" class="ing-nome" placeholder="Ingrediente" value="${nomeVal}" style="flex: 2; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem;">
-            <input type="text" class="ing-quantita" placeholder="Qtà" value="${quantitaVal}" style="flex: 1; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem;">
-            <button type="button" class="btn-rimuovi-riga" style="background: none; border: none; color: #dc3545; cursor: pointer; padding: 4px; font-size: 0.8rem;"><i class="fa-solid fa-trash"></i></button>
+            <input type="text" class="ing-nome" placeholder="Ingrediente" value="${nomeVal}" style="flex: 2; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
+            <input type="text" class="ing-quantita" placeholder="Qtà" value="${quantitaVal}" style="flex: 1; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
+            <button type="button" class="btn-rimuovi-riga" style="background: none; border: none; color: #dc3545; cursor: pointer; padding: 4px; font-size: 0.85rem;"><i class="fa-solid fa-trash"></i></button>
         `;
         row.querySelector('.btn-rimuovi-riga').addEventListener('click', () => row.remove());
         containerIng.appendChild(row);
@@ -353,8 +423,8 @@ function apriModaleFormRicetta() {
         const row = document.createElement('div');
         row.style.cssText = 'display: flex; gap: 6px; align-items: center; width: 100%;';
         row.innerHTML = `
-            <input type="text" class="proc-testo" placeholder="Passaggio..." value="${testoVal}" style="flex: 1; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.8rem;">
-            <button type="button" class="btn-rimuovi-riga" style="background: none; border: none; color: #dc3545; cursor: pointer; padding: 4px; font-size: 0.8rem;"><i class="fa-solid fa-trash"></i></button>
+            <input type="text" class="proc-testo" placeholder="Passaggio..." value="${testoVal}" style="flex: 1; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem;">
+            <button type="button" class="btn-rimuovi-riga" style="background: none; border: none; color: #dc3545; cursor: pointer; padding: 4px; font-size: 0.85rem;"><i class="fa-solid fa-trash"></i></button>
         `;
         row.querySelector('.btn-rimuovi-riga').addEventListener('click', () => row.remove());
         containerProc.appendChild(row);
@@ -406,6 +476,7 @@ function apriModaleFormRicetta() {
                 categoria,
                 listaIngredienti,
                 procedimento,
+                valutazione: 0,
                 creatore: savedUser,
                 creatoIl: new Date().toISOString()
             });
