@@ -97,9 +97,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (open && item) {
                 impegnoSelezionatoCorrente = item;
                 document.getElementById("det-titolo").textContent = item.titolo || "-";
+                document.getElementById("det-autore-inline").textContent = `(${capitalizza(item.creatore || 'Famiglia')})`;
                 document.getElementById("det-data").textContent = formattaDataEuropea(item.data);
                 document.getElementById("det-orario").textContent = `${item.oraInizio || '--:--'} - ${item.oraFine || '--:--'}`;
-                document.getElementById("det-autore").textContent = capitalizza(item.creatore || 'Famiglia');
                 modalDet.classList.add("active");
             } else {
                 modalDet.classList.remove("active");
