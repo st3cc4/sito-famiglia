@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (open && item) {
                 impegnoSelezionatoCorrente = item;
                 document.getElementById("det-titolo").textContent = item.titolo || "-";
-                document.getElementById("det-data").textContent = item.data || "-";
+                document.getElementById("det-data").textContent = formattaDataEuropea(item.data);
                 document.getElementById("det-orario").textContent = `${item.oraInizio || '--:--'} - ${item.oraFine || '--:--'}`;
                 document.getElementById("det-autore").textContent = capitalizza(item.creatore || 'Famiglia');
                 modalDet.classList.add("active");
@@ -195,6 +195,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 });
+
+// Converte "YYYY-MM-DD" in formato europeo "DD/MM/YYYY"
+function formattaDataEuropea(dataIso) {
+    if (!dataIso) return "-";
+    const parti = dataIso.split("-");
+    if (parti.length !== 3) return dataIso;
+    const [yyyy, mm, dd] = parti;
+    return `${dd}/${mm}/${yyyy}`;
+}
 
 // Rileva se il dispositivo è iOS (iPhone / iPad / iPod)
 function isDispositivoIOS() {
