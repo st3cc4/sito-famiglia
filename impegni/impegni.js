@@ -90,6 +90,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const chiudiDetBtn = document.getElementById("det-btn-chiudi");
     const eliminaDetBtn = document.getElementById("det-btn-elimina");
     const modificaDetBtn = document.getElementById("det-btn-modifica");
+    const calendarioDetBtn = document.getElementById("det-btn-calendario");
 
     function toggleModalDet(open, item = null) {
         if (modalDet) {
@@ -118,6 +119,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (closeDetBtn) closeDetBtn.addEventListener("click", () => toggleModalDet(false));
     if (chiudiDetBtn) chiudiDetBtn.addEventListener("click", () => toggleModalDet(false));
+
+    // Pulsante "Salva sul calendario" (rileva automaticamente iOS vs Google Calendar)
+    if (calendarioDetBtn) {
+        calendarioDetBtn.addEventListener("click", () => {
+            if (!impegnoSelezionatoCorrente) return;
+            salvaSuCalendarioPersonale(impegnoSelezionatoCorrente);
+        });
+    }
 
     // Tasto Elimina da Dettaglio
     if (eliminaDetBtn) {
@@ -186,6 +195,80 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 });
+
+// Rileva se il dispositivo è iOS (iPhone / iPad / iPod)
+function isDispositivoIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
+// Converte data ("YYYY-MM-DD") e ora ("HH:MM") in formato locale YYYYMMDDTHHMMSS
+function formattaDataOraLocale(dataIso, oraStr) {
+    const [yyyy, mm, dd] = (dataIso || "2026-01-01").split("-");
+    const [hh, min] = (oraStr || "09:00").split(":");
+    return `${yyyy}${mm}${dd}T${String(hh).padStart(2, '0')}${String(min).padStart(2, '0')}00`;
+}
+
+// Scarica/apre un file .ics per Calendario Apple (iPhone/iPad)
+function esportaFileICS(item) {
+    const startLocal = formattaDataOraLocale(item.data, item.oraInizio || "09:00");
+    const endLocal = formattaDataOraLocale(item.data, item.oraFine || item.oraInizio || "10:00");
+    const uid = `${item.id || Date.now()}@sitofamiglia.local`;
+    const dtstamp = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+    const descrizione = `Creato da: ${capitalizza(item.creatore || "Famiglia")}`;
+
+    const icsContent = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//Sito Famiglia//Impegni//IT",
+        "BEGIN:VEVENT",
+        `UID:${uid}`,
+        `DTSTAMP:${dtstamp}`,
+        `DTSTART:${startLocal}`,
+        `DTEND:${endLocal}`,
+        `SUMMARY:${item.titolo || "Impegno"}`,
+        `DESCRIPTION:${descrizione}`,
+        "END:VEVENT",
+        "END:VCALENDAR"
+    ].join("\r\n");
+
+    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${(item.titolo || "impegno").toLowerCase().replace(/[^a-z0-9]+/g, "-")}.ics`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// Apre il link rapido di Google Calendar per Android / PC
+function apriGoogleCalendar(item) {
+    const startLocal = formattaDataOraLocale(item.data, item.oraInizio || "09:00");
+    const endLocal = formattaDataOraLocale(item.data, item.oraFine || item.oraInizio || "10:00");
+
+    const params = new URLSearchParams({
+        action: "TEMPLATE",
+        text: item.titolo || "Impegno",
+        dates: `${startLocal}/${endLocal}`,
+        details: `Creato da: ${capitalizza(item.creatore || "Famiglia")}`
+    });
+
+    window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, "_blank", "noopener,noreferrer");
+}
+
+function salvaSuCalendarioPersonale(item) {
+    if (!item.data) {
+        alert("Impossibile esportare: data mancante.");
+        return;
+    }
+
+    if (isDispositivoIOS()) {
+        esportaFileICS(item);
+    } else {
+        apriGoogleCalendar(item);
+    }
+}
 
 function capitalizza(str) {
     if (!str) return '';
