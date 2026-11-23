@@ -41,7 +41,7 @@ html, body {
     border: none;
     padding: 6px 11px;
     border-radius: 6px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: background 0.2s;
     display: flex;
@@ -194,13 +194,19 @@ html, body {
     z-index: 1000;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.25s ease;
     padding: 12px;
 }
 
 .modal-overlay.active {
     opacity: 1;
     pointer-events: auto;
+}
+
+/* Quando la tastiera è aperta su mobile, allinea in alto e lascia spazio per scorrere */
+.modal-overlay.keyboard-open {
+    align-items: flex-start;
+    padding-top: 8px;
 }
 
 .modal-content {
@@ -211,11 +217,18 @@ html, body {
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     overflow: hidden;
     transform: translateY(-20px);
-    transition: transform 0.3s ease;
+    transition: transform 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
 }
 
 .modal-overlay.active .modal-content {
     transform: translateY(0);
+}
+
+.modal-overlay.keyboard-open .modal-content {
+    max-height: calc(var(--keyboard-height, 60vh) - 16px);
 }
 
 .modal-header {
@@ -226,6 +239,12 @@ html, body {
     justify-content: space-between;
     align-items: center;
     font-size: 1.05rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.modal-header h3 {
+    font-weight: 700;
 }
 
 .modal-close {
@@ -233,6 +252,7 @@ html, body {
     color: white;
     border: none;
     font-size: 1.4rem;
+    font-weight: 700;
     cursor: pointer;
 }
 
@@ -241,6 +261,7 @@ html, body {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    overflow-y: auto;
 }
 
 .impegno-form-modal {
@@ -262,9 +283,9 @@ html, body {
 }
 
 .input-group label {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #475569;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1e293b;
 }
 
 .input-group input {
@@ -272,6 +293,13 @@ html, body {
     border: 1px solid #cbd5e1;
     border-radius: 6px;
     font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.input-group input::placeholder {
+    font-weight: 600;
+    color: #94a3b8;
 }
 
 .input-group input:focus {
@@ -284,6 +312,7 @@ html, body {
     justify-content: flex-end;
     gap: 8px;
     margin-top: 8px;
+    flex-shrink: 0;
 }
 
 .btn-primary {
@@ -292,7 +321,7 @@ html, body {
     border: none;
     padding: 9px 16px;
     border-radius: 8px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: background 0.2s;
     font-size: 0.9rem;
@@ -304,11 +333,11 @@ html, body {
 
 .btn-secondary {
     background-color: #e2e8f0;
-    color: #475569;
+    color: #1e293b;
     border: none;
     padding: 9px 14px;
     border-radius: 8px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: background 0.2s;
     font-size: 0.9rem;
@@ -316,6 +345,10 @@ html, body {
 
 .btn-secondary:hover {
     background-color: #cbd5e1;
+}
+
+.btn-danger {
+    font-weight: 700;
 }
 
 .btn-danger:hover {
