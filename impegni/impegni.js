@@ -4,9 +4,45 @@ import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "https://
 let currentDate = new Date();
 let impegnoSelezionatoCorrente = null;
 
+function gestisciAdattamentoTastiera() {
+    const overlays = document.querySelectorAll(".modal-overlay.active");
+    if (!overlays.length) return;
+
+    const vv = window.visualViewport;
+    let tastieraAperta = false;
+    let altezzaVisibile = window.innerHeight;
+
+    if (vv) {
+        altezzaVisibile = vv.height;
+        tastieraAperta = (window.innerHeight - vv.height) > 120;
+    }
+
+    overlays.forEach(overlay => {
+        if (tastieraAperta) {
+            overlay.classList.add("keyboard-open");
+            overlay.style.setProperty("--keyboard-height", `${altezzaVisibile}px`);
+            overlay.style.height = `${altezzaVisibile}px`;
+            if (vv) {
+                overlay.style.top = `${vv.offsetTop}px`;
+            }
+        } else {
+            overlay.classList.remove("keyboard-open");
+            overlay.style.removeProperty("--keyboard-height");
+            overlay.style.height = "";
+            overlay.style.top = "";
+        }
+    });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     currentDate.setDate(1);
     await caricaImpegniMese();
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", gestisciAdattamentoTastiera);
+        window.visualViewport.addEventListener("scroll", gestisciAdattamentoTastiera);
+    }
+    window.addEventListener("resize", gestisciAdattamentoTastiera);
 
     const prevBtn = document.getElementById("prev-week-btn");
     const nextBtn = document.getElementById("next-week-btn");
@@ -33,6 +69,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const oraInizioInput = document.getElementById("oraInizio");
     const oraFineInput = document.getElementById("oraFine");
 
+    // Quando si tocca un input del form, assicuriamoci che resti visibile sopra la tastiera
+    if (formImpegno) {
+        formImpegno.querySelectorAll("input").forEach(inp => {
+            inp.addEventListener("focus", () => {
+                setTimeout(() => {
+                    gestisciAdattamentoTastiera();
+                    inp.scrollIntoView({ behavior: "smooth", block: "center" });
+                }, 220);
+            });
+        });
+    }
+
     // Autocompilazione Ora Fine (+1 ora rispetto a Ora Inizio)
     if (oraInizioInput && oraFineInput) {
         oraInizioInput.addEventListener("change", () => {
@@ -55,6 +103,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             if (open) {
                 modalForm.classList.add("active");
+                gestisciAdattamentoTastiera();
                 if (impegnoEdit) {
                     titoloModal.textContent = "Modifica Impegno";
                     idEditInput.value = impegnoEdit.id;
@@ -73,6 +122,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             } else {
                 modalForm.classList.remove("active");
+                modalForm.classList.remove("keyboard-open");
+                modalForm.style.height = "";
+                modalForm.style.top = "";
                 formImpegno.reset();
                 idEditInput.value = "";
             }
@@ -101,8 +153,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                 document.getElementById("det-data").textContent = formattaDataEuropea(item.data);
                 document.getElementById("det-orario").textContent = `${item.oraInizio || '--:--'} - ${item.oraFine || '--:--'}`;
                 modalDet.classList.add("active");
+                gestisciAdattamentoTastiera();
             } else {
                 modalDet.classList.remove("active");
+                modalDet.classList.remove("keyboard-open");
+                modalDet.style.height = "";
+                modalDet.style.top = "";
                 impegnoSelezionatoCorrente = null;
             }
         }
