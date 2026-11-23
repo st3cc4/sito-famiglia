@@ -9,7 +9,7 @@ html, body {
     height: 100%;
     background-color: #f8fafc;
     color: #1e293b;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
 }
 
 .main-container {
@@ -39,7 +39,7 @@ html, body {
     background-color: #2563eb;
     color: white;
     border: none;
-    padding: 5px 10px;
+    padding: 6px 11px;
     border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
@@ -47,7 +47,7 @@ html, body {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
 }
 
 .btn-nav-week:hover {
@@ -55,7 +55,7 @@ html, body {
 }
 
 .week-label {
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     font-weight: 700;
     letter-spacing: 0.5px;
     text-transform: capitalize;
@@ -65,7 +65,7 @@ html, body {
 .days-container {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    grid-template-rows: 24px repeat(6, 1fr);
+    grid-template-rows: 26px repeat(6, 1fr);
     gap: 3px;
     background: #e2e8f0;
     padding: 3px;
@@ -79,7 +79,7 @@ html, body {
     background: #1e293b;
     color: white;
     font-weight: 700;
-    font-size: 0.72rem;
+    font-size: 0.82rem;
     text-align: center;
     display: flex;
     align-items: center;
@@ -131,7 +131,7 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 0.88rem;
+    font-size: 1rem;
     font-weight: 700;
     color: #334155;
     border-bottom: 1px solid #f1f5f9;
@@ -154,9 +154,9 @@ html, body {
 }
 
 .impegno-mini-card {
-    padding: 3px 6px;
+    padding: 4px 6px;
     border-radius: 4px;
-    font-size: 0.7rem;
+    font-size: 0.78rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -206,7 +206,7 @@ html, body {
 .modal-content {
     background: white;
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     overflow: hidden;
@@ -221,18 +221,18 @@ html, body {
 .modal-header {
     background-color: #0f172a;
     color: white;
-    padding: 12px 16px;
+    padding: 13px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.95rem;
+    font-size: 1.05rem;
 }
 
 .modal-close {
     background: transparent;
     color: white;
     border: none;
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     cursor: pointer;
 }
 
@@ -262,16 +262,16 @@ html, body {
 }
 
 .input-group label {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: #475569;
 }
 
 .input-group input {
-    padding: 8px;
+    padding: 9px;
     border: 1px solid #cbd5e1;
     border-radius: 6px;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
 }
 
 .input-group input:focus {
@@ -290,12 +290,12 @@ html, body {
     background-color: #2563eb;
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: 9px 16px;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
 }
 
 .btn-primary:hover {
@@ -306,12 +306,12 @@ html, body {
     background-color: #e2e8f0;
     color: #475569;
     border: none;
-    padding: 8px 14px;
+    padding: 9px 14px;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
 }
 
 .btn-secondary:hover {
